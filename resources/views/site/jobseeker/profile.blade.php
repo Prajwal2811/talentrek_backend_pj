@@ -1,12 +1,15 @@
 <?php
 $user = Auth()->user();
-$edu = $user->educationDetail;
-$work = $user->workExperience;
-$skills = $user->skills;
-echo "<pre>";
-print_r($edu);exit;
-echo "</pre>";
+$edu = $user->educations;         
+$work = $user->experience;       
+// $skills = $user->skills;
+$skills = $user->skills->first();
+
+// echo "<pre>";
+// print_r($edu);
+// exit;
 ?>
+
 
 @include('site.componants.header')
 <body>
@@ -40,9 +43,9 @@ echo "</pre>";
                     <div class="flex gap-4">
                         <img src="https://randomuser.me/api/portraits/men/1.jpg" class="h-20 w-20 rounded-md" alt="Profile" />
                         <div class="mt-1">
-                        <h2 class="text-xl font-semibold">{{$data->name}}</h2>
-                        <p class="text-sm text-gray-600">{{$data->email}}</p>
-                        <p class="text-sm text-gray-600">{{$data->phone_number}}</p>
+                        <h2 class="text-xl font-semibold">{{$jobseekerSkills->name}}</h2>
+                        <p class="text-sm text-gray-600">{{$jobseekerSkills->email}}</p>
+                        <p class="text-sm text-gray-600">{{$jobseekerSkills->phone_number}}</p>
                         </div>
                     </div>
                     <form action="{{ route('jobseeker.logout') }}" method="POST">
@@ -309,78 +312,216 @@ echo "</pre>";
                                     </div>
                                 </div>
                             </form>
-                            
                             <!-- Educational Details -->
-                            <form action="{{ route('jobseeker.education.update') }}" method="POST">
+                            <form method="POST" action="{{ route('jobseeker.education.update') }}">
+                                @csrf    
+                                <div x-show="profileTab === 'education'" x-cloak class="space-y-4">
+                                    @php
+                                        $educations = old('high_education') ? [] : $edu;
+                                        $educationCount = count(old('high_education', $educations ?? [null]));
+                                    @endphp
+                                    <!-- Container -->
+                                    <div id="education-container" class="col-span-2 grid grid-cols-2 gap-4">
+                                        @for ($i = 0; $i < $educationCount; $i++)
+                                            @php
+                                                $data = old("high_education.$i") ? null : ($educations[$i] ?? null);
+                                            @endphp
+
+                                            <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+
+                                                <!-- Hidden ID if existing -->
+                                                @if ($data && isset($data->id))
+                                                    <input type="hidden" name="education_id[]" value="{{ $data->id }}">
+                                                @endif
+
+                                                <!-- Highest Qualification -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
+                                                    <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
+                                                        <option value="">Select highest qualification</option>
+                                                        @foreach(['high_school'=>'High School','diploma'=>'Diploma','bachelor'=>"Bachelor's Degree",'master'=>"Master's Degree",'phd'=>'Ph.D.'] as $val => $label)
+                                                            <option value="{{ $val }}"
+                                                                {{ old("high_education.$i", $data->high_education ?? '') == $val ? 'selected' : '' }}>
+                                                                {{ $label }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error("high_education.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Field of Study -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study</label>
+                                                    <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
+                                                        <option value="">Select field of study</option>
+                                                        @foreach(['engineering','science','commerce','arts','medicine','law','education','management','other'] as $val)
+                                                            <option value="{{ $val }}"
+                                                                {{ old("field_of_study.$i", $data->field_of_study ?? '') == $val ? 'selected' : '' }}>
+                                                                {{ ucfirst($val) }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error("field_of_study.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Institution -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name</label>
+                                                    <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2"
+                                                        value="{{ old("institution.$i", $data->institution ?? '') }}" placeholder="Enter institution name" />
+                                                    @error("institution.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Graduation Year -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year</label>
+                                                    <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
+                                                        <option value="">Select year of passing</option>
+                                                        @foreach(range(date('Y'), 2010) as $year)
+                                                            <option value="{{ $year }}"
+                                                                {{ old("graduate_year.$i", $data->graduate_year ?? '') == $year ? 'selected' : '' }}>
+                                                                {{ $year }}
+                                                            </option>
+                                                        @endforeach
+                                                        <option value="2010-2014" {{ old("graduate_year.$i", $data->graduate_year ?? '') == '2010-2014' ? 'selected' : '' }}>2010-2014</option>
+                                                        <option value="before_2010" {{ old("graduate_year.$i", $data->graduate_year ?? '') == 'before_2010' ? 'selected' : '' }}>Before 2010</option>
+                                                    </select>
+                                                    @error("graduate_year.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                                <!-- Remove Button -->
+                                                <button type="button" class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                    style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                            </div>
+                                        @endfor
+                                    </div>
+                                    <!-- Button to Add More -->
+                                    <div class="col-span-2">
+                                        <button type="button" id="add-education" class="text-green-600 text-sm">Add education +</button>
+                                    </div>
+                                    <div class="md:col-span-2 flex justify-end gap-4 mt-4">
+                                        <button 
+                                            type="button"
+                                            class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                                            @click="nextTab"
+                                            x-show="profileTab !== 'additional'"
+                                        >
+                                            Next
+                                        </button>
+                                        <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
+                                    </div>
+                                </div>
+                            </form>
+  
+                            <!-- Work Experience Details -->
+                            <form method="POST" action="{{ route('jobseeker.workexprience.update') }}">
                                 @csrf
-                                <div x-show="profileTab === 'education'" x-cloak class="grid grid-cols-1 md:grid-cols-2 gap-4" x-data="yearSelect" x-init="init()">
 
-                                    <!-- Highest Qualification -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Highest Qualification</label>
-                                        <select class="w-full border rounded px-3 py-2" name="high_education">
-                                            <option value="">Select Qualification</option>
-                                            @foreach(['High School', 'Diploma', "Bachelor's", "Master's", 'PhD', 'Other'] as $qualification)
-                                                <option value="{{ $qualification }}"
-                                                    {{ old('high_education', $edu->high_education ?? '') == $qualification ? 'selected' : '' }}>
-                                                    {{ $qualification }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('high_education')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
+                                <div x-show="profileTab === 'work'" x-cloak class="space-y-4">
+                                    @php
+                                        $experiences = old('job_role') ? [] : $work;
+                                        $experienceCount = count(old('job_role', $experiences ?? [null]));
+                                    @endphp
+
+                                    <!-- Container -->
+                                    <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
+                                        @for ($i = 0; $i < $experienceCount; $i++)
+                                            @php $data = old("job_role.$i") ? null : ($experiences[$i] ?? null); @endphp
+
+                                            <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+                                                @if ($data && isset($data->id))
+                                                    <input type="hidden" name="work_id[]" value="{{ $data->id }}">
+                                                @endif
+
+                                                <!-- Job Role -->
+                                                <div>
+                                                    <label class="block text-sm font-medium mb-1">Job Role</label>
+                                                    <input type="text" name="job_role[]" class="w-full border rounded px-3 py-2"
+                                                        value="{{ old("job_role.$i", $data->job_role ?? '') }}" placeholder="Enter Job Role" />
+                                                    @error("job_role.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Organization -->
+                                                <div>
+                                                    <label class="block text-sm font-medium mb-1">Organization</label>
+                                                    <input type="text" name="organization[]" class="w-full border rounded px-3 py-2"
+                                                        value="{{ old("organization.$i", $data->organization ?? '') }}" placeholder="Enter Organization" />
+                                                    @error("organization.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                               <!-- Starts From -->
+                                                <div>
+                                                    <label class="block text-sm font-medium mb-1">Started From</label>
+                                                    <input type="text" 
+                                                        id="starts_from_{{ $i }}" 
+                                                        name="starts_from[]" 
+                                                        class="w-full border rounded px-3 py-2 datepicker-start" 
+                                                        value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" />
+                                                    @error("starts_from.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Ends To -->
+                                               @php
+                                                    $isWorking = old('currently_working') 
+                                                        ? in_array($i, old('currently_working', [])) 
+                                                        : (isset($data->end_to) && $data->end_to === 'Work here');
+                                                @endphp
+
+                                                <div x-data="{ working: '{{ $isWorking ? 'true' : 'false' }}' == 'true' }">
+
+                                                    <label class="block text-sm font-medium mb-1">To</label>
+                                                    <input type="text" 
+                                                        id="end_to_{{ $i }}" 
+                                                        name="end_to[]" 
+                                                        class="w-full border rounded px-3 py-2 mb-2 datepicker-end"
+                                                        x-bind:disabled="working"
+                                                        :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
+
+
+                                                    <label class="inline-flex items-center space-x-2 mt-2">
+                                                        <input type="checkbox" name="currently_working[]" value="{{ $i }}"
+                                                        x-model="working"
+                                                        {{ old("currently_working") ? (in_array($i, old("currently_working", [])) ? 'checked' : '') : (isset($data->end_to) && $data->end_to === 'Work here' ? 'checked' : '') }} />
+
+                                                        <span>I currently work here</span>
+                                                    </label>
+                                                    @error("end_to.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+
+
+                                                <!-- Remove Button -->
+                                                <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                    style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                            </div>
+                                        @endfor
                                     </div>
 
-                                    <!-- Field of Study -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Field of Study</label>
-                                        <select class="w-full border rounded px-3 py-2" name="field_of_study">
-                                            <option value="">Select Field</option>
-                                            @foreach(['Engineering', 'Computer Science', 'Business', 'Medicine', 'Arts', 'Law', 'Other'] as $field)
-                                                <option value="{{ $field }}"
-                                                    {{ old('field_of_study', $edu->field_of_study ?? '') == $field ? 'selected' : '' }}>
-                                                    {{ $field }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('field_of_study')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
+                                    <!-- Add Button -->
+                                    <div class="col-span-2">
+                                        <button type="button" id="add-work" class="text-green-600 text-sm">+ Add Experience</button>
                                     </div>
 
-                                    <!-- Institution Name -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Institution Name</label>
-                                        <input type="text" name="institution" placeholder="Enter Institution Name"
-                                            class="w-full border rounded px-3 py-2"
-                                            value="{{ old('institution', $edu->institution ?? '') }}">
-                                        @error('institution')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror    
-                                    </div>
-
-                                    <!-- Graduation Year -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Graduation Year</label>
-                                        <select class="w-full border rounded px-3 py-2" name="graduate_year">
-                                            <option value="">Select Year</option>
-                                            @foreach(['2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2010-2014', 'Before 2010'] as $year)
-                                                <option value="{{ $year }}"
-                                                    {{ old('graduate_year', $edu->graduate_year ?? '') == $year ? 'selected' : '' }}>
-                                                    {{ $year }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('graduate_year')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Buttons -->
-                                    <div class="flex justify-end gap-4 mt-6 md:col-span-2 w-full px-3 py-2 ">
-                                        <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                @click="nextTab" x-show="profileTab !== 'additional'">
+                                    <!-- Submit Buttons -->
+                                    <div class="md:col-span-2 flex justify-end gap-4 mt-4">
+                                        <button type="button"
+                                            class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            @click="nextTab"
+                                            x-show="profileTab !== 'additional'">
                                             Next
                                         </button>
                                         <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">
@@ -389,88 +530,6 @@ echo "</pre>";
                                     </div>
                                 </div>
                             </form>
-  
-
-
-                            <!-- Work Experience -->
-                            <form action="{{ route('jobseeker.workexprience.update') }}" method="POST">
-                                @csrf
-                                <div x-show="profileTab === 'work'" x-cloak x-data="workExperience()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                    <!-- Job Role -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Job Role</label>
-                                        <input type="text" placeholder="Enter Job Role" name="job_role" class="w-full border rounded px-3 py-2"
-                                            value="{{ old('job_role', $work->job_role ?? '') }}" />
-                                        @error('job_role')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror    
-                                    </div>
-
-                                    <!-- Organization -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Organization</label>
-                                        <input type="text" name="organization" placeholder="Enter Organization Name"
-                                            class="w-full border rounded px-3 py-2"
-                                            value="{{ old('organization', $work->organization ?? '') }}" />
-                                        @error('organization')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror      
-                                    </div>
-
-                                    <!-- Started From -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Started From</label>
-                                        <input  name="starts_from" id="starts_from" class="w-full border rounded px-3 py-2"
-                                            value="{{ old('starts_from', $work->starts_from ?? '') }}" />
-                                        @error('starts_from')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror        
-                                    </div>
-
-                                    <!-- To + Checkbox -->
-                                    <div x-data="{ currentlyWorking: '{{ $work->end_to ?? '' }}' === 'Work here' }">
-                                        <label class="block text-sm font-medium mb-1">To</label>
-                                        <input 
-                                            
-                                            class="w-full border rounded px-3 py-2 mb-2" 
-                                            name="end_to"
-                                            id="end_to"
-                                            :disabled="currentlyWorking"
-                                            :value="currentlyWorking ? '' : '{{ old('end_to', $work->end_to !== 'Work here' ? $work->end_to : '') }}'"
-                                        />
-
-                                        @error('end_to')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror     
-
-                                        <label class="inline-flex items-center space-x-2 mt-3">
-                                            <input 
-                                                type="checkbox" 
-                                                x-model="currentlyWorking" 
-                                                name="currently_working" 
-                                                value="1" 
-                                                :checked="currentlyWorking"
-                                            />
-                                            <span>I currently work here</span>
-                                        </label>
-                                    </div>
-
-
-
-                                    <!-- Buttons -->
-                                    <div class="flex justify-end gap-4 mt-6 md:col-span-2 w-full px-3 py-2 ">
-                                        <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                @click="nextTab" x-show="profileTab !== 'additional'">
-                                            Next
-                                        </button>
-                                        <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">
-                                            Save
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>  
-
 
                             <!-- Skills & Training -->
                             <form action="{{ route('jobseeker.skill.update') }}" method="POST">
@@ -1155,13 +1214,8 @@ echo "</pre>";
             autoclose: true,
             todayHighlight: true
         });
-        $('#starts_from').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
-         $('#end_to').datepicker({
+        
+        $('.datepicker-start, .datepicker-end').datepicker({
             format: 'yyyy-mm-dd',
             endDate: new Date(),
             autoclose: true,
@@ -1170,6 +1224,98 @@ echo "</pre>";
     });
 </script>
 
+<script>
+    const educationContainer = document.getElementById('education-container');
+    const addEducationBtn = document.getElementById('add-education');
+
+    addEducationBtn.addEventListener('click', () => {
+        const firstEntry = educationContainer.querySelector('.education-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear inputs and selects
+        clone.querySelectorAll('input').forEach(input => {
+            if (input.type === 'hidden') input.remove();
+            else input.value = '';
+        });
+
+        clone.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0;
+        });
+
+        // Remove errors
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+
+        // Show remove button
+        clone.querySelector('.remove-education').style.display = 'block';
+
+        educationContainer.appendChild(clone);
+    });
+
+    educationContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-education')) {
+            const entry = e.target.closest('.education-entry');
+            entry.remove();
+        }
+    });
+</script>
+<script>
+    let workIndex = document.querySelectorAll('.work-entry').length;
+
+    const workContainer = document.getElementById('work-container');
+    const addWorkBtn = document.getElementById('add-work');
+
+    addWorkBtn.addEventListener('click', () => {
+        const firstEntry = workContainer.querySelector('.work-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear input values
+        clone.querySelectorAll('input').forEach((input) => {
+            input.value = '';
+
+            // Update IDs for date fields
+            if (input.id.includes('starts_from')) {
+                input.id = `starts_from_${workIndex}`;
+            }
+
+            if (input.id.includes('end_to')) {
+                input.id = `end_to_${workIndex}`;
+            }
+        });
+
+        // Clear validation errors
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+
+        // Show remove button
+        clone.querySelector('.remove-work').style.display = 'block';
+
+        // Append cloned entry
+        workContainer.appendChild(clone);
+
+        // Re-initialize datepickers
+        $(`#starts_from_${workIndex}`).datepicker({
+            format: 'yyyy-mm-dd',
+            endDate: new Date(),
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        $(`#end_to_${workIndex}`).datepicker({
+            format: 'yyyy-mm-dd',
+            endDate: new Date(),
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        workIndex++;
+    });
+
+    workContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-work')) {
+            const entry = e.target.closest('.work-entry');
+            entry.remove();
+        }
+    });
+</script>
 
 
 
