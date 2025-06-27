@@ -10,32 +10,39 @@
             @include('admin.componants.sidebar')
             <div id="main-content">
                 <div class="container-fluid">
+                    @include('admin.errors')
                     <div class="block-header">
                         <div class="row clearfix">
                             <div class="col-xl-5 col-md-5 col-sm-12">
                                 <h1>Hi, {{  Auth()->user()->name }}!</h1>
-                                <span>JustDo Recruiter's Jobseekers Management,</span>
-                            </div>
-                            <div class="col-xl-7 col-md-7 col-sm-12 text-md-right">
-                                <!-- Optional action buttons -->
+                                <span>JustDo Jobseeker's Management,</span>
                             </div>
                         </div>
                     </div>
-
                  <div class="row clearfix">
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="header d-flex justify-content-between align-items-center mb-3">
                                 <h2>Jobseeker Management</h2>
-                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#assignAdminModal">
+                                @php
+                                    $admin = Auth::guard('admin')->user();
+                                @endphp
+
+                                <button 
+                                    @if (Auth()->user()->role === 'admin') 
+                                        style="display: none;" 
+                                    @endif 
+                                    class="btn btn-sm btn-info" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#assignAdminModal">
                                     Assign Admin
                                 </button>
-                            </div>
 
+                            </div>
                             <!-- Assign Admin Modal -->
                             <div class="modal fade" id="assignAdminModal" tabindex="-1" aria-labelledby="assignAdminModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
-                                    <form id="assignAdminForm" method="POST" action="">
+                                    <form id="assignAdminForm" method="POST" action="{{ route('admin.jobseeker.assignAdmin') }}">
                                         @csrf
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -74,7 +81,11 @@
                                     <table class="table table-striped table-hover dataTable js-exportable">
                                         <thead>
                                             <tr>
-                                                <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+                                                <th @if (Auth()->user()->role === 'admin') 
+                                                        style="display: none;" 
+                                                    @endif >
+                                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                                                </th>
                                                 <th>Sr. No.</th>
                                                 <th>Full Name</th>
                                                 <th>Email</th>
@@ -86,7 +97,10 @@
                                         </thead>
                                         <tfoot>
                                             <tr>
-                                                <th></th>
+                                                <th @if (Auth()->user()->role === 'admin') 
+                                                        style="display: none;" 
+                                                    @endif >
+                                                </th>
                                                 <th>Sr. No.</th>
                                                 <th>Full Name</th>
                                                 <th>Email</th>
@@ -99,11 +113,13 @@
                                         <tbody>
                                             @foreach($jobseekers->unique('id') as $index => $jobseeker)
                                             <tr>
-                                                <td>
+                                                <td @if(Auth()->user()->role === 'admin') style="display: none;" @endif >
                                                     <input type="checkbox" class="row-checkbox"
                                                         data-id="{{ $jobseeker->id }}"
-                                                        data-name="{{ $jobseeker->name }}">
+                                                        data-name="{{ $jobseeker->name }}"
+                                                        @if ($jobseeker->assigned_admin) checked disabled @endif>
                                                 </td>
+
                                                 <td>{{ $index + 1 }}</td>
                                                 <td>{{ $jobseeker->name }}</td>
                                                 <td>{{ $jobseeker->email }}</td>
@@ -111,12 +127,99 @@
                                                 <td>
                                                     <label class="switch">
                                                         <input type="checkbox"
-                                                            id="statusCheckbox_{{ $jobseeker->id }}"
                                                             {{ $jobseeker->status === 'active' ? 'checked' : '' }}
-                                                            onchange="toggleStatus(this, {{ $jobseeker->id }})">
+                                                            onchange="toggleStatus(this)"
+                                                            data-jobseeker-id="{{ $jobseeker->id }}">
                                                         <span class="slider round"></span>
                                                     </label>
                                                 </td>
+
+                                                <!-- Inactive Reason Modal -->
+                                                <div class="modal fade" id="inactiveReasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Reason for Inactivation</h5>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <textarea required id="inactive-reason-input" class="form-control" rows="3" placeholder="Enter reason here..."></textarea>
+                                                                <div class="invalid-feedback">Reason is required.</div>
+                                                                <input type="hidden" id="modal-jobseeker-id">
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" onclick="cancelStatusChange()">Cancel</button>
+                                                                <button type="button" class="btn btn-primary" onclick="submitInactiveReason()">Submit</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                                                <script>
+                                                    let currentCheckbox = null;
+                                                    let modalInstance = new bootstrap.Modal(document.getElementById('inactiveReasonModal'));
+
+                                                    function toggleStatus(checkbox) {
+                                                        const jobseekerId = $(checkbox).data('jobseeker-id');
+                                                        const isChecked = checkbox.checked;
+
+                                                        if (!isChecked) {
+                                                            currentCheckbox = checkbox;
+                                                            $('#modal-jobseeker-id').val(jobseekerId);
+                                                            $('#inactive-reason-input').val('');
+                                                            modalInstance.show();
+                                                        } else {
+                                                            sendStatusUpdate(jobseekerId, 'active');
+                                                        }
+                                                    }
+
+                                                    function cancelStatusChange() {
+                                                        if (currentCheckbox) currentCheckbox.checked = true;
+                                                        modalInstance.hide();
+                                                    }
+
+                                                    function submitInactiveReason() {
+                                                        const jobseekerId = $('#modal-jobseeker-id').val();
+                                                        const reasonInput = $('#inactive-reason-input');
+                                                        const reason = reasonInput.val().trim();
+
+                                                        if (!reason) {
+                                                            reasonInput.addClass('is-invalid');
+                                                            return;
+                                                        }
+
+                                                        reasonInput.removeClass('is-invalid');
+                                                        modalInstance.hide();
+                                                        sendStatusUpdate(jobseekerId, 'inactive', reason);
+                                                    }
+
+
+                                                    function sendStatusUpdate(jobseekerId, status, reason = null) {
+                                                        $.ajax({
+                                                            url: '{{ route('admin.jobseeker.changeStatus') }}',
+                                                            method: 'POST',
+                                                            data: {
+                                                                _token: '{{ csrf_token() }}',
+                                                                jobseeker_id: jobseekerId,
+                                                                status: status,
+                                                                reason: reason
+                                                            },
+                                                            success: function(response) {
+                                                                $('#success-message').text(response.message).fadeIn();
+                                                                $('#error-message').fadeOut();
+                                                                setTimeout(() => $('#success-message').fadeOut(), 3000);
+                                                            },
+                                                            error: function() {
+                                                                $('#error-message').text('An error occurred. Please try again.').fadeIn();
+                                                                $('#success-message').fadeOut();
+                                                                setTimeout(() => $('#error-message').fadeOut(), 3000);
+                                                            }
+                                                        });
+                                                    }
+                                                </script>
+
+
+
                                                 <td>{{ \Carbon\Carbon::parse($jobseeker->created_at)->format('Y/m/d') }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.jobseeker.view', $jobseeker->id) }}" class="btn btn-sm btn-primary">View</a>

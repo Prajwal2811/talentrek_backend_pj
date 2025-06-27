@@ -15,6 +15,7 @@ class Jobseekers extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'assigned_admin',
         'name',
         'email',
         'gender',
@@ -27,6 +28,8 @@ class Jobseekers extends Model
         'pass',
         'role',
         'otp',
+        'status',
+        'inactive_reason',
     ];
 
     /**
@@ -46,16 +49,19 @@ class Jobseekers extends Model
 
     public function educations()
     {
-        return $this->hasMany(EducationDetails::class);
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'jobseeker');
     }
 
-    public function experience()
+    public function experiences()
     {
-        return $this->hasMany(WorkExperience::class);
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'jobseeker');
     }
 
     public function skills()
     {
-        return $this->hasMany(Skills::class);
+        return $this->hasMany(Skills::class, 'jobseeker_id');
     }
+
 }
