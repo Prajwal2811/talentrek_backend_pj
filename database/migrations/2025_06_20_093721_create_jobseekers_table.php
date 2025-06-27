@@ -15,6 +15,7 @@ return new class extends Migration
     {
          Schema::create('jobseekers', function (Blueprint $table) {
             $table->id(); // Primary key
+            $table->string('assigned_admin')->nullable();
             $table->string('name');
             $table->string('email')->unique();
             $table->string('gender')->nullable();
@@ -27,6 +28,8 @@ return new class extends Migration
             $table->string('pass');
             $table->string('role')->nullable();             // optional role field
             $table->string('otp')->nullable();            
+            $table->string('status')->nullable();            
+            $table->text('inactive_reason')->nullable()->after('status');         
             $table->timestamps();
         });
     }

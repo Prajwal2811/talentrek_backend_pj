@@ -36,9 +36,10 @@
                                                     <th>Sr. No.</th>
                                                     <th>Full Name</th>
                                                     <th>Email</th>
-                                                    <th>Status</th>
+                                                    {{-- <th>Status</th> --}}
                                                     <th>Created Date</th>
                                                     <th>Actions</th>
+                                                    <th>Assign jobseekers</th>
                                                 </tr>
                                             </thead>
                                             <tfoot>
@@ -46,9 +47,10 @@
                                                     <th>Sr. No.</th>
                                                     <th>Full Name</th>
                                                     <th>Email</th>
-                                                    <th>Status</th>
+                                                    {{-- <th>Status</th> --}}
                                                     <th>Created Date</th>
                                                     <th>Actions</th>
+                                                    <th>Assign jobseekers</th>
                                                 </tr>
                                             </tfoot>
                                             <tbody>
@@ -57,7 +59,7 @@
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $admin->name }}</td>
                                                         <td>{{ $admin->email }}</td>
-                                                        <td>
+                                                        {{-- <td>
                                                             <label class="switch">
                                                                 <input type="checkbox"
                                                                     {{ $admin->status === 'active' ? 'checked' : '' }}
@@ -65,7 +67,7 @@
                                                                     data-admin-id="{{ $admin->id }}">
                                                                 <span class="slider round"></span>
                                                             </label>
-                                                        </td>
+                                                        </td> --}}
 
                                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                                         <script>
@@ -139,6 +141,109 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </td>
+                                                        <td>
+                                                            <!-- Button trigger modal -->
+                                                            <!-- Button to trigger modal -->
+                                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#jobseekerModal{{ $admin->id }}">
+                                                                View Jobseekers
+                                                            </button>
+
+                                                            <!-- Modal -->
+                                                          <div class="modal fade" id="jobseekerModal{{ $admin->id }}" tabindex="-1" aria-labelledby="jobseekerModalLabel{{ $admin->id }}" aria-hidden="true">
+                                                            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title" id="jobseekerModalLabel{{ $admin->id }}">Jobseekers List</h5>
+                                                                    </div>
+
+                                                                    @php
+                                                                        $jobseekers = App\Models\Jobseekers::where('assigned_admin', $admin->id)->orderBy('id','desc')->get();
+                                                                    @endphp
+
+                                                                    <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                                                                        <!-- Success message placeholder -->
+                                                                        <div id="jobseeker-success-msg-{{ $admin->id }}" class="alert alert-success d-none"></div>
+
+                                                                        @if($jobseekers->isNotEmpty())
+                                                                            <table class="table table-bordered">
+                                                                                <thead class="table-light">
+                                                                                    <tr>
+                                                                                        <th>#</th>
+                                                                                        <th>Name</th>
+                                                                                        <th>Email</th>
+                                                                                        <th>Action</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    @foreach($jobseekers as $index => $jobseeker)
+                                                                                        <tr id="row-{{ $jobseeker->id }}">
+                                                                                            <td>{{ $index + 1 }}</td>
+                                                                                            <td>{{ $jobseeker->name }}</td>
+                                                                                            <td>{{ $jobseeker->email }}</td>
+                                                                                            <td>
+                                                                                                <button class="btn btn-danger btn-sm remove-jobseeker-btn" data-id="{{ $jobseeker->id }}" data-admin="{{ $admin->id }}">
+                                                                                                    Remove
+                                                                                                </button>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    @endforeach
+                                                                                </tbody>
+                                                                            </table>
+                                                                        @else
+                                                                            <p>No jobseekers found.</p>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    <!-- Modal Footer with Close Button -->
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+                                                            <!-- AJAX Script -->
+                                                            <script>
+                                                                $(document).on('click', '.remove-jobseeker-btn', function () {
+                                                                    const jobseekerId = $(this).data('id');
+                                                                    const adminId = $(this).data('admin'); // get admin id
+                                                                    const rowSelector = '#row-' + jobseekerId;
+                                                                    const messageSelector = '#jobseeker-success-msg-' + adminId;
+
+                                                                    $.ajax({
+                                                                        url: '{{ route("admin.jobseekers.unassign") }}',
+                                                                        method: 'POST',
+                                                                        data: {
+                                                                            _token: '{{ csrf_token() }}',
+                                                                            id: jobseekerId
+                                                                        },
+                                                                        success: function (response) {
+                                                                            if (response.success) {
+                                                                                $(rowSelector).remove();
+                                                                                $(messageSelector)
+                                                                                    .text('Jobseeker unassigned successfully.')
+                                                                                    .removeClass('d-none');
+
+                                                                                // Hide message after 3 seconds
+                                                                                setTimeout(() => {
+                                                                                    $(messageSelector).addClass('d-none');
+                                                                                }, 3000);
+                                                                            } else {
+                                                                                alert('Failed to unassign jobseeker.');
+                                                                            }
+                                                                        },
+                                                                        error: function () {
+                                                                            alert('An error occurred while unassigning jobseeker.');
+                                                                        }
+                                                                    });
+                                                                });
+                                                            </script>
+
+
+
                                                         </td>
                                                     </tr>
                                                 @endforeach

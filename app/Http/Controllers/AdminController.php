@@ -7,6 +7,7 @@ use Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use App\Models\Jobseekers;
+use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -109,7 +110,46 @@ class AdminController extends Controller
         ]);
     }
 
+
+
+    public function assignAdmin(Request $request)
+    {
+        // Validate incoming data
+        $validated = $request->validate([
+            'admin_id' => 'required|exists:admins,id',
+            'jobseeker_ids' => 'required|string',
+        ]);
+
+        $adminId = $validated['admin_id'];
+        $jobseekerIds = explode(',', $validated['jobseeker_ids']); // Convert comma-separated string to array
+
+        // Assign the admin to each selected jobseeker
+        foreach ($jobseekerIds as $jobseekerId) {
+            $jobseeker = Jobseekers::find($jobseekerId);
+            if ($jobseeker) {
+                $jobseeker->assigned_admin = $adminId; // assuming jobseeker has admin_id column
+                $jobseeker->save();
+            }
+        }
+        return redirect()->back()->with('success', 'Selected jobseekers have been assigned to the admin.');
+    }
     
+
+
+    public function unassign(Request $request)
+    {
+        $jobseeker = Jobseekers::find($request->id);
+
+        if ($jobseeker) {
+            $jobseeker->assigned_admin = null;
+            $jobseeker->save();
+
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false]);
+    }
+
     public function edit($id)
     {
         $admin = Admin::findOrFail($id);
@@ -136,13 +176,62 @@ class AdminController extends Controller
 
     public function jobseekers()
     {   
-       $jobseekers = Jobseekers::select('jobseekers.*')
-                                ->orderBy('id', 'desc')
-                                ->get();
-        $admins = Admin::select('*')->where('role', 'admin')->get();
-        // echo "<pre>"; print_r($jobseekers); die;
-        return view('admin.jobseeker.index', compact('jobseekers','admins'));
+        $admin = Auth::guard('admin')->user();
+        $adminId = $admin->id;
+        // If the user is a superadmin, show all jobseekers
+        if ($admin->role === 'superadmin') {
+            $jobseekers = Jobseekers::orderBy('id', 'desc')
+                                    ->get();
+        } else {
+            // Else show only jobseekers assigned to this admin
+            $jobseekers = Jobseekers::where('assigned_admin', $adminId)
+                                    ->orderBy('id', 'desc')
+                                    ->get();
+        }
+
+        $admins = Admin::where('role', 'admin')->get();
+
+        return view('admin.jobseeker.index', compact('jobseekers', 'admins'));
     }
 
+
+
+    public function jobseekerChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'jobseeker_id' => 'required|exists:jobseekers,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000' // optional, only needed if inactive
+        ]);
+
+        $user = Jobseekers::find($validated['jobseeker_id']);
+        $user->status = $validated['status'];
+
+        // Store reason only if status is inactive
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason']; // Ensure this DB column exists
+        } else {
+            $user->inactive_reason = null; // clear previous reason if reactivated
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Jobseeker status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+
+    public function jobseekerView($id)
+    {
+        $jobseeker = Jobseekers::findOrFail($id);
+        $educations = $jobseeker->educations()->orderBy('id', 'desc')->get();
+        $experiences = $jobseeker->experiences()->orderBy('id', 'desc')->get();
+        $skills = $jobseeker->skills()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','jobseeker')->get();
+        // print_r($additioninfos); die;    
+        return view('admin.jobseeker.view', compact('jobseeker', 'experiences', 'educations', 'skills','additioninfos'));
+    }
 
 }

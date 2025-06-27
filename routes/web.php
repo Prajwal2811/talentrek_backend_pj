@@ -217,14 +217,17 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::post('/admins/{id}', [App\Http\Controllers\AdminController::class, 'update'])->name('admin.update');
 		Route::delete('/admins/{id}/delete', [App\Http\Controllers\AdminController::class, 'destroy'])->name('admin.destroy');
 		Route::post('/admins/changeStatus', [App\Http\Controllers\AdminController::class, 'changeStatus'])->name('admin.changeStatus');
+		Route::post('/admins/jobseekers/unassign', [App\Http\Controllers\AdminController::class, 'unassign'])->name('admin.jobseekers.unassign');
+		
 
 
 		// JObseekers
 		Route::get('/jobseekers', [App\Http\Controllers\AdminController::class, 'jobseekers'])->name('admin.jobseekers');
 		Route::get('/jobseekers/{id}/view', [App\Http\Controllers\AdminController::class, 'jobseekerView'])->name('admin.jobseeker.view');
-		Route::post('/jobseekers/{id}', [App\Http\Controllers\AdminController::class, 'jobseekerUpdate'])->name('admin.jobseeker.update');
+		// Route::post('/jobseekers/{id}', [App\Http\Controllers\AdminController::class, 'jobseekerUpdate'])->name('admin.jobseeker.update');
 		Route::delete('/jobseekers/{id}/delete', [App\Http\Controllers\AdminController::class, 'jobseekerDestroy'])->name('admin.jobseeker.destroy');
 		Route::post('/jobseekers/changeStatus', [App\Http\Controllers\AdminController::class, 'jobseekerChangeStatus'])->name('admin.jobseeker.changeStatus');	
+		Route::post('/jobseekers/assignAdmin', [App\Http\Controllers\AdminController::class, 'assignAdmin'])->name('admin.jobseeker.assignAdmin');	
 
 
 

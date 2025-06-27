@@ -16,6 +16,7 @@ class Jobseekers extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'assigned_admin',
         'name',
         'email',
         'gender',
@@ -28,6 +29,8 @@ class Jobseekers extends Authenticatable
         'pass',
         'role',
         'otp',
+        'status',
+        'inactive_reason',
     ];
 
     /**
@@ -62,12 +65,15 @@ class Jobseekers extends Authenticatable
 
     public function educations()
     {
-        return $this->hasMany(EducationDetails::class, 'user_id');
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'jobseeker');
     }
 
-    public function experience()
+    public function experiences()
     {
-        return $this->hasMany(WorkExperience::class, 'user_id');
+
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'jobseeker');
     }
 
     public function skills()
