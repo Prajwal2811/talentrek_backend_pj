@@ -96,11 +96,27 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/verify-otp','site.jobseeker.verify-otp')->name('jobseeker.verify-otp');
 		Route::view('/reset-password','site.jobseeker.reset-password')->name('jobseeker.reset-password');
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
-		Route::post('/login',[App\Http\Controllers\JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
+		
+
+		Route::post('/registration', [App\Http\Controllers\JobseekerController::class, 'postRegistration'])->name('register.post'); 
+		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('registration.store');
+		Route::get('/jobseeker/sign-in', [App\Http\Controllers\JobseekerController::class, 'showSignInForm'])->name('signin.form');
+		
+		Route::post('/jobseeker/login', [App\Http\Controllers\JobseekerController::class, 'loginJobseeker'])->name('jobseeker.login.submit');
 	});
 	
 	Route::group(['middleware' => 'jobseeker.auth'], function(){
 		Route::get('/dashboard',[App\Http\Controllers\JobseekerController::class, 'dashboard'])->name('jobseeker.dashboard');
+
+		Route::post('/login',[App\Http\Controllers\JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
+		Route::get('/profile', [App\Http\Controllers\JobseekerController::class, 'showProfilePage'])->name('jobseeker.profile');
+		Route::get('/profile', [App\Http\Controllers\JobseekerController::class, 'getJobseekerAllDetails'])->name('jobseeker.profile');
+		Route::post('/logout',[App\Http\Controllers\JobseekerController::class, 'logoutJobseeker'])->name('jobseeker.logout');
+		Route::post('/profile/update-personal-info',[App\Http\Controllers\JobseekerController::class, 'updatePersonalInfo'])->name('jobseeker.profile.update');
+		Route::post('/profile/update-education-info',[App\Http\Controllers\JobseekerController::class, 'updateEducationInfo'])->name('jobseeker.education.update');
+		Route::post('/profile/update-work-exprience-info',[App\Http\Controllers\JobseekerController::class, 'updateWorkExprienceInfo'])->name('jobseeker.workexprience.update'); 
+
+		Route::post('/profile/update-skills-info',[App\Http\Controllers\JobseekerController::class, 'updateSkillsInfo'])->name('jobseeker.skill.update'); 
 	});
 });
 
