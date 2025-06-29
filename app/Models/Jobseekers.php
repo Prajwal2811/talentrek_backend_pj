@@ -30,6 +30,7 @@ class Jobseekers extends Model
         'otp',
         'status',
         'inactive_reason',
+        'admin_status'
     ];
 
     /**

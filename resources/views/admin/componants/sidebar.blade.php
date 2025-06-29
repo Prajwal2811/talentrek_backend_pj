@@ -53,6 +53,11 @@
                         <li><a href="{{ route('admin.coach') }}"><i class="fa fa-user-tie"></i><span>Coach</span></a></li>
                         <li><a href="{{ route('admin.mentors') }}"><i class="fa fa-users"></i><span>Mentors</span></a></li>
 
+
+                        <li class="header">System Log</li>
+                        <li><a href="{{ route('admin.activity.log') }}"><i class="fa fa-power-off"></i><span>Logs</span></a></li>
+
+                        <li class="header">Sign Out</li>
                         <li><a href="{{ route('admin.signOut') }}"><i class="fa fa-power-off"></i><span>Logout</span></a></li>
                     </ul>
                 </nav>

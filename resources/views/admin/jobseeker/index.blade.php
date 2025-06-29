@@ -91,8 +91,9 @@
                                                 <th>Email</th>
                                                 <th>Phone</th>
                                                 <th>Status</th>
+                                                <th>Admin Status</th>
                                                 <th>Registered Date</th>
-                                                <th>Actions</th>
+                                                <th class="sort-disable">Actions</th>
                                             </tr>
                                         </thead>
                                         <tfoot>
@@ -106,8 +107,9 @@
                                                 <th>Email</th>
                                                 <th>Phone</th>
                                                 <th>Status</th>
+                                                <th>Admin Status</th>
                                                 <th>Registered Date</th>
-                                                <th>Actions</th>
+                                                <th class="sort-disable">Actions</th>
                                             </tr>
                                         </tfoot>
                                         <tbody>
@@ -218,9 +220,22 @@
                                                     }
                                                 </script>
 
+                                                <td>
+                                                    @if($jobseeker->admin_status == 'approved')
+                                                        <span class="badge bg-success text-light">Admin Approved</span>
+                                                    @elseif($jobseeker->admin_status == 'rejected')
+                                                        <span class="badge bg-danger text-light">Admin Rejected</span>
+                                                    @elseif($jobseeker->admin_status == 'superadmin_rejected')
+                                                        <span class="badge bg-danger text-light">Super Admin Rejected</span>
+                                                    @elseif($jobseeker->admin_status == 'superadmin_approved')
+                                                        <span class="badge bg-success text-light">Super Admin Approved</span>
+                                                    @else
+                                                         <span class="badge bg-warning text-light">Pending</span>
+                                                    @endif
+                                                </td>
 
 
-                                                <td>{{ \Carbon\Carbon::parse($jobseeker->created_at)->format('Y/m/d') }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($jobseeker->created_at)->format('d/m/Y') }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.jobseeker.view', $jobseeker->id) }}" class="btn btn-sm btn-primary">View</a>
                                                     <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $jobseeker->id }})">Delete</button>

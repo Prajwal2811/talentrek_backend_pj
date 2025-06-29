@@ -49,7 +49,7 @@ class JobseekerController extends Controller
     }
 
 
-   public function signUp(Request $request)
+    public function signUp(Request $request)
     {
         try {
             // Validation
@@ -93,64 +93,72 @@ class JobseekerController extends Controller
 
 
 
-      public function registration(Request $request)
+    public function registration(Request $request)
     {
-        DB::beginTransaction(); // ✅ important!
+        DB::beginTransaction();
         try {
-            // Validate all fields including multiple education entries
+            // Check if jobseeker exists (based on email and mobile)
+            $jobseeker = Jobseekers::where('email', $request->email)
+                ->where('phone_number', $request->mobile)
+                ->first();
+
+            if (!$jobseeker) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Please complete signup before registration.'
+                ], 400);
+            }
+
+            // Validate registration fields
             $request->validate([
                 'name'         => 'required|string|max:255',
-                'email'        => 'required|email|unique:jobseekers,email',
                 'country_code' => 'required|string|max:5',
-                'mobile'       => 'required|string|regex:/^[0-9]{10}$/|unique:jobseekers,phone_number',
                 'gender'       => 'required|in:Male,Female,Other',
                 'date_of_birth'=> 'required|date|before:today',
                 'location'     => 'required|string|max:255',
                 'address'      => 'required|string|max:500',
                 'password'     => 'required|string|min:6|confirmed',
 
-                // Education validation
+                // Education
                 'education' => 'required|array|min:1',
                 'education.*.high_education' => 'required|string|max:255',
                 'education.*.field_of_study' => 'required|string|max:255',
                 'education.*.institution' => 'required|string|max:255',
                 'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
 
-                 // Work experience validation
+                // Experience
                 'experience' => 'nullable|array',
-                'experience.*.job_role'      => 'required|string|max:255',
-                'experience.*.organization'  => 'required|string|max:255',
-                'experience.*.start_date'    => 'required|date|before_or_equal:today',
-                'experience.*.end_date'      => 'nullable|date|after_or_equal:experience.*.start_date',
+                'experience.*.job_role' => 'required|string|max:255',
+                'experience.*.organization' => 'required|string|max:255',
+                'experience.*.start_date' => 'required|date|before_or_equal:today',
+                'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
 
-                // Skills validation
+                // Skills and links
                 'skills' => 'nullable|string',
                 'interest' => 'nullable|string',
                 'job_category' => 'nullable|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
 
-                // File uploads
-                'resume'          => 'required|file|mimes:pdf,doc,docx|max:2048',
+                // Files
+                'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-
             ]);
 
-            // Create jobseeker
-            $jobseeker = Jobseekers::create([
+            // Update the jobseeker basic info
+            $jobseeker->update([
                 'name'         => $request->name,
-                'email'        => $request->email,
                 'phone_code'   => $request->country_code,
-                'phone_number' => $request->mobile,
                 'gender'       => $request->gender,
                 'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
                 'password'     => Hash::make($request->password),
-                'pass'         => $request->password, // development only
+                'pass'         => $request->password,
+                'is_registered'=> true, // you should add this column to your table
             ]);
 
-            // Save each education entry only if jobseeker was created
+            // Save education
             foreach ($request->education as $edu) {
                 EducationDetails::create([
                     'user_id'         => $jobseeker->id,
@@ -162,18 +170,19 @@ class JobseekerController extends Controller
                 ]);
             }
 
-            // Save work experience
+            // Save experience
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
-                    'user_id'       => $jobseeker->id,
-                    'user_type'     => 'jobseeker',
-                    'job_role'      => $exp['job_role'],
-                    'organization'  => $exp['organization'],
-                    'starts_from'    => $exp['start_date'],
-                    'end_to'      => $exp['end_date']
+                    'user_id'      => $jobseeker->id,
+                    'user_type'    => 'jobseeker',
+                    'job_role'     => $exp['job_role'],
+                    'organization' => $exp['organization'],
+                    'starts_from'  => $exp['start_date'],
+                    'end_to'       => $exp['end_date']
                 ]);
             }
 
+            // Save skills and interests
             Skills::create([
                 'jobseeker_id'   => $jobseeker->id,
                 'skills'         => $request->skills,
@@ -183,58 +192,70 @@ class JobseekerController extends Controller
                 'portfolio_link' => $request->portfolio_link
             ]);
 
-            // Handle file uploads
+            // Upload Resume
             if ($request->hasFile('resume')) {
-                $ResumeName = $request->file('resume')->getClientOriginalName();
-                $extensionResume = $request->file('resume')->getClientOriginalExtension();
-                $fileNameToStoreResume = 'resume_' . date('Ymdhis') . '.' . $extensionResume;
-                $pathResume = asset('uploads/' . $fileNameToStoreResume);
-                $request->file('resume')->move('uploads/', $fileNameToStoreResume);
-                $saveResume = new AdditionalInfo();
-                $saveResume->user_id = $jobseeker->id;
-                $saveResume->user_type = 'jobseeker';
-                $saveResume->doc_type = 'resume';
-                $saveResume->document_path = $pathResume;
-                $saveResume->document_name = $ResumeName;
-                $saveResume->save();
-            }            
+                $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
+                    ->where('user_type', 'jobseeker')
+                    ->where('doc_type', 'resume')
+                    ->first();
 
+                if (!$existingResume) {
+                    $resumeName = $request->file('resume')->getClientOriginalName();
+                    $fileNameToStoreResume = 'resume_' . time() . '.' . $request->file('resume')->getClientOriginalExtension();
+                    $request->file('resume')->move('uploads/', $fileNameToStoreResume);
 
-            // Handle profile picture upload
-            if ($request->hasFile('profile_picture')) {
-                $ProfileName = $request->file('profile_picture')->getClientOriginalName();
-                $extensionProfile = $request->file('profile_picture')->getClientOriginalExtension();
-                $fileNameToStoreProfile = 'profile_picture_' . date('Ymdhis') . '.' . $extensionProfile;
-                $pathProfile = asset('uploads/' . $fileNameToStoreProfile);
-                $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
-                $saveProfile = new AdditionalInfo();
-                $saveProfile->user_id = $jobseeker->id;
-                $saveProfile->user_type = 'jobseeker';
-                $saveProfile->document_path = $pathProfile;
-                $saveProfile->doc_type = 'profile_picture';
-                $saveProfile->document_name = $ProfileName;
-                $saveProfile->save();
+                    AdditionalInfo::create([
+                        'user_id'       => $jobseeker->id,
+                        'user_type'     => 'jobseeker',
+                        'doc_type'      => 'resume',
+                        'document_name' => $resumeName,
+                        'document_path' => asset('uploads/' . $fileNameToStoreResume),
+                    ]);
+                }
             }
 
+            // Upload Profile Picture
+            if ($request->hasFile('profile_picture')) {
+                $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
+                    ->where('user_type', 'jobseeker')
+                    ->where('doc_type', 'profile_picture')
+                    ->first();
+
+                if (!$existingProfile) {
+                    $profileName = $request->file('profile_picture')->getClientOriginalName();
+                    $fileNameToStoreProfile = 'profile_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
+                    $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
+
+                    AdditionalInfo::create([
+                        'user_id'       => $jobseeker->id,
+                        'user_type'     => 'jobseeker',
+                        'doc_type'      => 'profile_picture',
+                        'document_name' => $profileName,
+                        'document_path' => asset('uploads/' . $fileNameToStoreProfile),
+                    ]);
+                }
+            }
 
             DB::commit();
 
             return response()->json([
-                'status' => true,
-                'message' => 'Jobseeker registered successfully.',
-                'data' => [
+                'status'  => true,
+                'message' => 'Registration completed successfully.',
+                'data'    => [
                     'id'     => $jobseeker->id,
                     'email'  => $jobseeker->email,
                     'mobile' => $jobseeker->phone_number,
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status'  => false,
                 'message' => 'Validation failed',
                 'errors'  => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status'  => false,
                 'message' => 'Something went wrong',
@@ -242,6 +263,7 @@ class JobseekerController extends Controller
             ], 500);
         }
     }
+
 
     public function forgetPassword(Request $request)
     {
