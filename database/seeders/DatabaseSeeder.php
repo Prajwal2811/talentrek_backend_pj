@@ -14,13 +14,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\Admin::factory(0)->create();
+        \App\Models\Admin::factory()->create([
+            'name' => 'Prajwal Ingole',
+            'email' => 'prajwal@talentrek.com',
+            'phone' => '9975239057',
+            'password' => bcrypt('prajwal@talentrek'), // important to hash this
+            'pass' => 'prajwal@talentrek', // important to hash this
+            'role' => 'superadmin',
+            'status' => 'active',
+        ]);
 
         \App\Models\Admin::factory()->create([
-            'name' => 'Superadmin',
-            'email' => 'talentrek@example.com',
-            'password' => bcrypt('password@talentrek'), // important to hash this
+            'name' => 'Sumesh Chaure',
+            'email' => 'sumesh@talentrek.com',
+            'phone' => '9975239057',
+            'password' => bcrypt('sumesh@talentrek'), // important to hash this
+            'pass' => 'sumesh@talentrek', // important to hash this
             'role' => 'superadmin',
+            'status' => 'active',
         ]);
     }
 }

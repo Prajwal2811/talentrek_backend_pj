@@ -176,8 +176,7 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
     }
-
-
+  
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
@@ -195,22 +194,7 @@ class JobseekerController extends Controller
         $educationDetails = DB::table('education_details')
             ->where('user_id', $jobseekerId)
             ->get();
-       
-        // Work experience (multiple)
-        $workExperiences = DB::table('work_experience')
-            ->where('user_id', $jobseekerId)
-            ->get();
-        
-        // echo "<pre>";
-        // print_r($workExperiences);
-        // exit;
-        
-        return view('site.jobseeker.profile', compact(
-            'jobseekerSkills',
-            'educationDetails',
-            'workExperiences',
-           
-        ));
+
     }
 
 

@@ -238,16 +238,23 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::delete('/jobseekers/{id}/delete', [App\Http\Controllers\AdminController::class, 'jobseekerDestroy'])->name('admin.jobseeker.destroy');
 		Route::post('/jobseekers/changeStatus', [App\Http\Controllers\AdminController::class, 'jobseekerChangeStatus'])->name('admin.jobseeker.changeStatus');	
 		Route::post('/jobseekers/assignAdmin', [App\Http\Controllers\AdminController::class, 'assignAdmin'])->name('admin.jobseeker.assignAdmin');	
-
+		Route::post('/jobseeker/update-status', [App\Http\Controllers\AdminController::class, 'updateStatus'])->name('admin.jobseeker.updateStatus');
 
 
 		// User Roles
 		Route::get('/expat', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expat');
 		Route::get('/recruiters', [App\Http\Controllers\AdminController::class, 'recruiters'])->name('admin.recruiters');
+		Route::get('/recruiter/{id}/view', [App\Http\Controllers\AdminController::class, 'recruiterView'])->name('admin.recruiter.view');
+		Route::post('/recruiter/changeStatus', [App\Http\Controllers\AdminController::class, 'recruiterChangeStatus'])->name('admin.recruiter.changeStatus');	
+		Route::post('/recruiter/update-status', [App\Http\Controllers\AdminController::class, 'updateRecruiterStatus'])->name('admin.recruiter.updateStatus');
+
+
+
 		Route::get('/trainers', [App\Http\Controllers\AdminController::class, 'trainers'])->name('admin.trainers');
 		Route::get('/assessors', [App\Http\Controllers\AdminController::class, 'assessors'])->name('admin.assessors');
 		Route::get('/coach', [App\Http\Controllers\AdminController::class, 'coach'])->name('admin.coach');
 		Route::get('/mentors', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentors');
+		Route::get('/activity-log', [App\Http\Controllers\AdminController::class, 'showActivityLog'])->name('admin.activity.log');
 
 		// Logout
 		Route::get('/logout', [App\Http\Controllers\AdminController::class, 'signOut'])->name('admin.signOut');

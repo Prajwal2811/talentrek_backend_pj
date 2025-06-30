@@ -15,7 +15,7 @@
                             <!-- Left Column -->
                             <div class="col-xl-10 col-md-10 col-sm-12">
                                 <h1>Hi, {{  Auth()->user()->name }}!</h1>
-                                <span>JustDo Jobseeker's Profile</span>
+                                <span>JustDo Recruiter's Profile</span>
                             </div>
                         </div>
                     </div>
@@ -28,15 +28,15 @@
                                             <img src="../assets/images/user.png" class="rounded" alt="">
                                         </div>
                                         <div class="details">
-                                            <h4 class="mb-0">{{ $jobseeker->name }}</h4>
-                                            <span class="text-light">{{ $jobseeker->city }}</span>
+                                            <h4 class="mb-0">{{ $recruiter->name }}</h4>
+                                            <span class="text-light">{{ $recruiter->city }}</span>
                                             <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
                                         </div>
                                     </div>
                                     <div>
                                         <!-- Status Badge -->
                                         @php
-                                            $status = $jobseeker->admin_status;
+                                            $status = $recruiter->admin_status;
                                             $userRole = auth()->user()->role;
                                         @endphp
 
@@ -73,7 +73,6 @@
                                         @endif
 
 
-
                                         <!-- Approve Modal -->
                                         <div class="modal fade text-dark" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
                                             <div class="modal-dialog">
@@ -86,7 +85,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'approved')">Yes, Approve</button>
+                                                        <button class="btn btn-success" onclick="updateStatus({{ $recruiter->id }}, 'approved')">Yes, Approve</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -104,20 +103,20 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-danger" onclick="updateStatus({{ $jobseeker->id }}, 'rejected')">Yes, Reject</button>
+                                                        <button class="btn btn-danger" onclick="updateStatus({{ $recruiter->id }}, 'rejected')">Yes, Reject</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                         <script>
-                                            function updateStatus(jobseekerId, status) {
+                                            function updateStatus(recruiterId, status) {
                                                 $.ajax({
-                                                    url: '{{ route("admin.jobseeker.updateStatus") }}',
+                                                    url: '{{ route("admin.recruiter.updateStatus") }}',
                                                     method: 'POST',
                                                     data: {
                                                         _token: '{{ csrf_token() }}',
-                                                        jobseeker_id: jobseekerId,
+                                                        recruiter_id: recruiterId,
                                                         status: status
                                                     },
                                                     success: function (response) {
@@ -141,50 +140,18 @@
                         <div class="col-xl-4 col-lg-4 col-md-5">
                             <div class="card">
                                 <div class="header">
-                                    <h2>Basic Information</h2>
+                                    <h2>Recruiter's Information</h2>
                                 </div>
                                 <div class="body">
                                     <form>
                                         <div class="row">
                                             <div class="col-md-12 form-group">
                                                 <label>Name</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->name }}">
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Gender</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->gender }}">
+                                                <input readonly type="text" class="form-control" value="{{ $recruiter->name }}">
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Email address</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->email }}">
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Date of birth</label>
-                                                @php
-                                                    $date = \Carbon\Carbon::parse($jobseeker->date_of_birth);
-                                                    $day = $date->format('j');
-                                                    $suffix = match (true) {
-                                                        $day % 100 >= 11 && $day % 100 <= 13 => 'th',
-                                                        $day % 10 == 1 => 'st',
-                                                        $day % 10 == 2 => 'nd',
-                                                        $day % 10 == 3 => 'rd',
-                                                        default => 'th',
-                                                    };
-                                                    $formattedDate = $day . $suffix . ' ' . $date->format('F Y');
-                                                @endphp
-                                                <input readonly type="text" class="form-control" value="{{ $formattedDate }}">
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Phone number</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->phone_code ? $jobseeker->phone_code . '-' . $jobseeker->phone_number : $jobseeker->phone_number }}">
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Address</label>
-                                                <textarea readonly type="text" class="form-control">{{ $jobseeker->address }}</textarea>
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Location</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->city }}">
+                                                <input readonly type="text" class="form-control" value="{{ $recruiter->email }}">
                                             </div>
                                         </div>
                                     </form>
@@ -194,18 +161,12 @@
                         <div class="col-xl-8 col-lg-8 col-md-7">
                             <div class="card">
                                 <div class="header">
-                                    <h2>Personal Information</h2>
+                                    <h2>Company Information</h2>
                                         <div class="body">
                                             <!-- Tab navigation -->
                                             <ul class="nav nav-tabs2 mb-4" role="tablist">
                                                 <li class="nav-item">
-                                                    <a class="nav-link active" data-toggle="tab" href="#education">Educational Details</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-toggle="tab" href="#work">Work Experience</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-toggle="tab" href="#skills">Skills & Training</a>
+                                                    <a class="nav-link active" data-toggle="tab" href="#company">Compay Details</a>
                                                 </li>
                                                 <li class="nav-item">
                                                     <a class="nav-link" data-toggle="tab" href="#additional">Additional Information</a>
@@ -216,137 +177,93 @@
                                             <div class="tab-content">
 
                                                 <!-- Education -->
-                                                <div class="tab-pane show active" id="education">
-                                                    <form>
-                                                        @if ($educations->isEmpty())
-                                                            <p class="text-muted">No educational details found.</p>
-                                                        @else
-                                                            @foreach ($educations as $index => $education)
-                                                                <div class="row">
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Highest qualification</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $education->high_education }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Field of study</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $education->field_of_study }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Institution name</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $education->institution }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Graduation year</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $education->graduate_year }}">
-                                                                    </div>
-                                                                </div>
-                                                                @if (!$loop->last)
-                                                                    <hr>
-                                                                @endif
-                                                            @endforeach
-                                                        @endif
-                                                    </form>
-                                                </div>
-
-                                                <!-- Work Experience -->
-                                                <div class="tab-pane fade" id="work">
-                                                    <form>
-                                                        @if ($experiences->isEmpty())
-                                                            <p class="text-muted">No work experience found.</p>
-                                                        @else
-                                                            @foreach ($experiences as $experience)
-                                                                <div class="row">
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Job role</label>
-                                                                        <input type="text" class="form-control" readonly value="{{ $experience->job_role }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Organization</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->organization }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Started from</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ \Carbon\Carbon::parse($experience->starts_from)->format('jS F Y') }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>To</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
-                                                                    </div>
-                                                                </div>
-                                                                @if (!$loop->last)
-                                                                    <hr>
-                                                                @endif
-                                                            @endforeach
-                                                        @endif
-                                                    </form>
-                                                </div>
-
-                                                <!-- Skills -->
-                                                <div class="tab-pane fade" id="skills">
-                                                    <form>
-                                                        @if ($skills->isEmpty())
-                                                            <p class="text-muted">No skills or training details found.</p>
-                                                        @else
-                                                            @foreach ($skills as $skill)
-                                                                <div class="row">
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Skills</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->skills }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Area of interests</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->interest }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Job categories</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->job_category }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Website link</label>
-                                                                        <input readonly type="url" class="form-control" value="{{ $skill->website_link }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 form-group">
-                                                                        <label>Portfolio link</label>
-                                                                        <input readonly type="url" class="form-control" value="{{ $skill->portfolio_link }}">
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        @endif
-                                                    </form>
-                                                </div>
-
-                                                <!-- Additional Info -->
-                                                <div class="tab-pane fade" id="additional">
-                                                    <form>
-                                                        @if ($additioninfos->isEmpty())
-                                                            <p class="text-muted">No additional documents found.</p>
-                                                        @else
-                                                            <div class="row">
-                                                                @foreach($additioninfos as $info)
-                                                                    @if($info->doc_type == 'resume')
-                                                                        <div class="col-md-12 form-group d-flex align-items-center">
-                                                                            <label class="w-100">Uploaded Resume</label>
-                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
-                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
-                                                                        </div>
-                                                                    @elseif($info->doc_type == 'profile_picture')
-                                                                        <div class="col-md-12 form-group d-flex align-items-center">
-                                                                            <label class="w-100">Uploaded Profile Picture</label>
-                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
-                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
-                                                                        </div>
-                                                                    @endif
-                                                                @endforeach
+                                              <div class="tab-pane show active" id="company">
+                                                <form>
+                                                    @if (is_null($recruiter->company)) 
+                                                        <p class="text-muted">No company details found.</p>
+                                                    @else
+                                                        <div class="row">
+                                                            <div class="col-md-12 form-group">
+                                                                <label>Company name</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->company_name }}">
                                                             </div>
-                                                        @endif
-                                                    </form>
-                                                </div>
+
+                                                            <div class="col-md-6 form-group">
+                                                                <label>Company website</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->company_website }}">
+                                                            </div>
+                                                            <div class="col-md-6 form-group">
+                                                                <label>Company location</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->company_city }}">
+                                                            </div>
+
+                                                            <div class="col-md-12 form-group">
+                                                                <label>Company address</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->company_address }}">
+                                                            </div>
+
+                                                            <div class="col-md-6 form-group">
+                                                                <label>Business email</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->business_email }}">
+                                                            </div>
+                                                            <div class="col-md-6 form-group">
+                                                                <label>Company phone number</label>
+                                                                <div class="input-group">
+                                                                    <input readonly type="text" class="form-control" value="{{ $company->phone_code }}">
+                                                                    <input readonly type="text" class="form-control" value="{{ $company->company_phone_number }}">
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-6 form-group">
+                                                                <label>Number of employees</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->no_of_employee }}">
+                                                            </div>
+                                                            <div class="col-md-6 form-group">
+                                                                <label>Industry type</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->industry_type }}">
+                                                            </div>
+
+                                                            <div class="col-md-12 form-group">
+                                                                <label>CR number (Company registration number)</label>
+                                                                <input readonly type="text" class="form-control" value="{{ $company->registration_number }}">
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </form>
+                                            </div>
+
+                                            <!-- Additional Info -->
+                                            <div class="tab-pane fade" id="additional">
+                                                <form>
+                                                    @if ($additioninfos->isEmpty())
+                                                        <p class="text-muted">No additional documents found.</p>
+                                                    @else
+                                                        <div class="row">
+                                                            @foreach($additioninfos as $info)
+                                                                @if($info->doc_type == 'company_reg_document')
+                                                                    <div class="col-md-12 form-group d-flex align-items-center">
+                                                                        <label class="w-100">Uploaded Registration document</label>
+                                                                        <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                        <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                    </div>
+                                                                @elseif($info->doc_type == 'company_profile_picture')
+                                                                    <div class="col-md-12 form-group d-flex align-items-center">
+                                                                        <label class="w-100">Uploaded Company Profile Picture</label>
+                                                                        <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                        <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                    </div>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </form>
                                             </div>
                                         </div>
+                                    </div>
 
                                 </div>
                             </div>
-                            <div class="card">
+                            {{-- <div class="card">
                                 <div class="header">
                                     <h2>Jobseeker Trainings</h2>
                                 </div>
@@ -1063,7 +980,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

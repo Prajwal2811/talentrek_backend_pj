@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-       Schema::create('training_materials_documents', function (Blueprint $table) {
+        Schema::create('training_materials_documents', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('trainer_id');                 // FK to trainers
@@ -26,17 +26,18 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Foreign key constraints
-            $table->foreign('trainer_id')
+            // Foreign key constraints with shorter names
+            $table->foreign('trainer_id', 'fk_trainer_id')
                 ->references('id')
                 ->on('trainers')
                 ->onDelete('cascade');
 
-            $table->foreign('training_material_id')
+            $table->foreign('training_material_id', 'fk_training_material_id')
                 ->references('id')
                 ->on('training_materials')
                 ->onDelete('cascade');
         });
+
 
     }
 

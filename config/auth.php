@@ -72,7 +72,7 @@ return [
         ], 
         'coach' => [
             'driver' => 'session',
-            'provider' => 'coachs',
+            'provider' => 'coaches',
         ], 
         'mentor' => [
             'driver' => 'session',
@@ -126,7 +126,7 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Assessors::class,
         ],
-        'coach' => [
+        'coaches' => [
             'driver' => 'eloquent',
             'model' => App\Models\Coach::class,
         ],
