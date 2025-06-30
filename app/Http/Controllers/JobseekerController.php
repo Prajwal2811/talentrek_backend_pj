@@ -263,22 +263,6 @@ class JobseekerController extends Controller
         }
     }
 
-    // public function getJobseekerAllDetails(){
-    //     $jobseeker = Auth::guard('jobseeker')->user();
-    //     $jobseekerId = $jobseeker->id;
-    //     $data = DB::table('jobseekers')
-    //         ->leftJoin('education_details', 'education_details.user_id', '=', 'jobseekers.id')
-    //         ->leftJoin('work_experience', 'work_experience.user_id', '=', 'jobseekers.id')
-    //         ->leftJoin('skills', 'skills.jobseeker_id', '=', 'jobseekers.id')
-    //         ->where('jobseekers.id', $jobseekerId)
-    //         ->select('jobseekers.*', 'education_details.*','work_experience.*','skills.*', ) 
-    //         ->first();
-    //     echo "<pre>";
-    //     print_r($data);exit;
-    //     echo "</pre>";
-    //      return view('site.jobseeker.profile', compact('data'));
-    // }
-
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
@@ -293,9 +277,9 @@ class JobseekerController extends Controller
          
             ->get();
 
-        echo "<pre>";
-        print_r($data);
-        exit;
+        // echo "<pre>";
+        // print_r($data);
+        // exit;
 
         return view('site.jobseeker.profile', compact('data'));
     }

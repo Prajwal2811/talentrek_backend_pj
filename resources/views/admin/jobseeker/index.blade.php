@@ -28,19 +28,19 @@
                                     $admin = Auth::guard('admin')->user();
                                 @endphp
 
-                                <button 
-                                    @if (Auth()->user()->role === 'admin') 
-                                        style="display: none;" 
-                                    @endif 
-                                    class="btn btn-sm btn-info" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#assignAdminModal">
-                                    Assign Admin
-                                </button>
+                                @if (auth()->user()->role !== 'admin')
+                                    <button 
+                                        class="btn btn-sm btn-info" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#assignAdminModal">
+                                        Assign Admin
+                                    </button>
+                                @endif
+
 
                             </div>
-                            <!-- Assign Admin Modal -->
-                            <div class="modal fade" id="assignAdminModal" tabindex="-1" aria-labelledby="assignAdminModalLabel" aria-hidden="true">
+
+                            <div class="modal fade" id="assignAdminModal" aria-labelledby="assignAdminModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <form id="assignAdminForm" method="POST" action="{{ route('admin.jobseeker.assignAdmin') }}">
                                         @csrf
@@ -74,6 +74,37 @@
                                     </form>
                                 </div>
                             </div>
+                              <!-- JS Logic -->
+                            <script>
+                                function toggleSelectAll(source) {
+                                    const checkboxes = document.querySelectorAll('.row-checkbox');
+                                    checkboxes.forEach(cb => cb.checked = source.checked);
+                                }
+
+                                const assignAdminModal = document.getElementById('assignAdminModal');
+                                assignAdminModal.addEventListener('show.bs.modal', function () {
+                                    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+                                    const jobseekerIds = [];
+                                    const list = document.getElementById('selectedJobseekerList');
+                                    list.innerHTML = '';
+
+                                    selectedCheckboxes.forEach(cb => {
+                                        const id = cb.getAttribute('data-id');
+                                        const name = cb.getAttribute('data-name');
+                                        jobseekerIds.push(id);
+
+                                        const li = document.createElement('li');
+                                        li.className = 'list-group-item';
+                                        li.textContent = `ID: ${id} | Name: ${name}`;
+                                        list.appendChild(li);
+                                    });
+
+                                    document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
+                                });
+                            </script>
+
+                            <!-- Bootstrap 5 JS Bundle -->
+                            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
                             <!-- Table Section -->
                             <div class="body">
@@ -127,7 +158,12 @@
                                                 <td>{{ $jobseeker->email }}</td>
                                                 <td>{{ $jobseeker->phone_code . '-' . $jobseeker->phone_number }}</td>
                                                 <td>
-                                                    <label class="switch">
+                                                    <label class="switch"
+                                                        @if($jobseeker->status === 'inactive' && !empty($jobseeker->inactive_reason))
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            title="Reason: {{ $jobseeker->inactive_reason }}"
+                                                        @endif>
                                                         <input type="checkbox"
                                                             {{ $jobseeker->status === 'active' ? 'checked' : '' }}
                                                             onchange="toggleStatus(this)"
@@ -135,6 +171,15 @@
                                                         <span class="slider round"></span>
                                                     </label>
                                                 </td>
+                                                <script>
+                                                    document.addEventListener('DOMContentLoaded', function () {
+                                                        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                                                        tooltipTriggerList.map(function (tooltipTriggerEl) {
+                                                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                                                        });
+                                                    });
+                                                </script>
+
 
                                                 <!-- Inactive Reason Modal -->
                                                 <div class="modal fade" id="inactiveReasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
@@ -237,8 +282,8 @@
 
                                                 <td>{{ \Carbon\Carbon::parse($jobseeker->created_at)->format('d/m/Y') }}</td>
                                                 <td>
-                                                    <a href="{{ route('admin.jobseeker.view', $jobseeker->id) }}" class="btn btn-sm btn-primary">View</a>
-                                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $jobseeker->id }})">Delete</button>
+                                                    <a href="{{ route('admin.jobseeker.view', $jobseeker->id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                                                    {{-- <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $jobseeker->id }})">Delete</button> --}}
                                                 </td>
                                             </tr>
                                             @endforeach
@@ -248,37 +293,7 @@
                             </div>
                         </div>
 
-                        <!-- JS Logic -->
-                        <script>
-                            function toggleSelectAll(source) {
-                                const checkboxes = document.querySelectorAll('.row-checkbox');
-                                checkboxes.forEach(cb => cb.checked = source.checked);
-                            }
-
-                            const assignAdminModal = document.getElementById('assignAdminModal');
-                            assignAdminModal.addEventListener('show.bs.modal', function () {
-                                const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-                                const jobseekerIds = [];
-                                const list = document.getElementById('selectedJobseekerList');
-                                list.innerHTML = '';
-
-                                selectedCheckboxes.forEach(cb => {
-                                    const id = cb.getAttribute('data-id');
-                                    const name = cb.getAttribute('data-name');
-                                    jobseekerIds.push(id);
-
-                                    const li = document.createElement('li');
-                                    li.className = 'list-group-item';
-                                    li.textContent = `ID: ${id} | Name: ${name}`;
-                                    list.appendChild(li);
-                                });
-
-                                document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
-                            });
-                        </script>
-
-                        <!-- Bootstrap 5 JS Bundle -->
-                        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                      
                     </div>
                 </div>
 

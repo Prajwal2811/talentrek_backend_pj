@@ -24,7 +24,7 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th>Timestamp</th>
-                                            <th>Details</th>
+                                            <th>Logs</th>
                                         </tr>
                                     </thead>
                                     <tbody id="logTableBody">
@@ -37,8 +37,12 @@
                                                 <td>
                                                     @php $data = $log['data']; @endphp
 
+                                                    <strong>Message:</strong> {{ $log['message'] ?? 'N/A' }} <br><br>
+
                                                     @if($log['message'] === 'Admin login successful')
+                                                        <strong>Name:</strong> {{ $data['name'] ?? '' }} <br>
                                                         <strong>Email:</strong> {{ $data['email'] ?? '' }} <br>
+                                                        <strong>Role:</strong> {{ $data['role'] ?? '' }} <br>
                                                         <strong>Time:</strong> {{ $data['time'] ?? '' }}
 
                                                     @elseif($log['message'] === 'Jobseekers assigned to admin')
@@ -68,9 +72,31 @@
                                                         <strong>New Admin Status:</strong> {{ $data['jobseeker']['new_status'] ?? '' }}<br>
                                                         <strong>Updated By:</strong> {{ $data['updated_by']['name'] ?? '' }} ({{ $data['updated_by']['role'] ?? '' }})
 
+                                                    @elseif($log['message'] === 'Admin logged out')
+                                                        <strong>Name:</strong> {{ $data['name'] ?? '' }} <br>
+                                                        <strong>Email:</strong> {{ $data['email'] ?? '' }} <br>
+                                                        <strong>Role:</strong> {{ $data['role'] ?? '' }} <br>
+                                                        <strong>Time:</strong> {{ $data['time'] ?? '' }}
+
+                                                    @elseif($log['message'] === 'Recruiter status updated')
+                                                        <strong>Recruiter:</strong> {{ $data['recruiter']['name'] ?? '' }} ({{ $data['recruiter']['email'] ?? '' }})<br>
+                                                        <strong>Old Status:</strong> {{ $data['recruiter']['old_status'] ?? '' }}<br>
+                                                        <strong>New Status:</strong> {{ $data['recruiter']['new_status'] ?? '' }}<br>
+                                                        @if(!empty($data['recruiter']['new_reason']))
+                                                            <strong>Reason:</strong> {{ $data['recruiter']['new_reason'] }}<br>
+                                                        @endif
+                                                        <strong>Changed By:</strong> {{ $data['changed_by']['name'] ?? '' }} ({{ $data['changed_by']['role'] ?? '' }})
+
+                                                    @elseif($log['message'] === 'Recruiter admin status updated')
+                                                        <strong>Recruiter:</strong> {{ $data['recruiter']['name'] ?? '' }} ({{ $data['recruiter']['email'] ?? '' }})<br>
+                                                        <strong>Old Admin Status:</strong> {{ $data['recruiter']['previous_status'] ?? 'N/A' }}<br>
+                                                        <strong>New Admin Status:</strong> {{ $data['recruiter']['new_status'] ?? '' }}<br>
+                                                        <strong>Updated By:</strong> {{ $data['updated_by']['name'] ?? '' }} ({{ $data['updated_by']['role'] ?? '' }})
+
                                                     @else
                                                         <pre>{{ json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                                     @endif
+
                                                 </td>
                                             </tr>
                                         @endforeach

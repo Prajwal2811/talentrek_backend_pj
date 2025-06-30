@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use App\Models\Jobseekers;
+use App\Models\Recruiters;
 use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
-
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -29,24 +30,27 @@ class AdminController extends Controller
         ];
 
         if (Auth::guard('admin')->attempt($credentials, $request->get('remember'))) {
+            $admin = Auth::guard('admin')->user();
+
             Log::info('Admin login successful', [
-                'email' => $request->email,
-                
-                'time' => now()
+                'email' => $admin->email,
+                'name'  => $admin->name,
+                'role'  => $admin->role, // assuming 'role' is a column like 'admin' or 'superadmin'
+                'time'  => now()
             ]);
 
             return redirect()->route('admin.dashboard');
         } else {
             Log::warning('Admin login failed', [
                 'email' => $request->email,
-                
-                'time' => now()
+                'time'  => now()
             ]);
 
             session()->flash('error', 'Either Email/Password is incorrect');
             return back()->withInput($request->only('email'));
         }
     }
+
 
 
     public function signOut()
@@ -57,8 +61,9 @@ class AdminController extends Controller
         if ($admin) {
             Log::info('Admin logged out', [
                 'email' => $admin->email,
-                'ip' => request()->ip(),
-                'time' => now()
+                'name'  => $admin->name,
+                'role'  => $admin->role, // assuming 'role' is a column like 'admin' or 'superadmin'
+                'time'  => now()
             ]);
         }
 
@@ -77,9 +82,6 @@ class AdminController extends Controller
     {
         return view('admin.admin.create');
     }
-
-
-    
 
     public function store(Request $request)
     {
@@ -219,7 +221,9 @@ class AdminController extends Controller
 
         foreach ($jobseekerIds as $jobseekerId) {
             $jobseeker = Jobseekers::find($jobseekerId);
-            if ($jobseeker) {
+            
+            // Only assign if not already assigned to an admin
+            if ($jobseeker && is_null($jobseeker->assigned_admin)) {
                 $jobseeker->assigned_admin = $adminId;
                 $jobseeker->save();
 
@@ -257,8 +261,9 @@ class AdminController extends Controller
             'time' => now()
         ]);
 
-        return redirect()->back()->with('success', 'Selected jobseekers have been assigned to the admin.');
+        return redirect()->back()->with('success', 'Unassigned jobseekers have been successfully assigned to the admin.');
     }
+
     
 
 
@@ -496,37 +501,201 @@ class AdminController extends Controller
 
 
 
-   public function showActivityLog()
-{
-    $logPath = storage_path('logs/laravel.log');
-
-    if (!File::exists($logPath)) {
-        return view('admin.logs', ['logs' => []]);
+    public function recruiters()
+    {   
+        $recruiters = Auth::guard('recruiter')->user();
+        // If the user is a superadmin, show all jobseekers
+       
+        $recruiters = Recruiters::select('recruiters.*','recruiters_company.*','recruiters.id as recruiter_id')->join('recruiters_company','recruiters.id','=','recruiters_company.recruiter_id')
+                                ->orderBy('recruiters.id', 'desc')
+                                ->get();
+       
+        return view('admin.recruiter.index', compact('recruiters'));
     }
 
-    $lines = File::lines($logPath)->toArray();
 
-    $filteredLogs = collect($lines)->filter(function ($line) {
-        return str_contains($line, 'Admin login successful') ||
-               str_contains($line, 'Jobseekers assigned to admin') ||
-               str_contains($line, 'Jobseeker status updated') ||
-               str_contains($line, 'Jobseeker admin status updated');
-    })->map(function ($line) {
-        preg_match('/^\[(.*?)\] (\w+)\.(\w+): (.+)$/', $line, $matches);
+    public function recruiterChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'recruiter_id' => 'required|exists:recruiters,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
 
-        $json = trim($matches[4] ?? '');
+        $user = Recruiters::findOrFail($validated['recruiter_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
 
-        // Safely decode JSON
-        $decoded = json_decode($json, true);
+        $user->status = $validated['status'];
 
-        return [
-            'timestamp' => $matches[1] ?? '',
-            'level' => strtoupper($matches[2] ?? ''),
-            'message' => $matches[3] ?? '',
-            'data' => $decoded ?? $json, // Fallback to raw if decoding fails
-        ];
-    });
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
 
-    return view('admin.logs', ['logs' => $filteredLogs]);
-}
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+        // Logging the change
+        Log::info('Recruiter status updated', [
+            'recruiter' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Recruiter status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+    public function recruiterView($id)
+    {
+        $recruiter = Recruiters::findOrFail($id);
+        $company = $recruiter->company; 
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','recruiter')->get();
+        // print_r($additioninfos); die;    
+        return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos'));
+    }
+
+
+
+    public function updateRecruiterStatus(Request $request)
+    {
+        $request->validate([
+            'recruiter_id' => 'required|exists:recruiters,id',
+            'status' => 'required|in:approved,rejected',
+        ]);
+
+        $recruiter = Recruiters::findOrFail($request->recruiter_id);
+        $user = auth()->user();
+        $previousStatus = $recruiter->admin_status;
+
+        if ($user->role === 'superadmin') {
+            $recruiter->admin_status = 'superadmin_' . $request->status;
+        } elseif ($user->role === 'admin') {
+            $recruiter->admin_status = $request->status;
+        } else {
+            Log::warning('Unauthorized recruiter status update attempt', [
+                'attempted_by' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role
+                ],
+                'jobseeker_id' => $recruiter->id,
+                'time' => now()
+            ]);
+
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $recruiter->save();
+
+        // ✅ Log the approved/rejected status change
+        Log::info('Recruiter admin status updated', [
+            'recruiter' => [
+                'id' => $recruiter->id,
+                'name' => $recruiter->name,
+                'email' => $recruiter->email ?? null,
+                'previous_status' => $previousStatus,
+                'new_status' => $recruiter->admin_status
+            ],
+            'updated_by' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role
+            ],
+            
+            'time' => now()
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+    }
+
+
+   public function showActivityLog()
+    {
+        $logPath = storage_path('logs/laravel.log');
+
+        if (!File::exists($logPath)) {
+            return view('admin.logs', ['logs' => []]);
+        }
+
+        $lines = File::lines($logPath)->toArray();
+
+       $filteredLogs = collect($lines)
+        ->filter(function ($line) {
+            return Str::contains($line, [
+                'Admin login successful',
+                'Admin logged out',
+                'Jobseekers assigned to admin',
+                'Jobseeker status updated',
+                'Jobseeker admin status updated',
+                'Recruiter status updated',
+                'Recruiter admin status updated',
+            ]);
+        })
+
+        ->map(function ($line) {
+            preg_match('/^\[(.*?)\] (\w+)\.(\w+): (.+)$/', $line, $matches);
+
+            if (empty($matches)) {
+                return null;
+            }
+
+            $timestamp = $matches[1] ?? '';
+            $level = strtoupper($matches[2] ?? '');
+            $message = $matches[3] ?? '';
+            $rawData = $matches[4] ?? '';
+
+            // Split message and data if merged
+            if (Str::contains($rawData, '{')) {
+                $parts = explode('{', $rawData, 2);
+                $messageText = trim($parts[0]);
+                $jsonString = '{' . ($parts[1] ?? '');
+            } else {
+                $messageText = $rawData;
+                $jsonString = '{}';
+            }
+
+            // Remove slashes and decode
+            $cleanedJson = stripslashes($jsonString);
+            $decoded = json_decode($cleanedJson, true);
+
+            return [
+                'timestamp' => $timestamp,
+                'level' => $level,
+                'message' => $messageText,
+                'data' => $decoded ?? $cleanedJson,
+            ];
+        })
+        ->filter()
+        ->reverse()
+        ->values();
+
+
+        return view('admin.logs', ['logs' => $filteredLogs]);
+    }
+
+
+
+
+    
 }

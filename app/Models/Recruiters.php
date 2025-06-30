@@ -19,6 +19,9 @@ class Recruiters extends Model
         'email',
         'password',
         'pass',
+        'status',
+        'inactive_reason',
+        'admin_status'
     ];
 
     /**
@@ -28,4 +31,10 @@ class Recruiters extends Model
         'password',
         'pass',
     ];
+
+    // One-to-One relationship
+    public function company()
+    {
+        return $this->hasOne(RecruiterCompany::class, 'recruiter_id');
+    }
 }
