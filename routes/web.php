@@ -100,9 +100,14 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::post('/registration', [App\Http\Controllers\JobseekerController::class, 'postRegistration'])->name('register.post'); 
 		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('registration.store');
-		Route::get('/jobseeker/sign-in', [App\Http\Controllers\JobseekerController::class, 'showSignInForm'])->name('signin.form');
-		
+		Route::get('/sign-in', [App\Http\Controllers\JobseekerController::class, 'showSignInForm'])->name('signin.form');
 		Route::post('/jobseeker/login', [App\Http\Controllers\JobseekerController::class, 'loginJobseeker'])->name('jobseeker.login.submit');
+		Route::post('/submit-forget-password', [App\Http\Controllers\JobseekerController::class, 'submitForgetPassword'])->name('submit.forget.password');
+		Route::get('/verify-otp', [App\Http\Controllers\JobseekerController::class, 'showOtpForm'])->name('jobseeker.verify-otp');
+		Route::post('/submit-verify-otp', [App\Http\Controllers\JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
+		Route::get('reset-password', [App\Http\Controllers\JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');
+
+		Route::post('/submit-reset-password', [App\Http\Controllers\JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
 	});
 	
 	Route::group(['middleware' => 'jobseeker.auth'], function(){
@@ -115,7 +120,6 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/profile/update-personal-info',[App\Http\Controllers\JobseekerController::class, 'updatePersonalInfo'])->name('jobseeker.profile.update');
 		Route::post('/profile/update-education-info',[App\Http\Controllers\JobseekerController::class, 'updateEducationInfo'])->name('jobseeker.education.update');
 		Route::post('/profile/update-work-exprience-info',[App\Http\Controllers\JobseekerController::class, 'updateWorkExprienceInfo'])->name('jobseeker.workexprience.update'); 
-
 		Route::post('/profile/update-skills-info',[App\Http\Controllers\JobseekerController::class, 'updateSkillsInfo'])->name('jobseeker.skill.update'); 
 	});
 });
@@ -125,6 +129,12 @@ Route::group(['prefix' => 'recruiter'], function() {
 	Route::group(['middleware' => 'recruiter.guest'], function(){
 		Route::view('/sign-in','sign-in')->name('recruiter.sign-in');
 		Route::post('/login',[App\Http\Controllers\RecruiterController::class, 'authenticate'])->name('recruiter.auth');
+		Route::get('/sign-in', [App\Http\Controllers\RecruiterController::class, 'showSignInForm'])->name('recruiter.login');
+		Route::get('/sign-up', [App\Http\Controllers\RecruiterController::class, 'showSignUpForm'])->name('recruiter.signup');
+		Route::get('/registration', [App\Http\Controllers\RecruiterController::class, 'showRegistrationForm'])->name('recruiter.registration');
+		Route::post('/registration', [App\Http\Controllers\RecruiterController::class, 'postRegistration'])->name('register.post'); 
+		Route::post('/registration/store', [App\Http\Controllers\RecruiterController::class, 'storeRecruiterInformation'])->name('registration.store');
+
 	});
 	
 	Route::group(['middleware' => 'recruiter.auth'], function(){

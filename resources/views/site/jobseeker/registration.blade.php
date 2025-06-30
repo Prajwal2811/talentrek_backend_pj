@@ -83,7 +83,7 @@
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium">Email</label>
-                                                <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{ old('email', $email) }}"/>
+                                                <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{ old('email', $email) }}" readonly/>
                                                 @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -106,7 +106,7 @@
                                                     <label class="block mb-1 text-sm font-medium">Phone number</label>
                                                     <div class="flex">
                                                     <select class="w-1/3 border rounded-l-md p-2"><option>+91</option></select>
-                                                    <input name="phone_number" placeholder="Enter Phone number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{ old('phone_number', $phone) }}"/>
+                                                    <input name="phone_number" placeholder="Enter Phone number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{ old('phone_number', $phone) }}" readonly/>
                                                 </div>
                                                 @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

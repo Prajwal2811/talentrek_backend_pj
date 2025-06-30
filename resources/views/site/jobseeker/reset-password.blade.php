@@ -30,23 +30,31 @@
                                 <h2 class="text-2xl font-semibold mb-1">Reset password</h2>
                                 <p class="text-sm text-gray-500 mb-6">Enter new password to reset the password/p>
 
-                                <form>
+                                <form action="{{ route('jobseeker.reset-password.submit') }}" method="POST">
+                                    @csrf
                                     <div class="mb-4">
                                         <label for="email" class="block text-sm font-medium mb-1">New Password</label>
-                                        <input type="text" id="email" placeholder="Enter new password"
+                                        <input type="text" name="new_password" id="email" placeholder="Enter new password"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            required />
+                                           />
+                                        @error('new_password')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                        @enderror    
                                     </div>
                                      <div class="mb-4">
                                         <label for="email" class="block text-sm font-medium mb-1">Confirm password</label>
-                                        <input type="text" id="email" placeholder="Confirm new password"
+                                        <input type="text" name="confirm_password" id="email" placeholder="Confirm new password"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            required />
+                                             />
+                                        @error('confirm_password')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                        @enderror      
                                     </div>
 
-                                    <a href="{{ route('jobseeker.registration')}}" class="block text-center text-sm font-medium text-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 rounded-md transition duration-150">
+                                    <button type="submit"
+                                        class="block w-full text-center text-sm font-medium text-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 rounded-md transition duration-150">
                                         Reseet Password
-                                    </a>
+                                    </button>
                                 </form>
                             </div>
 
