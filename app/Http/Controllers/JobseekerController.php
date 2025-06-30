@@ -12,6 +12,7 @@ use App\Models\Additionalinfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use DB;
 
 class JobseekerController extends Controller
@@ -168,7 +169,7 @@ class JobseekerController extends Controller
             'password'  => 'required'
         ]);
 
-        if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password, 'status' => "active"])) {
+        if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
             return redirect()->route('jobseeker.profile');
         } else {
             session()->flash('error', 'Either Email/Password is incorrect');
@@ -222,7 +223,7 @@ class JobseekerController extends Controller
         $request->session()->invalidate(); 
         $request->session()->regenerateToken(); 
 
-        return redirect()->route('jobseeker.sign-in')->with('success', 'Logged out successfully');
+        return redirect()->route('signin.form')->with('success', 'Logged out successfully');
     }
 
 
@@ -300,50 +301,102 @@ class JobseekerController extends Controller
 
 
     
-    public function updateWorkExprienceInfo(Request $request)
-    {
-        $user_id = auth()->id();
+    // public function updateWorkExprienceInfo(Request $request)
+    // {
+    //     $user_id = auth()->id();
 
-        // Validation for multiple entries
-        $validated = $request->validate([
-            'job_role.*' => 'required|string|max:255',
-            'organization.*' => 'required|string|max:255',
-            'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
-            'currently_working' => 'array',
-        ]);
+    //     // Validation for multiple entries
+    //     $validated = $request->validate([
+    //         'job_role.*' => 'required|string|max:255',
+    //         'organization.*' => 'required|string|max:255',
+    //         'starts_from.*' => 'required|date',
+    //         'end_to.*' => 'required|date|after_or_equal:starts_from.*',
+    //         'currently_working' => 'array',
+    //     ]);
 
-        $workIds = $request->input('work_id', []);
-        $existingIds = WorkExperience::where('user_id', $user_id)
-                        ->where('user_type', 'jobseeker')
-                        ->pluck('id')
-                        ->toArray();
+    //     $workIds = $request->input('work_id', []);
+    //     $existingIds = WorkExperience::where('user_id', $user_id)
+    //                     ->where('user_type', 'jobseeker')
+    //                     ->pluck('id')
+    //                     ->toArray();
 
-        $toDelete = array_diff($existingIds, $workIds);
+    //     $toDelete = array_diff($existingIds, $workIds);
+    //     WorkExperience::whereIn('id', $toDelete)->delete();
+
+    //     foreach ($request->input('job_role', []) as $i => $role) {
+    //         $currentlyWorking = in_array($i, $request->input('currently_working', []));
+    //         $endToValue = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
+
+    //         $data = [
+    //             'user_id' => $user_id,
+    //             'user_type' => 'jobseeker',
+    //             'job_role' => $role,
+    //             'organization' => $request->organization[$i] ?? null,
+    //             'starts_from' => $request->starts_from[$i] ?? null,
+    //             'end_to' => $endToValue,
+    //         ];
+
+    //         if (!empty($request->work_id[$i])) {
+    //             WorkExperience::where('id', $request->work_id[$i])->update($data);
+    //         } else {
+    //             WorkExperience::create($data);
+    //         }
+    //     }
+
+    //     return redirect()->back()->with('success', 'Work Experience information saved successfully!');
+    // }
+public function updateWorkExprienceInfo(Request $request)
+{
+    $user_id = auth()->id();
+
+    $validated = $request->validate([
+        'job_role.*' => 'required|string|max:255',
+        'organization.*' => 'required|string|max:255',
+        'starts_from.*' => 'required|date',
+        'end_to.*' => 'nullable|string',
+        'currently_working' => 'array',
+    ]);
+
+    $workIds = $request->input('work_id', []);
+    $existingIds = WorkExperience::where('user_id', $user_id)
+        ->where('user_type', 'jobseeker')
+        ->pluck('id')
+        ->toArray();
+
+    // Delete removed records
+    $toDelete = array_diff($existingIds, $workIds);
+    if (!empty($toDelete)) {
         WorkExperience::whereIn('id', $toDelete)->delete();
-
-        foreach ($request->input('job_role', []) as $i => $role) {
-            $currentlyWorking = in_array($i, $request->input('currently_working', []));
-            $endToValue = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
-
-            $data = [
-                'user_id' => $user_id,
-                'user_type' => 'jobseeker',
-                'job_role' => $role,
-                'organization' => $request->organization[$i] ?? null,
-                'starts_from' => $request->starts_from[$i] ?? null,
-                'end_to' => $endToValue,
-            ];
-
-            if (!empty($request->work_id[$i])) {
-                WorkExperience::where('id', $request->work_id[$i])->update($data);
-            } else {
-                WorkExperience::create($data);
-            }
-        }
-
-        return redirect()->back()->with('success', 'Work Experience information saved successfully!');
     }
+
+    $currentlyWorking = $request->input('currently_working', []);
+
+    foreach ($request->input('job_role', []) as $i => $role) {
+        $isCurrent = in_array((string)$i, array_map('strval', $currentlyWorking));
+        $endToValue = $isCurrent ? 'Work here' : ($request->end_to[$i] ?? null);
+
+        $data = [
+            'user_id' => $user_id,
+            'user_type' => 'jobseeker',
+            'job_role' => $role,
+            'organization' => $request->organization[$i] ?? null,
+            'starts_from' => $request->starts_from[$i] ?? null,
+            'end_to' => $endToValue,
+        ];
+
+        if (!empty($request->work_id[$i])) {
+            // Update existing
+            WorkExperience::where('id', $request->work_id[$i])->update($data);
+        } else {
+            // Insert new
+            WorkExperience::create($data);
+        }
+    }
+
+    return redirect()->back()->with('success', 'Work experience updated successfully.');
+}
+
+
 
 
     public function updateSkillsInfo(Request $request)
@@ -376,11 +429,132 @@ class JobseekerController extends Controller
 
         
     }
+    public function submitForgetPassword(Request $request)
+    {
+        $request->validate([
+            'contact' => ['required', function ($attribute, $value, $fail) {
+                $isEmail = filter_var($value, FILTER_VALIDATE_EMAIL);
+                $column = $isEmail ? 'email' : 'phone_number';
+
+                $exists = DB::table('jobseekers')->where($column, $value)->exists();
+
+                if (!$exists) {
+                    $fail("This " . ($isEmail ? 'email' : 'mobile number') . " is not registered.");
+                }
+            }],
+        ]);
+
+        $otp = rand(100000, 999999);
+        $contact = $request->contact;
+        $isEmail = filter_var($contact, FILTER_VALIDATE_EMAIL);
+        $contactMethod = $isEmail ? 'email' : 'phone_number';
+
+        // Save OTP in database
+        DB::table('jobseekers')->where($contactMethod, $contact)->update([
+            'otp' => $otp,
+            'updated_at' => now()
+        ]);
+
+        // === OTP sending is disabled for now ===
+        if ($isEmail) {
+            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
+            //     $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+            // });
+        } else {
+            // SmsService::send($contact, "Your OTP is: $otp");
+        }
+
+        // Store contact info in session
+        session([
+            'otp_method' => $contactMethod,
+            'otp_value' => $contact
+        ]);
+
+        // Then redirect to OTP verification page
+        return redirect()->route('jobseeker.verify-otp')->with('success', 'OTP sent!');
+
+
+    }
 
      
+    public function showOtpForm(){
+        return view('site.jobseeker.verify-otp'); 
+    }
+
+    public function showResetPasswordForm()
+    {
+        return view('site.jobseeker.reset-password'); 
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'contact' => 'required',
+            'otp' => ['required', 'digits:6'],
+        ]);
+
+        $contact = $request->contact;
+        $isEmail = filter_var($contact, FILTER_VALIDATE_EMAIL);
+        $column = $isEmail ? 'email' : 'phone_number';
+
+        $jobseeker = DB::table('jobseekers')
+            ->where($column, $contact)
+            ->where('otp', $request->otp)
+            ->first();
+
+        if (!$jobseeker) {
+            return back()
+                ->withErrors(['otp' => 'Invalid OTP or contact. Please enter the correct 6-digit OTP.'])
+                ->withInput();
+        }
+
+        // Save verified user ID in session
+        session(['verified_jobseeker' => $jobseeker->id]);
+
+        return redirect()->route('jobseeker.reset-password');
+    }
+
+
+    public function resetPassword(Request $request){
+       $request->validate([
+            'new_password' => 'required|min:6|same:confirm_password',
+            'confirm_password' => 'required|min:6',
+        ]);
+        $jobseekerId = session('verified_jobseeker');
+       
+        if (!$jobseekerId) {
+            return redirect()->route('jobseeker.forget-password')->withErrors(['session' => 'Session expired. Please try again.']);
+        }
+
+        $updated = DB::table('jobseekers')->where('id', $jobseekerId)->update([
+            'password' => Hash::make($request->new_password),
+            'pass' => $request->new_password,
+            'otp' => null, 
+            'updated_at' => now(),
+        ]);
+         
+        session()->forget('verified_jobseeker');
+        session()->forget('otp_value');
+        session()->forget('otp_method');
+
+        // if ($updated && $jobseeker && $jobseeker->email) {
+        //     $toEmail = $jobseeker->email;
+        //     $subject = "Password Changed Successfully";
+        //     $body = "Dear " . ($jobseeker->name ?? 'User') . ",\n\nYour password has been successfully changed.\n\nIf this wasn't you, please contact our support immediately.\n\nThanks,\nTeam";
+
+        //     Mail::raw($body, function ($message) use ($toEmail, $subject) {
+        //         $message->to($toEmail)->subject($subject);
+        //     });
+        // }
+
+        return redirect()->route('signin.form')->with('success', 'Password change successfully.');
+    }
+
+    
+
 
 
 
    
-
+    
 }

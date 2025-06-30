@@ -30,18 +30,24 @@
                                     <h2 class="text-2xl font-semibold mb-1">Forgot password</h2>
                                     <p class="text-sm text-gray-500 mb-6">Please enter your registered mobile no. or email id</p>
 
-                                    <form>
+                                    <form action="{{ route('submit.forget.password') }}" method="POST">
+                                        @csrf
                                         <div class="mb-4">
-                                            <label for="email" class="block text-sm font-medium mb-1">Email / Mobile number</label>
-                                            <input type="text" id="email" placeholder="Email"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                required />
+                                            <label for="contact" class="block text-sm font-medium mb-1">Email / Mobile Number</label>
+                                            <input type="text" name="contact" id="contact" placeholder="Enter email or mobile number"
+                                                value="{{ old('contact') }}"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                            @error('contact')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
-                                        <a href="{{ route('jobseeker.verify-otp')}}" class="block text-center text-sm font-medium text-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 rounded-md transition duration-150">
+                                        <button type="submit"
+                                            class="block w-full text-center text-sm font-medium text-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 rounded-md transition duration-150">
                                             Send OTP
-                                        </a>
+                                        </button>
                                     </form>
+
                                 </div>
                                 </div>
                             </div>

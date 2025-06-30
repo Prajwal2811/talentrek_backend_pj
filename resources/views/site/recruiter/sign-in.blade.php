@@ -98,7 +98,7 @@
 
                                     <div class="text-center text-sm">
                                         Don’t have an account?
-                                        <a href="{{ route('jobseeker.sign-up')}}" class="text-blue-600 hover:underline">Sign up</a>
+                                        <a href="{{ route('recruiter.signup')}}" class="text-blue-600 hover:underline">Sign up</a>
                                     </div>
                                 </form>
                             </div>

@@ -1,13 +1,14 @@
 <?php
 $user = Auth()->user();
 $edu = $user->educations;         
-$work = $user->experience;       
+$work = $user->experiences;       
 // $skills = $user->skills;
 $skills = $user->skills->first();
 
 // echo "<pre>";
-// print_r($edu);
+// print_r($work);
 // exit;
+
 ?>
 
 
@@ -43,9 +44,9 @@ $skills = $user->skills->first();
                     <div class="flex gap-4">
                         <img src="https://randomuser.me/api/portraits/men/1.jpg" class="h-20 w-20 rounded-md" alt="Profile" />
                         <div class="mt-1">
-                        <h2 class="text-xl font-semibold">{{$jobseekerSkills->name}}</h2>
-                        <p class="text-sm text-gray-600">{{$jobseekerSkills->email}}</p>
-                        <p class="text-sm text-gray-600">{{$jobseekerSkills->phone_number}}</p>
+                        <h2 class="text-xl font-semibold">{{$user->name}}</h2>
+                        <p class="text-sm text-gray-600">{{$user->email}}</p>
+                        <p class="text-sm text-gray-600">{{$user->phone_number}}</p>
                         </div>
                     </div>
                     <form action="{{ route('jobseeker.logout') }}" method="POST">
@@ -480,28 +481,27 @@ $skills = $user->skills->first();
                                                         : (isset($data->end_to) && $data->end_to === 'Work here');
                                                 @endphp
 
-                                                <div x-data="{ working: '{{ $isWorking ? 'true' : 'false' }}' == 'true' }">
+                                                <div x-data="{ working: '{{ isset($data->end_to) && $data->end_to === 'Work here' ? 'true' : 'false' }}' === 'true' }">
+                                                <label class="block text-sm font-medium mb-1">To</label>
+                                                <input type="text"
+                                                    id="end_to_{{ $i }}"
+                                                    name="end_to[]"
+                                                    class="w-full border rounded px-3 py-2 mb-2 datepicker-end"
+                                                    x-bind:disabled="working"
+                                                    :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
 
-                                                    <label class="block text-sm font-medium mb-1">To</label>
-                                                    <input type="text" 
-                                                        id="end_to_{{ $i }}" 
-                                                        name="end_to[]" 
-                                                        class="w-full border rounded px-3 py-2 mb-2 datepicker-end"
-                                                        x-bind:disabled="working"
-                                                        :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
-
-
-                                                    <label class="inline-flex items-center space-x-2 mt-2">
-                                                        <input type="checkbox" name="currently_working[]" value="{{ $i }}"
+                                                <label class="inline-flex items-center space-x-2 mt-2">
+                                                    <input type="checkbox" name="currently_working[]" value="{{ $i }}"
                                                         x-model="working"
                                                         {{ old("currently_working") ? (in_array($i, old("currently_working", [])) ? 'checked' : '') : (isset($data->end_to) && $data->end_to === 'Work here' ? 'checked' : '') }} />
+                                                    <span>I currently work here</span>
+                                                </label>
 
-                                                        <span>I currently work here</span>
-                                                    </label>
-                                                    @error("end_to.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
+                                                @error("end_to.$i")
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+
 
 
                                                 <!-- Remove Button -->
