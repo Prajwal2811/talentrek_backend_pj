@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Jobseekers extends Authenticatable
@@ -50,6 +49,21 @@ class Jobseekers extends Authenticatable
         'pass',
     ];
 
+    // public function educations()
+    // {
+    //     return $this->hasMany(EducationDetails::class);
+    // }
+
+    // public function experience()
+    // {
+    //     return $this->hasMany(WorkExperience::class);
+    // }
+
+    // public function skills()
+    // {
+    //     return $this->hasMany(Skills::class);
+    // }
+
     public function educations()
     {
         return $this->hasMany(EducationDetails::class, 'user_id')
@@ -58,6 +72,7 @@ class Jobseekers extends Authenticatable
 
     public function experiences()
     {
+
         return $this->hasMany(WorkExperience::class, 'user_id')
                     ->where('user_type', 'jobseeker');
     }

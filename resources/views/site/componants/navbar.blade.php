@@ -117,7 +117,10 @@
             <a href="{{ url('/trainer/sign-in') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Trainer</a>
             <a href="{{ url('/assessor/sign-in') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Assessor</a>
             <a href="{{ url('/coach/sign-in') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Coach</a>
-            <a href="{{ url('/recruiter/sign-in') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Recruiter</a>
+            <a href="{{ route('recruiter.login') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                Sign in as Recruiter
+            </a>
+
         </div>
     </div>
 @endif

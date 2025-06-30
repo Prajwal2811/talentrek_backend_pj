@@ -11,12 +11,14 @@ class Recruiters extends Model
 
     protected $table = 'recruiters';
 
+
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
         'name',
         'email',
+        'phone_number',
         'password',
         'pass',
         'status',
