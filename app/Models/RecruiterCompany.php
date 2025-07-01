@@ -24,18 +24,18 @@ class RecruiterCompany extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-            'recruiter_id',
-            'company_name',
-            'company_website',
-            'company_city',
-            'company_address',
-            'business_email',
-            'phone_code',
-            'company_phone_number',
-            'no_of_employee',
-            'industry_type',
-            'registration_number'
-        ];
+        'recruiter_id',
+        'company_name',
+        'company_website',
+        'company_city',
+        'company_address',
+        'business_email',
+        'phone_code',
+        'company_phone_number',
+        'no_of_employee',
+        'industry_type',
+        'registration_number',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.

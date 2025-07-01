@@ -14,7 +14,7 @@ class JobseekerRedirectIfAuthenticated
     {
 
         if (Auth::guard('jobseeker')->check()) {
-            return redirect()->route('jobseeker.dashboard');
+            return redirect()->route('jobseeker.profile');
         }
 
         return $next($request);

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Recruiters extends Model
+
+class Recruiters extends Authenticatable
 {
     use HasFactory;
 
@@ -21,6 +24,7 @@ class Recruiters extends Model
         'phone_number',
         'password',
         'pass',
+        'otp',
         'status',
         'inactive_reason',
         'admin_status'

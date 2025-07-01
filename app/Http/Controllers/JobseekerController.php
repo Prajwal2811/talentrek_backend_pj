@@ -12,12 +12,12 @@ use App\Models\Additionalinfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Mail;    
 use DB;
 
 class JobseekerController extends Controller
 {
-    public function postRegistration(Request $request)
+     public function postRegistration(Request $request)
     {
         $validated = $request->validate([
        
@@ -147,13 +147,18 @@ class JobseekerController extends Controller
         ]);
 
         session()->forget('jobseeker_id');
-        return redirect()->route('jobseeker.sign-in')->with('success_popup', true);
+        return redirect()->route('signin.form')->with('success_popup', true);
     }
  
 
     public function showSignInForm()
     {
         return view('site.jobseeker.sign-in'); 
+    }
+
+    public function showSignUpForm()
+    {
+        return view('site.jobseeker.sign-up');
     }
 
     public function showProfilePage()
@@ -176,7 +181,7 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
     }
-  
+
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
@@ -194,6 +199,22 @@ class JobseekerController extends Controller
         $educationDetails = DB::table('education_details')
             ->where('user_id', $jobseekerId)
             ->get();
+       
+        // Work experience (multiple)
+        $workExperiences = DB::table('work_experience')
+            ->where('user_id', $jobseekerId)
+            ->get();
+        
+        // echo "<pre>";
+        // print_r($workExperiences);
+        // exit;
+        
+        return view('site.jobseeker.profile', compact(
+            'jobseekerSkills',
+            'educationDetails',
+            'workExperiences',
+           
+        ));
 
     }
 
@@ -285,102 +306,50 @@ class JobseekerController extends Controller
 
 
     
-    // public function updateWorkExprienceInfo(Request $request)
-    // {
-    //     $user_id = auth()->id();
+    public function updateWorkExprienceInfo(Request $request)
+    {
+        $user_id = auth()->id();
 
-    //     // Validation for multiple entries
-    //     $validated = $request->validate([
-    //         'job_role.*' => 'required|string|max:255',
-    //         'organization.*' => 'required|string|max:255',
-    //         'starts_from.*' => 'required|date',
-    //         'end_to.*' => 'required|date|after_or_equal:starts_from.*',
-    //         'currently_working' => 'array',
-    //     ]);
+        // Validation for multiple entries
+        $validated = $request->validate([
+            'job_role.*' => 'required|string|max:255',
+            'organization.*' => 'required|string|max:255',
+            'starts_from.*' => 'required|date',
+            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
+            'currently_working' => 'array',
+        ]);
 
-    //     $workIds = $request->input('work_id', []);
-    //     $existingIds = WorkExperience::where('user_id', $user_id)
-    //                     ->where('user_type', 'jobseeker')
-    //                     ->pluck('id')
-    //                     ->toArray();
+        $workIds = $request->input('work_id', []);
+        $existingIds = WorkExperience::where('user_id', $user_id)
+                        ->where('user_type', 'jobseeker')
+                        ->pluck('id')
+                        ->toArray();
 
-    //     $toDelete = array_diff($existingIds, $workIds);
-    //     WorkExperience::whereIn('id', $toDelete)->delete();
-
-    //     foreach ($request->input('job_role', []) as $i => $role) {
-    //         $currentlyWorking = in_array($i, $request->input('currently_working', []));
-    //         $endToValue = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
-
-    //         $data = [
-    //             'user_id' => $user_id,
-    //             'user_type' => 'jobseeker',
-    //             'job_role' => $role,
-    //             'organization' => $request->organization[$i] ?? null,
-    //             'starts_from' => $request->starts_from[$i] ?? null,
-    //             'end_to' => $endToValue,
-    //         ];
-
-    //         if (!empty($request->work_id[$i])) {
-    //             WorkExperience::where('id', $request->work_id[$i])->update($data);
-    //         } else {
-    //             WorkExperience::create($data);
-    //         }
-    //     }
-
-    //     return redirect()->back()->with('success', 'Work Experience information saved successfully!');
-    // }
-public function updateWorkExprienceInfo(Request $request)
-{
-    $user_id = auth()->id();
-
-    $validated = $request->validate([
-        'job_role.*' => 'required|string|max:255',
-        'organization.*' => 'required|string|max:255',
-        'starts_from.*' => 'required|date',
-        'end_to.*' => 'nullable|string',
-        'currently_working' => 'array',
-    ]);
-
-    $workIds = $request->input('work_id', []);
-    $existingIds = WorkExperience::where('user_id', $user_id)
-        ->where('user_type', 'jobseeker')
-        ->pluck('id')
-        ->toArray();
-
-    // Delete removed records
-    $toDelete = array_diff($existingIds, $workIds);
-    if (!empty($toDelete)) {
+        $toDelete = array_diff($existingIds, $workIds);
         WorkExperience::whereIn('id', $toDelete)->delete();
-    }
 
-    $currentlyWorking = $request->input('currently_working', []);
+        foreach ($request->input('job_role', []) as $i => $role) {
+            $currentlyWorking = in_array($i, $request->input('currently_working', []));
+            $endToValue = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
 
-    foreach ($request->input('job_role', []) as $i => $role) {
-        $isCurrent = in_array((string)$i, array_map('strval', $currentlyWorking));
-        $endToValue = $isCurrent ? 'Work here' : ($request->end_to[$i] ?? null);
+            $data = [
+                'user_id' => $user_id,
+                'user_type' => 'jobseeker',
+                'job_role' => $role,
+                'organization' => $request->organization[$i] ?? null,
+                'starts_from' => $request->starts_from[$i] ?? null,
+                'end_to' => $endToValue,
+            ];
 
-        $data = [
-            'user_id' => $user_id,
-            'user_type' => 'jobseeker',
-            'job_role' => $role,
-            'organization' => $request->organization[$i] ?? null,
-            'starts_from' => $request->starts_from[$i] ?? null,
-            'end_to' => $endToValue,
-        ];
-
-        if (!empty($request->work_id[$i])) {
-            // Update existing
-            WorkExperience::where('id', $request->work_id[$i])->update($data);
-        } else {
-            // Insert new
-            WorkExperience::create($data);
+            if (!empty($request->work_id[$i])) {
+                WorkExperience::where('id', $request->work_id[$i])->update($data);
+            } else {
+                WorkExperience::create($data);
+            }
         }
+
+        return redirect()->back()->with('success', 'Work Experience information saved successfully!');
     }
-
-    return redirect()->back()->with('success', 'Work experience updated successfully.');
-}
-
-
 
 
     public function updateSkillsInfo(Request $request)
@@ -413,6 +382,7 @@ public function updateWorkExprienceInfo(Request $request)
 
         
     }
+
     public function submitForgetPassword(Request $request)
     {
         $request->validate([
