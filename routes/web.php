@@ -101,12 +101,12 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/registration', [App\Http\Controllers\JobseekerController::class, 'postRegistration'])->name('register.post'); 
 		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('registration.store');
 		Route::get('/sign-in', [App\Http\Controllers\JobseekerController::class, 'showSignInForm'])->name('signin.form');
+		Route::get('/sign-up', [App\Http\Controllers\JobseekerController::class, 'showSignUpForm'])->name('signup.form');
 		Route::post('/jobseeker/login', [App\Http\Controllers\JobseekerController::class, 'loginJobseeker'])->name('jobseeker.login.submit');
 		Route::post('/submit-forget-password', [App\Http\Controllers\JobseekerController::class, 'submitForgetPassword'])->name('submit.forget.password');
 		Route::get('/verify-otp', [App\Http\Controllers\JobseekerController::class, 'showOtpForm'])->name('jobseeker.verify-otp');
 		Route::post('/submit-verify-otp', [App\Http\Controllers\JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
 		Route::get('reset-password', [App\Http\Controllers\JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');
-
 		Route::post('/submit-reset-password', [App\Http\Controllers\JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
 	});
 	
@@ -132,13 +132,26 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::get('/sign-in', [App\Http\Controllers\RecruiterController::class, 'showSignInForm'])->name('recruiter.login');
 		Route::get('/sign-up', [App\Http\Controllers\RecruiterController::class, 'showSignUpForm'])->name('recruiter.signup');
 		Route::get('/registration', [App\Http\Controllers\RecruiterController::class, 'showRegistrationForm'])->name('recruiter.registration');
-		Route::post('/registration', [App\Http\Controllers\RecruiterController::class, 'postRegistration'])->name('register.post'); 
-		Route::post('/registration/store', [App\Http\Controllers\RecruiterController::class, 'storeRecruiterInformation'])->name('registration.store');
+		Route::get('/forget-password', [App\Http\Controllers\RecruiterController::class, 'showForgotPasswordForm'])->name('recruiter.forget.password');
 
+		Route::get('/verify-otp', [App\Http\Controllers\RecruiterController::class, 'showOtpForm'])->name('recruiter.verify-otp');
+		Route::get('reset-password', [App\Http\Controllers\RecruiterController::class, 'showResetPasswordForm'])->name('recruiter.reset-password');
+
+
+		Route::post('/registration', [App\Http\Controllers\RecruiterController::class, 'postRegistration'])->name('register.post'); 
+		Route::post('/registration/store', [App\Http\Controllers\RecruiterController::class, 'storeRecruiterInformation'])->name('recruitment.registration.store');
+		Route::post('/recruiter/login', [App\Http\Controllers\RecruiterController::class, 'loginRecruiter'])->name('recruiter.login.submit');
+		Route::post('/submit-forget-password', [App\Http\Controllers\RecruiterController::class, 'submitForgetPassword'])->name('recruiter.submit.forget.password');
+
+		Route::post('/submit-verify-otp', [App\Http\Controllers\RecruiterController::class, 'verifyOtp'])->name('recruiter.verify-otp.submit');
+		Route::post('/submit-reset-password', [App\Http\Controllers\RecruiterController::class, 'resetPassword'])->name('recruiter.reset-password.submit');
 	});
 	
 	Route::group(['middleware' => 'recruiter.auth'], function(){
-		Route::get('/dashboard',[App\Http\Controllers\RecruiterController::class, 'dashboard'])->name('recruiter.dashboard');
+		Route::get('/dashboard',[App\Http\Controllers\RecruiterController::class, 'showRecruiterDashboard'])->name('recruiter.dashboard');
+		Route::post('/logout',[App\Http\Controllers\RecruiterController::class, 'logoutrecruiter'])->name('recruiter.logout');
+		Route::get('/dashboard/jobseeker',[App\Http\Controllers\RecruiterController::class, 'showJobseekerListForm'])->name('recruiter.dashboard.jobseeker');
+		Route::get('/jobseeker/list',[App\Http\Controllers\RecruiterController::class, 'getAllJobseekerList'])->name('recruiter.dashboard.jobseeker.list');
 	});
 });
 

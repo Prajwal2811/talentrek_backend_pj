@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('password')->nullable();
             $table->string('pass')->nullable(); 
+            $table->integer('otp')->nullable(); 
             $table->string('status')->nullable(); 
             $table->string('inactive_reason')->nullable(); 
             $table->string('admin_status')->nullable(); 
