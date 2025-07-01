@@ -38,27 +38,36 @@
                                 <li><a href="{{ route('admin.index') }}">Manage Admin</a></li>
                             </ul>
                         </li>
-
-
-
                         @endif
                         
-
                         <li class="header">User Roles</li>
                         <li><a href="{{ route('admin.jobseekers') }}"><i class="fa fa-user"></i><span>Jobseekers</span></a></li>
                         <li><a href="{{ route('admin.expat') }}"><i class="fa fa-globe"></i><span>Expat</span></a></li>
                         <li><a href="{{ route('admin.recruiters') }}"><i class="fa fa-briefcase"></i><span>Recruiters</span></a></li>
-                        <li><a href="{{ route('admin.trainers') }}"><i class="fa fa-chalkboard-teacher"></i><span>Trainers</span></a></li>
-                        <li><a href="{{ route('admin.assessors') }}"><i class="fa fa-clipboard-check"></i><span>Assessors</span></a></li>
-                        <li><a href="{{ route('admin.coach') }}"><i class="fa fa-user-tie"></i><span>Coach</span></a></li>
+                        <li><a href="{{ route('admin.trainers') }}"><i class="fa fa-graduation-cap"></i><span>Trainers</span></a></li>
+                        <li><a href="{{ route('admin.assessors') }}"><i class="fa fa-check-square-o"></i><span>Assessors</span></a></li>
+                        <li><a href="{{ route('admin.coach') }}"><i class="fa fa-user"></i><span>Coach</span></a></li>
                         <li><a href="{{ route('admin.mentors') }}"><i class="fa fa-users"></i><span>Mentors</span></a></li>
 
 
-                        <li class="header">System Log</li>
-                        <li><a href="{{ route('admin.activity.log') }}"><i class="fa fa-power-off"></i><span>Logs</span></a></li>
+                        @php
+                            $userRole = auth()->user()->role;
+                        @endphp
 
-                        {{-- <li class="header">Sign Out</li>
-                        <li><a href="{{ route('admin.signOut') }}"><i class="fa fa-power-off"></i><span>Logout</span></a></li> --}}
+                        @if($userRole === 'superadmin')
+                            <li class="header">Site activity</li>
+                            <li><a href=""><i class="fa fa-file-text"></i><span>CMS</span></a></li>
+                            <li><a href=""><i class="fa fa-credit-card"></i><span>Subscriptions</span></a></li>
+                            <li><a href=""><i class="fa fa-certificate"></i><span>Certification Template</span></a></li>
+                            <li><a href=""><i class="fa fa-money"></i><span>Payments</span></a></li>
+                            <li><a href=""><i class="fa fa-comments"></i><span>Testimonials</span></a></li>
+                            <li><a href=""><i class="fa fa-language"></i><span>Languages</span></a></li>
+                            <li><a href=""><i class="fa fa-cog"></i><span>Settings</span></a></li>
+
+                            <li class="header">System Log</li>
+                            <li><a href="{{ route('admin.activity.log') }}"><i class="fa fa-history"></i><span>Logs</span></a></li>
+
+                        @endif
                     </ul>
                 </nav>
             

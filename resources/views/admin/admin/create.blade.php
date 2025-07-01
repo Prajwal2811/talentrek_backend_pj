@@ -26,7 +26,7 @@
                                     <h2>Admin Creation</h2>
                                 </div>
                                 <div class="body">
-                                   <form id="basic-form" method="post" novalidate action="{{ route('admin.store') }}">
+                                    <form id="basic-form" method="post" novalidate action="{{ route('admin.store') }}">
                                     @csrf
                                     <!-- Full Name -->
                                     <div class="form-group c_form_group">
@@ -82,7 +82,7 @@
                                     </div>
 
                                     <button type="submit" class="btn btn-primary theme-bg">Create Admin</button>
-                                </form>
+                                    </form>
 
                                 </div>
                             </div>

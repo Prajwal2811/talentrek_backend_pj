@@ -23,7 +23,8 @@ class Recruiters extends Model
         'pass',
         'status',
         'inactive_reason',
-        'admin_status'
+        'admin_status',
+        'rejection_reason',
     ];
 
     /**

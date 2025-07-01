@@ -10,6 +10,7 @@
             @include('admin.componants.sidebar')
             <div id="main-content">
                 <div class="container-fluid">
+                    @include('admin.errors')
                     <div class="block-header">
                         <div class="row clearfix align-items-center">
                             <!-- Left Column -->
@@ -34,7 +35,6 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <!-- Status Badge -->
                                         @php
                                             $status = $jobseeker->admin_status;
                                             $userRole = auth()->user()->role;
@@ -42,24 +42,42 @@
 
                                         {{-- Admin Actions --}}
                                         @if(!$status && $userRole === 'admin')
-                                            <!-- Admin Action Buttons -->
                                             <button class="btn btn-default me-2" data-bs-toggle="modal" data-bs-target="#approveModal">Approve</button>
                                             <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
 
                                         {{-- Superadmin Actions --}}
-                                        @elseif($userRole === 'superadmin' && !Str::startsWith($status, 'superadmin_'))
-                                            {{-- Show Admin status if available --}}
-                                            @if($status)
-                                                <span class="badge bg-info me-2">Admin: {{ ucfirst($status) }}</span>
-                                            @else
+                                        @elseif($userRole === 'superadmin')
+
+                                            {{-- Admin has not yet acted --}}
+                                            @if(!$status)
                                                 <span class="badge bg-warning me-2">Admin has not yet responded</span>
+
+                                            {{-- Admin has rejected — Superadmin cannot override --}}
+                                            @elseif($status === 'rejected')
+                                                <div class="d-flex flex-column align-items-end text-end">
+                                                    <span class="badge bg-danger mb-2">Admin Rejected</span>
+                                                    <p class="text-light m-0">
+                                                        <strong>Superadmin action not allowed</strong> because the profile was rejected by Admin.
+                                                    </p>
+                                                </div>
+
+
+                                            {{-- Admin approved — Superadmin can act if not already acted --}}
+                                            @elseif($status === 'approved')
+                                                <span class="badge bg-info me-2">Admin Approved</span>
+                                                <button class="btn btn-default me-2" data-bs-toggle="modal" data-bs-target="#superApproveModal">Super Approve</button>
+                                                <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#superRejectModal">Super Reject</button>
+
+                                            {{-- Superadmin already acted --}}
+                                            @elseif(Str::startsWith($status, 'superadmin_'))
+                                                @php
+                                                    $badgeClass = Str::contains($status, 'approved') ? 'success' : 'danger';
+                                                    $statusLabel = ucfirst(str_replace('_', ' ', $status));
+                                                @endphp
+                                                <span class="badge bg-{{ $badgeClass }}">{{ $statusLabel }}</span>
                                             @endif
 
-                                            <!-- Superadmin Final Decision Buttons -->
-                                            <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#approveModal">Super Approve</button>
-                                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Super Reject</button>
-
-                                        {{-- Final Superadmin Decision --}}
+                                        {{-- Final decision already made --}}
                                         @elseif(Str::startsWith($status, 'superadmin_'))
                                             @php
                                                 $badgeClass = Str::contains($status, 'approved') ? 'success' : 'danger';
@@ -67,68 +85,136 @@
                                             @endphp
                                             <span class="badge bg-{{ $badgeClass }}">{{ $statusLabel }}</span>
 
-                                        {{-- Admin sees previously set status --}}
+                                        {{-- Admin view-only state --}}
                                         @else
                                             <span class="badge bg-secondary">{{ ucfirst($status) }}</span>
                                         @endif
 
 
-
-                                        <!-- Approve Modal -->
-                                        <div class="modal fade text-dark" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+                                        <!-- Admin Approve Modal -->
+                                        <div class="modal fade text-dark" id="approveModal" tabindex="-1">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Confirm Approval</h5>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        Are you sure you want to approve this profile?
-                                                    </div>
+                                                    <div class="modal-header"><h5 class="modal-title">Confirm Approval</h5></div>
+                                                    <div class="modal-body">Are you sure you want to approve this profile?</div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'approved')">Yes, Approve</button>
+                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'approved', this)">Yes, Approve</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Reject Modal -->
-                                        <div class="modal fade text-dark" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                                        <!-- Admin Reject Modal -->
+                                        <div class="modal fade text-dark" id="rejectModal" tabindex="-1">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Confirm Rejection</h5>
-                                                    </div>
+                                                    <div class="modal-header"><h5 class="modal-title">Confirm Rejection</h5></div>
                                                     <div class="modal-body">
-                                                        Are you sure you want to reject this profile?
+                                                        <p>Are you sure you want to reject this profile?</p>
+                                                        <div class="form-group">
+                                                            <label for="adminRejectionReason">Reason:</label>
+                                                            <textarea required id="adminRejectionReason" class="form-control" rows="3" placeholder="Enter reason..."></textarea>
+                                                            <small id="adminRejectionReasonError" class="text-danger d-none"></small>
+                                                        </div>
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-danger" onclick="updateStatus({{ $jobseeker->id }}, 'rejected')">Yes, Reject</button>
+                                                        <button class="btn btn-danger" onclick="submitRejection({{ $jobseeker->id }}, 'rejected', 'adminRejectionReason', this)">Yes, Reject</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- Superadmin Approve Modal -->
+                                        <div class="modal fade text-dark" id="superApproveModal" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header"><h5 class="modal-title">Confirm Super Approval</h5></div>
+                                                    <div class="modal-body">Are you sure you want to super approve this profile?</div>
+                                                    <div class="modal-footer">
+                                                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'superadmin_approved', this)">Yes, Approve</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Superadmin Reject Modal -->
+                                        <div class="modal fade text-dark" id="superRejectModal" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header"><h5 class="modal-title">Confirm Super Rejection</h5></div>
+                                                    <div class="modal-body">
+                                                        <p>Are you sure you want to super reject this profile?</p>
+                                                        <div class="form-group">
+                                                            <label for="superRejectionReason">Reason:</label>
+                                                            <textarea required id="superRejectionReason" class="form-control" rows="3" placeholder="Enter reason..."></textarea>
+                                                            <small id="superRejectionReasonError" class="text-danger d-none"></small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-danger" onclick="submitRejection({{ $jobseeker->id }}, 'superadmin_rejected', 'superRejectionReason', this)">Yes, Reject</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- JS -->
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                         <script>
-                                            function updateStatus(jobseekerId, status) {
-                                                $.ajax({
-                                                    url: '{{ route("admin.jobseeker.updateStatus") }}',
-                                                    method: 'POST',
-                                                    data: {
-                                                        _token: '{{ csrf_token() }}',
-                                                        jobseeker_id: jobseekerId,
-                                                        status: status
-                                                    },
-                                                    success: function (response) {
-                                                        // alert(response.message);
-                                                        // Close the modals manually
-                                                        $('.modal').modal('hide');
-                                                        // Optional: Reload or update status in the UI
-                                                        location.reload();
-                                                    },
-                                                    error: function () {
-                                                        alert('An error occurred while updating status.');
+                                            function updateStatus(jobseekerId, status, btn) {
+                                                const originalText = btn.innerHTML;
+                                                btn.disabled = true;
+                                                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...`;
+
+                                                $.post('{{ route("admin.jobseeker.updateStatus") }}', {
+                                                    _token: '{{ csrf_token() }}',
+                                                    jobseeker_id: jobseekerId,
+                                                    status: status
+                                                }).done(() => {
+                                                    $('.modal').modal('hide');
+                                                    location.reload();
+                                                }).fail(() => {
+                                                    btn.disabled = false;
+                                                    btn.innerHTML = originalText;
+                                                });
+                                            }
+
+                                            function submitRejection(jobseekerId, status, reasonId, btn) {
+                                                const reason = document.getElementById(reasonId).value.trim();
+                                                const errorDiv = document.getElementById(reasonId + "Error");
+
+                                                if (!reason) {
+                                                    if (errorDiv) {
+                                                        errorDiv.textContent = "Reason is required for rejection.";
+                                                        errorDiv.classList.remove("d-none");
+                                                    }
+                                                    return;
+                                                } else {
+                                                    if (errorDiv) errorDiv.classList.add("d-none");
+                                                }
+
+                                                const originalText = btn.innerHTML;
+                                                btn.disabled = true;
+                                                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...`;
+
+                                                $.post('{{ route("admin.jobseeker.updateStatus") }}', {
+                                                    _token: '{{ csrf_token() }}',
+                                                    jobseeker_id: jobseekerId,
+                                                    status: status,
+                                                    reason: reason
+                                                }).done(() => {
+                                                    $('.modal').modal('hide');
+                                                    location.reload();
+                                                }).fail((xhr) => {
+                                                    btn.disabled = false;
+                                                    btn.innerHTML = originalText;
+
+                                                    if (errorDiv && xhr.responseJSON?.message) {
+                                                        errorDiv.textContent = xhr.responseJSON.message;
+                                                        errorDiv.classList.remove("d-none");
                                                     }
                                                 });
                                             }

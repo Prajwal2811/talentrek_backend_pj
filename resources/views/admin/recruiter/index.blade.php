@@ -40,6 +40,7 @@
                                                 <th>Email</th>
                                                 <th>Comapny Name</th>
                                                 <th>Status</th>
+                                                 <th>Admin Status</th>
                                                 <th>Registered Date</th>
                                                 <th class="sort-disable">Actions</th>
                                             </tr>
@@ -51,6 +52,7 @@
                                                 <th>Email</th>
                                                 <th>Comapny Name</th>
                                                 <th>Status</th>
+                                                 <th>Admin Status</th>
                                                 <th>Registered Date</th>
                                                 <th class="sort-disable">Actions</th>
                                             </tr>
@@ -84,6 +86,7 @@
                                                         });
                                                     });
                                                 </script>
+
 
 
                                                 <!-- Inactive Reason Modal -->
@@ -169,6 +172,20 @@
                                                         });
                                                     }
                                                 </script>
+
+                                                <td>
+                                                    @if($recruiter->admin_status == 'approved')
+                                                        <span class="badge bg-success text-light">Admin Approved</span>
+                                                    @elseif($recruiter->admin_status == 'rejected')
+                                                        <span class="badge bg-danger text-light">Admin Rejected</span>
+                                                    @elseif($recruiter->admin_status == 'superadmin_rejected')
+                                                        <span class="badge bg-danger text-light">Super Admin Rejected</span>
+                                                    @elseif($recruiter->admin_status == 'superadmin_approved')
+                                                        <span class="badge bg-success text-light">Super Admin Approved</span>
+                                                    @else
+                                                            <span class="badge bg-warning text-light">Pending</span>
+                                                    @endif
+                                                </td>
 
                                                 <td>{{ \Carbon\Carbon::parse($recruiter->created_at)->format('d/m/Y') }}</td>
                                                 <td>

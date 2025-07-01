@@ -13,6 +13,7 @@ use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
 {
@@ -445,59 +446,100 @@ class AdminController extends Controller
         return view('admin.jobseeker.view', compact('jobseeker', 'experiences', 'educations', 'skills','additioninfos'));
     }
 
+
     public function updateStatus(Request $request)
     {
         $request->validate([
             'jobseeker_id' => 'required|exists:jobseekers,id',
-            'status' => 'required|in:approved,rejected',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
         ]);
 
         $jobseeker = Jobseekers::findOrFail($request->jobseeker_id);
         $user = auth()->user();
         $previousStatus = $jobseeker->admin_status;
+        $status = $request->status;
 
-        if ($user->role === 'superadmin') {
-            $jobseeker->admin_status = 'superadmin_' . $request->status;
-        } elseif ($user->role === 'admin') {
-            $jobseeker->admin_status = $request->status;
-        } else {
+        // Role validation
+        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Invalid status for superadmin');
+        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Admins cannot perform superadmin actions');
+        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
             Log::warning('Unauthorized jobseeker status update attempt', [
                 'attempted_by' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role' => $user->role
+                    'role' => $user->role,
                 ],
                 'jobseeker_id' => $jobseeker->id,
-                'time' => now()
+                'time' => now(),
             ]);
-
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return back()->with('error', 'Unauthorized action.');
         }
 
+        // Update status and rejection reason
+        $jobseeker->admin_status = $status;
+        $jobseeker->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
         $jobseeker->save();
 
-        // ✅ Log the approved/rejected status change
+        // Log the update
         Log::info('Jobseeker admin status updated', [
             'jobseeker' => [
                 'id' => $jobseeker->id,
                 'name' => $jobseeker->name,
-                'email' => $jobseeker->email ?? null,
+                'email' => $jobseeker->email,
                 'previous_status' => $previousStatus,
-                'new_status' => $jobseeker->admin_status
+                'new_status' => $status,
+                'rejection_reason' => $jobseeker->rejection_reason,
             ],
             'updated_by' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role
+                'role' => $user->role,
             ],
-            
-            'time' => now()
+            'time' => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+        // Send email if rejected
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $jobseeker->email) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Application Rejected – Talentrek</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+                    .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+                    .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Application Update – <span style="color:#dc3545;">Rejected</span></h2>
+                        </div>
+                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+                        <p>We regret to inform you that your application on <strong>Talentrek</strong> has been rejected.</p>
+                        <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+                        <p>If you believe this was a mistake, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+                </body>
+                </html>
+            ', function ($message) use ($jobseeker) {
+                $message->to($jobseeker->email)->subject('Application Rejected – Talentrek');
+            });
+        }
+
+        return back()->with('success', 'Status updated successfully.');
     }
+
+
 
 
 
@@ -579,55 +621,94 @@ class AdminController extends Controller
     {
         $request->validate([
             'recruiter_id' => 'required|exists:recruiters,id',
-            'status' => 'required|in:approved,rejected',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
         ]);
 
         $recruiter = Recruiters::findOrFail($request->recruiter_id);
         $user = auth()->user();
         $previousStatus = $recruiter->admin_status;
+        $status = $request->status;
 
-        if ($user->role === 'superadmin') {
-            $recruiter->admin_status = 'superadmin_' . $request->status;
-        } elseif ($user->role === 'admin') {
-            $recruiter->admin_status = $request->status;
-        } else {
+        // Role-based validation
+        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+            return response()->json(['success' => false, 'message' => 'Invalid status for superadmin'], 403);
+        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return response()->json(['success' => false, 'message' => 'Admins cannot perform superadmin actions'], 403);
+        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
             Log::warning('Unauthorized recruiter status update attempt', [
                 'attempted_by' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role' => $user->role
+                    'role' => $user->role,
                 ],
-                'jobseeker_id' => $recruiter->id,
-                'time' => now()
+                'recruiter_id' => $recruiter->id,
+                'time' => now(),
             ]);
-
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
+        // Save new status and rejection reason if applicable
+        $recruiter->admin_status = $status;
+        $recruiter->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
         $recruiter->save();
 
-        // ✅ Log the approved/rejected status change
-        Log::info('Recruiter admin status updated', [
+        // Log the update
+        Log::info('Recruiter status updated', [
             'recruiter' => [
                 'id' => $recruiter->id,
                 'name' => $recruiter->name,
-                'email' => $recruiter->email ?? null,
+                'email' => $recruiter->email,
                 'previous_status' => $previousStatus,
-                'new_status' => $recruiter->admin_status
+                'new_status' => $status,
+                'rejection_reason' => $recruiter->rejection_reason,
             ],
             'updated_by' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role
+                'role' => $user->role,
             ],
-            
-            'time' => now()
+            'time' => now(),
         ]);
+
+        // Optional: Email notification on rejection
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $recruiter->email) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Recruiter Application Rejected</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+                    .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+                    .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Recruiter Application – <span style="color:#dc3545;">Rejected</span></h2>
+                        </div>
+                        <p>Hi <strong>' . e($recruiter->name ?? $recruiter->email) . '</strong>,</p>
+                        <p>Your recruiter registration has been rejected on <strong>Talentrek</strong>.</p>
+                        <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+                        <p>If you have questions, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+                </body>
+                </html>
+            ', function ($message) use ($recruiter) {
+                $message->to($recruiter->email)->subject('Recruiter Application Rejected – Talentrek');
+            });
+        }
 
         return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
     }
+
 
 
    public function showActivityLog()

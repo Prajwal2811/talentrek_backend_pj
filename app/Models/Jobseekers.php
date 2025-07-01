@@ -31,7 +31,8 @@ class Jobseekers extends Authenticatable
         'otp',
         'status',
         'inactive_reason',
-        'admin_status'
+        'admin_status',
+        'rejection_reason',
     ];
 
     /**
