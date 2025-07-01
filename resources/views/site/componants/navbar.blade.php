@@ -45,6 +45,10 @@
                 class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
                     Coaching
                 </a>
+                <a href=""
+                class="">
+                    Recruiter
+                </a>
             </nav>
 
 
@@ -61,20 +65,52 @@
             </div>
             <select class="bg-transparent appearance-none text-base font-medium pl-1 pr-4 text-black focus:outline-none">
             <option>English</option>
-            <option>Spanish</option>
+            <option>Arabic</option>
             </select>
         </div>
 
-        <!-- Sign In/Up (shared dropdown) -->
+        @php
+    $guards = ['jobseeker', 'recruiter', 'trainer', 'assessor', 'coach', 'mentor', 'expat'];
+    $user = null;
+    $guardUsed = null;
+
+    foreach ($guards as $guard) {
+        if (Auth::guard($guard)->check()) {
+            $user = Auth::guard($guard)->user();
+            $guardUsed = $guard;
+            break;
+        }
+    }
+@endphp
+
+@if($user)
+    <!-- Logged In View -->
+    <div class="relative">
+        <button onclick="toggleDropdown()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-1.5 text-base rounded flex items-center space-x-1">
+            <span>{{ $user->name ?? 'Profile' }}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+        </button>
+
+        <div id="signinDropdown" class="hidden absolute right-4 top-full mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50">
+            <a href="{{ url('/' . $guardUsed . '/profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
+            <form method="POST" action="{{ url('/' . $guardUsed . '/logout') }}">
+                @csrf
+                <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+            </form>
+        </div>
+    </div>
+@else
+    <!-- Sign In/Up View -->
+    <div class="relative">
         <button onclick="toggleDropdown()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-1.5 text-base rounded flex items-center space-x-1">
             <span>Sign in / Sign up</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
         </button>
-        </div>
 
-        <!-- Shared Sign In/Up Dropdown -->
         <div id="signinDropdown" class="hidden absolute right-4 top-full mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50">
             <a href="{{ url('/jobseeker/sign-in') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Jobseeker</a>
             <a href="{{ url('/mentor/sign-in') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Mentor</a>
@@ -86,6 +122,24 @@
             </a>
 
         </div>
+    </div>
+@endif
+<script>
+    function toggleDropdown() {
+        const dropdown = document.getElementById('signinDropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function (e) {
+        const dropdown = document.getElementById('signinDropdown');
+        const button = e.target.closest('button[onclick="toggleDropdown()"]');
+
+        if (!dropdown.contains(e.target) && !button) {
+            dropdown.classList.add('hidden');
+        }
+    });
+</script>
+
 
     </div>
 

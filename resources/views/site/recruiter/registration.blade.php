@@ -23,32 +23,41 @@
     <!-- MOBILE SPECIFIC -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"><!-- BOOTSTRAP STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css"><!-- FONTAWESOME STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/feather.css"><!-- FEATHER ICON SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/owl.carousel.min.css"><!-- OWL CAROUSEL STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/magnific-popup.min.css"><!-- MAGNIFIC POPUP STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/lc_lightbox.css"><!-- Lc light box popup -->     
-    <link rel="stylesheet" type="text/css" href="css/bootstrap-select.min.css"><!-- BOOTSTRAP SLECT BOX STYLE SHEET  -->
-    <link rel="stylesheet" type="text/css" href="css/dataTables.bootstrap5.min.css"><!-- DATA table STYLE SHEET  -->
-    <link rel="stylesheet" type="text/css" href="css/select.bootstrap5.min.css"><!-- DASHBOARD select bootstrap  STYLE SHEET  -->     
-    <link rel="stylesheet" type="text/css" href="css/dropzone.css"><!-- DROPZONE STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/scrollbar.css"><!-- CUSTOM SCROLL BAR STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/datepicker.css"><!-- DATEPICKER STYLE SHEET -->
-    <link rel="stylesheet" type="text/css" href="css/flaticon.css"> <!-- Flaticon -->
-    <link rel="stylesheet" type="text/css" href="css/swiper-bundle.min.css"><!-- Swiper Slider -->
-    <link rel="stylesheet" type="text/css" href="css/style.css"><!-- MAIN STYLE SHEET -->
+  <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/font-awesome.min.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/feather.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/magnific-popup.min.css') }}"><!-- MAGNIFIC POPUP STYLE SHEET -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/lc_lightbox.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/bootstrap-select.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/dataTables.bootstrap5.min.css') }}"><!-- DATA table STYLE SHEET  -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/select.bootstrap5.min.css') }}"> 
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/dropzone.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/scrollbar.css') }}"><!-- CUSTOM SCROLL BAR STYLE SHEET -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/datepicker.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/flaticon.css') }}"> 
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/swiper-bundle.min.css') }}">
 
-    <link rel="stylesheet" class="skin" type="text/css" href="css/skins-type/skin-6.css">
-    <link rel="stylesheet" type="text/css" href="css/switcher.css">
+   <!-- MAIN STYLE SHEET -->
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+     <link rel="stylesheet" class="skin" type="text/css" href="css/skins-type/skin-6.css">
+        <link rel="stylesheet" type="text/css" href="css/switcher.css">
+
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/style.css') }}"> -->
     <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
@@ -176,66 +185,88 @@
                                 <span class="text-xs mt-1 text-center">Additional<br />Information</span>
                             </div>
                             </div>
-
+                        <form class="space-y-6" action="{{ route('recruitment.registration.store') }}" method="POST">
+                            @csrf
                             <!-- Step 1: Company Information -->
                             <div id="step-1">
-                                <form class="space-y-6">
+                                <!-- <form class="space-y-6"> -->
                                     <div>
-                                    <label class="block mb-1 text-sm font-medium">Company name</label>
-                                    <input type="text" class="w-full border rounded-md p-2" placeholder="Enter company name" />
+                                        <label class="block mb-1 text-sm font-medium">Company name</label>
+                                        <input type="text" name="company_name" class="w-full border rounded-md p-2" placeholder="Enter company name" value="{{old('company_name')}}"/>
+                                        @error('company_name')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block mb-1 text-sm font-medium">Company website</label>
-                                        <input type="url" class="w-full border rounded-md p-2" placeholder="Paste website link" />
-                                    </div>
-                                    <div>
-                                        <label class="block mb-1 text-sm font-medium">Company location</label>
-                                        <input type="text" class="w-full border rounded-md p-2" placeholder="Enter location" />
-                                    </div>
-                                    </div>
-
-                                    <div>
-                                    <label class="block mb-1 text-sm font-medium">Company address</label>
-                                    <input type="text" class="w-full border rounded-md p-2" placeholder="Enter the address" />
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block mb-1 text-sm font-medium">Business email</label>
-                                        <input type="email" class="w-full border rounded-md p-2" placeholder="Enter email id" />
-                                    </div>
-                                    <div>
-                                        <label class="block mb-1 text-sm font-medium">Company phone number</label>
-                                        <div class="flex">
-                                        <select class="w-1/3 border rounded-l-md p-2" name="country_code" required>
-                                            <option value="">Country</option>
-                                            <option value="+1">🇺🇸 United States (+1)</option>
-                                            <option value="+91">🇮🇳 India (+91)</option>
-                                            <option value="+44">🇬🇧 United Kingdom (+44)</option>
-                                            <option value="+61">🇦🇺 Australia (+61)</option>
-                                            <option value="+81">🇯🇵 Japan (+81)</option>
-                                            <option value="+49">🇩🇪 Germany (+49)</option>
-                                            <option value="+33">🇫🇷 France (+33)</option>
-                                            <option value="+86">🇨🇳 China (+86)</option>
-                                            <option value="+971">🇦🇪 UAE (+971)</option>
-                                            <option value="+92">🇵🇰 Pakistan (+92)</option>
-                                            <option value="+880">🇧🇩 Bangladesh (+880)</option>
-                                            <option value="+94">🇱🇰 Sri Lanka (+94)</option>
-                                            <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
-                                            <option value="+7">🇷🇺 Russia (+7)</option>
-                                        </select>
-
-                                        <input type="tel" class="w-2/3 border rounded-r-md p-2" placeholder="Enter phone number" />
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Company website</label>
+                                            <input type="url" name="company_website" class="w-full border rounded-md p-2" placeholder="Paste website link" value="{{old('company_website')}}"/>
+                                            @error('company_website')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Company location</label>
+                                            <input type="text" name="company_city" class="w-full border rounded-md p-2" placeholder="Enter location" value="{{old('company_city')}}"/>
+                                            @error('company_city')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label class="block mb-1 text-sm font-medium">Company address</label>
+                                        <input type="text" name="company_address" class="w-full border rounded-md p-2" placeholder="Enter the address" value="{{old('company_address')}}"/>
+                                        @error('company_address')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Business email</label>
+                                            <input type="email"  name="business_email"  class="w-full border rounded-md p-2" placeholder="Enter email id" value="{{old('business_email')}}"/>
+                                            @error('business_email')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Company phone number</label>
+                                            <div class="flex">
+                                                <select class="w-1/3 border rounded-l-md p-2" name="phone_code" required>
+                                                    <option value="">Country</option>
+                                                    <option value="+1">🇺🇸 United States (+1)</option>
+                                                    <option value="+91">🇮🇳 India (+91)</option>
+                                                    <option value="+44">🇬🇧 United Kingdom (+44)</option>
+                                                    <option value="+61">🇦🇺 Australia (+61)</option>
+                                                    <option value="+81">🇯🇵 Japan (+81)</option>
+                                                    <option value="+49">🇩🇪 Germany (+49)</option>
+                                                    <option value="+33">🇫🇷 France (+33)</option>
+                                                    <option value="+86">🇨🇳 China (+86)</option>
+                                                    <option value="+971">🇦🇪 UAE (+971)</option>
+                                                    <option value="+92">🇵🇰 Pakistan (+92)</option>
+                                                    <option value="+880">🇧🇩 Bangladesh (+880)</option>
+                                                    <option value="+94">🇱🇰 Sri Lanka (+94)</option>
+                                                    <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+                                                    <option value="+7">🇷🇺 Russia (+7)</option>
+                                                </select>
+
+                                                <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2" placeholder="Enter phone number" value="{{old('company_phone_number')}}"/>
+                                                @error('company_phone_number')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Number of employees</label>
-                                            <input type="number" class="w-full border rounded-md p-2" placeholder="Enter number of employees" />
+                                            <input type="number" name="no_of_employee" class="w-full border rounded-md p-2" placeholder="Enter number of employees" value="{{old('no_of_employee')}}"/>
+                                            @error('no_of_employee')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Industry type</label>
@@ -257,65 +288,77 @@
                                                 <option value="government">Government</option>
                                                 <option value="legal">Legal</option>
                                             </select>
+                                            @error('industry_type')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
 
                                     <div>
-                                    <label class="block mb-1 text-sm font-medium">CR number (Company registration number)</label>
-                                    <input type="text" class="w-full border rounded-md p-2" placeholder="Enter CR number" />
+                                        <label class="block mb-1 text-sm font-medium">CR number (Company registration number)</label>
+                                        <input type="text" name="registration_number"  class="w-full border rounded-md p-2" placeholder="Enter CR number" value="{{old('registration_number')}}"/>
+                                        @error('registration_number')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <div class="flex justify-end">
-                                    <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md">
-                                        Next
-                                    </button>
+                                        <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md">
+                                            Next
+                                        </button>
                                     </div>
-                                </form>
+                                <!-- </form> -->
                             </div>
 
                             <!-- Step 2: Additional Information -->
                             <div id="step-2" class="hidden">
-                                <form class="space-y-6">
+                                <!-- <form class="space-y-6"> -->
                                     <div>
-                                    <h2 class="font-semibold mb-2">Recruiters details:</h2>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                        <label class="block mb-1 text-sm font-medium">Recruiter's name</label>
-                                        <input type="text" class="w-full border rounded-md p-2" placeholder="Enter recruiter's name" />
+                                        <h2 class="font-semibold mb-2">Recruiters details:</h2>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium">Recruiter's name</label>
+                                                <input type="text" name="name" class="w-full border rounded-md p-2" placeholder="Enter recruiter's name" value="{{old('name')}}"/>
+                                                @error('name')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium">Recruiter's email</label>
+                                                <input type="email" name="email" class="w-full border rounded-md p-2" placeholder="Enter recruiter's email" value="{{ old('email', $email) }}"/>
+                                                @error('email')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
-                                        <div>
-                                        <label class="block mb-1 text-sm font-medium">Recruiter's email</label>
-                                        <input type="email" class="w-full border rounded-md p-2" placeholder="Enter recruiter's email" />
-                                        </div>
-                                    </div>
                                     </div>
 
                                     <div>
-                                    <h2 class="font-semibold mb-2">Documents:</h2>
-                                    <div class="flex flex-col gap-4">
-                                        <div class="flex items-center gap-4">
-                                            <input type="file" class="w-full border rounded-md p-2" />
-                                            <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md whitespace-nowrap">Upload image</button>
-                                        </div>
+                                        <h2 class="font-semibold mb-2">Documents:</h2>
+                                        <div class="flex flex-col gap-4">
+                                            <div class="flex items-center gap-4">
+                                                <input type="file" class="w-full border rounded-md p-2" />
+                                                <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md whitespace-nowrap">Upload image</button>
+                                            </div>
 
-                                        <div class="flex items-center gap-4">
-                                            <input type="file" class="w-full border rounded-md p-2" />
-                                            <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md whitespace-nowrap">Upload document</button>
-                                        </div>
+                                            <div class="flex items-center gap-4">
+                                                <input type="file" class="w-full border rounded-md p-2" />
+                                                <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md whitespace-nowrap">Upload document</button>
+                                            </div>
 
-                                    </div>
+                                        </div>
                                     </div>
 
                                     <div class="flex justify-between pt-4">
                                         <button type="button" onclick="showStep(1)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">Back</button>
-                                        <a href="recruiter-dashboard.html" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
+                                        <button type="submit" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
                                             Register
-                                        </a>
+                                        </button>
 
                                     </div>
-                                </form>
+                                <!-- </form> -->
                             </div>
-
+                        </form>
                             <!-- JavaScript for Step Navigation -->
                             <script>
                             function showStep(step) {

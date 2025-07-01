@@ -8,7 +8,6 @@ $skills = $user->skills->first();
 // echo "<pre>";
 // print_r($work);
 // exit;
-
 ?>
 
 
@@ -481,27 +480,28 @@ $skills = $user->skills->first();
                                                         : (isset($data->end_to) && $data->end_to === 'Work here');
                                                 @endphp
 
-                                                <div x-data="{ working: '{{ isset($data->end_to) && $data->end_to === 'Work here' ? 'true' : 'false' }}' === 'true' }">
-                                                <label class="block text-sm font-medium mb-1">To</label>
-                                                <input type="text"
-                                                    id="end_to_{{ $i }}"
-                                                    name="end_to[]"
-                                                    class="w-full border rounded px-3 py-2 mb-2 datepicker-end"
-                                                    x-bind:disabled="working"
-                                                    :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
+                                                <div x-data="{ working: '{{ $isWorking ? 'true' : 'false' }}' == 'true' }">
 
-                                                <label class="inline-flex items-center space-x-2 mt-2">
-                                                    <input type="checkbox" name="currently_working[]" value="{{ $i }}"
+                                                    <label class="block text-sm font-medium mb-1">To</label>
+                                                    <input type="text" 
+                                                        id="end_to_{{ $i }}" 
+                                                        name="end_to[]" 
+                                                        class="w-full border rounded px-3 py-2 mb-2 datepicker-end"
+                                                        x-bind:disabled="working"
+                                                        :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
+
+
+                                                    <label class="inline-flex items-center space-x-2 mt-2">
+                                                        <input type="checkbox" name="currently_working[]" value="{{ $i }}"
                                                         x-model="working"
                                                         {{ old("currently_working") ? (in_array($i, old("currently_working", [])) ? 'checked' : '') : (isset($data->end_to) && $data->end_to === 'Work here' ? 'checked' : '') }} />
-                                                    <span>I currently work here</span>
-                                                </label>
 
-                                                @error("end_to.$i")
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                @enderror
-                                            </div>
-
+                                                        <span>I currently work here</span>
+                                                    </label>
+                                                    @error("end_to.$i")
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
 
 
                                                 <!-- Remove Button -->

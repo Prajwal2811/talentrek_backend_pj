@@ -50,7 +50,7 @@
                                         {{ session('error') }}
                                     </div>
                                 @endif
-                                <form method="POST" action="{{ route('jobseeker.login.submit') }}">
+                                <form method="POST" action="{{ route('recruiter.login.submit') }}">
                                     @csrf
                                     <div class="mb-4">
                                         <label for="email" class="block text-sm font-medium mb-1">Email</label>
@@ -71,7 +71,7 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         <div class="text-right mt-1">
-                                            <a href="{{ route('jobseeker.forget-password')}}" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+                                            <a href="{{ route('recruiter.forget.password')}}" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
                                         </div>
                                     </div>
 

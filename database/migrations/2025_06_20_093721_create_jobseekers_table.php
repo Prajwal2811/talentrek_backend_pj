@@ -16,7 +16,7 @@ return new class extends Migration
          Schema::create('jobseekers', function (Blueprint $table) {
             $table->id(); // Primary key
             $table->string('assigned_admin')->nullable();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->string('gender')->nullable();
             $table->string('phone_code')->nullable();       // e.g., +91, +1
@@ -24,14 +24,16 @@ return new class extends Migration
             $table->date('date_of_birth')->nullable();
             $table->string('city')->nullable();         // e.g., city or state
             $table->text('address')->nullable();
-            $table->string('password');
-            $table->string('pass');
+            $table->string('password')->nullable();
+            $table->string('pass')->nullable();
             $table->string('role')->nullable();             // optional role field
             $table->string('otp')->nullable();            
             $table->string('status')->nullable();            
-            $table->text('inactive_reason')->nullable()->after('status');         
+            $table->string('admin_status')->nullable();            
+            $table->text('inactive_reason')->nullable(); // Removed ->after('status')
             $table->timestamps();
         });
+
     }
 
     /**

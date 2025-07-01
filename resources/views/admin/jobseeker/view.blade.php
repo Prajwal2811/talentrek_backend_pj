@@ -34,56 +34,106 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <!-- Right Column for Buttons -->
-                                        <button class="btn btn-default me-2" data-bs-toggle="modal"
-                                            data-bs-target="#approveModal">Approve</button>
-                                        <button class="btn btn-dark" data-bs-toggle="modal"
-                                            data-bs-target="#rejectModal">Reject</button>
-                                        <!-- Approve Confirmation Modal -->
-                                        <div class="modal fade text-dark" id="approveModal" tabindex="-1"
-                                            aria-labelledby="approveModalLabel" aria-hidden="true">
+                                        <!-- Status Badge -->
+                                        @php
+                                            $status = $jobseeker->admin_status;
+                                            $userRole = auth()->user()->role;
+                                        @endphp
+
+                                        {{-- Admin Actions --}}
+                                        @if(!$status && $userRole === 'admin')
+                                            <!-- Admin Action Buttons -->
+                                            <button class="btn btn-default me-2" data-bs-toggle="modal" data-bs-target="#approveModal">Approve</button>
+                                            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
+
+                                        {{-- Superadmin Actions --}}
+                                        @elseif($userRole === 'superadmin' && !Str::startsWith($status, 'superadmin_'))
+                                            {{-- Show Admin status if available --}}
+                                            @if($status)
+                                                <span class="badge bg-info me-2">Admin: {{ ucfirst($status) }}</span>
+                                            @else
+                                                <span class="badge bg-warning me-2">Admin has not yet responded</span>
+                                            @endif
+
+                                            <!-- Superadmin Final Decision Buttons -->
+                                            <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#approveModal">Super Approve</button>
+                                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Super Reject</button>
+
+                                        {{-- Final Superadmin Decision --}}
+                                        @elseif(Str::startsWith($status, 'superadmin_'))
+                                            @php
+                                                $badgeClass = Str::contains($status, 'approved') ? 'success' : 'danger';
+                                                $statusLabel = ucfirst(str_replace('_', ' ', $status));
+                                            @endphp
+                                            <span class="badge bg-{{ $badgeClass }}">{{ $statusLabel }}</span>
+
+                                        {{-- Admin sees previously set status --}}
+                                        @else
+                                            <span class="badge bg-secondary">{{ ucfirst($status) }}</span>
+                                        @endif
+
+
+
+                                        <!-- Approve Modal -->
+                                        <div class="modal fade text-dark" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="approveModalLabel">Confirm Approval
-                                                        </h5>
-                                                        <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+                                                        <h5 class="modal-title">Confirm Approval</h5>
                                                     </div>
-                                                    <div class="modal-body ">
+                                                    <div class="modal-body">
                                                         Are you sure you want to approve this profile?
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="button" class="btn btn-success">Yes,
-                                                            Approve</button>
+                                                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'approved')">Yes, Approve</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Reject Confirmation Modal -->
-                                        <div class="modal fade text-dark" id="rejectModal" tabindex="-1"
-                                            aria-labelledby="rejectModalLabel" aria-hidden="true">
+                                        <!-- Reject Modal -->
+                                        <div class="modal fade text-dark" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="rejectModalLabel">Confirm Rejection
-                                                        </h5>
-                                                        <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+                                                        <h5 class="modal-title">Confirm Rejection</h5>
                                                     </div>
                                                     <div class="modal-body">
                                                         Are you sure you want to reject this profile?
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="button" class="btn btn-danger">Yes,
-                                                            Reject</button>
+                                                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-danger" onclick="updateStatus({{ $jobseeker->id }}, 'rejected')">Yes, Reject</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                                        <script>
+                                            function updateStatus(jobseekerId, status) {
+                                                $.ajax({
+                                                    url: '{{ route("admin.jobseeker.updateStatus") }}',
+                                                    method: 'POST',
+                                                    data: {
+                                                        _token: '{{ csrf_token() }}',
+                                                        jobseeker_id: jobseekerId,
+                                                        status: status
+                                                    },
+                                                    success: function (response) {
+                                                        // alert(response.message);
+                                                        // Close the modals manually
+                                                        $('.modal').modal('hide');
+                                                        // Optional: Reload or update status in the UI
+                                                        location.reload();
+                                                    },
+                                                    error: function () {
+                                                        alert('An error occurred while updating status.');
+                                                    }
+                                                });
+                                            }
+                                        </script>
+
                                     </div>
                                 </div>
                             </div>
@@ -145,141 +195,155 @@
                             <div class="card">
                                 <div class="header">
                                     <h2>Personal Information</h2>
-                                    <div class="body">
-                                        <!-- Tab navigation -->
-                                        <ul class="nav nav-tabs2 mb-4" role="tablist">
-                                            <li class="nav-item">
-                                                <a class="nav-link active" data-toggle="tab"
-                                                    href="#education">Educational Details</a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" data-toggle="tab" href="#work">Work Experience</a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" data-toggle="tab" href="#skills">Skills &
-                                                    Training</a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" data-toggle="tab" href="#additional">Additional
-                                                    Information</a>
-                                            </li>
-                                        </ul>
+                                        <div class="body">
+                                            <!-- Tab navigation -->
+                                            <ul class="nav nav-tabs2 mb-4" role="tablist">
+                                                <li class="nav-item">
+                                                    <a class="nav-link active" data-toggle="tab" href="#education">Educational Details</a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" data-toggle="tab" href="#work">Work Experience</a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" data-toggle="tab" href="#skills">Skills & Training</a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" data-toggle="tab" href="#additional">Additional Information</a>
+                                                </li>
+                                            </ul>
 
-                                        <!-- Tab content -->
-                                        <div class="tab-content">
-                                            <!-- Education -->
-                                            <div class="tab-pane show active" id="education">
-                                                <form>
-                                                    @foreach ($educations as $index => $education)
-                                                        <div class="row">
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Highest qualification</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $education->high_education }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Field of study</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $education->field_of_study }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Institution name</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $education->institution }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Graduation year</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $education->graduate_year }}">
-                                                            </div>
-                                                        </div>
-                                                        @if (!$loop->last)
-                                                            <hr>
-                                                        @endif
-                                                    @endforeach
-                                                </form>
-                                            </div>
+                                            <!-- Tab content -->
+                                            <div class="tab-content">
 
-                                            <!-- Work Experience -->
-                                            <div class="tab-pane fade" id="work">
-                                                <form>
-                                                    @foreach ($experiences as $experience )
-                                                        <div class="row">
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Job role</label>
-                                                                <input type="text" class="form-control"
-                                                                   readonly value="{{ $experience->job_role }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Organization</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $experience->organization }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Started from</label>
-                                                                <input readonly type="text" class="form-control" value="{{ \Carbon\Carbon::parse($experience->starts_from)->format('jS F Y') }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>To</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
-                                                            </div>
-                                                        </div>
-                                                        @if (!$loop->last)
-                                                            <hr>
-                                                        @endif
-                                                    @endforeach
-                                                </form>
-                                            </div>
-
-                                            <!-- Skills -->
-                                            <div class="tab-pane fade" id="skills">
-                                                <form>
-                                                    @foreach ($skills as $skill)
-                                                        <div class="row">
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Skills</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $skill->skills }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Area of interests</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $skill->interest }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Job categories</label>
-                                                                <input readonly type="text" class="form-control" value="{{ $skill->job_category }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Website link</label>
-                                                                <input readonly type="url" class="form-control" value="{{ $skill->website_link }}">
-                                                            </div>
-                                                            <div class="col-md-6 form-group">
-                                                                <label>Portfolio link</label>
-                                                                <input readonly type="url" class="form-control" value="{{ $skill->portfolio_link }}">
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </form>
-                                            </div>
-
-                                            <!-- Additional Info -->
-                                            <div class="tab-pane fade" id="additional">
-                                                <form>
-                                                    <div class="row">
-                                                        @foreach($additioninfos as $info)
-                                                            @if($info->doc_type == 'resume')
-                                                                <div class="col-md-12 form-group d-flex align-items-center">
-                                                                    <label class="w-100">Uploaded Resume</label>
-                                                                    <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}" readonly>
-                                                                    <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                <!-- Education -->
+                                                <div class="tab-pane show active" id="education">
+                                                    <form>
+                                                        @if ($educations->isEmpty())
+                                                            <p class="text-muted">No educational details found.</p>
+                                                        @else
+                                                            @foreach ($educations as $index => $education)
+                                                                <div class="row">
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Highest qualification</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $education->high_education }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Field of study</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $education->field_of_study }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Institution name</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $education->institution }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Graduation year</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $education->graduate_year }}">
+                                                                    </div>
                                                                 </div>
-                                                            @elseif($info->doc_type == 'profile_picture')
-                                                                <div class="col-md-12 form-group d-flex align-items-center">
-                                                                    <label class="w-100">Uploaded Profile Picture</label>
-                                                                    <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}" readonly>
-                                                                    <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                @if (!$loop->last)
+                                                                    <hr>
+                                                                @endif
+                                                            @endforeach
+                                                        @endif
+                                                    </form>
+                                                </div>
+
+                                                <!-- Work Experience -->
+                                                <div class="tab-pane fade" id="work">
+                                                    <form>
+                                                        @if ($experiences->isEmpty())
+                                                            <p class="text-muted">No work experience found.</p>
+                                                        @else
+                                                            @foreach ($experiences as $experience)
+                                                                <div class="row">
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Job role</label>
+                                                                        <input type="text" class="form-control" readonly value="{{ $experience->job_role }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Organization</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->organization }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Started from</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ \Carbon\Carbon::parse($experience->starts_from)->format('jS F Y') }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>To</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
+                                                                    </div>
                                                                 </div>
-                                                            @endif
-                                                        @endforeach
-                                                    </div>
-                                                </form>
+                                                                @if (!$loop->last)
+                                                                    <hr>
+                                                                @endif
+                                                            @endforeach
+                                                        @endif
+                                                    </form>
+                                                </div>
+
+                                                <!-- Skills -->
+                                                <div class="tab-pane fade" id="skills">
+                                                    <form>
+                                                        @if ($skills->isEmpty())
+                                                            <p class="text-muted">No skills or training details found.</p>
+                                                        @else
+                                                            @foreach ($skills as $skill)
+                                                                <div class="row">
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Skills</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->skills }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Area of interests</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->interest }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Job categories</label>
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->job_category }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Website link</label>
+                                                                        <input readonly type="url" class="form-control" value="{{ $skill->website_link }}">
+                                                                    </div>
+                                                                    <div class="col-md-6 form-group">
+                                                                        <label>Portfolio link</label>
+                                                                        <input readonly type="url" class="form-control" value="{{ $skill->portfolio_link }}">
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </form>
+                                                </div>
+
+                                                <!-- Additional Info -->
+                                                <div class="tab-pane fade" id="additional">
+                                                    <form>
+                                                        @if ($additioninfos->isEmpty())
+                                                            <p class="text-muted">No additional documents found.</p>
+                                                        @else
+                                                            <div class="row">
+                                                                @foreach($additioninfos as $info)
+                                                                    @if($info->doc_type == 'resume')
+                                                                        <div class="col-md-12 form-group d-flex align-items-center">
+                                                                            <label class="w-100">Uploaded Resume</label>
+                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                        </div>
+                                                                    @elseif($info->doc_type == 'profile_picture')
+                                                                        <div class="col-md-12 form-group d-flex align-items-center">
+                                                                            <label class="w-100">Uploaded Profile Picture</label>
+                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                        </div>
+                                                                    @endif
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+
                                 </div>
                             </div>
                             <div class="card">

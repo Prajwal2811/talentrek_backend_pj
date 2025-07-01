@@ -15,7 +15,7 @@ class JobseekerAuthenticate extends Middleware
     protected function redirectTo($request)
     {
         if (! $request->expectsJson()) {
-            return route('jobseeker.login');
+            return route('signin.form');
         }
     }
 

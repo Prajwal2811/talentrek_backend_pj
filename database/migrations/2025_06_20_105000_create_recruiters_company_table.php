@@ -16,7 +16,7 @@ return new class extends Migration
        Schema::create('recruiters_company', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('recruiter_id');             // FK to recruiters table
-            $table->string('company_name');                         // Required
+            $table->string('company_name')->nullable();                         // Required
             $table->string('company_website')->nullable();
             $table->string('company_city')->nullable();
             $table->text('company_address')->nullable();
