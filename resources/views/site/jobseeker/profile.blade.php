@@ -1,5 +1,6 @@
 <?php
 $user = Auth()->user();
+
 $edu = $user->educations;         
 $work = $user->experiences;       
 // $skills = $user->skills;
@@ -8,6 +9,7 @@ $skills = $user->skills->first();
 // echo "<pre>";
 // print_r($work);
 // exit;
+
 ?>
 
 
@@ -57,6 +59,7 @@ $skills = $user->skills->first();
                     </form>
                     </div>
                 </div>
+
 
                 <hr />
 
@@ -668,6 +671,7 @@ $skills = $user->skills->first();
                                 <button class="text-red-500 text-sm hover:underline">🗑 Remove</button>
                             </div>
 
+
                             <!-- Right side: Course Info -->
                             <div class="flex-1">
                                 <h4 class="font-semibold text-base">Graphic design - Advance level</h4>
@@ -678,6 +682,7 @@ $skills = $user->skills->first();
                                 <div class="flex items-center gap-2 mt-2">
                                 <span class="line-through text-sm text-gray-400">SAR 89</span>
                                 <span class="text-base font-semibold text-gray-800">SAR 89</span>
+
                                 </div>
                             </div>
                             </div>
@@ -1352,4 +1357,3 @@ $skills = $user->skills->first();
 <script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
 <!-- Add Alpine.js -->
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-

@@ -182,7 +182,6 @@ class JobseekerController extends Controller
         }
     }
 
-
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
@@ -216,6 +215,7 @@ class JobseekerController extends Controller
             'workExperiences',
            
         ));
+
     }
 
 
