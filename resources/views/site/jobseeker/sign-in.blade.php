@@ -64,9 +64,16 @@
 
                                     <div class="mb-3">
                                         <label for="password" class="block text-sm font-medium mb-1">Password</label>
-                                        <input type="password" name="password" id="password" placeholder="Password"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
+                                        <div class="relative w-full">
+                                            <input type="password" name="password" id="password" placeholder="Password"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"/>
+
+                                            <!-- Eye Toggle Button -->
+                                            <button type="button" onclick="togglePassword()"
+                                                class="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
+                                                <i data-feather="eye" id="eye-icon" class="w-5 h-5"></i>
+                                            </button>
+                                        </div>
                                         @error('password')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -150,3 +157,24 @@
     width: 500px !important;
 }
 </style> -->
+
+<script src="https://unpkg.com/feather-icons"></script>
+<script>
+    feather.replace();
+</script>
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            eyeIcon.setAttribute('data-feather', 'eye-off');
+        } else {
+            passwordField.type = 'password';
+            eyeIcon.setAttribute('data-feather', 'eye');
+        }
+
+        feather.replace(); // re-render the icon
+    }
+</script>
