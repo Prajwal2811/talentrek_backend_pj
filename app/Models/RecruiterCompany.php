@@ -30,6 +30,8 @@ class RecruiterCompany extends Authenticatable
         'company_city',
         'company_address',
         'business_email',
+        'password',
+        'pass', 
         'phone_code',
         'company_phone_number',
         'no_of_employee',

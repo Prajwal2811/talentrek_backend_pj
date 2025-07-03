@@ -1,66 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:17:45 GMT -->
-<head>
-
-	<!-- META -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="keywords" content="" />
-    <meta name="author" content="" />
-    <meta name="robots" content="" />    
-    <meta name="description" content="" />
-    
-    <!-- FAVICONS ICON -->
-    <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.png" />
-    
-    <!-- PAGE TITLE HERE -->
-    <title>Talentrek</title>
-    
-    <!-- MOBILE SPECIFIC -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-   <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/font-awesome.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/feather.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/owl.carousel.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/magnific-popup.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/lc_lightbox.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/bootstrap-select.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/select.bootstrap5.min.css') }}"> 
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/dropzone.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/scrollbar.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/datepicker.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/flaticon.css') }}"> 
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/swiper-bundle.min.css') }}">
-
-    <!-- <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/style.css') }}"> -->
-
-
-    <link rel="stylesheet" class="skin" type="text/css" href="css/skins-type/skin-6.css">
-    <link rel="stylesheet" type="text/css" href="css/switcher.css">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-</head>
+@include('site.componants.header')
 
 <body>
 <?php
     // echo "<pre>";
-    // print_r( $jobseekers->links());exit;
+    // print_r($jobseekers);exit;
     // echo "</pre>";
+
 ?>
 
     <div class="loading-area">
@@ -75,51 +20,29 @@
 
 	
     <div class="page-wraper">
-        <div class="flex h-screen">
-           <aside class="w-64 bg-blue-900 text-white flex flex-col py-8 px-4">
-                <div class="text-2xl font-bold mb-10">
-                    <span class="text-white">Talentre</span><span class="text-blue-400">k</span>
-                </div>
-                <nav class="flex flex-col gap-4">
-                    <a href="recruiter-dashboard.html" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200">
-                        <i data-feather="grid" class="mr-3"></i> Dashboard
-                    </a>
-                    <a href="recruiter-jobseekers.html" class="flex items-center px-4 py-2 bg-white text-blue-700 rounded-md">
-                        <i data-feather="users" class="mr-3"></i> Jobseekers
-                    </a>
-                    <a href="admin-support.html" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200">
-                        <i data-feather="headphones" class="mr-3"></i> Admin support
-                    </a>
-                    <a href="#" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200">
-                        <i data-feather="settings" class="mr-3"></i> Settings
-                    </a>
-                    </nav>
-                <script src="https://unpkg.com/feather-icons"></script>
-                <script>
-                feather.replace();
-                </script>
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
 
-                <style>
-                    .no-hover:hover {
-                    background-color: transparent !important;
-                    color: inherit !important;
-                    cursor: pointer; /* optional */
-                    }
-                </style>
-                </aside>
+           <!-- Sidebar -->
+            @include('site.recruiter.componants.sidebar')	
 
             <div class="flex-1 flex flex-col">
                 <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
                     <div class="flex items-center space-x-6 w-1/2">
-                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
-                        Talent<span class="text-blue-500">rek</span>
-                    </div>
-                    <div class="relative w-full">
-                        <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="fas fa-search"></i>
+                        <button 
+                            @click="sidebarOpen = !sidebarOpen" 
+                            class="text-gray-700 hover:text-blue-600 focus:outline-none"
+                            title="Toggle Sidebar"
+                            aria-label="Toggle Sidebar"
+                            type="button"
+                            >
+                            <i data-feather="menu" class="w-6 h-6"></i>
                         </button>
-                    </div>
+                        <!-- <div class="relative w-full">
+                            <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div> -->
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="relative">
@@ -174,10 +97,10 @@
                             <div class="space-x-6 font-medium text-sm">
                             <button data-tab="jobseekers" class="pb-1 border-b-2">Jobseekers</button>
                             <button data-tab="shortlisted" class="text-gray-500 pb-1">Shortlisted</button>
-                            <button data-tab="contacted" class="text-gray-500 pb-1">Contacted</button>
+                            <!-- <button data-tab="contacted" class="text-gray-500 pb-1">Contacted</button> -->
                             </div>
                             <div class="text-sm font-semibold text-gray-600">
-                            Results: <span>{{$jobseekers->count();}}</span>
+                            Results: <span>0</span>
                             </div>
                         </div>
 
@@ -189,11 +112,11 @@
                                     <div class="flex items-center space-x-4 w-1/3">
                                         <img 
                                             src="{{ $jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
-                                            class="w-12 h-12 rounded-full object-cover" 
+                                            class="w-12 h-12 rounded-full object-cover blur-sm" 
                                             alt="{{ $jobseeker->name }}"
                                         />
                                         <div>
-                                            <h4 class="font-semibold text-sm">{{ $jobseeker->name }}</h4>
+                                            <h4 class="font-semibold text-sm blur-sm">{{ $jobseeker->name }}</h4>
                                             <p class="text-sm text-gray-500">
                                                 {{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
                                             </p>
@@ -203,7 +126,7 @@
                                     <!-- Experience Years -->
                                     <div class="w-32 text-sm">
                                         <p class="font-semibold">Experience</p>
-                                        <p>{{ $jobseeker->experience ?? 'N/A' }} years</p>
+                                        <p>{{ $jobseeker->total_experience }}</p>
                                     </div>
 
                                     <!-- Skills -->
@@ -220,10 +143,15 @@
 
                                     <!-- Shortlist Button -->
                                     <div class="ml-4">
-                                        <button class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
-                                            Shortlist
-                                        </button>
+                                        <form id="shortlist-form-{{ $jobseeker->id }}" action="{{ route('recruiter.shortlist.submit') }}" method="POST" onsubmit="return false;">
+                                            @csrf
+                                            <input type="hidden" name="jobseeker_id" value="{{ $jobseeker->id }}">
+                                            <button type="button" onclick="confirmShortlist({{ $jobseeker->id }})" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
+                                                Shortlist
+                                            </button>
+                                        </form>    
                                     </div>
+
                                 </div>
                             @endforeach
                             <!-- Pagination Controls -->
@@ -235,7 +163,71 @@
 
                             <!-- Shortlisted Tab -->
                             <div data-tab-content="shortlisted" style="display: none;">
-                                <div class="text-center py-6 text-gray-500">No shortlisted jobseekers.</div>
+                                <div data-tab-content="shortlisted" class="divide-y">
+                                    @foreach($shortlisted_jobseekers as $shortlisted_jobseeker)
+                                        <div class="jobseeker-shortlisted  flex justify-between items-center py-4">
+                                            <!-- Profile Image & Name -->
+                                            <div class="flex items-center space-x-4 w-1/3">
+                                                <img 
+                                                    src="{{ $shortlisted_jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
+                                                    class="w-12 h-12 rounded-full object-cover blur-sm" 
+                                                    alt="{{ $shortlisted_jobseeker->name }}"
+                                                />
+                                                <div>
+                                                    <h4 class="font-semibold text-sm ">{{ $shortlisted_jobseeker->name }}</h4>
+                                                    <p class="text-sm text-gray-500">
+                                                        {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Experience Years -->
+                                            <div class="w-32 text-sm">
+                                                <p class="font-semibold">Experience</p>
+                                                <p>{{ $shortlisted_jobseeker->total_experience }}</p>
+                                            </div>
+
+                                            <!-- Skills -->
+                                            <div class="text-sm flex-1">
+                                                <p class="font-semibold">Skills</p>
+                                                <p>
+                                                    @if($shortlisted_jobseeker->skills && $shortlisted_jobseeker->skills->count())
+                                                        {{ $shortlisted_jobseeker->skills->pluck('skills')->filter()->join(', ') }}
+                                                    @else
+                                                        Not provided
+                                                    @endif
+                                                </p>
+                                            </div>
+
+                                            <!-- Shortlist Button -->
+                                            <div class="ml-4 flex space-x-2">
+                                                @if($shortlisted_jobseeker->admin_recruiter_status === 'approved')
+                                                    <button class="border border-green-500 text-green-500 text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
+                                                        Approved
+                                                    </button>
+                                                    <a href="{{ route('recruiter.jobseeker.details', ['jobseeker_id' => $shortlisted_jobseeker->id]) }}" 
+                                                        class="bg-blue-500 text-white text-sm px-4 py-1.5 rounded inline-block">
+                                                        View Profile
+                                                    </a>
+
+                                                    
+                                                @else
+                                                    <button class="border border-red-500 text-red-500 text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
+                                                        Pending
+                                                    </button>
+                                                    <button class="bg-gray-600 text-white text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
+                                                        View Profile
+                                                    </button>
+                                                    
+                                                @endif
+                                            </div>
+
+
+                                        </div>
+                                    @endforeach
+                                    <!-- Pagination Controls -->
+                                    <div id="shortlistedPagination" class="mt-6 flex justify-center space-x-2"></div>
+                                </div>
                             </div>
 
                             <!-- Contacted Tab -->
@@ -319,7 +311,78 @@
                         }
                     });
                 </script>
+                <script>
+                    $(document).ready(function () {
+                        const itemsPerPage = 10;
+                        const $entries = $('.jobseeker-shortlisted');
+                        const totalItems = $entries.length;
+                        const totalPages = Math.ceil(totalItems / itemsPerPage);
+                        let currentPage = 1;
 
+                        function showPage(page) {
+                            $entries.hide();
+                            const start = (page - 1) * itemsPerPage;
+                            const end = start + itemsPerPage;
+                            $entries.slice(start, end).fadeIn(200);
+                            currentPage = page;
+                            updatePagination();
+                        }
+
+                        function updatePagination() {
+                            $('.page-btn').removeClass('bg-blue-500 text-white').addClass('bg-gray-200 text-black');
+                            $(`.page-btn[data-page="${currentPage}"]`).addClass('bg-blue-500 text-white').removeClass('bg-gray-200 text-black');
+
+                            // Disable Prev/Next if at start or end
+                            $('#prev-btn').prop('disabled', currentPage === 1);
+                            $('#next-btn').prop('disabled', currentPage === totalPages);
+                        }
+
+                        function createPagination() {
+                            $('#shortlistedPagination').empty();
+
+                            // Prev Button
+                            $('#shortlistedPagination').append(`
+                                <button id="prev-btn" class="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition">&lt;</button>
+                            `);
+
+                            // Numbered Buttons
+                            for (let i = 1; i <= totalPages; i++) {
+                                $('#shortlistedPagination').append(`
+                                    <button 
+                                        class="page-btn px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition" 
+                                        data-page="${i}"
+                                    >${i}</button>
+                                `);
+                            }
+
+                            // Next Button
+                            $('#shortlistedPagination').append(`
+                                <button id="next-btn" class="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition">&gt;</button>
+                            `);
+
+                            // Button Clicks
+                            $('.page-btn').on('click', function () {
+                                const page = $(this).data('page');
+                                showPage(page);
+                            });
+
+                            $('#prev-btn').on('click', function () {
+                                if (currentPage > 1) showPage(currentPage - 1);
+                            });
+
+                            $('#next-btn').on('click', function () {
+                                if (currentPage < totalPages) showPage(currentPage + 1);
+                            });
+                        }
+
+                        if (totalItems > 0) {
+                            createPagination();
+                            showPage(1);
+                        } else {
+                            $('#shortlistedPagination').html('<p class="text-center text-gray-500">No jobseekers found.</p>');
+                        }
+                    });
+                </script>
 
                 <script defer>
                     document.addEventListener("DOMContentLoaded", function () {
@@ -345,7 +408,30 @@
                     tabs[0].click();
                     });
                 </script>
-            
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function confirmShortlist(id) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to shortlist this jobseeker?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#aaa',
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('shortlist-form-' + id).submit();
+        }
+    });
+}
+</script>
+
+
 
 
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -395,6 +481,11 @@
 <script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
 <script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
 
+
+<script src="https://unpkg.com/feather-icons"></script>
+<script>
+    feather.replace();
+</script>
 
 </body>
 

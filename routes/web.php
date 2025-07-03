@@ -99,8 +99,10 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
 		
 
+		Route::get('/registration', [App\Http\Controllers\JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
 		Route::post('/registration', [App\Http\Controllers\JobseekerController::class, 'postRegistration'])->name('jobseeker.register.post'); 
-		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('jobseeker.registration.store');
+		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('registration.store');
+
 		Route::get('/sign-in', [App\Http\Controllers\JobseekerController::class, 'showSignInForm'])->name('signin.form');
 		Route::get('/sign-up', [App\Http\Controllers\JobseekerController::class, 'showSignUpForm'])->name('signup.form');
 		Route::post('/jobseeker/login', [App\Http\Controllers\JobseekerController::class, 'loginJobseeker'])->name('jobseeker.login.submit');
@@ -157,6 +159,17 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::post('/logout',[App\Http\Controllers\RecruiterController::class, 'logoutrecruiter'])->name('recruiter.logout');
 		Route::get('/dashboard/jobseeker',[App\Http\Controllers\RecruiterController::class, 'showJobseekerListForm'])->name('recruiter.dashboard.jobseeker');
 		Route::get('/jobseeker/list',[App\Http\Controllers\RecruiterController::class, 'getAllJobseekerList'])->name('recruiter.dashboard.jobseeker.list');
+		Route::post('/recruiter/shortlist/submit',[App\Http\Controllers\RecruiterController::class, 'shortlistSubmit'])->name('recruiter.shortlist.submit');
+		Route::get('/jobseeker/{jobseeker_id}/details', [App\Http\Controllers\RecruiterController::class, 'getJobseekerDetails'])
+		->name('recruiter.jobseeker.details');
+		Route::get('/settings', [App\Http\Controllers\RecruiterController::class, 'showRecruitmentSettingForm'])
+		->name('recruiter.settings');
+
+		Route::post('/profile/update',[App\Http\Controllers\RecruiterController::class, 'updateCompanyProfile'])->name('recruiter.company.profile.update');
+		Route::post('/profile/document/update',[App\Http\Controllers\RecruiterController::class, 'updateCompanyDocument'])->name('recruiter.company.document.update');
+		Route::delete('/delete', [App\Http\Controllers\RecruiterController::class, 'deleteAccount'])->name('recruiter.destroy');
+
+
 	});
 });
 

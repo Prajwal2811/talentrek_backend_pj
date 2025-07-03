@@ -28,8 +28,8 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/flaticon.css') }}"> 
     <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/swiper-bundle.min.css') }}">
 
-    <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/style.css') }}">
-
+    <!-- <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/style.css') }}"> -->
+    <script src="https://unpkg.com/feather-icons"></script>
 
     <link rel="stylesheet" class="skin" type="text/css" href="css/skins-type/skin-6.css">
     <link rel="stylesheet" type="text/css" href="css/switcher.css">

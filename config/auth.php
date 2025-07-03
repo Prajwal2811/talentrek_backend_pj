@@ -116,7 +116,7 @@ return [
         ],
         'recruiters' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Recruiters::class,
+            'model' => App\Models\RecruiterCompany::class,
         ],
         'trainers' => [
             'driver' => 'eloquent',

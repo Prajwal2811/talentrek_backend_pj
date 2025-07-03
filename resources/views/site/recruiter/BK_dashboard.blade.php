@@ -13,27 +13,59 @@
 
 	
     <div class="page-wraper">
-        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
-            <!-- Sidebar -->
-            @include('site.recruiter.componants.sidebar')	
+        <div class="flex h-screen">
+             <aside class="w-64 bg-blue-900 text-white flex flex-col py-8 px-4">
+                <div class="text-2xl font-bold mb-10">
+                    <span class="text-white">Talentre</span><span class="text-blue-400">k</span>
+                </div>
+                <nav class="flex flex-col gap-4">
+                    <a href="recruiter-dashboard.html" class="flex items-center px-4 py-2 bg-white text-blue-700 rounded-md">
+                        <i data-feather="grid" class="mr-3"></i> Dashboard
+                    </a>
+                    <a href="{{route('recruiter.dashboard.jobseeker')}}" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200">
+                        <i data-feather="users" class="mr-3"></i> Jobseekers
+                    </a>
+                    <a href="admin-support.html" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200">
+                        <i data-feather="headphones" class="mr-3"></i> Admin support
+                    </a>
+                    <a href="settings.html" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200">
+                        <i data-feather="settings" class="mr-3"></i> Settings
+                    </a>
+
+                    <form action="{{ route('recruiter.logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="flex items-center px-4 py-2 text-white rounded-md hover:text-white transition-colors duration-200 w-full text-left">
+                            <i data-feather="log-out" class="mr-3"></i> Logout
+                        </button>
+                    </form>
+
+                    </nav>
+                <script src="https://unpkg.com/feather-icons"></script>
+                <script>
+                feather.replace();
+                </script>
+
+                <style>
+                    .no-hover:hover {
+                    background-color: transparent !important;
+                    color: inherit !important;
+                    cursor: pointer; /* optional */
+                    }
+                </style>
+            </aside>
+            
             <div class="flex-1 flex flex-col">
                 <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
                     <div class="flex items-center space-x-6 w-1/2">
-                        <button 
-                            @click="sidebarOpen = !sidebarOpen" 
-                            class="text-gray-700 hover:text-blue-600 focus:outline-none"
-                            title="Toggle Sidebar"
-                            aria-label="Toggle Sidebar"
-                            type="button"
-                            >
-                            <i data-feather="menu" class="w-6 h-6"></i>
-                        </button>
-                    <!-- <div class="relative w-full">
+                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
+                        Talent<span class="text-blue-500">rek</span>
+                    </div>
+                    <div class="relative w-full">
                         <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                             <i class="fas fa-search"></i>
                         </button>
-                    </div> -->
+                    </div>
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="relative">

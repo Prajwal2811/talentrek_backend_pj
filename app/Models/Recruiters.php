@@ -19,6 +19,7 @@ class Recruiters extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'company_id',
         'name',
         'email',
         'phone_number',
