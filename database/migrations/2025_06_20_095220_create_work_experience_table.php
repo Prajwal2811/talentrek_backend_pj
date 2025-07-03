@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('job_role')->nullable();         // e.g., Software Developer
             $table->string('organization')->nullable();     // e.g., TCS, Infosys
             $table->date('starts_from')->nullable();        // Start date
-            $table->date('end_to')->nullable();             // End date (nullable if currently employed)
+            $table->string('end_to')->nullable();             // End date (nullable if currently employed)
 
             $table->timestamps();
 

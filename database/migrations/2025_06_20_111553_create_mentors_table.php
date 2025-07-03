@@ -15,7 +15,7 @@ return new class extends Migration
     {
        Schema::create('mentors', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->string('phone_code')->nullable();       // e.g., +91, +1
             $table->string('phone_number')->nullable();     // e.g., 9876543210

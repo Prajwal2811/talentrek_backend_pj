@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('trainer_id');               // FK to trainers table
-            $table->string('training_type');                        // e.g., Online, Offline, Hybrid
-            $table->string('training_title');
+            $table->string('training_type')->nullable();                        // e.g., Online, Offline, Hybrid
+            $table->string('training_title')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
             $table->string('training_category')->nullable();        // e.g., Technical, Soft Skills

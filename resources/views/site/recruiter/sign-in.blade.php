@@ -50,7 +50,7 @@
                                         {{ session('error') }}
                                     </div>
                                 @endif
-                                <form method="POST" action="{{ route('jobseeker.login.submit') }}">
+                                <form method="POST" action="{{ route('recruiter.login.submit') }}">
                                     @csrf
                                     <div class="mb-4">
                                         <label for="email" class="block text-sm font-medium mb-1">Email</label>
@@ -64,14 +64,23 @@
 
                                     <div class="mb-3">
                                         <label for="password" class="block text-sm font-medium mb-1">Password</label>
-                                        <input type="password" name="password" id="password" placeholder="Password"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
+                                        <div class="relative w-full">
+                                            <input type="password" name="password" id="password" placeholder="Password"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"/>
+
+                                            <!-- Eye Toggle Button -->
+                                            <button type="button" onclick="togglePassword()"
+                                                class="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
+                                                <i data-feather="eye" id="eye-icon" class="w-5 h-5"></i>
+                                            </button>
+                                        </div>
+
+                                            
                                         @error('password')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         <div class="text-right mt-1">
-                                            <a href="{{ route('jobseeker.forget-password')}}" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+                                            <a href="{{ route('recruiter.forget.password')}}" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
                                         </div>
                                     </div>
 
@@ -111,6 +120,65 @@
 
 
 @include('site.jobseeker.componants.footer')
+
+<!-- 
+
+@if(session('success_popup'))
+<script>
+    $(function () {
+        Swal.fire({
+            iconHtml: `
+                <div style="border: 4px solid #4CAF50; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: auto;">
+                    <span style="font-size: 48px; color: #4CAF50;">✔</span>
+                </div>
+            `,
+            title: `
+                <div style="font-size: 18px; font-weight: bold;">
+                    Your profile has been submitted successfully<br>& waiting for approval!
+                </div>
+            `,
+            html: `
+                <div style="font-size: 14px; color: #555; margin-top: 10px;">
+                    Once your profile is approved you will be notified via email, Thank you.
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: 'OK',
+            allowOutsideClick: false,
+            customClass: {
+                popup: 'swal-wide'
+            }
+        });
+    });
+</script>
+@endif
+
+<style>
+.swal-wide {
+    width: 500px !important;
+}
+</style> -->
+
+<script src="https://unpkg.com/feather-icons"></script>
+<script>
+    feather.replace();
+</script>
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            eyeIcon.setAttribute('data-feather', 'eye-off');
+        } else {
+            passwordField.type = 'password';
+            eyeIcon.setAttribute('data-feather', 'eye');
+        }
+
+        feather.replace(); // re-render the icon
+    }
+</script>
 
 
 <!-- 

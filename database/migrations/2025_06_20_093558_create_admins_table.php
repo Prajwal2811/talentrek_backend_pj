@@ -15,12 +15,12 @@ return new class extends Migration
     {
         Schema::create('admins', function (Blueprint $table) {
             $table->id(); // Primary key
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('email', 191)->unique();
             $table->string('password');
             $table->string('pass')->nullable();
             $table->string('phone')->nullable();
-            $table->string('role')->nullable();
+            $table->enum('role', ['superadmin', 'admin']);
             $table->string('notes')->nullable();
             $table->string('status')->nullable();
             $table->rememberToken();

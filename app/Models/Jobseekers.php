@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Carbon\Carbon;
 
 class Jobseekers extends Authenticatable
 {
@@ -31,6 +32,10 @@ class Jobseekers extends Authenticatable
         'otp',
         'status',
         'inactive_reason',
+        'admin_status',
+        'rejection_reason', 
+        'shortlist',
+        'admin_recruiter_status'
     ];
 
     /**
@@ -79,6 +84,25 @@ class Jobseekers extends Authenticatable
     public function skills()
     {
         return $this->hasMany(Skills::class, 'jobseeker_id');
+       
+    }
+
+
+    public function getTotalExperienceAttribute()
+    {
+        $totalDays = 0;
+
+        foreach ($this->experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $years = floor($totalDays / 365);
+        $months = floor(($totalDays % 365) / 30);
+        $days = $totalDays % 30;
+
+        return "$years years, $months months";
     }
 
 }

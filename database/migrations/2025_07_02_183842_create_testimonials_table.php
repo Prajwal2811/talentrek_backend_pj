@@ -13,8 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('work_experiences', function (Blueprint $table) {
+        Schema::create('testimonials', function (Blueprint $table) {
             $table->id();
+            $table->string('user_name')->nullable();
+            $table->string('title')->nullable();
+            $table->string('testimoni')->nullable();
+            $table->string('file_name')->nullable();
+            $table->string('file_path')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('work_experiences');
+        Schema::dropIfExists('testimonials');
     }
 };

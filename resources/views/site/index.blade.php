@@ -17,23 +17,16 @@
         }
     </style>
       @include('site.componants.navbar')
-
+        @php
+            $bannerContent = App\Models\CMS::where('slug', 'banner')->first();
+        @endphp
         <div class="page-content">
-            <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" style="background-image: url('{{ asset('asset/images/banner/Banner.png') }}');">
-                <div class="container mx-auto px-6 md:px-12 py-64 flex items-center">
-                    <div class="w-full md:w-1/2 text-white space-y-6">
-                    <h1 class="text-3xl md:text-5xl font-bold leading-tight text-white">
-                        Your Journey to <br />
-                        <span class="text-white">Grow & Succeed Starts Here</span>
-                    </h1>
-                    <p class="text-base text-gray-100 max-w-md">
-                        Earn certificates and gain new skills with trusted educators and industry leaders—anytime, anywhere.
-                    </p>
-                    <button class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded text-sm">
-                        Sign In / Sign Up
-                    </button>
-                    </div>
-                </div>
+            <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" style="background-image: url('{{ $bannerContent->file_path }}');">
+                {{-- CMS Start form here --}}
+                    @php
+                        echo $bannerContent->description;
+                    @endphp
+                {{-- CMS end form here --}}
                 <!-- Curved bottom image -->
                 <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
                     <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" alt="Curved Bottom" class="w-full h-auto" />
@@ -331,51 +324,24 @@
             </script>
 
 
+
+            @php
+                $AboutContent = App\Models\CMS::where('slug', 'join-talentrek')->first();
+            @endphp
+
             <section class="py-16 bg-white">
                 <div class="max-w-7xl mx-auto px-4">
                     <div class="flex flex-col lg:flex-row items-center gap-10">
-                    
-                    <!-- Left Content -->
-                    <div class="lg:w-1/2">
-                        <h2 class="text-3xl md:text-4xl font-bold leading-snug">
-                        Join <span class="text-blue-600">Talentrek</span><br />
-                        as a Trainer, Mentor, Assessor, and Coach
-                        </h2>
-                        <p class="text-gray-700 mt-4 mb-6">
-                        Share your expertise, guide jobseeker/professional, and one stop-shop powerful platform. 
-                        </p>
-
-                        <!-- Bullet Buttons with Circle Check Icon -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="flex items-center gap-2 px-4 py-2 border-2 border-blue-600 rounded-full text-blue-600">
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold">✓</span>
-                                Empower Learners
-                            </div>
-                            <div class="flex items-center gap-2 px-4 py-2 border-2 border-blue-600 rounded-full text-blue-600">
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold">✓</span>
-                                Earn & Grow
-                            </div>
-                            <div class="flex items-center gap-2 px-4 py-2 border-2 border-blue-600 rounded-full text-blue-600">
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold">✓</span>
-                                    Flexible Engagement
-                            </div>
-                            <div class="flex items-center gap-2 px-4 py-2 border-2 border-blue-600 rounded-full text-blue-600">
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold">✓</span>
-                                Expand Your Reach
-                            </div>
-                        </div>
-
-
-                        <!-- CTA Button -->
-                        <a href="#" class="mt-6 inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                        Join Talentrek
-                        </a>
-                    </div>
+                    {{-- CMS Start form here --}}
+                       @php
+                        echo $AboutContent->description;
+                       @endphp
+                    {{-- CMS end form here --}}
 
                     <!-- Right Image -->
                     <div class="lg:w-1/2 text-center">
                         <div class="inline-block p-2 rounded-full">
-                            <img src="{{ asset('asset/images/gallery/teams.png') }}" alt="Mentor" class="rounded-full w-full max-w-xs" />
+                            <img src="{{ $AboutContent->file_path }}" alt="Mentor" class="rounded-full w-full max-w-xs" />
                         </div>
                     </div>
 
@@ -550,22 +516,15 @@
             </style>
            
 
+
+            @php
+                $CountContent = App\Models\CMS::where('slug', 'countings')->first();
+            @endphp
             <section class="stats-section">
                 <div class="container">
-                    <div class="row text-center">
-                        <div class="col-md-4 mb-4 mb-md-0">
-                            <div class="stats-number">35000+</div>
-                            <div class="stats-description">Student worldwide</div>
-                        </div>
-                        <div class="col-md-4 mb-4 mb-md-0">
-                            <div class="stats-number">500+</div>
-                            <div class="stats-description">Course available</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stats-number">10000+</div>
-                            <div class="stats-description">People loved it</div>
-                        </div>
-                    </div>
+                    @php
+                        echo $CountContent->description;
+                    @endphp
                 </div>
             </section>
         </div>

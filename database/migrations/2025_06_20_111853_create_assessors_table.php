@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('assessors', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name');
+            $table->string('company_name')->nullable();
             $table->string('company_email')->unique();
             $table->string('phone_code')->nullable();              // e.g., +91
             $table->string('company_phone_number')->nullable();    // e.g., 9876543210
