@@ -17,7 +17,11 @@ use DB;
 
 class JobseekerController extends Controller
 {
-     public function postRegistration(Request $request)
+    public function showRegistrationForm()
+    {
+        return view('site.jobseeker.registration');
+    }
+    public function postRegistration(Request $request)
     {
         $validated = $request->validate([
        
@@ -42,7 +46,7 @@ class JobseekerController extends Controller
             'phone_number' => $request->phone_number,
         ]);
 
-        return view('site.jobseeker.registration');
+        return redirect()->route('jobseeker.registration');
     }
   
     public function showDetailsForm()

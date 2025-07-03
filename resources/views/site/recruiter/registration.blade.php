@@ -66,9 +66,8 @@
 
 
 @php
-    $email = session('email');
-    $phone = session('phone_number');
-    $recruiter_id = session('recruiter_id');
+    $business_email = session('business_email');
+    $company_phone_number = session('company_phone_number');
 @endphp
    
 
@@ -187,6 +186,9 @@
                             </div>
                         <form class="space-y-6" action="{{ route('recruitment.registration.store') }}" method="POST">
                             @csrf
+                            <input type="hidden" name="company_id" value="{{ session('company_id') }}">
+
+
                             <!-- Step 1: Company Information -->
                             <div id="step-1">
                                 <!-- <form class="space-y-6"> -->
@@ -226,7 +228,7 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Business email</label>
-                                            <input type="email"  name="business_email"  class="w-full border rounded-md p-2" placeholder="Enter email id" value="{{old('business_email')}}"/>
+                                            <input type="email"  name="business_email"  class="w-full border rounded-md p-2" placeholder="Enter email id" value="{{ old('business_email', $business_email) }}"/>
                                             @error('business_email')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -252,7 +254,7 @@
                                                     <option value="+7">🇷🇺 Russia (+7)</option>
                                                 </select>
 
-                                                <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2" placeholder="Enter phone number" value="{{old('company_phone_number')}}"/>
+                                                <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2" placeholder="Enter phone number"  value="{{ old('company_phone_number', $company_phone_number) }}"/>
                                                 @error('company_phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -325,7 +327,7 @@
                                             </div>
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium">Recruiter's email</label>
-                                                <input type="email" name="email" class="w-full border rounded-md p-2" placeholder="Enter recruiter's email" value="{{ old('email', $email) }}"/>
+                                                <input type="email" name="email" class="w-full border rounded-md p-2" placeholder="Enter recruiter's email" value="{{ old('email') }}"/>
                                                 @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
