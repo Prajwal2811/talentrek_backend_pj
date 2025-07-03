@@ -27,62 +27,107 @@
                                 </div>
                                 <div class="body">
                                     <form id="basic-form" method="post" novalidate action="{{ route('admin.store') }}">
-                                    @csrf
-                                    <!-- Full Name -->
-                                    <div class="form-group c_form_group">
-                                        <label>Full Name</label>
-                                        <input type="text" class="form-control" name="full_name"
-                                            placeholder="Enter full name" value="{{ old('full_name') }}" required>
-                                        @error('full_name')
-                                            <small class="text-danger">{{ $message }}</small>   
-                                        @enderror
-                                    </div>
+                                        @csrf
 
-                                    <!-- Email Address -->
-                                    <div class="form-group c_form_group">
-                                        <label>Email Address</label>
-                                        <input type="email" class="form-control" name="email"
-                                            placeholder="Enter email address" value="{{ old('email') }}" required>
-                                        @error('email')
-                                            <small class="text-danger">{{ $message }}</small>   
-                                        @enderror
-                                    </div>
+                                        <div class="row">
+                                            <!-- Full Name -->
+                                            <div class="form-group c_form_group col-md-6">
+                                                <label>Full Name</label>
+                                                <input type="text" class="form-control" name="full_name"
+                                                    placeholder="Enter full name" value="{{ old('full_name') }}" required>
+                                                @error('full_name')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
-                                    <!-- Password -->
-                                    <div class="form-group c_form_group position-relative">
-                                        <label>Password</label>
-                                        <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
-                                        <span class="toggle-password" onclick="togglePassword('password')" style="position:absolute; top:38px; right:15px; cursor:pointer;">
-                                            <i class="fa fa-eye" id="eye-password"></i>
-                                        </span>
-                                        @error('password')
-                                            <small class="text-danger">{{ $message }}</small>   
-                                        @enderror
-                                    </div>
+                                            <!-- Email Address -->
+                                            <div class="form-group c_form_group col-md-6">
+                                                <label>Email Address</label>
+                                                <input type="email" class="form-control" name="email"
+                                                    placeholder="Enter email address" value="{{ old('email') }}" required>
+                                                @error('email')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
-                                    <!-- Confirm Password -->
-                                    <div class="form-group c_form_group position-relative">
-                                        <label>Confirm Password</label>
-                                        <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Re-enter password" required>
-                                        <span class="toggle-password" onclick="togglePassword('confirm_password')" style="position:absolute; top:38px; right:15px; cursor:pointer;">
-                                            <i class="fa fa-eye" id="eye-confirm_password"></i>
-                                        </span>
-                                        @error('confirm_password')
-                                            <small class="text-danger">{{ $message }}</small>   
-                                        @enderror
-                                    </div>
+                                            <!-- Password -->
+                                            <div class="form-group c_form_group col-md-6 position-relative">
+                                                <label>Password</label>
+                                                <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
+                                                <span class="toggle-password" onclick="togglePassword('password')" style="position:absolute; top:38px; right:15px; cursor:pointer;">
+                                                    <i class="fa fa-eye" id="eye-password"></i>
+                                                </span>
+                                                @error('password')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
-                                    <!-- Notes -->
-                                    <div class="form-group c_form_group">
-                                        <label>Admin Notes (optional)</label>
-                                        <textarea class="form-control" rows="4" name="notes" placeholder="Enter any admin notes (optional)">{{ old('notes') }}</textarea>
-                                        @error('notes')
-                                            <small class="text-danger">{{ $message }}</small>   
-                                        @enderror
-                                    </div>
+                                            <!-- Confirm Password -->
+                                            <div class="form-group c_form_group col-md-6 position-relative">
+                                                <label>Confirm Password</label>
+                                                <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Re-enter password" required>
+                                                <span class="toggle-password" onclick="togglePassword('confirm_password')" style="position:absolute; top:38px; right:15px; cursor:pointer;">
+                                                    <i class="fa fa-eye" id="eye-confirm_password"></i>
+                                                </span>
+                                                @error('confirm_password')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
-                                    <button type="submit" class="btn btn-primary theme-bg">Create Admin</button>
+                                            <!-- Notes -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Admin Notes (optional)</label>
+                                                <textarea class="form-control" rows="4" name="notes" placeholder="Enter any admin notes (optional)">{{ old('notes') }}</textarea>
+                                                @error('notes')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+
+                                            <!-- Module Permissions -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Module Permissions</label>
+                                                <div class="row">
+                                                    @php
+                                                        $modules = [
+                                                            'Jobseekers',
+                                                            'Expat',
+                                                            'Recruiters',
+                                                            'Trainers',
+                                                            'Assessors',
+                                                            'Coach',
+                                                            'Mentors',
+                                                            'CMS',
+                                                            'Subscriptions',
+                                                            'Certification Template',
+                                                            'Payments',
+                                                            'Testimonials',
+                                                            'Languages',
+                                                            'Settings',
+                                                            'Activity Log'
+                                                        ];
+                                                    @endphp
+
+
+                                                    @foreach($modules as $module)
+                                                        <div class="col-md-4">
+                                                            <div class="form-check">
+                                                                <input type="checkbox" name="permissions[]" value="{{ $module }}" class="form-check-input" id="perm-{{ $module }}">
+                                                                <label class="form-check-label" for="perm-{{ $module }}">{{ $module }}</label>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                @error('permissions')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                <button type="submit" class="btn btn-primary theme-bg">Create Admin</button>
+                                            </div>
+                                        </div>
                                     </form>
+
 
                                 </div>
                             </div>

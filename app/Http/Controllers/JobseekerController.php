@@ -97,6 +97,10 @@ class JobseekerController extends Controller
             'job_category' => 'required|string|max:255',
             'website_link' => 'required|url',
             'portfolio_link' => 'required|url',
+
+             // Files
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Update jobseeker details
@@ -146,6 +150,50 @@ class JobseekerController extends Controller
             'portfolio_link' => $request->portfolio_link,
         ]);
 
+        // Upload Resume
+        if ($request->hasFile('resume')) {
+            $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
+                ->where('user_type', 'jobseeker')
+                ->where('doc_type', 'resume')
+                ->first();
+
+            if (!$existingResume) {
+                $resumeName = $request->file('resume')->getClientOriginalName();
+                $fileNameToStoreResume = 'resume_' . time() . '.' . $request->file('resume')->getClientOriginalExtension();
+                $request->file('resume')->move('uploads/', $fileNameToStoreResume);
+
+                AdditionalInfo::create([
+                    'user_id'       => $jobseeker->id,
+                    'user_type'     => 'jobseeker',
+                    'doc_type'      => 'resume',
+                    'document_name' => $resumeName,
+                    'document_path' => asset('uploads/' . $fileNameToStoreResume),
+                ]);
+            }
+        }
+
+        // Upload Profile Picture
+        if ($request->hasFile('profile_picture')) {
+            $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
+                ->where('user_type', 'jobseeker')
+                ->where('doc_type', 'profile_picture')
+                ->first();
+
+            if (!$existingProfile) {
+                $profileName = $request->file('profile_picture')->getClientOriginalName();
+                $fileNameToStoreProfile = 'profile_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
+                $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
+
+                AdditionalInfo::create([
+                    'user_id'       => $jobseeker->id,
+                    'user_type'     => 'jobseeker',
+                    'doc_type'      => 'profile_picture',
+                    'document_name' => $profileName,
+                    'document_path' => asset('uploads/' . $fileNameToStoreProfile),
+                ]);
+            }
+        }
+
         session()->forget('jobseeker_id');
         return redirect()->route('signin.form')->with('success_popup', true);
     }
@@ -174,13 +222,29 @@ class JobseekerController extends Controller
             'password'  => 'required'
         ]);
 
+        $jobseeker = Jobseekers::where('email', $request->email)->first();
+
+        if (!$jobseeker) {
+            // Email does not exist
+            session()->flash('error', 'Invalid email or password.');
+            return back()->withInput($request->only('email'));
+        }
+
+        if ($jobseeker->status !== 'active') {
+            // Status is inactive or blocked
+            session()->flash('error', 'Your account is inactive. Please contact admimnistrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        // Now attempt login only if status is active
         if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
             return redirect()->route('jobseeker.profile');
         } else {
-            session()->flash('error', 'Either Email/Password is incorrect');
+            session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
     public function getJobseekerAllDetails()
     {
@@ -232,11 +296,10 @@ class JobseekerController extends Controller
     }
 
 
-    public function updatePersonalInfo(Request $request)
+   public function updatePersonalInfo(Request $request)
     {
-        //dd($request->all());exit;
         $user = auth()->user();
-       
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:jobseekers,email,' . $user->id,
@@ -257,8 +320,9 @@ class JobseekerController extends Controller
             'gender' => $validated['gender'],
         ]);
 
-        return redirect()->back()->with('success', 'Personal information updated successfully!');
+        return response()->json(['status' => 'success', 'message' => 'Personal information updated successfully!']);
     }
+
 
 
     public function updateEducationInfo(Request $request)
@@ -301,7 +365,8 @@ class JobseekerController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', 'Education information saved successfully!');
+        return response()->json(['status' => 'success', 'message' => 'Education information saved successfully!']);
+
     }
 
 
@@ -348,15 +413,16 @@ class JobseekerController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', 'Work Experience information saved successfully!');
+        return response()->json(['status' => 'success', 'message' => 'Work Experience information saved successfully!']);
+
     }
 
 
     public function updateSkillsInfo(Request $request)
     {
-        //dd($request->all());exit;
         $user = auth()->user();
-        $user_id =  $user->id;
+        $user_id = $user->id;
+
         $validated = $request->validate([
             'skills' => 'nullable|string',
             'interest' => 'nullable|string',
@@ -364,24 +430,77 @@ class JobseekerController extends Controller
             'website_link' => 'nullable|url',
             'portfolio_link' => 'nullable|url',
         ]);
-        $skills = Skills::where('jobseeker_id', $user_id) ->first();
+
+        $skills = Skills::where('jobseeker_id', $user_id)->first();
+
         if ($skills) {
-            // Update if record exists
             $skills->update([
-                'skills' => $validated['skills'],
-                'interest' => $validated['interest'],
-                'job_category' => $validated['job_category'],
-                'website_link' => $validated['website_link'],
-                'portfolio_link' => $validated['portfolio_link'],
+                'skills' => $validated['skills'] ?? null,
+                'interest' => $validated['interest'] ?? null,
+                'job_category' => $validated['job_category'] ?? null,
+                'website_link' => $validated['website_link'] ?? null,
+                'portfolio_link' => $validated['portfolio_link'] ?? null,
             ]);
 
-            return redirect()->back()->with('success', 'Skills updated successfully!');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Skills updated successfully!'
+            ]);
         } else {
-            return redirect()->back()->with('error', 'Skills record not found for update.');
-        }                       
-
-        
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Skills record not found for update.'
+            ], 404);
+        }
     }
+
+
+    public function updateAdditionalInfo(Request $request)
+    {
+        $userId = auth()->id();
+
+        $validated = $request->validate([
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ]);
+
+        foreach (['resume', 'profile'] as $type) {
+            if ($request->hasFile($type)) {
+                $file = $request->file($type);
+                $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads'), $fileName);
+                $path = asset('uploads/' . $fileName);
+                
+                AdditionalInfo::updateOrCreate(
+                    ['user_id' => $userId, 'doc_type' => $type],
+                    ['document_path' => $path, 'document_name' => $fileName]
+                );
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Additional information updated successfully!'
+        ]);
+    }
+
+
+    public function deleteAdditionalFile($type)
+    {
+        $userId = auth()->id();
+        $file = AdditionalInfo::where('user_id', $userId)->where('doc_type', $type)->first();
+
+        if ($file) {
+            $filePath = public_path($file->document_path);
+            if (file_exists($filePath)) unlink($filePath);
+            $file->delete();
+
+            return response()->json(['status' => 'success', 'message' => ucfirst($type) . ' deleted successfully.']);
+        }
+
+        return response()->json(['status' => 'error', 'message' => ucfirst($type) . ' not found.'], 404);
+    }
+
 
     public function submitForgetPassword(Request $request)
     {

@@ -28,8 +28,9 @@
                                 <div class="body">
                                  <form id="basic-form" method="post" novalidate action="{{ route('admin.update', $admin->id) }}">
                                     @csrf
+                                   <div class="row">
                                     <!-- Full Name -->
-                                    <div class="form-group c_form_group">
+                                    <div class="form-group c_form_group col-md-6">
                                         <label>Full Name</label>
                                         <input type="text" class="form-control" name="full_name"
                                             placeholder="Enter full name"
@@ -40,7 +41,7 @@
                                     </div>
 
                                     <!-- Email Address -->
-                                    <div class="form-group c_form_group">
+                                    <div class="form-group c_form_group col-md-6">
                                         <label>Email Address</label>
                                         <input type="email" class="form-control" name="email"
                                             placeholder="Enter email address"
@@ -49,6 +50,8 @@
                                             <small class="text-danger">{{ $message }}</small>   
                                         @enderror
                                     </div>
+                                </div>
+
 
                                     <!-- Notes -->
                                     <div class="form-group c_form_group">
@@ -59,6 +62,45 @@
                                             <small class="text-danger">{{ $message }}</small>   
                                         @enderror
                                     </div>
+
+                                    <!-- Module Permissions -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Module Permissions</label>
+                                                <div class="row">
+                                                    @php
+                                                        $modules = [
+                                                            'Jobseekers',
+                                                            'Expat',
+                                                            'Recruiters',
+                                                            'Trainers',
+                                                            'Assessors',
+                                                            'Coach',
+                                                            'Mentors',
+                                                            'CMS',
+                                                            'Subscriptions',
+                                                            'Certification Template',
+                                                            'Payments',
+                                                            'Testimonials',
+                                                            'Languages',
+                                                            'Settings',
+                                                            'Activity Log'
+                                                        ];
+                                                    @endphp
+
+
+                                                    @foreach($modules as $module)
+                                                        <div class="col-md-4">
+                                                            <div class="form-check">
+                                                                <input type="checkbox" name="permissions[]" value="{{ $module }}" class="form-check-input" id="perm-{{ $module }}">
+                                                                <label class="form-check-label" for="perm-{{ $module }}">{{ $module }}</label>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                @error('permissions')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
                                     <button type="submit" class="btn btn-primary theme-bg">Update Admin</button>
                                 </form>

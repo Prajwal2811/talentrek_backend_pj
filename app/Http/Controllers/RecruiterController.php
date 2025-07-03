@@ -85,7 +85,7 @@ class RecruiterController extends Controller
      $validated = $request->validate([
           'name' => 'required|string|max:255',
           'email' => 'required|email|unique:recruiters,email,' . $recruiter->id,
-          'email' => 'required|string|max:255',
+ 
           'company_name' => 'required|string',
           'company_website' => 'required|url',
           'company_city' => 'required|string|max:255',

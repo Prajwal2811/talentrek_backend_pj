@@ -33,5 +33,25 @@ class DatabaseSeeder extends Seeder
             'role' => 'superadmin',
             'status' => 'active',
         ]);
+
+        \App\Models\Admin::factory()->create([
+            'name' => 'Hemchandra ',
+            'email' => 'hemchandra@talentrek.com',
+            'phone' => '9975239063',
+            'password' => bcrypt('hemchandra@talentrek'),
+            'pass' => 'hemchandra@talentrek',
+            'role' => 'admin',
+            'status' => 'active',
+        ]);
+
+        \App\Models\Admin::factory()->create([
+            'name' => 'Nimish Gupta',
+            'email' => 'nimish@talentrek.com',
+            'phone' => '9975239064',
+            'password' => bcrypt('nimish@talentrek'),
+            'pass' => 'nimish@talentrek',
+            'role' => 'admin',
+            'status' => 'active',
+        ]);
     }
 }

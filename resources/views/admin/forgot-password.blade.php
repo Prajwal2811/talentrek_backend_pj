@@ -90,11 +90,11 @@
     
         <div class="card">
             <div class="header">
-                <p class="lead">Superadmin/Admin Login</p>
+                <p class="lead">Forget Password</p>
             </div>
             
             <div class="body">
-                <form class="form-auth-small" action="{{ route('admin.auth') }}" method="POST">
+                <form class="form-auth-small" action="{{ route('admin.send-reset-link') }}" method="POST">
                     @csrf
                     <div class="form-group c_form_group">
                         <label>Email</label>
@@ -103,43 +103,11 @@
                             <span class="text-danger">{{ $errors->first('email') }}</span>
                         @endif
                     </div>
-                    <div class="form-group c_form_group position-relative">
-                        <label>Password</label>
-                        <input type="password" class="form-control" name="password" id="passwordInput" placeholder="Enter your password">
-                        @if ($errors->has('password'))
-                            <span class="text-danger">{{ $errors->first('password') }}</span>
-                        @endif
-                        
-                        <span class="toggle-password" onclick="togglePassword()" style="position: absolute; top: 38px; right: 15px; cursor: pointer;">
-                            <i class="fa fa-eye" id="eyeIcon"></i>
-                        </span>
-                    </div>
-                    
-                    <button class="btn btn-dark btn-lg btn-block" type="submit">LOGIN</button>
-                    <div class="bottom">
-                        <span class="helper-text m-b-10"><i class="fa fa-lock"></i> 
-                            <a href="{{route('admin.forgot-password')}}">Forgot password?</a>
-                        </span>
-                    </div>
+                    <button class="btn btn-dark btn-lg btn-block" type="submit">Send Reset Link</button>
                 </form>
             </div>
         </div>
 
-        <script>
-            function togglePassword() {
-                const input = document.getElementById("passwordInput");
-                const icon = document.getElementById("eyeIcon");
-                if (input.type === "password") {
-                    input.type = "text";
-                    icon.classList.remove("fa-eye");
-                    icon.classList.add("fa-eye-slash");
-                } else {
-                    input.type = "password";
-                    icon.classList.remove("fa-eye-slash");
-                    icon.classList.add("fa-eye");
-                }
-            }
-        </script>
 
         <div class="animate_lines">
             <div class="line"></div>

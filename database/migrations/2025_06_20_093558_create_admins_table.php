@@ -23,8 +23,6 @@ return new class extends Migration
             $table->enum('role', ['superadmin', 'admin']);
             $table->string('notes')->nullable();
             $table->string('status')->nullable();
-            $table->foreignId('admin_id')->constrained('admins')->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained('permissions')->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();
         });
