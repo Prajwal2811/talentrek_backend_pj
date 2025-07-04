@@ -15,26 +15,18 @@ return new class extends Migration
     {
       Schema::create('recruiters', function (Blueprint $table) {
             $table->id();
-            $table->string('company_id')->nullable();
             $table->string('name')->nullable();
-            $table->string('email')->unique()->nullable();
-            $table->string('status')->nullable(); 
-            $table->string('inactive_reason')->nullable(); 
-            $table->string('admin_status')->nullable(); 
-            $table->string('rejection_reason')->nullable(); 
+            $table->string('email')->unique();
+            $table->string('phone_code')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('status')->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->string('city')->nullable();
             $table->timestamps();
-
-            // Foreign key constraint
-            $table->foreign('company_id')
-                ->references('id')
-                ->on('recruiters_company')
-                ->onDelete('cascade');
-            
         });
-
     }
 
-    /**
+    /**w
      * Reverse the migrations.
      *
      * @return void

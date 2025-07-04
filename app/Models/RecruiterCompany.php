@@ -37,6 +37,8 @@ class RecruiterCompany extends Authenticatable
         'no_of_employee',
         'industry_type',
         'registration_number',
+        'status',
+        'inactive_reason',
     ];
 
     /**

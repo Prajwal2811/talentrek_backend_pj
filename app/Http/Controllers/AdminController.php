@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use App\Models\CMS;
+use App\Models\RecruiterCompany;
 use App\Models\Setting;
 use App\Models\SocialMedia;
 use App\Models\Jobseekers;
@@ -328,17 +329,16 @@ class AdminController extends Controller
             'admin_id' => 'required|exists:admins,id',
             'jobseeker_ids' => 'required|string',
         ]);
-
         $adminId = $validated['admin_id'];
         $jobseekerIds = explode(',', $validated['jobseeker_ids']);
         $assignedCount = 0;
         $assignedJobseekers = [];
-
+        
         foreach ($jobseekerIds as $jobseekerId) {
             $jobseeker = Jobseekers::find($jobseekerId);
             
             // Only assign if not already assigned to an admin
-            if ($jobseeker && is_null($jobseeker->assigned_admin)) {
+            if ($jobseeker) {
                 $jobseeker->assigned_admin = $adminId;
                 $jobseeker->save();
 
@@ -376,7 +376,7 @@ class AdminController extends Controller
             'time' => now()
         ]);
 
-        return redirect()->back()->with('success', 'Unassigned jobseekers have been successfully assigned to the admin.');
+        return redirect()->back()->with('success', 'Jobseekers have been successfully assigned to the admin.');
     }
 
     
@@ -659,13 +659,11 @@ class AdminController extends Controller
 
     public function recruiters()
     {   
-        $recruiters = Auth::guard('recruiter')->user();
-        // If the user is a superadmin, show all jobseekers
-       
-        $recruiters = Recruiters::select('recruiters.*','recruiters_company.*','recruiters.id as recruiter_id')->join('recruiters_company','recruiters.id','=','recruiters_company.recruiter_id')
+        $recruiters = Recruiters::select('recruiters.*','recruiters_company.*','recruiters_company.id as company_id')
+                                ->join('recruiters_company','recruiters.id','=','recruiters_company.recruiter_id')
                                 ->orderBy('recruiters.id', 'desc')
                                 ->get();
-       
+    //    echo "<pre>"; print_r($recruiters); exit;
         return view('admin.recruiter.index', compact('recruiters'));
     }
 
@@ -673,12 +671,12 @@ class AdminController extends Controller
     public function recruiterChangeStatus(Request $request)
     {
         $validated = $request->validate([
-            'recruiter_id' => 'required|exists:recruiters,id',
+            'company_id' => 'required|exists:recruiters_company,id',
             'status' => 'required|in:active,inactive',
             'reason' => 'nullable|string|max:1000'
         ]);
 
-        $user = Recruiters::findOrFail($validated['recruiter_id']);
+        $user = RecruiterCompany::findOrFail($validated['company_id']);
         $oldStatus = $user->status;
         $oldReason = $user->inactive_reason;
 
@@ -725,7 +723,7 @@ class AdminController extends Controller
         $recruiter = Recruiters::findOrFail($id);
         $company = $recruiter->company; 
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','recruiter')->get();
-        // print_r($additioninfos); die;    
+        // print_r($recruiter); die;    
         return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos'));
     }
 
@@ -733,13 +731,15 @@ class AdminController extends Controller
 
     public function updateRecruiterStatus(Request $request)
     {
+        echo "done"; die;
+
         $request->validate([
-            'recruiter_id' => 'required|exists:recruiters,id',
+            'company_id' => 'required|exists:recruiters_company,id',
             'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
             'reason' => 'nullable|string|max:1000',
         ]);
 
-        $recruiter = Recruiters::findOrFail($request->recruiter_id);
+        $recruiter = RecruiterCompany::findOrFail($request->company_id);
         $user = auth()->user();
         $previousStatus = $recruiter->admin_status;
         $status = $request->status;

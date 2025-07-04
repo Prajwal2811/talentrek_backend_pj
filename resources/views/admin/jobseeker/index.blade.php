@@ -28,6 +28,7 @@
                                     $admin = Auth::guard('admin')->user();
                                 @endphp
 
+                                <!-- Assign Admin Button (only for non-admins) -->
                                 @if (auth()->user()->role !== 'admin')
                                     <button 
                                         class="btn btn-sm btn-info" 
@@ -36,8 +37,6 @@
                                         Assign Admin
                                     </button>
                                 @endif
-
-
                             </div>
 
                             <div class="modal fade" id="assignAdminModal" aria-labelledby="assignAdminModalLabel" aria-hidden="true">
@@ -74,6 +73,7 @@
                                     </form>
                                 </div>
                             </div>
+                            
                               <!-- JS Logic -->
                             <script>
                                 function toggleSelectAll(source) {
@@ -81,30 +81,31 @@
                                     checkboxes.forEach(cb => cb.checked = source.checked);
                                 }
 
-                                const assignAdminModal = document.getElementById('assignAdminModal');
-                                assignAdminModal.addEventListener('show.bs.modal', function () {
-                                    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-                                    const jobseekerIds = [];
-                                    const list = document.getElementById('selectedJobseekerList');
-                                    list.innerHTML = '';
+                                 const assignAdminModal = document.getElementById('assignAdminModal');
+                                    assignAdminModal.addEventListener('show.bs.modal', function () {
+                                        const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+                                        const jobseekerIds = [];
+                                        const list = document.getElementById('selectedJobseekerList');
+                                        list.innerHTML = '';
 
-                                    selectedCheckboxes.forEach(cb => {
-                                        const id = cb.getAttribute('data-id');
-                                        const name = cb.getAttribute('data-name');
-                                        jobseekerIds.push(id);
+                                        selectedCheckboxes.forEach(cb => {
+                                            // Skip if checkbox is disabled (already assigned)
+                                            if (cb.disabled) return;
 
-                                        const li = document.createElement('li');
-                                        li.className = 'list-group-item';
-                                        li.textContent = `ID: ${id} | Name: ${name}`;
-                                        list.appendChild(li);
+                                            const id = cb.getAttribute('data-id');
+                                            const name = cb.getAttribute('data-name');
+                                            jobseekerIds.push(id);
+
+                                            const li = document.createElement('li');
+                                            li.className = 'list-group-item';
+                                            li.textContent = `ID: ${id} | Name: ${name}`;
+                                            list.appendChild(li);
+                                        });
+
+                                        document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
                                     });
-
-                                    document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
-                                });
                             </script>
 
-                            <!-- Bootstrap 5 JS Bundle -->
-                            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
                             <!-- Table Section -->
                             <div class="body">

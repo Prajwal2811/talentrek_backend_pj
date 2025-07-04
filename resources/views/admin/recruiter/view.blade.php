@@ -161,14 +161,14 @@
                                         <!-- jQuery + AJAX -->
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                         <script>
-                                            function updateStatus(recruiterId, status, btn) {
+                                            function updateStatus(recruiterCompanyId, status, btn) {
                                                 const originalText = btn.innerHTML;
                                                 btn.disabled = true;
                                                 btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Processing...`;
 
                                                 $.post('{{ route("admin.recruiter.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    recruiter_id: recruiterId,
+                                                    company_id: recruiterCompanyId,
                                                     status: status
                                                 }).done(() => {
                                                     $('.modal').modal('hide');
@@ -180,7 +180,7 @@
                                                 });
                                             }
 
-                                            function submitRejection(recruiterId, status, reasonId, btn) {
+                                            function submitRejection(recruiterCompanyId, status, reasonId, btn) {
                                                 const reason = document.getElementById(reasonId).value.trim();
                                                 const errorDiv = document.getElementById(reasonId + "Error");
 
@@ -198,7 +198,7 @@
 
                                                 $.post('{{ route("admin.recruiter.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    recruiter_id: recruiterId,
+                                                    company_id: recruiterCompanyId,
                                                     status: status,
                                                     reason: reason
                                                 }).done(() => {

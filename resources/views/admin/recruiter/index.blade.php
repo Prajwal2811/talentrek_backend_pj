@@ -58,7 +58,7 @@
                                             </tr>
                                         </tfoot>
                                         <tbody>
-                                            @foreach($recruiters->unique('id') as $index => $recruiter)
+                                            @foreach($recruiters->unique('company_id') as $index => $recruiter)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
                                                 <td>{{ $recruiter->name }}</td>
@@ -74,7 +74,7 @@
                                                         <input type="checkbox"
                                                             {{ $recruiter->status === 'active' ? 'checked' : '' }}
                                                             onchange="toggleStatus(this)"
-                                                            data-recruiter-id="{{ $recruiter->recruiter_id }}">
+                                                            data-recruiter-id="{{ $recruiter->company_id }}">
                                                         <span class="slider round"></span>
                                                     </label>
                                                 </td>
@@ -115,16 +115,16 @@
                                                     let modalInstance = new bootstrap.Modal(document.getElementById('inactiveReasonModal'));
 
                                                     function toggleStatus(checkbox) {
-                                                        const recruiterId = $(checkbox).data('recruiter-id');
+                                                        const companyId = $(checkbox).data('recruiter-id');
                                                         const isChecked = checkbox.checked;
 
                                                         if (!isChecked) {
                                                             currentCheckbox = checkbox;
-                                                            $('#modal-recruiter-id').val(recruiterId);
+                                                            $('#modal-recruiter-id').val(companyId);
                                                             $('#inactive-reason-input').val('');
                                                             modalInstance.show();
                                                         } else {
-                                                            sendStatusUpdate(recruiterId, 'active');
+                                                            sendStatusUpdate(companyId, 'active');
                                                         }
                                                     }
 
@@ -134,7 +134,7 @@
                                                     }
 
                                                     function submitInactiveReason() {
-                                                        const recruiterId = $('#modal-recruiter-id').val();
+                                                        const companyId = $('#modal-recruiter-id').val();
                                                         const reasonInput = $('#inactive-reason-input');
                                                         const reason = reasonInput.val().trim();
 
@@ -145,17 +145,17 @@
 
                                                         reasonInput.removeClass('is-invalid');
                                                         modalInstance.hide();
-                                                        sendStatusUpdate(recruiterId, 'inactive', reason);
+                                                        sendStatusUpdate(companyId, 'inactive', reason);
                                                     }
 
 
-                                                    function sendStatusUpdate(recruiterId, status, reason = null) {
+                                                    function sendStatusUpdate(companyId, status, reason = null) {
                                                         $.ajax({
                                                             url: '{{ route('admin.recruiter.changeStatus') }}',
-                                                            method: 'POST',
+                                                            method: 'POST', 
                                                             data: {
                                                                 _token: '{{ csrf_token() }}',
-                                                                recruiter_id: recruiterId,
+                                                                company_id: companyId,
                                                                 status: status,
                                                                 reason: reason
                                                             },
@@ -189,7 +189,7 @@
 
                                                 <td>{{ \Carbon\Carbon::parse($recruiter->created_at)->format('d/m/Y') }}</td>
                                                 <td>
-                                                    <a href="{{ route('admin.recruiter.view', $recruiter->recruiter_id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                                                    <a href="{{ route('admin.recruiter.view', $recruiter->company_id) }}" class="btn btn-sm btn-primary">View Profile</a>
                                                     {{-- <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $recruiter->id }})">Delete</button> --}}
                                                 </td>
                                             </tr>

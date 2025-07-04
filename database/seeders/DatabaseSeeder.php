@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,6 +13,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+          $this->call([
+            JobseekerInformationSeeder::class,
+            SocialMediaSeeder::class,
+            SiteSettingsSeeder::class,
+            SectionContentSeeder::class,
+            RecruitersSeeder::class,
+            RecruitersCompanySeeder::class,
+        ]);
+        
+        
         \App\Models\Admin::factory()->create([
             'name' => 'Prajwal Ingole',
             'email' => 'prajwal@talentrek.com',
@@ -35,7 +44,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         \App\Models\Admin::factory()->create([
-            'name' => 'Hemchandra ',
+            'name' => 'Hemchandra',
             'email' => 'hemchandra@talentrek.com',
             'phone' => '9975239063',
             'password' => bcrypt('hemchandra@talentrek'),
