@@ -174,7 +174,7 @@
                                                     alt="{{ $shortlisted_jobseeker->name }}"
                                                 />
                                                 <div>
-                                                    <h4 class="font-semibold text-sm ">{{ $shortlisted_jobseeker->name }}</h4>
+                                                    <h4 class="font-semibold text-sm blur-sm">{{ $shortlisted_jobseeker->name }}</h4>
                                                     <p class="text-sm text-gray-500">
                                                         {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
                                                     </p>

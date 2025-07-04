@@ -62,7 +62,8 @@
                         <a href="#" role="button"
                             class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
                         <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
+                            <span> {{$companyDetails->name}}</span>
+                            
                         </a>
                     </div>
                     </div>
@@ -350,10 +351,10 @@
                                     <div class="flex items-center space-x-4 mb-4">
                                         <img src="./images/gallery/pic8.jpg" alt="Logo" class="w-20 h-20 rounded-lg object-cover" />
                                         <div>
-                                            <h3 class="text-xl font-semibold">                {{$companyDetails->company_name}}
+                                            <h3 class="text-xl font-semibold">                {{$companyDetails->name}}
                                             </h3>
-                                            <p class="text-gray-600">{{$companyDetails->business_email}}</p>
-                                            <p class="text-gray-600">{{$companyDetails->company_phone_number}}</p>
+                                            <p class="text-gray-600">{{$companyDetails->email}}</p>
+                                            
                                         </div>
                                     </div>
                                     @if(session('success'))

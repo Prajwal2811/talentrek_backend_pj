@@ -14,6 +14,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+         $this->call([
+        SocialMediaSeeder::class,
+        SiteSettingsSeeder::class,
+        SectionContentSeeder::class,
+    ]);
         \App\Models\Admin::factory()->create([
             'name' => 'Prajwal Ingole',
             'email' => 'prajwal@talentrek.com',

@@ -101,7 +101,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::get('/registration', [App\Http\Controllers\JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
 		Route::post('/registration', [App\Http\Controllers\JobseekerController::class, 'postRegistration'])->name('jobseeker.register.post'); 
-		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('registration.store');
+		Route::post('/registration/store', [App\Http\Controllers\JobseekerController::class, 'storeJobseekerInformation'])->name('jobseeker.registration.store');
 
 		Route::get('/sign-in', [App\Http\Controllers\JobseekerController::class, 'showSignInForm'])->name('signin.form');
 		Route::get('/sign-up', [App\Http\Controllers\JobseekerController::class, 'showSignUpForm'])->name('signup.form');
