@@ -601,18 +601,18 @@ $skills = $user->skills->first();
                                                     <!-- Started From -->
                                                     <div>
                                                         <label class="block text-sm font-medium mb-1">Started From</label>
-                                                        <input type="date" name="starts_from[]" class="w-full border rounded px-3 py-2"
+                                                        <input readonly name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
                                                             value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" />
                                                     </div>
 
                                                     <!-- End To & Checkbox -->
                                                     @php
                                                         $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-                                                                    (isset($data->end_to) && $data->end_to === 'Work here');
+                                                        (isset($data->end_to) && $data->end_to === 'Work here');
                                                     @endphp
                                                     <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
                                                         <label class="block text-sm font-medium mb-1">To</label>
-                                                        <input type="date" name="end_to[]" class="w-full border rounded px-3 py-2"
+                                                        <input readonly name="end_to[]" class="datepicker-end w-full border rounded px-3 py-2"
                                                             x-bind:disabled="working"
                                                             :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
 
@@ -1697,10 +1697,32 @@ $skills = $user->skills->first();
         }
     });
 </script>
+<script>
+$(document).ready(function () {
+    $('#dob').datepicker({
+        format: 'yyyy-mm-dd',
+        endDate: new Date(),
+        autoclose: true,
+        todayHighlight: true
+    });
+        function initializeDatePickers() {
+        $('.datepicker-start, .datepicker-end').datepicker({
+            format: 'yyyy-mm-dd',
+            endDate: new Date(),
+            autoclose: true,
+            todayHighlight: true
+        });
+    }
 
+    initializeDatePickers();
 
+    $('#add-work').on('click', function () {
+        
+        initializeDatePickers(); 
+    });
+});
 
-
+</script>
 
 
 
