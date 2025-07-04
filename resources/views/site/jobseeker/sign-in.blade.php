@@ -120,27 +120,27 @@
                                     <div class="text-center text-gray-400 text-sm mb-3">- or -</div>
 
                                     <div class="text-center text-sm">
-                                                                Don’t have an account?
-                                                                <a href="{{ route('signup.form')}}" class="text-blue-600 hover:underline">Sign up</a>
-                                                            </div>
-                                                        </form>
+                                        Don’t have an account?
+                                        <a href="{{ route('signup.form')}}" class="text-blue-600 hover:underline">Sign up</a>
+                                    </div>
+                                </form>
 
-                                                        <script>
-                                                            const checkbox = document.getElementById('terms');
-                                                            const submitBtn = document.getElementById('submit-btn');
+                                <script>
+                                    const checkbox = document.getElementById('terms');
+                                    const submitBtn = document.getElementById('submit-btn');
 
-                                                            checkbox.addEventListener('change', function () {
-                                                                if (this.checked) {
-                                                                    submitBtn.disabled = false;
-                                                                    submitBtn.classList.remove('bg-blue-400', 'cursor-not-allowed');
-                                                                    submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800');
-                                                                } else {
-                                                                    submitBtn.disabled = true;
-                                                                    submitBtn.classList.add('bg-blue-400', 'cursor-not-allowed');
-                                                                    submitBtn.classList.remove('bg-blue-700', 'hover:bg-blue-800');
-                                                                }
-                                                            });
-                                                        </script>
+                                    checkbox.addEventListener('change', function () {
+                                        if (this.checked) {
+                                            submitBtn.disabled = false;
+                                            submitBtn.classList.remove('bg-blue-400', 'cursor-not-allowed');
+                                            submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800');
+                                        } else {
+                                            submitBtn.disabled = true;
+                                            submitBtn.classList.add('bg-blue-400', 'cursor-not-allowed');
+                                            submitBtn.classList.remove('bg-blue-700', 'hover:bg-blue-800');
+                                        }
+                                    });
+                                </script>
 
                             </div>
                             </div>
@@ -156,42 +156,45 @@
 
 
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 @if(session('success_popup'))
 <script>
     $(function () {
         Swal.fire({
             iconHtml: `
-                <div style="border: 4px solid #4CAF50; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: auto;">
-                    <span style="font-size: 48px; color: #4CAF50;">✔</span>
+                <div style="border: 3px solid #3B82F6; border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin: auto;">
+                    <span style="font-size: 36px; color: #3B82F6;">✔</span>
                 </div>
             `,
-            title: `
-                <div style="font-size: 18px; font-weight: bold;">
-                    Your profile has been submitted successfully<br>& waiting for approval!
-                </div>
-            `,
+            title: `<div style="font-size: 20px; font-weight: 600; color: #1F2937;">Profile Submitted!</div>`,
             html: `
-                <div style="font-size: 14px; color: #555; margin-top: 10px;">
-                    Once your profile is approved you will be notified via email, Thank you.
+                <div style="font-size: 14px; color: #6B7280; margin-top: 8px;">
+                    Your profile has been submitted successfully and is awaiting approval.<br>
+                    You’ll be notified via email once it’s approved.
                 </div>
             `,
             showConfirmButton: true,
             confirmButtonText: 'OK',
+            confirmButtonColor: '#3B82F6',
+            background: '#ffffff',
             allowOutsideClick: false,
             customClass: {
-                popup: 'swal-wide'
+                popup: 'swal-modern'
             }
         });
     });
 </script>
 @endif
 
-<style>
-.swal-wide {
-    width: 500px !important;
-}
 
-</style> 
+<style>
+.swal2-popup.swal-modern {
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+</style>
 
 
 <script src="https://unpkg.com/feather-icons"></script>

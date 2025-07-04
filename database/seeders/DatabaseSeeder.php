@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+
           $this->call([
             JobseekerInformationSeeder::class,
             SocialMediaSeeder::class,
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
         ]);
         
         
+
         \App\Models\Admin::factory()->create([
             'name' => 'Prajwal Ingole',
             'email' => 'prajwal@talentrek.com',

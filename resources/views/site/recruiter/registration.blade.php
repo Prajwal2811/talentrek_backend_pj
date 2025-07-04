@@ -106,6 +106,7 @@
                             <form class="space-y-6" action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ session('company_id') }}">
+
                                 <!-- Step 1: Company Information -->
                                 <div id="step-1">
                                     <!-- <form class="space-y-6"> -->
@@ -259,7 +260,9 @@
                                                 <div class="flex flex-col gap-2">
                                                     <label class="block mb-1 text-sm font-medium mt-3">Company Profile Picuture</label>
                                                     <div class="flex items-center gap-4">
+
                                                         <input type="file" name="company_profile" accept=".png,.jpg,.jpeg" class="w-full border rounded-md p-2" />
+
                                                     </div>
                                                     @error('company_profile')
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -277,6 +280,7 @@
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @endforeach
                                                     @endif
+
                                                 </div>
                                             </div>
 
