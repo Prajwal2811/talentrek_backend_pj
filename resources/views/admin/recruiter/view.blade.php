@@ -30,12 +30,11 @@
                                         <div class="details">
                                             <h4 class="mb-0">{{ $recruiter->name }}</h4>
                                             <span class="text-light">{{ $recruiter->city }}</span>
-                                            <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
                                         </div>
                                     </div>
                                     <div>
                                         @php
-                                            $status = $recruiter->admin_status;
+                                            $status = App\Models\RecruiterCompany::where('recruiter_id', $recruiter->id)->first()->admin_status;
                                             $userRole = auth()->user()->role;
                                         @endphp
 
@@ -161,14 +160,14 @@
                                         <!-- jQuery + AJAX -->
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                         <script>
-                                            function updateStatus(recruiterId, status, btn) {
+                                            function updateStatus(recruiterCompanyId, status, btn) {
                                                 const originalText = btn.innerHTML;
                                                 btn.disabled = true;
                                                 btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Processing...`;
 
                                                 $.post('{{ route("admin.recruiter.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    recruiter_id: recruiterId,
+                                                    company_id: recruiterCompanyId,
                                                     status: status
                                                 }).done(() => {
                                                     $('.modal').modal('hide');
@@ -180,7 +179,7 @@
                                                 });
                                             }
 
-                                            function submitRejection(recruiterId, status, reasonId, btn) {
+                                            function submitRejection(recruiterCompanyId, status, reasonId, btn) {
                                                 const reason = document.getElementById(reasonId).value.trim();
                                                 const errorDiv = document.getElementById(reasonId + "Error");
 
@@ -198,7 +197,7 @@
 
                                                 $.post('{{ route("admin.recruiter.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    recruiter_id: recruiterId,
+                                                    company_id: recruiterCompanyId,
                                                     status: status,
                                                     reason: reason
                                                 }).done(() => {

@@ -13,9 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-      Schema::create('recruiters', function (Blueprint $table) {
+
+       Schema::create('recruiters', function (Blueprint $table) {
             $table->id();
-            $table->string('company_id')->nullable();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
             $table->string('status')->nullable(); 
@@ -23,18 +23,10 @@ return new class extends Migration
             $table->string('admin_status')->nullable(); 
             $table->string('rejection_reason')->nullable(); 
             $table->timestamps();
-
-            // Foreign key constraint
-            $table->foreign('company_id')
-                ->references('id')
-                ->on('recruiters_company')
-                ->onDelete('cascade');
-            
         });
-
     }
 
-    /**
+    /**w
      * Reverse the migrations.
      *
      * @return void

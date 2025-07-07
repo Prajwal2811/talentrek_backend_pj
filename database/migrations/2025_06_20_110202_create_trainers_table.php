@@ -20,7 +20,12 @@ return new class extends Migration
             $table->string('phone_code')->nullable();       // e.g., +91, +1
             $table->string('phone_number')->nullable();     // e.g., 9876543210
             $table->date('date_of_birth')->nullable();
-            $table->string('city')->nullable();             // e.g., Mumbai, Delhi
+            $table->string('city')->nullable(); 
+            $table->string('otp')->nullable();            
+            $table->string('status')->nullable();            
+            $table->string('admin_status')->nullable();            
+            $table->text('inactive_reason')->nullable(); // Removed ->after('status')
+            $table->text('rejection_reason')->nullable(); // Removed ->after('status')            // e.g., Mumbai, Delhi
             $table->timestamps();
         });
     }

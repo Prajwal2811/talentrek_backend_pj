@@ -5,6 +5,9 @@ namespace App\Exceptions;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use ReflectionException;
+use BadMethodCallException;
 class Handler extends ExceptionHandler
 {
     /**
@@ -46,5 +49,14 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $exception)
+    {
+        if ($exception instanceof ReflectionException || $exception instanceof BadMethodCallException) {
+            return response()->view('errors.coming-soon', [], 501);
+        }
+
+        return parent::render($request, $exception);
     }
 }

@@ -1,9 +1,14 @@
-<!-- project main left menubar -->
+@php
+    $user = auth()->user();
+    $role = $user->role ?? null;
+    $permissions = $user->permissions ?? [];
+@endphp
+
 <div id="left-sidebar" class="sidebar">
     <a href="javascript:void(0);" class="menu_toggle"><i class="fa fa-angle-left"></i></a>
     <div class="navbar-brand">
         <a href="{{ route('home') }}" target="_blank">
-            <img src="{{ asset('asset/backend/images/icon.svg') }}" alt="Mooli Logo" class="img-fluid logo">
+            <img src="{{ asset('asset/backend/images/icon.svg') }}" alt="Talentrek Logo" class="img-fluid logo">
             <span>Talentrek</span>
         </a>
         <button type="button" class="btn-toggle-offcanvas btn btn-sm float-right"><i class="fa fa-close"></i></button>
@@ -15,9 +20,9 @@
                 <img src="{{ asset('asset/backend/images/user.png') }}" class="user-photo" alt="User Profile Picture">
             </div>
             <div class="dropdown">
-                <span>{{ Auth()->user()->role }}</span>
+                <span>{{ $role }}</span>
                 <a href="javascript:void(0);" class="dropdown-toggle user-name" data-toggle="dropdown">
-                    <strong>{{ Auth()->user()->name }}</strong>
+                    <strong>{{ $user->name }}</strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right account vivify flipInY">
                     <li><a href="{{ route('admin.profile') }}"><i class="fa fa-user"></i>My Profile</a></li>
@@ -26,7 +31,7 @@
                     <li><a href="{{ route('admin.signOut') }}"><i class="fa fa-power-off"></i>Logout</a></li>
                 </ul>
             </div>
-        </div>  
+        </div>
 
         <nav id="left-sidebar-nav" class="sidebar-nav">
             <ul id="main-menu" class="metismenu animation-li-delay">
@@ -35,7 +40,7 @@
                     <a href="{{ route('admin.dashboard') }}"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a>
                 </li>
 
-                @if(Auth()->user()->role == 'superadmin' || Auth()->user()->role == 'admin')
+                @if($role === 'superadmin')
                     <li class="header">Admin</li>
                     <li class="{{ request()->routeIs('admin.create', 'admin.index') ? 'active' : '' }}">
                         <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>Admin</span></a>
@@ -50,12 +55,13 @@
                     </li>
                 @endif
 
-                @if(Auth()->user()->role == 'superadmin' || Auth()->user()->role == 'admin')
-                    <li class="header">Users</li>
-                    <li class="{{ request()->routeIs('admin.user.*') ? 'active' : '' }}">
-                        <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>Users</span></a>
-                        <ul class="{{ request()->routeIs('admin.user.*') ? 'collapse in' : 'collapse' }}">
-                            <li class="{{ request()->routeIs('admin.user.create') ? 'active' : '' }}">
+
+                @if($role === 'superadmin' || $role === 'admin')
+                    <li class="header">User</li>
+                    <li class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'active' : '' }}">
+                        <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>User</span></a>
+                        <ul class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'collapse in' : 'collapse' }}">
+                            <li class="{{ request()->routeIs('admin.create') ? 'active' : '' }}">
                                 <a href="{{ route('admin.user.create') }}">Create User</a>
                             </li>
                             <li class="{{ request()->routeIs('admin.user.index') ? 'active' : '' }}">
@@ -64,82 +70,76 @@
                         </ul>
                     </li>
                 @endif
-                
+
                 <li class="header">User Roles</li>
-                <li class="{{ request()->routeIs('admin.jobseekers') ? 'active' : '' }}">
-                    <a href="{{ route('admin.jobseekers') }}"><i class="fa fa-user"></i><span>Jobseekers</span></a>
-                </li>
-                <li class="{{ request()->routeIs('admin.expat') ? 'active' : '' }}">
-                    <a href="{{ route('admin.expat') }}"><i class="fa fa-globe"></i><span>Expat</span></a>
-                </li>
-                <li class="{{ request()->routeIs('admin.recruiters') ? 'active' : '' }}">
-                    <a href="{{ route('admin.recruiters') }}"><i class="fa fa-briefcase"></i><span>Recruiters</span></a>
-                </li>
-                <li class="{{ request()->routeIs('admin.trainers') ? 'active' : '' }}">
-                    <a href="{{ route('admin.trainers') }}"><i class="fa fa-graduation-cap"></i><span>Trainers</span></a>
-                </li>
-                <li class="{{ request()->routeIs('admin.assessors') ? 'active' : '' }}">
-                    <a href="{{ route('admin.assessors') }}"><i class="fa fa-check-square-o"></i><span>Assessors</span></a>
-                </li>
-                <li class="{{ request()->routeIs('admin.coach') ? 'active' : '' }}">
-                    <a href="{{ route('admin.coach') }}"><i class="fa fa-user"></i><span>Coach</span></a>
-                </li>
-                <li class="{{ request()->routeIs('admin.mentors') ? 'active' : '' }}">
-                    <a href="{{ route('admin.mentors') }}"><i class="fa fa-users"></i><span>Mentors</span></a>
-                </li>
 
-                @php $userRole = auth()->user()->role; @endphp
-                    @if($userRole === 'superadmin' || $userRole === 'admin')
-                    <li class="header">Site activity</li>
+                @php
+                    $menuItems = [
+                        'Jobseekers' => ['route' => 'admin.jobseekers', 'icon' => 'fa-users'],
+                        'Expat' => ['route' => 'admin.expat', 'icon' => 'fa-globe'],
+                        'Recruiters' => ['route' => 'admin.recruiters', 'icon' => 'fa-user-tie'],
+                        'Trainers' => ['route' => 'admin.trainers', 'icon' => 'fa-chalkboard-teacher'],
+                        'Assessors' => ['route' => 'admin.assessors', 'icon' => 'fa-check-circle'],
+                        'Coach' => ['route' => 'admin.coach', 'icon' => 'fa-user-check'],
+                        'Mentors' => ['route' => 'admin.mentors', 'icon' => 'fa-user-graduate'],
+                    ];
+                @endphp
 
-                        <li class="{{ request()->routeIs('admin.cms') ? 'active' : '' }}">
-                            <a href="{{ route('admin.cms') }}">
-                                <i class="fa fa-file-text"></i><span>CMS</span>
+                @foreach ($menuItems as $label => $data)
+                    @if($role === 'superadmin' || in_array($label, $permissions))
+                        <li class="{{ request()->routeIs($data['route']) ? 'active' : '' }}">
+                            <a href="{{ route($data['route']) }}">
+                                <i class="fa {{ $data['icon'] }}"></i> <span>{{ $label }}</span>
                             </a>
-                        </li>
-
-                        <li class="{{ request()->routeIs('admin.subscriptions') ? 'active' : '' }}">
-                            <a href="{{ route('admin.subscriptions') }}">
-                                <i class="fa fa-credit-card"></i><span>Subscriptions</span>
-                            </a>
-                        </li>
-
-                        <li class="{{ request()->routeIs('admin.certification.template') ? 'active' : '' }}">
-                            <a href="{{ route('admin.certification.template') }}">
-                                <i class="fa fa-certificate"></i><span>Certification Template</span>
-                            </a>
-                        </li>
-
-                        <li class="{{ request()->routeIs('admin.payments') ? 'active' : '' }}">
-                            <a href="{{ route('admin.payments') }}">
-                                <i class="fa fa-money"></i><span>Payments</span>
-                            </a>
-                        </li>
-
-                        <li class="{{ request()->routeIs('admin.testimonials') ? 'active' : '' }}">
-                            <a href="{{ route('admin.testimonials') }}">
-                                <i class="fa fa-comments"></i><span>Testimonials</span>
-                            </a>
-                        </li>
-
-                        <li class="{{ request()->routeIs('admin.languages') ? 'active' : '' }}">
-                            <a href="{{ route('admin.languages') }}">
-                                <i class="fa fa-language"></i><span>Languages</span>
-                            </a>
-                        </li>
-
-                        <li class="{{ request()->routeIs('admin.settings') ? 'active' : '' }}">
-                            <a href="{{ route('admin.settings') }}">
-                                <i class="fa fa-cog"></i><span>Settings</span>
-                            </a>
-                        </li>
-
-
-                        <li class="header">System Log</li>
-                        <li class="{{ request()->routeIs('admin.activity.log') ? 'active' : '' }}">
-                            <a href="{{ route('admin.activity.log') }}"><i class="fa fa-history"></i><span>Logs</span></a>
                         </li>
                     @endif
+                @endforeach
+
+                <li class="header">Site Activity</li>
+
+                @php
+                    $menuItems = [
+                        'CMS' => ['route' => 'admin.cms', 'icon' => 'fa-file-alt'],
+                        'Subscriptions' => ['route' => 'admin.subscriptions', 'icon' => 'fa-credit-card'],
+                        'Certification Template' => ['route' => 'admin.certification.template', 'icon' => 'fa-certificate'],
+                        'Payments' => ['route' => 'admin.payments', 'icon' => 'fa-money-check-alt'],
+                        'Languages' => ['route' => 'admin.languages', 'icon' => 'fa-language'],
+                        'Settings' => ['route' => 'admin.settings', 'icon' => 'fa-cog'],
+                        'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-cog'],
+                    ];
+                @endphp
+
+                @foreach ($menuItems as $label => $data)
+                    @if($role === 'superadmin' || in_array($label, $permissions))
+                        <li class="{{ request()->routeIs($data['route']) ? 'active' : '' }}">
+                            <a href="{{ route($data['route']) }}">
+                                <i class="fas {{ $data['icon'] }}"></i> <span>{{ $label }}</span>
+                            </a>
+                        </li>
+                    @endif
+                @endforeach
+
+
+                @if($role === 'superadmin' || in_array('Testimonials', $permissions))
+                    <li class="{{ request()->routeIs('admin.testimonials.*') ? 'active' : '' }}">
+                        <a href="#" class="has-arrow"><i class="fa fa-comments"></i><span>Testimonials</span></a>
+                        <ul class="{{ request()->routeIs('admin.testimonials.*') ? 'collapse in' : 'collapse' }}">
+                            <li class="{{ request()->routeIs('admin.testimonials.add') ? 'active' : '' }}">
+                                <a href="{{ route('admin.testimonials.add') }}">Add Testimonial</a>
+                            </li>
+                            <li class="{{ request()->routeIs('admin.testimonials') ? 'active' : '' }}">
+                                <a href="{{ route('admin.testimonials') }}">Manage Testimonials</a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+                @if($role === 'superadmin' || in_array('Activity Log', $permissions))
+                    <li class="header">System Log</li>
+                    <li class="{{ request()->routeIs('admin.activity.log') ? 'active' : '' }}">
+                        <a href="{{ route('admin.activity.log') }}"><i class="fa fa-history"></i><span>Logs</span></a>
+                    </li>
+                @endif
             </ul>
         </nav>
     </div>

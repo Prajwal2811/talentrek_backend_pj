@@ -91,7 +91,7 @@
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium">Full name</label>
-                                        <input type="text" name="name" class="w-full border rounded-md p-2"
+                                        <input type="text" name="name" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Enter full name" value="{{ old('name') }}" />
                                         @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -99,17 +99,17 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Email</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Email</label>
                                             <input placeholder="Enter email" name="email" type="email"
-                                                class="w-full border rounded-md p-2" value="{{ old('email', $email) }}"
+                                                class="w-full border rounded-md p-2 mt-1" value="{{ old('email', $email) }}"
                                                 readonly />
                                             @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Gender</label>
-                                            <select name="gender" class="w-full border rounded-md p-2">
+                                            <label class="block mb-1 text-sm font-medium mt-3">Gender</label>
+                                            <select name="gender" class="w-full border rounded-md p-2 mt-1">
                                                 <option value="">Select gender</option>
                                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male
                                                 </option>
@@ -124,13 +124,13 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Phone number</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number</label>
                                             <div class="flex">
-                                                <select class="w-1/3 border rounded-l-md p-2">
+                                                <select class="w-1/3 border rounded-l-md p-2 mt-1">
                                                     <option>+91</option>
                                                 </select>
                                                 <input name="phone_number" placeholder="Enter Phone number" type="tel"
-                                                    class="w-2/3 border rounded-r-md p-2"
+                                                    class="w-2/3 border rounded-r-md p-2 mt-1"
                                                     value="{{ old('phone_number', $phone) }}" readonly />
                                             </div>
                                             @error('phone_number')
@@ -138,25 +138,25 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Date of birth</label>
-                                            <input name="dob" id="dob" class="w-full border rounded-md p-2"
-                                                value="{{ old('dob') }}" />
+                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth</label>
+                                            <input name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
+                                                value="{{ old('dob') }}" readonly/>
                                             @error('dob')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Location</label>
-                                        <input type="text" name="city" class="w-full border rounded-md p-2"
+                                        <label class="block mb-1 text-sm font-medium mt-3">Location</label>
+                                        <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="City or State" value="{{ old('city') }}" />
                                         @error('city')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Address</label>
-                                        <input type="text" name="address" class="w-full border rounded-md p-2"
+                                        <label class="block mb-1 text-sm font-medium mt-3">Address</label>
+                                        <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Street, Area, ZIP" value="{{ old('address') }}" />
                                         @error('address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -164,7 +164,7 @@
                                     </div>
                                     <div class="flex justify-end">
                                         <button type="button" onclick="showStep(2)"
-                                            class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                            class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">Next</button>
                                     </div>
 
                                 </div>
@@ -265,7 +265,7 @@
                                     </div>
 
                                     <div class="col-span-2">
-                                        <button type="button" id="add-education" class="text-green-600 text-sm">Add
+                                        <button type="button" id="add-education" class="text-green-600 text-sm mt-2 mb-2">Add
                                             education +</button>
                                     </div>
 
@@ -321,9 +321,9 @@
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Started
                                                         From</label>
-                                                    <input name="starts_from[]" id="starts_from"
-                                                        class="w-full border rounded-md p-2"
-                                                        value="{{ old("starts_from.$i") }}" />
+                                                    <input  name="starts_from[]"
+                                                        class="datepicker-start w-full border rounded-md p-2"
+                                                        value="{{ old("starts_from.$i") }}" readonly />
                                                     @error("starts_from.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -332,8 +332,8 @@
                                                 {{-- End Date --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
-                                                    <input name="end_to[]" id="end_to" class="w-full border rounded-md p-2"
-                                                        value="{{ old("end_to.$i") }}" />
+                                                    <input name="end_to[]" class="datepicker-end w-full border rounded-md p-2"
+                                                        value="{{ old("end_to.$i") }}" readonly />
                                                     @error("end_to.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -349,7 +349,7 @@
                                     </div>
 
                                     <div class="col-span-2">
-                                        <button type="button" id="add-work" class="text-green-600 text-sm">Add work
+                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work
                                             experience +</button>
                                     </div>
 
@@ -368,7 +368,7 @@
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium">Skills</label>
-                                        <input type="text" name="skills" class="w-full border rounded-md p-2"
+                                        <input type="text" name="skills" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. AWS Certified, Python, Project Management"
                                             value="{{ old('skills') }}" />
                                         @error('skills')
@@ -376,8 +376,8 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Area of Interests</label>
-                                        <select class="w-full border rounded-md p-2" name="interest">
+                                        <label class="block mb-1 text-sm font-medium mt-3">Area of Interests</label>
+                                        <select class="w-full border rounded-md p-2 mt-1" name="interest">
                                             <option value="" disabled {{ old('interest') ? '' : 'selected' }}>Select an
                                                 area</option>
                                             <option value="cloud-computing" {{ old('interest') == 'cloud-computing' ? 'selected' : '' }}>Cloud Computing</option>
@@ -393,8 +393,8 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Job Categories</label>
-                                        <input type="text" name="job_category" class="w-full border rounded-md p-2"
+                                        <label class="block mb-1 text-sm font-medium mt-3">Job Categories</label>
+                                        <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. Software Engineer, Data Analyst"
                                             value="{{ old('job_category') }}" />
                                         @error('job_category')
@@ -402,8 +402,8 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Website Link</label>
-                                        <input type="url" name="website_link" class="w-full border rounded-md p-2"
+                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link</label>
+                                        <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
                                             value="{{ old('website_link') }}" />
                                         @error('website_link')
@@ -411,8 +411,8 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Portfolio Link</label>
-                                        <input type="url" name="portfolio_link" class="w-full border rounded-md p-2"
+                                        <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link</label>
+                                        <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" mt-1
                                             placeholder="e.g. https://portfolio.example.com"
                                             value="{{ old('portfolio_link') }}" />
                                         @error('portfolio_link')
@@ -420,11 +420,11 @@
                                         @enderror
                                     </div>
                                     <div class="flex justify-between">
-                                        <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md">
+                                        <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md mt-3">
                                             Back
                                         </button>
                                         <button type="button" onclick="showStep(5)"
-                                            class="bg-blue-700 text-white px-6 py-2 rounded-md">
+                                            class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
                                             Next
                                         </button>
                                     </div>
@@ -441,14 +441,14 @@
                                             <span class="text-xs text-gray-500">(Download CV template and make sure the
                                                 template you upload must follow the attached template)</span>
                                         </label>
-                                        <button class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs btn">
+                                        <button class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs btn mt-2">
                                             Download CV template
                                         </button>
 
                                     </div>
                                     <!-- Upload Resume -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Upload resume</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload resume</label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" class="border rounded-md p-2 w-full text-sm"  name="resume" accept=".pdf,.doc,.docx,.txt" />
                                         </div>
@@ -459,7 +459,7 @@
 
                                     <!-- Upload Profile Picture -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Upload profile picture</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture</label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />
@@ -470,7 +470,7 @@
                                     </div>
 
                                     <div class="text-sm">
-                                        <label class="flex items-start gap-2">
+                                        <label class="flex items-start gap-2 mt-3">
                                             <input type="checkbox" id="termsCheckbox" class="mt-1" />
                                             <span>
                                                 I have read and agreed to
@@ -592,17 +592,22 @@
                     autoclose: true,
                     todayHighlight: true
                 });
-                $('#starts_from').datepicker({
-                    format: 'yyyy-mm-dd',
-                    endDate: new Date(),
-                    autoclose: true,
-                    todayHighlight: true
-                });
-                $('#end_to').datepicker({
-                    format: 'yyyy-mm-dd',
-                    endDate: new Date(),
-                    autoclose: true,
-                    todayHighlight: true
+                    function initializeDatePickers() {
+                    $('.datepicker-start, .datepicker-end').datepicker({
+                        format: 'yyyy-mm-dd',
+                        endDate: new Date(),
+                        autoclose: true,
+                        todayHighlight: true
+                    });
+                }
+
+                initializeDatePickers();
+
+                $('#add-work').on('click', function () {
+                    
+                    initializeDatePickers(); 
                 });
             });
+       
         </script>
+        

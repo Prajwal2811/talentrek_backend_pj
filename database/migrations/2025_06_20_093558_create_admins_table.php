@@ -23,6 +23,7 @@ return new class extends Migration
             $table->enum('role', ['superadmin', 'admin']);
             $table->string('notes')->nullable();
             $table->string('status')->nullable();
+            $table->json('permissions')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
