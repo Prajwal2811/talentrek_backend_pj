@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             RecruitersCompanySeeder::class,
             TrainerSeeder::class,
             TestimonialSeeder::class,
+
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
             // EducationDetailsSeeder::class,

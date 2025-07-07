@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Models;
@@ -35,3 +36,4 @@ class TrainingExperience extends Model
 
     ];
 }
+

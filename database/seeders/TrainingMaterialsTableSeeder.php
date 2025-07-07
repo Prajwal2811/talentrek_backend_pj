@@ -13,7 +13,6 @@ class TrainingMaterialsTableSeeder extends Seeder
             [
                 'trainer_id' => 1,
                 'training_type' => 'online',
-
                 'training_title' => 'Full Stack Web Development',
                 'training_sub_title' => 'HTML, CSS, JavaScript, PHP, and Laravel',
                 'training_descriptions' => 'Comprehensive course to build dynamic web apps using modern tech stack.',
@@ -43,9 +42,7 @@ class TrainingMaterialsTableSeeder extends Seeder
             ],
             [
                 'trainer_id' => 3,
-
                 'training_type' => 'recorded',
-
                 'training_title' => 'Excel for Business Analytics',
                 'training_sub_title' => 'Excel + Pivot Tables + Dashboarding',
                 'training_descriptions' => 'Master Excel formulas, data analysis, and reporting.',
@@ -91,7 +88,6 @@ class TrainingMaterialsTableSeeder extends Seeder
             [
                 'trainer_id' => 2,
                 'training_type' => 'online',
-
                 'training_title' => 'Cybersecurity Fundamentals',
                 'training_sub_title' => 'Protect Digital Assets',
                 'training_descriptions' => 'Introduction to security concepts, tools, and best practices.',
@@ -107,7 +103,6 @@ class TrainingMaterialsTableSeeder extends Seeder
             [
                 'trainer_id' => 3,
                 'training_type' => 'recorded',
-
                 'training_title' => 'Creative Writing for Beginners',
                 'training_sub_title' => 'Unlock Your Imagination',
                 'training_descriptions' => 'Learn plot building, character development, and storytelling.',
@@ -138,7 +133,9 @@ class TrainingMaterialsTableSeeder extends Seeder
             [
                 'trainer_id' => 5,
 
+
                 'training_type' => 'online',
+
 
                 'training_title' => 'Digital Marketing Strategy',
                 'training_sub_title' => 'SEO, SEM, Social Media',
@@ -154,9 +151,7 @@ class TrainingMaterialsTableSeeder extends Seeder
             ],
             [
                 'trainer_id' => 2,
-
                 'training_type' => 'recorded',
-
                 'training_title' => 'Machine Learning Crash Course',
                 'training_sub_title' => 'ML Concepts & Python Code',
                 'training_descriptions' => 'From linear regression to model deployment with real datasets.',
