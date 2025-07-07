@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             AssessmentQuestionsTableSeeder::class,
             AssessmentOptionsTableSeeder::class,
             LanguageSeeder::class,
+
         ]);
         
     }

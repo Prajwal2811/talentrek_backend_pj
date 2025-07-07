@@ -23,12 +23,15 @@ return new class extends Migration
             $table->string('training_title')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
-            $table->string('training_category')->nullable();            // Technical, Soft Skills, etc.
-            $table->decimal('training_price', 10, 2)->default(0);       // e.g. 299.99
 
-            // Thumbnail
-            $table->string('thumbnail_file_path')->nullable();          // Storage path
-            $table->string('thumbnail_file_name')->nullable();          // Original name
+            $table->string('training_category')->nullable();        // e.g., Technical, Soft Skills
+            $table->decimal('training_price', 10, 2)->default(0);   // e.g., 299.99
+            $table->string('thumbnail_file_path')->nullable();      // Path to stored image
+            $table->string('thumbnail_file_name')->nullable();      // Original filename
+            $table->text('training_objective')->nullable();         // Objectives
+            $table->string('session_type')->nullable();             // e.g., Live, Pre-recorded
+            $table->timestamps();
+
 
             // Objective and status
             $table->text('training_objective')->nullable();
