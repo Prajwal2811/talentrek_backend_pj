@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; 
 
-class Trainers extends Model
+class Trainers extends Authenticatable
 {
     use HasFactory;
 
@@ -19,6 +20,8 @@ class Trainers extends Model
         'email',
         'phone_code',
         'phone_number',
+        'password',
+        'pass',
         'date_of_birth',
         'city',
     ];

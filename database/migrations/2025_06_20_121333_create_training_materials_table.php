@@ -27,7 +27,6 @@ return new class extends Migration
             $table->string('thumbnail_file_name')->nullable();      // Original filename
             $table->text('training_objective')->nullable();         // Objectives
             $table->string('session_type')->nullable();             // e.g., Live, Pre-recorded
-
             $table->timestamps();
 
             // Foreign key constraint
