@@ -32,7 +32,7 @@
 
                     <!-- Jobseekers -->
                     <a 
-                        href="{{ route('recruiter.dashboard.jobseeker') }}" 
+                        href="{{ route('recruiter.jobseeker') }}" 
                         :class="[ 
                             active === 'jobseeker' 
                                 ? 'bg-white text-blue-900 font-semibold' 

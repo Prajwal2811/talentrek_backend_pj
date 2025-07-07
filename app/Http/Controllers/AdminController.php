@@ -17,6 +17,7 @@ use App\Models\AdditionalInfo;
 use App\Models\Testimonial;
 use App\Models\Trainers;
 use App\Models\Language;
+use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
 use App\Models\TrainingMaterialsDocument;
@@ -739,6 +740,51 @@ class AdminController extends Controller
     }
 
 
+    
+    public function viewShortlistedJobseekers($id)
+    {
+        // echo "<pre>"; print_r($id); die;
+        $shortlistJobseekers = RecruiterJobseekersShortlist::select('recruiter_jobseeker_shortlist.*','jobseekers.*','recruiter_jobseeker_shortlist.admin_status as admin_status_rjs')->where('recruiter_id', $id)
+                                                            ->join('jobseekers', 'recruiter_jobseeker_shortlist.jobseeker_id', '=', 'jobseekers.id')
+                                                            ->get();
+        // echo "<pre>";  print_r($shortlistJobseekers); die ;    
+        return view('admin.recruiter.shortlisted-jobseekers', compact('shortlistJobseekers'));
+    }
+
+    public function updateStatusForShortlist(Request $request)
+    {
+        $request->validate([
+            'jobseeker_id' => 'required|exists:jobseekers,id',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:500',
+            'role' => 'required|in:admin,superadmin',
+        ]);
+
+        $jobseeker = RecruiterJobseekersShortlist::where('jobseeker_id', $request->jobseeker_id)->firstOrFail();
+
+        if ($request->role === 'admin') {
+            $jobseeker->admin_status = $request->status;
+            if ($request->status === 'rejected') {
+                $jobseeker->rejection_reason = $request->reason;
+            } else {
+                $jobseeker->rejection_reason = null; // clear old reason
+            }
+        } elseif ($request->role === 'superadmin') {
+            if ($jobseeker->admin_status === 'approved') {
+                $jobseeker->admin_status = 'superadmin_'.$request->status;
+                if ($request->status === 'rejected') {
+                    $jobseeker->rejection_reason = 'superadmin_'.$request->reason;
+                } else {
+                    $jobseeker->rejection_reason = null;
+                }
+            }
+        }
+
+        $jobseeker->save();
+
+        return back()->with('success', 'Status updated.');
+    }
+
 
     public function updateRecruiterStatus(Request $request)
 {
@@ -1370,7 +1416,7 @@ class AdminController extends Controller
     public function viewTrainerAssessment($id)
     {
         $assessments = TrainerAssessment::select('trainer_assessments.*')
-                                        ->where('trainer_assessments.id',$id)
+                                        ->where('trainer_assessments.trainer_id' , $id)
                                         ->get();
         // echo "<pre>"; print_r($assessments); die;
         return view('admin.trainers.assessment.training-assessment', compact('assessments'));
@@ -1379,17 +1425,16 @@ class AdminController extends Controller
     
     public function viewTrainingAssessmentDetail($trainerId, $assessmentId)
     {
-        $assessment = TrainerAssessment::where('trainer_id', $trainerId)
-                        ->where('id', $assessmentId)
-                        ->with(['questions.options', 'course']) // Load questions with their options and course
-                        ->firstOrFail();
+        // echo "<pre>"; print_r($trainerId); die;
 
+        $assessment = TrainerAssessment::where('trainer_id', $trainerId)
+                            ->where('id', $assessmentId)
+                            ->with(['questions.options', 'course']) // Load questions with their options and course
+                            ->firstOrFail();
+        // echo "<pre>"; print_r($assessment); die;
         return view('admin.trainers.assessment.training-assessment-detail', compact('assessment'));
 
     }
-
-
-
 
     public function certificationTemplate() {
         return view('admin.certificate.index');

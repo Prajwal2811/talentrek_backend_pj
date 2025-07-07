@@ -23,12 +23,14 @@ return new class extends Migration
             $table->string('training_title')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
+
             $table->string('training_category')->nullable();            // Technical, Soft Skills, etc.
             $table->decimal('training_price', 10, 2)->default(0);       // e.g. 299.99
 
             // Thumbnail
             $table->string('thumbnail_file_path')->nullable();          // Storage path
             $table->string('thumbnail_file_name')->nullable();          // Original name
+
 
 
             // Objective and status

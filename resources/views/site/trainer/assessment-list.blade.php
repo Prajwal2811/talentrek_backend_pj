@@ -14,9 +14,7 @@
 	
     <div class="page-wraper">
         <div class="flex h-screen">
-          
             @include('site.trainer.componants.sidebar')
-
             <div class="flex-1 flex flex-col">
                 <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
                     <div class="flex items-center space-x-6 w-1/2">
@@ -61,7 +59,7 @@
                     </div>
                 </nav>
 
-               <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="trainingDashboard()">
+                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
                     <h2 class="text-2xl font-semibold mb-6">Assessment List</h2>
                     <div class="overflow-x-auto bg-white rounded-lg shadow relative">
                         <table class="min-w-full text-sm text-left">
@@ -75,79 +73,116 @@
                                     <th class="px-6 py-3">Assign Course</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <template x-for="(course, index) in paginatedCourses" :key="index">
-                                    <tr class="border-t">
-                                        <td class="px-6 py-4" x-text="startIndex + index + 1"></td>
-                                        <td class="px-6 py-4" x-text="course.title"></td>
-                                        <td class="px-6 py-4" x-text="course.duration + ' Qs'"></td>
-                                        <td class="px-6 py-4" x-text="course.passing + '%'"></td>
-                                        <td class="px-6 py-4" x-text="course.level"></td>
+                            <tbody id="assessmentTableBody">
+                                @foreach($assessments as $index => $assessment)
+                                    <tr class="border-t assessment-row" data-index="{{ $index }}">
+                                        <td class="px-6 py-4">{{ $index + 1 }}</td>
+                                        <td class="px-6 py-4">{{ $assessment->assessment_title }}</td>
+                                        <td class="px-6 py-4">{{ $assessment->total_questions }} Qs</td>
                                         <td class="px-6 py-4">
-                                            <select class="text-xs px-4 py-1 rounded hover:bg-white-600">
-                                                <option selected disabled>Assign Course</option>
-                                                <option>Java Basics</option>
-                                                <option>React JS</option>
-                                                <option>Python Programming</option>
-                                                <option>Data Structures</option>
-                                                <option>Node.js Fundamentals</option>
+                                            {{ $assessment->passing_questions }} / {{ $assessment->total_questions }}
+                                            ({{ round(($assessment->passing_questions / $assessment->total_questions) * 100) }}%)
+                                        </td>
+                                        <td class="px-6 py-4">{{ $assessment->assessment_level }}</td>
+                                        <td class="px-6 py-4">
+                                            <select class="assign-course-select text-xs px-4 py-1 rounded btn btn-primary"
+                                                    data-assessment-id="{{ $assessment->id }}">
+                                                <option selected disabled class="text-xs text-dark bg-white">Assign Course</option>
+                                                @foreach ($courses as $course)
+                                                    <option value="{{ $course->id }}" class="text-xs text-dark bg-white">{{ $course->training_title }}</option>
+                                                @endforeach
                                             </select>
+                                            <div class="course-message text-sm mt-2"></div> <!-- Inline message container -->
                                         </td>
                                     </tr>
-                                </template>
+                                    @endforeach
+                                    <script>
+                                        $(document).ready(function () {
+                                            $(document).on('change', '.assign-course-select', function () {
+                                                const $select = $(this);
+                                                const courseId = $select.val();
+                                                const assessmentId = $select.data('assessment-id');
+                                                const $messageBox = $select.siblings('.course-message');
+
+                                                $.ajax({
+                                                    url: '{{ route("trainer.assessment.assign.course") }}',
+                                                    type: 'POST',
+                                                    data: {
+                                                        _token: '{{ csrf_token() }}',
+                                                        assessment_id: assessmentId,
+                                                        course_id: courseId
+                                                    },
+                                                    success: function (response) {
+                                                        $messageBox
+                                                            .html('<span class="text-green-600 font-medium">✔ Course assigned successfully!</span>')
+                                                            .fadeIn()
+                                                            .delay(2500)
+                                                            .fadeOut();
+                                                    },
+                                                    error: function () {
+                                                        $messageBox
+                                                            .html('<span class="text-red-600 font-medium">✖ Error assigning course</span>')
+                                                            .fadeIn()
+                                                            .delay(2500)
+                                                            .fadeOut();
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    </script>
+
+
                             </tbody>
                         </table>
 
                         <!-- Pagination -->
                         <div class="flex justify-end items-center px-6 py-4 space-x-4">
-                            <button @click="prevPage" :disabled="currentPage === 1"
-                                class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
+                            <button id="prevBtn" class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
                             <span class="text-sm text-gray-600">
-                                Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
+                                Page <span id="currentPageText">1</span> of <span id="totalPagesText">1</span>
                             </span>
-                            <button @click="nextPage" :disabled="currentPage >= totalPages"
-                                class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
+                            <button id="nextBtn" class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
                         </div>
                     </div>
                 </main>
 
                 <script>
-                    function trainingDashboard() {
-                        return {
-                            courses: [
-                                { title: 'Java Basics', duration: 10, passing: 60, level: 'Beginner' },
-                                { title: 'React JS', duration: 15, passing: 70, level: 'Intermediate' },
-                                { title: 'Data Structures', duration: 20, passing: 80, level: 'Advanced' },
-                                { title: 'Python Programming', duration: 18, passing: 65, level: 'Intermediate' },
-                                { title: 'Node.js Fundamentals', duration: 12, passing: 70, level: 'Intermediate' },
-                                { title: 'Database Management', duration: 14, passing: 75, level: 'Advanced' },
-                                { title: 'Cybersecurity Essentials', duration: 11, passing: 60, level: 'Beginner' },
-                                { title: 'UI/UX Design', duration: 16, passing: 85, level: 'Intermediate' },
-                                { title: 'Machine Learning', duration: 22, passing: 80, level: 'Advanced' },
-                                { title: 'Agile Methodologies', duration: 8, passing: 55, level: 'Beginner' },
-                                { title: 'Cloud Computing', duration: 17, passing: 78, level: 'Advanced' }
-                            ],
-                            currentPage: 1,
-                            perPage: 10,
-                            get totalPages() {
-                                return Math.ceil(this.courses.length / this.perPage);
-                            },
-                            get paginatedCourses() {
-                                const start = (this.currentPage - 1) * this.perPage;
-                                return this.courses.slice(start, start + this.perPage);
-                            },
-                            get startIndex() {
-                                return (this.currentPage - 1) * this.perPage;
-                            },
-                            nextPage() {
-                                if (this.currentPage < this.totalPages) this.currentPage++;
-                            },
-                            prevPage() {
-                                if (this.currentPage > 1) this.currentPage--;
-                            }
+                    const perPage = 10;
+                    let currentPage = 1;
+
+                    const allRows = Array.from(document.querySelectorAll(".assessment-row"));
+                    const totalPages = Math.ceil(allRows.length / perPage);
+
+                    const updateTable = () => {
+                        allRows.forEach((row, index) => {
+                            row.style.display = (index >= (currentPage - 1) * perPage && index < currentPage * perPage)
+                                ? ''
+                                : 'none';
+                        });
+                        document.getElementById("currentPageText").textContent = currentPage;
+                        document.getElementById("totalPagesText").textContent = totalPages;
+                        document.getElementById("prevBtn").disabled = currentPage === 1;
+                        document.getElementById("nextBtn").disabled = currentPage === totalPages;
+                    };
+
+                    document.getElementById("prevBtn").addEventListener("click", () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            updateTable();
                         }
-                    }
-                    </script>
+                    });
+
+                    document.getElementById("nextBtn").addEventListener("click", () => {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            updateTable();
+                        }
+                    });
+
+                    updateTable(); // Initial call
+                </script>
+
+
 
 
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

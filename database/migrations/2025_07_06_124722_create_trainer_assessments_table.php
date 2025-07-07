@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('assessment_level')->nullable(); // e.g. beginner, intermediate, expert
             $table->unsignedInteger('total_questions');
             $table->unsignedInteger('passing_questions');
-            $table->decimal('passing_percentage', 5, 2); // e.g. 60.00
+            $table->string('passing_percentage')->nullable(); // e.g. beginner, intermediate, expert
             $table->unsignedBigInteger('material_id');
             $table->timestamps();
 

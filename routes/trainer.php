@@ -65,6 +65,7 @@ Route::group(['prefix' => 'trainer'], function() {
 		Route::get('/trainer-settings', [App\Http\Controllers\TrainerController::class, 'trainerSettings'])->name('trainer.settings');
 		
 
-
 	});
+
 });
+
