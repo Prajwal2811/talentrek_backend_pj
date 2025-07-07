@@ -78,8 +78,6 @@ class RecruiterController extends Controller
           return redirect()->route('recruiter.registration');
      }
 
-
-
     
      public function storeRecruiterInformation(Request $request)
      {
@@ -181,13 +179,6 @@ class RecruiterController extends Controller
      }
 
 
-
-     
-     
-
-
-
-  
      public function loginRecruiter(Request $request)
      {
           $this->validate($request, [

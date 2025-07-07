@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             RecruitersCompanySeeder::class,
             TrainerSeeder::class,
             TestimonialSeeder::class,
- 
+
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
             // EducationDetailsSeeder::class,
@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             AssessmentQuestionsTableSeeder::class,
             AssessmentOptionsTableSeeder::class,
             LanguageSeeder::class,
+
         ]);
         
     }

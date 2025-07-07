@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Models;
@@ -34,4 +35,5 @@ class TrainingExperience extends Model
         'date_of_birth' => 'date',
 
     ];
+
 }
