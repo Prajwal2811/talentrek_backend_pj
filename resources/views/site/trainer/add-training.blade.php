@@ -66,7 +66,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl">
                     <!-- Online / Classroom Training -->
-                    <a href="add-online-training.html" class="bg-blue-800 text-white rounded-lg p-10 flex flex-col items-center justify-center hover:bg-blue-700 transition">
+                    <a href="{{route('training.online.add')}}" class="bg-blue-800 text-white rounded-lg p-10 flex flex-col items-center justify-center hover:bg-blue-700 transition">
                     <svg class="w-8 h-8 mb-4" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M4 5h16v10H4V5zm0 12h6v2H4v-2zm10 0h6v2h-6v-2z" />
                     </svg>
@@ -74,7 +74,7 @@
                     </a>
 
                     <!-- Recorded Courses -->
-                    <a href="add-recorded-course.html" class="bg-blue-800 text-white rounded-lg p-10 flex flex-col items-center justify-center hover:bg-blue-700 transition">
+                    <a href="{{route('training.recorded.add')}}" class="bg-blue-800 text-white rounded-lg p-10 flex flex-col items-center justify-center hover:bg-blue-700 transition">
                     <svg class="w-8 h-8 mb-4" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                     </svg>

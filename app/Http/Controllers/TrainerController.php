@@ -552,5 +552,13 @@ class TrainerController extends Controller
     public function trainerSettings() {
         return view('site.trainer.trainer-settings');
     }
+
+    public function addOnlineTraining() {
+        return view('site.trainer.add-online-training');
+    }
+
+    public function addRecordedTraining() {
+        return view('site.trainer.add-recorded-course');
+    }
     
 }

@@ -208,7 +208,8 @@ Route::group(['prefix' => 'trainer'], function() {
 		// Training
 		Route::get('/training/list', [App\Http\Controllers\TrainerController::class, 'trainingList'])->name('training.list');
 		Route::get('/training/add', [App\Http\Controllers\TrainerController::class, 'addTraining'])->name('training.add');
-		Route::get('/training/add', [App\Http\Controllers\TrainerController::class, 'addTraining'])->name('training.add');
+		Route::get('/training/online/add', [App\Http\Controllers\TrainerController::class, 'addOnlineTraining'])->name('training.online.add');
+		Route::get('/training/recorded/add', [App\Http\Controllers\TrainerController::class, 'addRecordedTraining'])->name('training.recorded.add');
 		// Assessment
 		Route::get('/assessment/list', [App\Http\Controllers\TrainerController::class, 'assessmentList'])->name('assessment.list');
 		Route::get('/assessment/add', [App\Http\Controllers\TrainerController::class, 'addAssessment'])->name('assessment.add');
