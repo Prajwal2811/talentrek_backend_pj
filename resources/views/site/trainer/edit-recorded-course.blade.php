@@ -183,6 +183,7 @@
                                                         </div>
                                                     @endif
                                                 </td>
+                                            
                                                 <td class="p-2 border text-center">
                                                     <input type="hidden" name="content_sections[{{ $i }}][document_id]" value="{{ $section['document_id'] ?? '' }}">
                                                     <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
@@ -190,6 +191,10 @@
                                                             <path d="M6 2a2 2 0 00-2 2v1H2v2h1v9a2 2 0 002 2h10a2 2 0 002-2V7h1V5h-2V4a2 2 0 00-2-2H6zm0 3h8v1H6V5zm1 3v7h2V8H7zm4 0v7h2V8h-2z" />
                                                         </svg>
                                                     </button>
+                                                </td>
+                                                <td class="p-2 border">
+                                                    <input type="hidden" name="content_sections[{{ $i }}][document_id]" value="{{ $section['document_id'] ?? '' }}">
+
                                                 </td>
                                             </tr>
                                         @endforeach
