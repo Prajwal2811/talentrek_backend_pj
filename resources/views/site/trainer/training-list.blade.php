@@ -61,118 +61,156 @@
                     </div>
                 </nav>
 
-                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="trainingDashboard()">
-                    <h2 class="text-2xl font-semibold mb-6">Training programs list</h2>
+                <main class="p-6 bg-gray-100 min-h-screen">
+                    <h2 class="text-2xl font-semibold mb-6">Training Programs List</h2>
 
-                    <!-- Tabs -->
-                    <div class="mb-4 border-b border-gray-200">
-                        <nav class="-mb-px flex space-x-8 text-sm font-medium">
-                            <button @click="switchTab('recorded')" :class="activeTab === 'recorded' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'" class="pb-2 px-1">Recorded Lecture</button>
-                            <button @click="switchTab('online')" :class="activeTab === 'online' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'" class="pb-2 px-1">Online training</button>
-                            <button @click="switchTab('offline')" :class="activeTab === 'offline' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'" class="pb-2 px-1">Offline training</button>
-                        </nav>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-x-auto bg-white rounded-lg shadow relative">
-                        <table class="min-w-full text-sm text-left">
-                            <thead class="bg-gray-100 text-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3">Sr. No.</th>
-                                    <th class="px-6 py-3">Course Title</th>
-                                    <th class="px-6 py-3">Duration</th>
-                                    <th class="px-6 py-3">Price</th>
-                                    <th class="px-6 py-3">Level</th>
-                                    <th class="px-6 py-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template x-for="(course, index) in paginatedCourses" :key="index">
-                                    <tr class="border-t">
-                                        <td class="px-6 py-4" x-text="startIndex + index + 1"></td>
-                                        <td class="px-6 py-4" x-text="course.title"></td>
-                                        <td class="px-6 py-4" x-text="course.duration + ' hr'"></td>
-                                        <td class="px-6 py-4" x-text="'SAR ' + course.price"></td>
-                                        <td class="px-6 py-4" x-text="course.level"></td>
-                                        <td class="px-6 py-4">
-                                            <button class="bg-blue-500 text-white text-xs px-4 py-1 rounded">Edit</button>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-
-                        <!-- Pagination (Right Bottom) -->
-                        <div class="flex justify-end items-center px-6 py-4 space-x-4">
-                            <button @click="prevPage" :disabled="currentPage === 1"
-                                class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
-                            <span class="text-sm text-gray-600">
-                                Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
-                            </span>
-                            <button @click="nextPage" :disabled="currentPage >= totalPages"
-                                class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
+                    <!-- Tab Buttons -->
+                    <div class="mb-6 border-b border-gray-200">
+                        <div class="flex space-x-6 text-sm font-medium">
+                            <button onclick="switchTab('recorded')" class="tab-btn text-gray-600 pb-2" id="btn-recorded">Recorded Lecture</button>
+                            <button onclick="switchTab('online')" class="tab-btn text-gray-600 pb-2" id="btn-online">Online Training</button>
+                            <button onclick="switchTab('offline')" class="tab-btn text-gray-600 pb-2" id="btn-offline">Offline Training</button>
                         </div>
                     </div>
 
-                    <!-- Alpine Script -->
-                    <script>
-                        function trainingDashboard() {
-                            return {
-                                activeTab: 'recorded',
-                                perPage: 2,
-                                currentPage: 1,
+                    <!-- Tab Contents -->
+                    <div id="tab-recorded" class="tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4">Recorded Trainings</h3>
 
-                                courses: {
-                                    recorded: [
-                                        { title: 'Java Development', duration: 100, price: 150, level: 'Intermediate' },
-                                        { title: 'My SQL', duration: 30, price: 100, level: 'Advance' },
-                                        { title: 'Graphics Designing', duration: 15, price: 60, level: 'Intermediate' },
-                                        { title: 'Video Editing', duration: 10, price: 75, level: 'Beginner' },
-                                    ],
-                                    online: [
-                                        { title: 'Python for Web', duration: 50, price: 120, level: 'Beginner' },
-                                        { title: 'React & Node.js', duration: 80, price: 200, level: 'Intermediate' },
-                                        { title: 'Vue.js Masterclass', duration: 60, price: 180, level: 'Advance' },
-                                    ],
-                                    offline: [
-                                        { title: 'Digital Marketing', duration: 40, price: 110, level: 'Intermediate' },
-                                        { title: 'Excel Masterclass', duration: 20, price: 90, level: 'Beginner' },
-                                        { title: 'Office Productivity', duration: 25, price: 95, level: 'Beginner' },
-                                    ]
-                                },
+                        @if ($recordedTrainings->count())
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white rounded-lg shadow-md text-sm">
+                                    <thead class="bg-gray-100 text-gray-700 uppercase text-xs leading-normal">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left">Sr. No.</th>
+                                            <th class="px-6 py-3 text-left">Title</th>
+                                            <th class="px-6 py-3 text-left">Price</th>
+                                            <th class="px-6 py-3 text-left">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-600">
+                                        @foreach ($recordedTrainings as $training)
+                                            <tr class="border-b hover:bg-gray-50">
+                                                <td class="px-6 py-3">{{ $loop->iteration }}</td>
+                                                <td class="px-6 py-3">{{ $training->training_title }}</td>
+                                                <td class="px-6 py-3">₹{{ number_format($training->training_price ?? 0, 2) }}</td>
+                                                <td class="px-6 py-3">
+                                                    <a href="{{ route('trainer.training.recorded.edit', $training->id) }}"
+                                                    class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
+                                                    Edit
+                                                    </a>
 
-                                switchTab(tab) {
-                                    this.activeTab = tab;
-                                    this.currentPage = 1;
-                                },
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-gray-500">No recorded trainings found.</p>
+                        @endif
+                    </div>
 
-                                get filteredCourses() {
-                                    return this.courses[this.activeTab];
-                                },
 
-                                get totalPages() {
-                                    return Math.ceil(this.filteredCourses.length / this.perPage);
-                                },
 
-                                get startIndex() {
-                                    return (this.currentPage - 1) * this.perPage;
-                                },
+                    <div id="tab-online" class="tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4">Online Trainings</h3>
 
-                                get paginatedCourses() {
-                                    return this.filteredCourses.slice(this.startIndex, this.startIndex + this.perPage);
-                                },
+                        @if ($onlineTrainings->count())
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white rounded-lg shadow-md text-sm">
+                                    <thead class="bg-gray-100 text-gray-700 uppercase text-xs leading-normal">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left">Sr. No.</th>
+                                            <th class="px-6 py-3 text-left">Title</th>
+                                            <th class="px-6 py-3 text-left">Price</th>
+                                            <th class="px-6 py-3 text-left">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-600">
+                                        @foreach ($onlineTrainings as $training)
+                                            <tr class="border-b hover:bg-gray-50">
+                                                <td class="px-6 py-3">{{ $loop->iteration }}</td>
+                                                <td class="px-6 py-3">{{ $training->training_title }}</td>
+                                                <td class="px-6 py-3">₹{{ number_format($training->training_price ?? 0, 2) }}</td>
+                                                <td class="px-6 py-3">
+                                                    <a href="#"
+                                                    class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
+                                                        Edit
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-gray-500">No online trainings found.</p>
+                        @endif
+                    </div>
 
-                                nextPage() {
-                                    if (this.currentPage < this.totalPages) this.currentPage++;
-                                },
 
-                                prevPage() {
-                                    if (this.currentPage > 1) this.currentPage--;
-                                }
-                            };
-                        }
-                    </script>
+                    <div id="tab-offline" class="tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4">Offline Trainings</h3>
+
+                        @if ($offlineTrainings->count())
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white rounded-lg shadow-md text-sm">
+                                    <thead class="bg-gray-100 text-gray-700 uppercase text-xs leading-normal">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left">Sr. No.</th>
+                                            <th class="px-6 py-3 text-left">Title</th>
+                                            <th class="px-6 py-3 text-left">Price</th>
+                                            <th class="px-6 py-3 text-left">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-600">
+                                        @foreach ($offlineTrainings as $training)
+                                            <tr class="border-b hover:bg-gray-50">
+                                                <td class="px-6 py-3">{{ $loop->iteration }}</td>
+                                                <td class="px-6 py-3">{{ $training->training_title }}</td>
+                                                <td class="px-6 py-3">₹{{ number_format($training->training_price ?? 0, 2) }}</td>
+                                                <td class="px-6 py-3">
+                                                    <a href="#"
+                                                    class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
+                                                        Edit
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-gray-500">No offline trainings found.</p>
+                        @endif
+                    </div>
+
                 </main>
+
+                <!-- Minimal JavaScript for tab switch -->
+                <script>
+                    function switchTab(tab) {
+                        const tabs = ['recorded', 'online', 'offline'];
+
+                        tabs.forEach(name => {
+                            // Hide all tabs
+                            document.getElementById(`tab-${name}`).classList.add('hidden');
+                            document.getElementById(`btn-${name}`).classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                            document.getElementById(`btn-${name}`).classList.add('text-gray-600');
+                        });
+
+                        // Show selected tab
+                        document.getElementById(`tab-${tab}`).classList.remove('hidden');
+                        document.getElementById(`btn-${tab}`).classList.remove('text-gray-600');
+                        document.getElementById(`btn-${tab}`).classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                    }
+
+                    // Show recorded tab by default
+                    switchTab('recorded');
+                </script>
+
+
 
 
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
