@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('password')->nullable(); 
             $table->string('pass')->nullable(); 
             $table->string('city')->nullable(); 
+            $table->string('password')->nullable(); 
+            $table->string('pass')->nullable(); 
             $table->string('otp')->nullable();            
             $table->string('status')->nullable();            
             $table->string('admin_status')->nullable();            

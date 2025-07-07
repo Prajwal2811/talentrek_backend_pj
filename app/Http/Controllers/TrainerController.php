@@ -12,11 +12,13 @@ use App\Models\TrainerAssessment;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentOption;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingMaterialsDocument;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+
 
 class TrainerController extends Controller
 {
@@ -364,7 +366,6 @@ class TrainerController extends Controller
     }
 
 
-
     public function assessmentStore(Request $request)
     {
         $request->merge([
@@ -437,6 +438,7 @@ class TrainerController extends Controller
         return view('site.trainer.training-list');
     }
 
+
     public function addTraining() {
         return view('site.trainer.add-training');
     }
@@ -491,5 +493,248 @@ class TrainerController extends Controller
     public function addRecordedTraining() {
         return view('site.trainer.add-recorded-course');
     }
-    
+      
+    public function saveTrainingRecorededData(Request $request)
+    {
+        $trainer = auth()->user();
+
+        $request->validate([
+            'training_title' => 'required|string|max:255',
+            'training_sub_title' => 'required|string|max:255',
+            'training_descriptions' => 'nullable|string',
+            'training_category' => 'required|string', // radio button returns single value
+            'training_price' => 'required|numeric',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'content_sections' => 'array',
+            'content_sections.*.title' => 'required|string|max:255',
+            'content_sections.*.description' => 'required|string',
+            'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
+
+        ]);
+
+        // Handle course thumbnail
+        $thumbnailFilePath = null;
+        $thumbnailFileName = null;
+
+        if ($request->hasFile('thumbnail')) {
+            $file = $request->file('thumbnail');
+            $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $thumbnailFileName);
+            $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
+        }
+
+        // Save course
+        $trainingId = \DB::table('training_materials')->insertGetId([
+            'trainer_id'             => $trainer->id,
+            'training_type'          => 'recorded',
+            'training_title'         => $request->training_title,
+            'training_sub_title'     => $request->training_sub_title,
+            'training_descriptions'  => $request->training_descriptions,
+            'training_category'      => $request->training_category,
+            'training_price'         => $request->training_price,
+            'thumbnail_file_path'    => $thumbnailFilePath,
+            'thumbnail_file_name'    => $thumbnailFileName,
+            'training_objective'     => null,
+            'session_type'           => null,
+            'admin_status'           => 'pending',
+            'rejection_reason'       => null,
+            'created_at'             => now(),
+            'updated_at'             => now(),
+        ]);
+
+        // Handle content sections
+        if ($request->has('content_sections')) {
+            foreach ($request->content_sections as $index => $section) {
+                $filePath = null;
+                $fileName = null;
+
+                if (isset($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+                    $uploadedFile = $section['file'];
+                    $fileName = 'section_' . time() . '_' . $index . '.' . $uploadedFile->getClientOriginalExtension();
+                    $uploadedFile->move(public_path('uploads'), $fileName);
+                    $filePath = asset('uploads/' . $fileName);
+                }
+
+                \DB::table('training_materials_documents')->insert([
+                    'trainer_id' => $trainer->id,
+                    'training_material_id' => $trainingId,
+                    'training_title' => $section['title'],
+                    'description' => $section['description'],
+                    'file_path' => $filePath,
+                    'file_name' => $fileName,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+       return redirect()->route('training.list')->with('success', 'Recorded Training course saved successfully.');
+    }
+
+
+
+    public function saveTrainingOnlineData(Request $request)
+    {
+        $trainer = auth()->user();
+        $request->validate([
+            'training_title'         => 'required|string|max:255',
+            'training_sub_title'     => 'nullable|string|max:255',
+            'training_objective'     => 'nullable|string',
+            'training_descriptions'  => 'nullable|string',
+            'training_category'      => 'required|string',
+            'training_price'         => 'required|numeric',
+            'thumbnail'              => 'nullable|image|max:2048',
+
+            'content_sections.*.batch_no'   => 'required|string|max:255',
+            'content_sections.*.batch_date' => 'required|date',
+            'content_sections.*.start_time' => 'required|string',
+            'content_sections.*.end_time'   => 'required|string',
+            'content_sections.*.duration'   => 'required|string',
+        ]);
+
+        $thumbnailFilePath = null;
+        $thumbnailFileName = null;
+
+        if ($request->hasFile('thumbnail')) {
+            $file = $request->file('thumbnail');
+            $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $thumbnailFileName);
+            $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
+        }
+
+        $trainingId = \DB::table('training_materials')->insertGetId([
+            'trainer_id'             => $trainer->id, // if you're saving trainer ID
+            'training_title'         => $request->training_title,
+            'training_sub_title'     => $request->training_sub_title,
+            'training_objective'     => $request->training_objective,
+            'training_descriptions'  => $request->training_descriptions,
+            'training_price'         => $request->training_price,
+            'training_type'          => 'online',
+            'session_type'           => $request->training_category,
+            'thumbnail_file_name'    => $thumbnailFileName,
+            'thumbnail_file_path'    => $thumbnailFilePath,
+            'created_at'             => now(),
+            'updated_at'             => now(),
+        ]);
+
+        foreach ($request->input('content_sections', []) as $section) {
+            \DB::table('training_batches')->insert([
+                'trainer_id'           => $trainer->id, 
+                'training_material_id' => $trainingId, 
+                'batch_no'             => $section['batch_no'],
+                'start_date'           => $section['batch_date'],
+                'start_timing'         => date("H:i", strtotime($section['start_time'])), 
+                'end_timing'           => date("H:i", strtotime($section['end_time'])), 
+                'duration'             => $section['duration'],
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ]);
+
+        }
+
+        return redirect()->route('training.list')->with('success', 'Training and batch data saved successfully.');
+    }
+
+    public function trainingList(Request $request) {
+        $trainer_id = auth()->id();
+
+        $recordedTrainings = TrainingMaterial::where('trainer_id', $trainer_id)
+            ->where('training_type', 'recorded')
+            ->get();
+        
+        $onlineTrainings = TrainingMaterial::where('trainer_id', $trainer_id)
+            ->where('session_type', 'online')
+            ->get();
+        
+        $offlineTrainings = TrainingMaterial::where('trainer_id', $trainer_id)
+            ->where('session_type', 'classroom') // or 'Offline'
+            ->get();
+        
+        $activeTab = $request->get('tab', 'recorded'); 
+
+        return view('site.trainer.training-list', compact(
+            'recordedTrainings', 'onlineTrainings', 'offlineTrainings', 'activeTab'
+        ));
+
+    }
+
+
+    public function editRecordedTraining($id)
+    {
+        $training = TrainingMaterial::findOrFail($id);
+
+        $contentSections = TrainingMaterialsDocument::where('training_material_id', $id)
+            ->select([
+                'training_title as title',
+                'description',
+                'file_name',
+                'file_path'
+            ])
+            ->get()
+            ->toArray();
+            
+        return view('site.trainer.edit-recorded-course', compact('training', 'contentSections'));
+    }
+
+    public function updateRecordedTraining(Request $request, $id)
+    {
+        
+        $data = $request->validate([
+            'training_title' => 'required',
+            'training_sub_title' => 'required',
+            'training_descriptions' => 'nullable',
+            'training_category' => 'required',
+            'training_price' => 'required|numeric',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'content_sections.*.document_id' => 'required|exists:training_materials_documents,id',
+            'content_sections.*.title' => 'required',
+            'content_sections.*.description' => 'required',
+            'content_sections.*.file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+        ]);
+
+        // Update training material
+        $training = TrainingMaterial::findOrFail($id);
+        $training->training_title = $data['training_title'];
+        $training->training_sub_title = $data['training_sub_title'];
+        $training->training_descriptions = $data['training_descriptions'];
+        $training->training_category = $data['training_category'];
+        $training->training_price = $data['training_price'];
+
+        if ($request->hasFile('thumbnail')) {
+            $file = $request->file('thumbnail');
+            $name = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $name, 'public');
+            $training->thumbnail_file_name = $name;
+            $training->thumbnail_file_path = asset('storage/' . $path);
+        }
+       
+        $training->save();
+
+        // Update existing documents only if they belong to this training
+        foreach ($data['content_sections'] as $section) {
+            $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
+                ->where('training_material_id', $training->id)
+                ->first();
+
+            if (!$doc) continue; // Skip if document does not belong to this training
+
+            $doc->training_title = $section['title'];
+            $doc->description = $section['description'];
+
+            if (!empty($section['file'])) {
+                $file = $section['file'];
+                $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('uploads', $name, 'public');
+                $doc->file_name = $name;
+                $doc->file_path = asset('storage/' . $path);
+            }
+
+            $doc->save(); // Only update
+        }
+
+        return redirect()->route('training.list')->with('success', 'Recorded Training course updated successfully!');
+    }
+
+
+
 }

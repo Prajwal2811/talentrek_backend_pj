@@ -26,10 +26,12 @@ return new class extends Migration
                 ->constrained('jobseekers')
                 ->nullOnDelete();
 
+
             $table->foreignId('company_id')
                 ->nullable()
                 ->constrained('recruiters_company')
                 ->nullOnDelete();
+
 
             $table->string('status')->nullable();
             $table->string('admin_status')->nullable();
