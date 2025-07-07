@@ -24,6 +24,11 @@ class Trainers extends Authenticatable
         'pass',
         'date_of_birth',
         'city',
+        'otp',
+        'status',
+        'admin_status',
+        'inactive_reason',
+        'rejection_reason',
     ];
 
     /**
@@ -32,4 +37,42 @@ class Trainers extends Authenticatable
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+
+    public function educations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'trainer');
+    }
+
+    public function experiences()
+    {
+
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'trainer');
+    }
+
+    public function experience()
+    {
+        return $this->hasMany(TrainingExperience::class, 'user_id');
+       
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(TrainingMaterial::class, 'trainer_id');
+       
+    }
+
+    public function materialsDocuments()
+    {
+        return $this->hasMany(TrainingMaterialsDocument::class, 'trainer_id');
+       
+    }
+
+    public function courseBatch()
+    {
+        return $this->hasMany(TrainingBatch::class, 'trainer_id');
+       
+    }
 }

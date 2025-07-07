@@ -47,7 +47,7 @@ $skills = $user->skills->first();
                             use App\Models\AdditionalInfo;
                             $userId = auth()->id();
                             $profile = AdditionalInfo::where('user_id', $userId)
-                                        ->where('doc_type', 'profile')
+                                        ->where('doc_type', 'profile_picture')
                                         ->first();
                         @endphp
 
@@ -853,7 +853,7 @@ $skills = $user->skills->first();
                                 @php
                                     $userId = auth()->id();
                                     $resume = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'resume')->first();
-                                    $profile = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'profile')->first();
+                                    $profile = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'profile_picture')->first();
                                 @endphp
 
                                 <!-- Success Message -->
@@ -881,7 +881,7 @@ $skills = $user->skills->first();
                                                     </div>
                                                 @endif
                                                 <div class="flex gap-2 items-center">
-                                                    <input type="file" name="resume" class="border rounded-md p-2 w-full text-sm" />
+                                                    <input type="file" name="resume" class="border rounded-md p-2 w-full text-sm" accept=".pdf,.doc,.docx,.txt" />
                                                     {{-- <button type="button" class="remove-upload bg-red-500 text-white px-4 py-2 rounded-md text-sm">Remove</button> --}}
                                                 </div>
                                             </div>
@@ -902,7 +902,7 @@ $skills = $user->skills->first();
                                                     </div>
                                                 @endif
                                                 <div class="flex gap-2 items-center">
-                                                    <input type="file" name="profile" id="profileInput" accept="image/*" class="border rounded-md p-2 w-full text-sm" />
+                                                    <input accept="image/png, image/jpeg" type="file" name="profile" id="profileInput" accept="image/*" class="border rounded-md p-2 w-full text-sm" />
                                                 </div>
                                             </div>
                                         </div>
@@ -1569,16 +1569,13 @@ $skills = $user->skills->first();
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-
-
-                    <!-- Settings Tab -->
-                    <div x-show="tab === 'settings'" x-cloak>
-                        <h2 class="text-xl font-semibold mb-4">Settings</h2>
-                        <p>Update your account settings here.</p>
-                    </div>
+                <!-- Settings Tab -->
+                <div x-show="tab === 'settings'" x-cloak>
+                    <h2 class="text-xl font-semibold mb-4">Settings</h2>
+                    <p>Update your account settings here.</p>
+                </div>
             </div>
             </div>
                                         

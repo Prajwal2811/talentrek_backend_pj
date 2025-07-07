@@ -30,12 +30,11 @@
                                         <div class="details">
                                             <h4 class="mb-0">{{ $recruiter->name }}</h4>
                                             <span class="text-light">{{ $recruiter->city }}</span>
-                                            <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
                                         </div>
                                     </div>
                                     <div>
                                         @php
-                                            $status = $recruiter->admin_status;
+                                            $status = App\Models\RecruiterCompany::where('recruiter_id', $recruiter->id)->first()->admin_status;
                                             $userRole = auth()->user()->role;
                                         @endphp
 

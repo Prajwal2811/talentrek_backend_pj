@@ -79,6 +79,7 @@ class RecruiterController extends Controller
      }
 
 
+
     
      public function storeRecruiterInformation(Request $request)
      {
@@ -184,126 +185,6 @@ class RecruiterController extends Controller
      
      
 
-
-     // public function storeRecruiterInformation(Request $request)
-     // {
-     //      DB::beginTransaction();
-          
-     //      try {
-               
-     //           $validated = $request->validate([
-     //                'company_id' => 'required',
-     //                'name' => 'required|string|max:255',
-     //                'email' => 'required|email|unique:recruiters,email',
-     //                'company_name' => 'required|string',
-     //                'company_website' => 'required|url',
-     //                'company_city' => 'required|string|max:255',
-     //                'company_address' => 'required|string|max:500',
-     //                'business_email' => 'required|email|unique:recruiters_company,business_email,' . $request->company_id,
-     //                'phone_code' => 'required|string',
-     //                'company_phone_number' => 'required|unique:recruiters_company,company_phone_number,' . $request->company_id,
-     //                'no_of_employee' => 'required|string|max:255',
-     //                'industry_type' => 'required|string|max:255',
-     //                'registration_number' => 'required|string|max:255',
-
-     //                //file valiadtion
-     //                'company_profile' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-     //                'registration_documents.*' => 'nullable|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
-     //           ]);
-
-               
-
-     //           // Step 1: Update company using company_id
-     //           $company = RecruiterCompany::find($validated['company_id']);
-     //           // echo "ddddddddddddddd";exit;
-     //           $company->update([
-     //                'company_name' => $validated['company_name'],
-     //                'company_website' => $validated['company_website'],
-     //                'company_city' => $validated['company_city'],
-     //                'company_address' => $validated['company_address'],
-     //                'business_email' => $validated['business_email'],
-     //                'phone_code' => $validated['phone_code'],
-     //                'company_phone_number' => $validated['company_phone_number'],
-     //                'no_of_employee' => $validated['no_of_employee'],
-     //                'industry_type' => $validated['industry_type'],
-     //                'registration_number' => $validated['registration_number'],
-     //           ]);
-
-     //           // Upload Company Profile
-     //           if ($request->hasFile('company_profile')) {
-     //                $existingProfile = AdditionalInfo::where('user_id', $company->id)
-     //                     ->where('user_type', 'recruiter')
-     //                     ->where('doc_type', 'company_profile')
-     //                     ->first();
-
-     //                if (!$existingProfile) {
-     //                     $originalName = $request->file('company_profile')->getClientOriginalName();
-     //                     $storedName = 'company_profile_' . time() . '.' . $request->file('company_profile')->getClientOriginalExtension();
-     //                     $request->file('company_profile')->move('uploads/', $storedName);
-
-     //                     AdditionalInfo::create([
-     //                          'user_id'       => $company->id,
-     //                          'user_type'     => 'recruiter',
-     //                          'doc_type'      => 'company_profile',
-     //                          'document_name' => $originalName,
-     //                          'document_path' => asset('uploads/' . $storedName),
-     //                     ]);
-     //                }
-     //           }
-     //           // echo "BBBBB";exit;
-     //           // Upload Registration Documents
-     //           if ($request->hasFile('registration_documents')) {
-     //                // echo "AAAAAAA";exit;
-     //                foreach ($request->file('registration_documents') as $file) {
-     //                     $originalName = $file->getClientOriginalName();
-     //                     $storedName = 'registration_documents_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-     //                     $file->move('uploads/', $storedName);
-
-     //                     AdditionalInfo::create([
-     //                          'user_id'       => $company->id,
-     //                          'user_type'     => 'recruiter',
-     //                          'doc_type'      => 'registration_documents',
-     //                          'document_name' => $originalName,
-     //                          'document_path' => asset('uploads/' . $storedName),
-     //                     ]);
-     //                }
-     //           }
-
-     //           // Step 2: Create recruiter
-     //           $recruiter = Recruiters::create([
-     //                'name'       => $validated['name'],
-     //                'email'      => $validated['email'],
-     //           ]);
-
-     //           // Step 3: Update company with recruiter_id
-     //           $company->update([
-     //                'recruiter_id' => $recruiter->id,
-     //           ]);
-          
-     //           // Mail::to($validated['business_email'])->send(new RegistrationSuccess($company, 'recruiter'));
-
-     //           DB::commit();
-
-     //           // return redirect()->route('recruiter.login')->with('success', 'Company and Recruiter information saved successfully.');
-     //           return redirect()->route('recruiter.login')->with('success_popup', true);
-
-     //      } catch (\Exception $e) {
-     //           DB::rollBack();
-
-     //           Log::error('Recruiter Registration Failed: ' . $e->getMessage(), [
-     //                'line' => $e->getLine(),
-     //                'file' => $e->getFile(),
-     //           ]);
-
-     //           return back()->with('error', 'An error occurred while saving the data. Please try again.');
-     //      }
-     // }
-  
-     // public function loginRecruiter(Request $request){
-     //      $this->validate($request, [
-     //        'email'     => 'required|email',
-     //        'password'  => 'required'
-     //    ]);
 
 
   
@@ -551,10 +432,10 @@ class RecruiterController extends Controller
           // $recruiterDetails = Recruiters::where('company_id', $recruiterId)->first();
 
           $companyDetails = DB::table('recruiters_company as rc')
-               ->leftJoin('recruiters as r', 'r.company_id', '=', 'rc.id')
+               ->leftJoin('recruiters as r', 'r.id', '=', 'rc.recruiter_id')
                ->where('rc.id', $recruiterId)
                ->select(
-                    'rc.id as company_id',
+                    'rc.id',
                     'rc.*',
                     'r.id as recruiter_id',
                     'r.*'

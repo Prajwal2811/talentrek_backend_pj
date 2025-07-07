@@ -24,5 +24,10 @@
 
 <!-- page specific script -->
 <script src="{{ asset('asset/backend/js/index.js') }}"></script>
+<script src="{{ asset('asset/backend/vendor/editable-table/mindmup-editabletable.js') }}"></script>
+<script src="{{ asset('asset/backend/js/pages/tables/editable-table.js') }}"></script>
+
+
+
 </body>
 </html>

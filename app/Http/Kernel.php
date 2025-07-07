@@ -85,6 +85,10 @@ class Kernel extends HttpKernel
         'auth.api' => \App\Http\Middleware\ApiAuthMiddleware::class,
 
 
+        'admin.module' => \App\Http\Middleware\CheckAdminModulePermission::class,
+
+
+
         
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,

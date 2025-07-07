@@ -60,7 +60,7 @@
                                         <tbody>
                                             @foreach($recruiters->unique('company_id') as $index => $recruiter)
                                             <tr>
-                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $recruiter->name }}</td>
                                                 <td>{{ $recruiter->email }}</td>
                                                 <td>{{ $recruiter->company_name }}</td>
