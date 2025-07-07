@@ -330,44 +330,30 @@ class RecruiterController extends Controller
         return redirect()->route('recruiter.login')->with('success', 'Password change successfully.');
     }
 
-     // public function showJobseekerListForm(){
-     //      $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-     //      ->where('status', 'active')
-     //      ->where('admin_status', 'approved','superadmin_approved')
-     //      // ->where('shortlist', "!=", "yes")
-     //      ->get();
-
-     //      $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-     //      ->where('status', 'active')
-     //      ->where('shortlist', 'yes')
-     //      ->where('admin_status', 'approved','superadmin_approved')
-     //      ->get();
-     //      //dd($shortlisted_obseekers);exit;
-
-     //      return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
-     // }
+   
 
      public function showJobseekerListForm()
      {
-     $recruiterId = auth()->user()->recruiter_id;
+          $recruiterId = auth()->user()->recruiter_id;
 
-     $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
-                         ->pluck('jobseeker_id')
-                         ->toArray();
-       
-     $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-          ->where('status', 'active')
-          ->where('admin_status', 'approved','superadmin_approved')
-          ->whereNotIn('id', $shortlistedIds)
-          ->get();
-     
-     $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-          ->where('status', 'active')
-          ->where('admin_status', 'approved','superadmin_approved')
-          ->whereIn('id', $shortlistedIds)
-          ->get();
+          $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
+                              ->pluck('jobseeker_id')
+                              ->toArray();
+          
+          $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+               ->where('status', 'active')
+               ->where('admin_status', 'approved','superadmin_approved')
+               ->whereNotIn('id', $shortlistedIds)
+               ->get();
+          
+          $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+               ->where('status', 'active')
+               ->where('admin_status', 'approved','superadmin_approved')
+               ->whereIn('id', $shortlistedIds)
+               ->get();
 
-     return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
+          // echo "<pre>"; print_r($jobseekers); die;
+          return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }
 
  

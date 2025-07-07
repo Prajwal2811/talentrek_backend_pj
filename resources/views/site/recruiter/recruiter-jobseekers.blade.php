@@ -81,13 +81,43 @@
 
                         <!-- Sidebar Filters -->
                         <div class="bg-white p-4 rounded shadow w-64 space-y-4">
-                        <h2 class="font-semibold mb-2">Filters</h2>
-                        <!-- Example filter block -->
-                        <div>
-                            <p class="font-semibold mb-1">Experience</p>
-                            <label class="block text-sm"><input type="checkbox" class="mr-2" />Fresher</label>
-                            <label class="block text-sm"><input type="checkbox" class="mr-2" />3+ years</label>
-                        </div>
+                            <h2 class="font-semibold mb-2">Filters</h2>
+
+                            <!-- Candidates experience -->
+                            <div>
+                                <p class="font-semibold text-sm mb-1">Candidates experience</p>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Fresher (0-3 years experience)</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />3+ years experience</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                            </div>
+
+                            @php
+                                $educations = \App\Models\EducationDetails::all();
+                            @endphp
+                            <!-- Education -->
+                            <div>
+                                <p class="font-semibold text-sm mb-1">Education</p>
+                                @foreach ($educations->unique('high_education') as $education )
+                                    <label class="block text-sm"><input type="checkbox" class="mr-2" />{{ $education->high_education }}</label>
+                                @endforeach
+                            </div>
+
+                            <!-- Gender -->
+                            <div>
+                                <p class="font-semibold text-sm mb-1">Gender</p>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Male</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Female</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                            </div>
+
+                            <!-- Certificate -->
+                            <div>
+                                <p class="font-semibold text-sm mb-1">Certificate</p>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Certificate (0-5)</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Certificate 5+</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Not certified</label>
+                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                            </div>
                         </div>
 
                         <!-- Main Panel -->

@@ -303,14 +303,11 @@
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Upload resume</label>
                                             <div class="flex gap-2 items-center">
-                                                <input type="file" name="resume"  class="border rounded-md p-2 w-full text-sm" />
-                                                <button
-                                                class="bg-green-500 text-white px-4 py-2 rounded-md text-sm whitespace-nowrap w-38"
-                                                type="button"
-                                                >
-                                                Upload document
-                                                </button>
+                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm" />
                                             </div>
+                                            @error('resume')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <!-- Upload Profile Picture -->
@@ -318,26 +315,20 @@
                                         <label class="block text-sm font-medium mb-1">Upload profile picture</label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm" />
-                                            <button
-                                            class="bg-green-500 text-white px-4 py-2 rounded-md text-sm whitespace-nowrap w-38"
-                                            type="button"
-                                            >
-                                            Upload image
-                                            </button>
                                         </div>
+                                        @error('profile_picture')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                         </div>
 
                                         <div>
                                         <label class="block text-sm font-medium mb-1">Upload training certificate</label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm" />
-                                            <button
-                                            class="bg-green-500 text-white px-4 py-2 rounded-md text-sm whitespace-nowrap w-38"
-                                            type="button"
-                                            >
-                                            Upload document
-                                            </button>
                                         </div>
+                                        @error('training_certificate')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                         </div>
 
                                         <div class="text-sm">

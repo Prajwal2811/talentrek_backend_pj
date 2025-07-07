@@ -8,9 +8,15 @@ use App\Models\TrainingExperience;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Additionalinfo;
+use App\Models\TrainerAssessment;
+use App\Models\AssessmentQuestion;
+use App\Models\AssessmentOption;
+use App\Models\TrainingMaterial;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TrainerController extends Controller
 {
@@ -173,301 +179,143 @@ class TrainerController extends Controller
         return redirect()->route('trainer.login')->with('success', 'Password change successfully.');
     } 
 
-    // public function storeTrainerInformation(Request $request)
-    // {
-    //     $trainerId = session('trainer_id');
-
-    //     if (!$trainerId) {
-    //         return redirect()->route('trainer.signup')->with('error', 'Session expired. Please sign up again.');
-    //     }
-
-    //     $trainer = Trainers::find($trainerId);
-
-    //     if (!$trainer) {
-    //         return redirect()->route('trainer.signup')->with('error', 'trainer not found.');
-    //     }
-
-    //     $validated = $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|email|unique:trainers,email,' . $trainer->id,
-    //         'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
-    //         'dob' => 'required|date',
-    //         'city' => 'required|string|max:255',
-
-    //         // // Education array validations
-    //         'high_education' => 'required|string',
-    //         'field_of_study' => 'nullable|string',
-    //         'institution' => 'required|string',
-    //         'graduate_year' => 'required|string',
-
-    //         // Work experience array validations
-    //         'job_role' => 'required|string',
-    //         'organization' => 'required|string',
-    //         'starts_from' => 'required|date',
-    //         'end_to' => 'required|date|after_or_equal:starts_from',
-
-    //         // skills validations
-    //         'training_experience' => 'required|string',
-    //         'training_skills' => 'required|string',
-    //         'website_link' => 'required|url',
-    //         'portfolio_link' => 'required|url',
-
-    //          // Files
-    //         // 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-    //         // 'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-    //     ]);
-
-    //     // Update jobseeker details
-    //     $trainer->update([
-    //         'name' => $validated['name'],
-    //         'email' => $validated['email'],
-    //         'phone_number' => $validated['phone_number'],
-    //         'date_of_birth' => $validated['dob'],
-    //         'city' => $validated['city'],
-    //     ]);
-
-    //     // Save education details
-    //     foreach ($request->high_education as $index => $education) {
-    //         EducationDetails::create([
-    //             'user_id' => $trainer->id,
-    //             'user_type' => 'trainer',
-    //             'high_education' => $education,
-    //             'field_of_study' => $request->field_of_study[$index] ?? null,
-    //             'institution' => $request->institution[$index],
-    //             'graduate_year' => $request->graduate_year[$index],
-    //         ]);
-    //     }
-
-    //     // Save work experiences
-    //     if ($request->has('job_role')) {
-    //         foreach ($request->job_role as $index => $role) {
-    //             WorkExperience::create([
-    //                 'user_id' => $trainer->id,
-    //                 'user_type' => 'trainer',
-    //                 'job_role' => $role,
-    //                 'organization' => $request->organization[$index] ?? null,
-    //                 'starts_from' => $request->starts_from[$index] ?? null,
-    //                 'end_to' => $request->end_to[$index] ?? null,
-    //             ]);
-    //         }
-    //     }
-
-    //     // Save skills
-    //     TrainingExperience::create([
-    //         'user_id ' => $trainer->id,
-    //         'user_type ' => 'trainer',
-    //         'training_experience' => $request->training_experience,
-    //         'training_skills' => $request->training_skills,
-    //         'website_link' => $request->website_link,
-    //         'portfolio_link' => $request->portfolio_link,
-    //     ]);
-
-    //     // Upload Resume
-    //     // if ($request->hasFile('resume')) {
-    //     //     $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
-    //     //         ->where('user_type', 'jobseeker')
-    //     //         ->where('doc_type', 'resume')
-    //     //         ->first();
-
-    //     //     if (!$existingResume) {
-    //     //         $resumeName = $request->file('resume')->getClientOriginalName();
-    //     //         $fileNameToStoreResume = 'resume_' . time() . '.' . $request->file('resume')->getClientOriginalExtension();
-    //     //         $request->file('resume')->move('uploads/', $fileNameToStoreResume);
-
-    //     //         AdditionalInfo::create([
-    //     //             'user_id'       => $jobseeker->id,
-    //     //             'user_type'     => 'jobseeker',
-    //     //             'doc_type'      => 'resume',
-    //     //             'document_name' => $resumeName,
-    //     //             'document_path' => asset('uploads/' . $fileNameToStoreResume),
-    //     //         ]);
-    //     //     }
-    //     // }
-
-    //     // Upload Profile Picture
-    //     // if ($request->hasFile('profile_picture')) {
-    //     //     $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
-    //     //         ->where('user_type', 'jobseeker')
-    //     //         ->where('doc_type', 'profile_picture')
-    //     //         ->first();
-
-    //     //     if (!$existingProfile) {
-    //     //         $profileName = $request->file('profile_picture')->getClientOriginalName();
-    //     //         $fileNameToStoreProfile = 'profile_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
-    //     //         $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
-
-    //     //         AdditionalInfo::create([
-    //     //             'user_id'       => $jobseeker->id,
-    //     //             'user_type'     => 'jobseeker',
-    //     //             'doc_type'      => 'profile_picture',
-    //     //             'document_name' => $profileName,
-    //     //             'document_path' => asset('uploads/' . $fileNameToStoreProfile),
-    //     //         ]);
-    //     //     }
-    //     // }
-
-    //     session()->forget('trainer_id');
-    //     return redirect()->route('trainer.login')->with('success_popup', true);
-    // }
+    
+  
 
     public function storeTrainerInformation(Request $request)
     {
-        $trainerId = session('trainer_id');
+        try {
+            $trainerId = session('trainer_id');
 
-        if (!$trainerId) {
-            return redirect()->route('trainer.signup')->with('error', 'Session expired. Please sign up again.');
-        }
+            if (!$trainerId) {
+                return redirect()->route('trainer.signup')->with('error', 'Session expired. Please sign up again.');
+            }
 
-        $trainer = Trainers::find($trainerId);
+            $trainer = Trainers::find($trainerId);
 
-        if (!$trainer) {
-            return redirect()->route('trainer.signup')->with('error', 'Trainer not found.');
-        }
+            if (!$trainer) {
+                return redirect()->route('trainer.signup')->with('error', 'Trainer not found.');
+            }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:trainers,email,' . $trainer->id,
-            'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
-            'dob' => 'required|date',
-            'city' => 'required|string|max:255',
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:trainers,email,' . $trainer->id,
+                'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
+                'dob' => 'required|date',
+                'city' => 'required|string|max:255',
 
-            // Education fields
-            'high_education.*' => 'required|string',
-            'field_of_study.*' => 'nullable|string',
-            'institution.*' => 'required|string',
-            'graduate_year.*' => 'required|string',
+                'high_education.*' => 'required|string',
+                'field_of_study.*' => 'nullable|string',
+                'institution.*' => 'required|string',
+                'graduate_year.*' => 'required|string',
 
-            // Work experience fields
-            'job_role.*' => 'required|string',
-            'organization.*' => 'required|string',
-            'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
+                'job_role.*' => 'required|string',
+                'organization.*' => 'required|string',
+                'starts_from.*' => 'required|date',
+                'end_to.*' => 'required|date',
 
-            // Skills fields
-            'training_experience' => 'required|string',
-            'training_skills' => 'required|string',
-            'website_link' => 'required|url',
-            'portfolio_link' => 'required|url',
+                'training_experience' => 'required|string',
+                'training_skills' => 'required|string',
+                'website_link' => 'required|url',
+                'portfolio_link' => 'required|url',
 
-            // Files
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
-        ]);
+                'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+                'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            ]);
 
-        // Update trainer profile
-        $trainer->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone_number' => $validated['phone_number'],
-            'date_of_birth' => $validated['dob'],
-            'city' => $validated['city'],
-        ]);
+            DB::beginTransaction();
 
-        // Save multiple education entries
-        foreach ($request->high_education as $index => $education) {
-            EducationDetails::create([
+            // Update trainer profile
+            $trainer->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone_number' => $validated['phone_number'],
+                'date_of_birth' => $validated['dob'],
+                'city' => $validated['city'],
+            ]);
+
+            // Save education
+            foreach ($request->high_education as $index => $education) {
+                EducationDetails::create([
+                    'user_id' => $trainer->id,
+                    'user_type' => 'trainer',
+                    'high_education' => $education,
+                    'field_of_study' => $request->field_of_study[$index] ?? null,
+                    'institution' => $request->institution[$index],
+                    'graduate_year' => $request->graduate_year[$index],
+                ]);
+            }
+
+            // Save work experience
+            foreach ($request->job_role as $index => $role) {
+                WorkExperience::create([
+                    'user_id' => $trainer->id,
+                    'user_type' => 'trainer',
+                    'job_role' => $role,
+                    'organization' => $request->organization[$index],
+                    'starts_from' => $request->starts_from[$index],
+                    'end_to' => $request->end_to[$index],
+                ]);
+            }
+
+            // Save training experience
+            TrainingExperience::create([
                 'user_id' => $trainer->id,
                 'user_type' => 'trainer',
-                'high_education' => $education,
-                'field_of_study' => $request->field_of_study[$index] ?? null,
-                'institution' => $request->institution[$index],
-                'graduate_year' => $request->graduate_year[$index],
+                'training_experience' => $request->training_experience,
+                'training_skills' => $request->training_skills,
+                'website_link' => $request->website_link,
+                'portfolio_link' => $request->portfolio_link,
             ]);
-        }
 
-        // Save multiple work experiences
-        foreach ($request->job_role as $index => $role) {
-            WorkExperience::create([
-                'user_id' => $trainer->id,
-                'user_type' => 'trainer',
-                'job_role' => $role,
-                'organization' => $request->organization[$index],
-                'starts_from' => $request->starts_from[$index],
-                'end_to' => $request->end_to[$index],
+            // File uploads
+            $uploadTypes = [
+                'resume' => 'resume',
+                'profile_picture' => 'profile_picture',
+                'training_certificate' => 'training_certificate',
+            ];
+
+            foreach ($uploadTypes as $field => $docType) {
+                if ($request->hasFile($field)) {
+                    $existing = AdditionalInfo::where([
+                        ['user_id', $trainer->id],
+                        ['user_type', 'trainer'],
+                        ['doc_type', $docType],
+                    ])->first();
+
+                    if (!$existing) {
+                        $originalName = $request->file($field)->getClientOriginalName();
+                        $extension = $request->file($field)->getClientOriginalExtension();
+                        $filename = $docType . '_' . time() . '.' . $extension;
+                        $request->file($field)->move('uploads/', $filename);
+
+                        AdditionalInfo::create([
+                            'user_id' => $trainer->id,
+                            'user_type' => 'trainer',
+                            'doc_type' => $docType,
+                            'document_name' => $originalName,
+                            'document_path' => asset('uploads/' . $filename),
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            session()->forget('trainer_id');
+            return redirect()->route('trainer.login')->with('success_popup', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Trainer Info Save Failed: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
+            return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again later.');
         }
-
-        // Save training experience and skills
-        TrainingExperience::create([
-            'user_id' => $trainer->id,
-            'user_type' => 'trainer',
-            'training_experience' => $request->training_experience,
-            'training_skills' => $request->training_skills,
-            'website_link' => $request->website_link,
-            'portfolio_link' => $request->portfolio_link,
-        ]);
-
-        // Upload Resume
-        if ($request->hasFile('resume')) {
-            $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                ->where('user_type', 'trainer')
-                ->where('doc_type', 'resume')
-                ->first();
-
-            if (!$existingResume) {
-                $resumeName = $request->file('resume')->getClientOriginalName();
-                $fileNameToStoreResume = 'resume_' . time() . '.' . $request->file('resume')->getClientOriginalExtension();
-                $request->file('resume')->move('uploads/', $fileNameToStoreResume);
-
-                AdditionalInfo::create([
-                    'user_id'       => $trainer->id,
-                    'user_type'     => 'trainer',
-                    'doc_type'      => 'resume',
-                    'document_name' => $resumeName,
-                    'document_path' => asset('uploads/' . $fileNameToStoreResume),
-                ]);
-            }
-        }
-
-        // Upload Profile Picture
-        if ($request->hasFile('profile_picture')) {
-            $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
-                ->where('user_type', 'trainer')
-                ->where('doc_type', 'profile_picture')
-                ->first();
-
-            if (!$existingProfile) {
-                $profileName = $request->file('profile_picture')->getClientOriginalName();
-                $fileNameToStoreProfile = 'profile_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
-                $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
-
-                AdditionalInfo::create([
-                    'user_id'       => $trainer->id,
-                    'user_type'     => 'trainer',
-                    'doc_type'      => 'profile_picture',
-                    'document_name' => $profileName,
-                    'document_path' => asset('uploads/' . $fileNameToStoreProfile),
-                ]);
-            }
-        }
-
-        // Upload training certificate
-        if ($request->hasFile('training_certificate')) {
-            $existingCertificate = AdditionalInfo::where('user_id', $trainer->id)
-                ->where('user_type', 'trainer')
-                ->where('doc_type', 'training_certificate')
-                ->first();
-
-            if (!$existingCertificate) {
-                $certificateName = $request->file('training_certificate')->getClientOriginalName();
-                $fileNameToStoreCertificate = 'training_certificate' . time() . '.' . $request->file('training_certificate')->getClientOriginalExtension();
-                $request->file('training_certificate')->move('uploads/', $fileNameToStoreCertificate);
-
-                AdditionalInfo::create([
-                    'user_id'       => $trainer->id,
-                    'user_type'     => 'trainer',
-                    'doc_type'      => 'training_certificate',
-                    'document_name' => $certificateName,
-                    'document_path' => asset('uploads/' . $fileNameToStoreCertificate),
-                ]);
-            }
-        }
-        // Clear session and redirect
-        session()->forget('trainer_id');
-
-        return redirect()->route('trainer.login')->with('success_popup', true);
     }
+
 
     public function loginTrainer(Request $request)
     {
@@ -517,6 +365,74 @@ class TrainerController extends Controller
 
 
 
+    public function assessmentStore(Request $request)
+    {
+        $request->merge([
+            'questions' => json_decode($request->input('questions'), true)
+        ]);
+
+        $validator = Validator::make($request->all(), [
+            'trainer_id' => 'required',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'level' => 'required|string|max:100',
+            'total_questions' => 'required|integer|min:1',
+            'passing_questions' => 'required|integer|min:1',
+            'passing_percentage' => 'required|string',
+            'questions' => 'required|array|min:1',
+            'questions.*.text' => 'required|string',
+            'questions.*.options' => 'required|array|min:2',
+            'questions.*.options.*.text' => 'required|string',
+            'questions.*.options.*.correct' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
+
+        DB::beginTransaction();
+
+        try {
+            $assessment = TrainerAssessment::create([
+                'assessment_title' => $validated['title'],
+                'assessment_description' => $validated['description'],
+                'assessment_level' => $validated['level'],
+                'total_questions' => $validated['total_questions'],
+                'passing_questions' => $validated['passing_questions'],
+                'passing_percentage' => $validated['passing_percentage'],
+                'trainer_id' => auth()->id(),
+                'material_id' => null,
+            ]);
+
+            foreach ($validated['questions'] as $questionData) {
+                $question = AssessmentQuestion::create([
+                    'trainer_id' => auth()->id(),
+                    'assessment_id' => $assessment->id,
+                    'questions_title' => $questionData['text'],
+                ]);
+
+                foreach ($questionData['options'] as $option) {
+                    AssessmentOption::create([
+                        'trainer_id' => auth()->id(),
+                        'assessment_id' => $assessment->id,
+                        'question_id' => $question->id,
+                        'options' => $option['text'],
+                        'correct_option' => $option['correct'],
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('assessment.list')->with('success', 'Assessment created successfully.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'Something went wrong. ' . $e->getMessage());
+        }
+    }
+
+
     public function trainingList() {
         return view('site.trainer.training-list');
     }
@@ -526,9 +442,24 @@ class TrainerController extends Controller
     }
 
     public function assessmentList() {
-        return view('site.trainer.assessment-list');
+        $assessments = TrainerAssessment::where('trainer_id', auth()->id())->get();
+        $courses = TrainingMaterial::where('trainer_id', auth()->id())->get();
+        return view('site.trainer.assessment-list', compact('assessments','courses'));
     }
 
+    public function assignCourse(Request $request)
+    {
+        $request->validate([
+            'assessment_id' => 'required|exists:trainer_assessments,id',
+            'course_id' => 'required|exists:training_materials,id',
+        ]);
+
+        $assessment = TrainerAssessment::find($request->assessment_id);
+        $assessment->material_id = $request->course_id; // Assuming you have a `course_id` column
+        $assessment->save();
+
+        return response()->json(['success' => true, 'message' => 'Course assigned successfully']);
+    }
     public function addAssessment() {
         return view('site.trainer.add-assessment');
     }

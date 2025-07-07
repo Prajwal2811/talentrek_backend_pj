@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('phone_code')->nullable();       // e.g., +91, +1
             $table->string('phone_number')->nullable();     // e.g., 9876543210
             $table->date('date_of_birth')->nullable();
+            $table->string('password')->nullable(); 
+            $table->string('pass')->nullable(); 
             $table->string('city')->nullable(); 
             $table->string('otp')->nullable();            
             $table->string('status')->nullable();            

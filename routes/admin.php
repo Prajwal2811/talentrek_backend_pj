@@ -81,7 +81,6 @@ Route::group(['prefix' => 'admin'], function() {
             Route::get('/trainer/{trainer}/training-assessment/{assessment}/view', [App\Http\Controllers\AdminController::class, 'viewTrainingAssessmentDetail'])->name('admin.trainer.training-assessment.view');
 
 		});
-
         // Expats Module
         Route::middleware('admin.module:Expats')->group(function () {
 			Route::get('/expat', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expat');
@@ -125,8 +124,6 @@ Route::group(['prefix' => 'admin'], function() {
         // Languages
         Route::middleware('admin.module:Languages')->group(function () {
 		    Route::get('/languages', [App\Http\Controllers\AdminController::class, 'languages'])->name('admin.languages');
-		    Route::post('/languages/update', [AdminController::class, 'updateLanguage'])->name('admin.language.update');
-
         });
 
 
@@ -134,8 +131,12 @@ Route::group(['prefix' => 'admin'], function() {
         Route::middleware('admin.module:Recruiters')->group(function () {
 			Route::get('/recruiters', [App\Http\Controllers\AdminController::class, 'recruiters'])->name('admin.recruiters');
             Route::get('/recruiter/{id}/view', [App\Http\Controllers\AdminController::class, 'recruiterView'])->name('admin.recruiter.view');
+            Route::get('/recruiter/{id}/shortlisted-jobseekers', [App\Http\Controllers\AdminController::class, 'viewShortlistedJobseekers'])->name('admin.recruiter.shortlisted-jobseekers');
+			Route::post('/shortlist/update-status', [App\Http\Controllers\AdminController::class, 'updateStatusForShortlist'])->name('admin.shortlist.updateStatus');
             Route::post('/recruiter/changeStatus', [App\Http\Controllers\AdminController::class, 'recruiterChangeStatus'])->name('admin.recruiter.changeStatus');	
             Route::post('/recruiter/update-status', [App\Http\Controllers\AdminController::class, 'updateRecruiterStatus'])->name('admin.recruiter.updateStatus');
+
+
 		});
 
 		// CMS Module
@@ -163,11 +164,11 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/certification-template-update', [AdminController::class, 'updateTemplate'])->name('admin.certification.update');
 		});
 
-
 		// Contact Support
 		Route::middleware('admin.module:Certification Template')->group(function () {
 			Route::get('/contact-support', [AdminController::class, 'contactSupport'])->name('admin.contact_support');
 		});
+
 
 	
 	});
