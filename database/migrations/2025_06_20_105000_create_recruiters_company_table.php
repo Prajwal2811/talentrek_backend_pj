@@ -15,6 +15,7 @@ return new class extends Migration
     {
        Schema::create('recruiters_company', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('recruiter_id')->nullable(); 
             $table->string('company_name')->nullable();
             $table->string('company_website')->nullable();
             $table->string('company_city')->nullable();
@@ -28,6 +29,7 @@ return new class extends Migration
             $table->string('no_of_employee')->nullable();
             $table->string('industry_type')->nullable();
             $table->string('registration_number')->nullable();
+            $table->string('status')->nullable();
             $table->string('admin_status')->nullable();
             $table->string('inactive_reason')->nullable();
             $table->string('rejection_reason')->nullable();

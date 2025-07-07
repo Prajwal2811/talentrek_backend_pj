@@ -15,54 +15,25 @@ class DatabaseSeeder extends Seeder
     {
 
           $this->call([
+            AdminSeeder::class,
             JobseekerInformationSeeder::class,
             SocialMediaSeeder::class,
             SiteSettingsSeeder::class,
             SectionContentSeeder::class,
             RecruitersSeeder::class,
             RecruitersCompanySeeder::class,
+            TrainerSeeder::class,
+            TestimonialSeeder::class,
+            TrainingMaterialsTableSeeder::class,
+            CertificateTemplateSeeder::class,
+            // EducationDetailsSeeder::class,
+            TrainingBatchSeeder::class,
+            TrainingMaterialsDocumentsSeeder::class,
+            TrainerAssessmentsTableSeeder::class,
+            AssessmentQuestionsTableSeeder::class,
+            AssessmentOptionsTableSeeder::class,
+            LanguageSeeder::class,
         ]);
         
-        
-
-        \App\Models\Admin::factory()->create([
-            'name' => 'Prajwal Ingole',
-            'email' => 'prajwal@talentrek.com',
-            'phone' => '9975239057',
-            'password' => bcrypt('prajwal@talentrek'), // important to hash this
-            'pass' => 'prajwal@talentrek', // important to hash this
-            'role' => 'superadmin',
-            'status' => 'active',
-        ]);
-
-        \App\Models\Admin::factory()->create([
-            'name' => 'Sumesh Chaure',
-            'email' => 'sumesh@talentrek.com',
-            'phone' => '9975239057',
-            'password' => bcrypt('sumesh@talentrek'), // important to hash this
-            'pass' => 'sumesh@talentrek', // important to hash this
-            'role' => 'superadmin',
-            'status' => 'active',
-        ]);
-
-        \App\Models\Admin::factory()->create([
-            'name' => 'Hemchandra',
-            'email' => 'hemchandra@talentrek.com',
-            'phone' => '9975239063',
-            'password' => bcrypt('hemchandra@talentrek'),
-            'pass' => 'hemchandra@talentrek',
-            'role' => 'admin',
-            'status' => 'active',
-        ]);
-
-        \App\Models\Admin::factory()->create([
-            'name' => 'Nimish Gupta',
-            'email' => 'nimish@talentrek.com',
-            'phone' => '9975239064',
-            'password' => bcrypt('nimish@talentrek'),
-            'pass' => 'nimish@talentrek',
-            'role' => 'admin',
-            'status' => 'active',
-        ]);
     }
 }

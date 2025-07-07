@@ -45,10 +45,6 @@
                 class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
                     Coaching
                 </a>
-                <a href=""
-                class="">
-                    Recruiter
-                </a>
             </nav>
 
 

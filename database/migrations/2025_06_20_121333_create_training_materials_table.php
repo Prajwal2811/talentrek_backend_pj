@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,42 +7,43 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
-       Schema::create('training_materials', function (Blueprint $table) {
+        Schema::create('training_materials', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('trainer_id');               // FK to trainers table
-            $table->string('training_type')->nullable();                        // e.g., Online, Offline, Hybrid
+            // Foreign key column
+            $table->foreignId('trainer_id')
+                ->constrained('trainers')
+                ->onDelete('cascade'); // Enforces FK constraint
+
+            // Training details
+            $table->string('training_type')->nullable();                 // Online, Offline, Hybrid
             $table->string('training_title')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
-            $table->string('training_category')->nullable();        // e.g., Technical, Soft Skills
-            $table->decimal('training_price', 10, 2)->default(0);   // e.g., 299.99
-            $table->string('thumbnail_file_path')->nullable();      // Path to stored image
-            $table->string('thumbnail_file_name')->nullable();      // Original filename
-            $table->text('training_objective')->nullable();         // Objectives
-            $table->string('session_type')->nullable();             // e.g., Live, Pre-recorded
+            $table->string('training_category')->nullable();            // Technical, Soft Skills, etc.
+            $table->decimal('training_price', 10, 2)->default(0);       // e.g. 299.99
 
-            $table->timestamps();
+            // Thumbnail
+            $table->string('thumbnail_file_path')->nullable();          // Storage path
+            $table->string('thumbnail_file_name')->nullable();          // Original name
 
-            // Foreign key constraint
-            $table->foreign('trainer_id')
-                  ->references('id')
-                  ->on('trainers')
-                  ->onDelete('cascade');
+            // Objective and status
+            $table->text('training_objective')->nullable();
+            $table->string('session_type')->nullable();                 // Live, Pre-recorded
+            $table->string('admin_status')->nullable();                 // pending, approved, etc.
+            $table->text('rejection_reason')->nullable();
+
+            $table->timestamps(); // created_at & updated_at
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('training_materials');
     }

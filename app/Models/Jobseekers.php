@@ -53,21 +53,6 @@ class Jobseekers extends Authenticatable
         'pass',
     ];
 
-    // public function educations()
-    // {
-    //     return $this->hasMany(EducationDetails::class);
-    // }
-
-    // public function experience()
-    // {
-    //     return $this->hasMany(WorkExperience::class);
-    // }
-
-    // public function skills()
-    // {
-    //     return $this->hasMany(Skills::class);
-    // }
-
     public function educations()
     {
         return $this->hasMany(EducationDetails::class, 'user_id')

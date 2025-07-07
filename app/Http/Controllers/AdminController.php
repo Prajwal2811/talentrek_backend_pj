@@ -14,11 +14,19 @@ use App\Models\SocialMedia;
 use App\Models\Jobseekers;
 use App\Models\Recruiters;
 use App\Models\AdditionalInfo;
+use App\Models\Testimonial;
+use App\Models\Trainers;
+use App\Models\Language;
+use App\Models\TrainingBatch;
+use App\Models\TrainerAssessment;
+use App\Models\TrainingMaterialsDocument;
+use App\Models\CertificateTemplate;
+use App\Models\TrainingMaterial;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Facades\Storage;
 class AdminController extends Controller
 {
     public function authenticate(Request $request)
@@ -208,6 +216,7 @@ class AdminController extends Controller
             'password'          => 'required|string|min:6',
             'confirm_password'  => 'required|same:password',
             'notes'             => 'nullable|string',
+            'permissions' => 'array',
         ]);
 
         if ($validator->fails()) {
@@ -223,6 +232,7 @@ class AdminController extends Controller
         $admin->notes = $request->input('notes');
         $admin->role = 'admin';
         $admin->status = 'active';
+        $admin->permissions = $request->permissions; // auto-cast to JSON
         $admin->save();
 
         // Fetch current user details
@@ -440,40 +450,41 @@ class AdminController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:admins,email,' . $id,
             'notes' => 'nullable|string',
+            'permissions' => 'nullable|array', // ✅ validate permissions array
         ]);
 
         $admin = Admin::findOrFail($id);
 
-        // Capture old data before update
-        $oldData = $admin->only(['name', 'email', 'notes']);
+        // Save old data for logging
+        $oldData = $admin->only(['name', 'email', 'notes', 'permissions']);
 
-        // Update admin data
+        // Update admin
         $admin->name = $request->input('full_name');
         $admin->email = $request->input('email');
         $admin->notes = $request->input('notes');
+        $admin->permissions = $request->input('permissions', []); // ✅ save permissions
         $admin->save();
 
-        // Get actor (user who made the update)
+        // Log activity
         $actor = auth()->user();
-
-        // Log the update action
         Log::info('Admin profile updated', [
             'target_admin' => [
                 'id' => $admin->id,
                 'old_data' => $oldData,
-                'new_data' => $admin->only(['name', 'email', 'notes']),
+                'new_data' => $admin->only(['name', 'email', 'notes', 'permissions']),
             ],
             'updated_by' => [
-                'id' => $actor?->id ?? null,
-                'name' => $actor?->name ?? 'System',
-                'email' => $actor?->email ?? 'system',
-                'role' => $actor?->role ?? 'unknown',
+                'id' => $actor?->id,
+                'name' => $actor?->name,
+                'email' => $actor?->email,
+                'role' => $actor?->role,
             ],
-            'time' => now()
+            'time' => now(),
         ]);
 
         return redirect()->route('admin.index')->with('success', 'Admin updated successfully.');
     }
+
 
     public function jobseekers()
     {   
@@ -730,66 +741,59 @@ class AdminController extends Controller
 
 
     public function updateRecruiterStatus(Request $request)
-    {
-        echo "done"; die;
+{
+    $request->validate([
+        'company_id' => 'required|exists:recruiters_company,id',
+        'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+        'reason' => 'nullable|string|max:1000',
+    ]);
 
-        $request->validate([
-            'company_id' => 'required|exists:recruiters_company,id',
-            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
-            'reason' => 'nullable|string|max:1000',
-        ]);
+    $recruiter = RecruiterCompany::findOrFail($request->company_id);
+    $user = auth()->user();
+    $previousStatus = $recruiter->admin_status;
+    $status = $request->status;
 
-        $recruiter = RecruiterCompany::findOrFail($request->company_id);
-        $user = auth()->user();
-        $previousStatus = $recruiter->admin_status;
-        $status = $request->status;
-
-        // Role-based validation
-        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+    // Role validation
+    if ($user->role === 'superadmin') {
+        if (!Str::startsWith($status, 'superadmin_')) {
             return response()->json(['success' => false, 'message' => 'Invalid status for superadmin'], 403);
-        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
-            return response()->json(['success' => false, 'message' => 'Admins cannot perform superadmin actions'], 403);
-        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
-            Log::warning('Unauthorized recruiter status update attempt', [
-                'attempted_by' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                ],
-                'recruiter_id' => $recruiter->id,
-                'time' => now(),
-            ]);
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Save new status and rejection reason if applicable
-        $recruiter->admin_status = $status;
-        $recruiter->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
-        $recruiter->save();
+        if ($recruiter->admin_status === 'rejected') {
+            return response()->json(['success' => false, 'message' => 'Cannot override admin rejection'], 403);
+        }
 
-        // Log the update
-        Log::info('Recruiter status updated', [
-            'recruiter' => [
-                'id' => $recruiter->id,
-                'name' => $recruiter->name,
-                'email' => $recruiter->email,
-                'previous_status' => $previousStatus,
-                'new_status' => $status,
-                'rejection_reason' => $recruiter->rejection_reason,
-            ],
-            'updated_by' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
+    } elseif ($user->role === 'admin') {
+        if (Str::startsWith($status, 'superadmin_')) {
+            return response()->json(['success' => false, 'message' => 'Admins cannot perform superadmin actions'], 403);
+        }
+
+    } else {
+        Log::warning('Unauthorized recruiter status update attempt', [
+            'attempted_by' => $user->only(['id', 'name', 'email', 'role']),
+            'recruiter_id' => $recruiter->id,
             'time' => now(),
         ]);
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
 
-        // Optional: Email notification on rejection
-        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $recruiter->email) {
-            Mail::html('
+    // Save status
+    $recruiter->admin_status = $status;
+    $recruiter->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+    $recruiter->save();
+
+    Log::info('Recruiter status updated', [
+        'recruiter' => $recruiter->only(['id', 'name', 'email']),
+        'previous_status' => $previousStatus,
+        'new_status' => $status,
+        'rejection_reason' => $recruiter->rejection_reason,
+        'updated_by' => $user->only(['id', 'name', 'email', 'role']),
+        'time' => now(),
+    ]);
+
+    // Email on rejection
+    if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $recruiter->email) {
+        Mail::html('
                 <!DOCTYPE html>
                 <html>
                 <head><meta charset="UTF-8"><title>Recruiter Application Rejected</title>
@@ -818,10 +822,10 @@ class AdminController extends Controller
             ', function ($message) use ($recruiter) {
                 $message->to($recruiter->email)->subject('Recruiter Application Rejected – Talentrek');
             });
-        }
-
-        return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
     }
+
+    return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+}
 
     public function cms()
     {
@@ -957,6 +961,486 @@ class AdminController extends Controller
 
         return back()->with('success', 'Social media links saved successfully.');
     }
+
+
+    public function testimonials(){
+        $testimonials = Testimonial::all();
+        return view('admin.testimonials.index', compact('testimonials'));
+    }
+
+    public function createTestimonial(){
+        return view('admin.testimonials.create');
+    }
+
+
+
+    public function storeTestimonial(Request $request)
+    {
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'designation' => 'required|string|max:255',
+            'message' => 'required|string',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $testimonial = new Testimonial();
+        $testimonial->name = $validated['name'];
+        $testimonial->designation = $validated['designation'];
+        $testimonial->message = $validated['message'];
+
+        // Handle image upload if present
+        if ($request->hasFile('profile_picture')) {
+                $fileName = $request->file('profile_picture')->getClientOriginalName();
+                $filePath = 'profile_picture_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
+                $request->file('profile_picture')->move('uploads/', $filePath);
+                $testimonial->file_name = $fileName;
+                $testimonial->file_path = asset('uploads/' . $filePath);
+        }
+
+        $testimonial->save();
+
+        return redirect()->route('admin.testimonials')->with('success', 'Testimonial added successfully!');
+    }
+
+    public function editTestimonial($id)
+    {
+        $testimonial = Testimonial::findOrFail($id);
+        return view('admin.testimonials.edit', compact('testimonial'));
+    }
+
+
+    public function updateTestimonial(Request $request, $id)
+    {
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'designation' => 'required|string|max:255',
+            'message' => 'required|string',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        // Find testimonial
+        $testimonial = Testimonial::findOrFail($id);
+        $testimonial->name = $validated['name'];
+        $testimonial->designation = $validated['designation'];
+        $testimonial->message = $validated['message'];
+
+        // Handle image upload if present
+        if ($request->hasFile('profile_picture')) {
+            $image = $request->file('profile_picture');
+
+            // Get original name for reference
+            $originalName = $image->getClientOriginalName();
+
+            // Generate unique filename
+            $uniqueName = 'profile_picture_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Move file to public/uploads/
+            $image->move(public_path('uploads'), $uniqueName);
+
+            // Store in database
+            $testimonial->file_name = $originalName;
+            $testimonial->file_path = asset('uploads/' . $uniqueName); // relative path for use with asset()
+        }
+
+
+        $testimonial->save();
+
+        return redirect()->route('admin.testimonials')->with('success', 'Testimonial updated successfully!');
+    }
+
+    public function destroyTestimonial($id)
+    {
+        $testimonial = Testimonial::findOrFail($id);
+        $testimonial->delete();
+        return redirect()->route('admin.testimonials')->with('success', 'Testimonial deleted successfully!');
+    }
+
+
+    public function trainers()
+    {
+        $trainers = Trainers::all();
+        return view('admin.trainers.index', compact('trainers'));
+    }
+
+
+    public function trainerChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'trainer_id' => 'required|exists:trainers,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
+
+        $user = Trainers::findOrFail($validated['trainer_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
+
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
+
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+        // Logging the change
+        Log::info('Trainer status updated', [
+            'trainer' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Trainer status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+    public function viewTrainer($id)
+    {
+        $trainer = Trainers::findOrFail($id);
+        $educations = $trainer->educations()->orderBy('id', 'desc')->get();
+        $experiences = $trainer->experiences()->orderBy('id', 'desc')->get();
+        $experience = $trainer->experience()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','trainer')->get();
+        return view('admin.trainers.view', compact('trainer', 'educations', 'experiences', 'experience','additioninfos'));
+    }
+
+
+    public function viewTrainingMaterial($id)
+    {
+        $materials = TrainingMaterial::select('training_materials_documents.*','training_materials.*','training_materials.id as material_id')
+                                    ->where('training_materials.trainer_id',$id)
+                                    ->leftJoin('training_materials_documents', 'training_materials_documents.training_material_id','training_materials.id')        
+                                    ->get();
+        
+        return view('admin.trainers.material.training-material', compact('materials'));
+    }
+
+    public function viewTrainingMaterialDetail($trainerId, $materialId)
+    {
+        $course = TrainingMaterial::select('*')->where('trainer_id', $trainerId)
+                                    ->where('id', $materialId)
+                                    ->firstOrFail();
+
+        $batches = TrainingBatch::select('*')->where('trainer_id', $trainerId)->get();
+
+        $courseDocuments = TrainingMaterialsDocument::select('*')->where('trainer_id', $trainerId)->where('training_material_id', $materialId)->get();
+        
+        $trainer = Trainers::find($trainerId);
+        // echo "<pre>"; print_r($trainer); die;
+        // echo "<pre>"; print_r($courseDocuments); die;
+        return view('admin.trainers.material.training-material-detail', compact('course', 'batches','courseDocuments','trainer'));
+    }
+
+
+  public function trainingMaterialChangeStatus(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:training_materials,id',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $course = TrainingMaterial::findOrFail($request->course_id);
+        $user = auth()->user();
+        $status = $request->status;
+
+        // Prevent further changes if superadmin decision is already made
+        if (Str::startsWith($course->admin_status, 'superadmin_')) {
+            return response()->json(['message' => 'Final decision already made.'], 422);
+        }
+
+        // Superadmin can act only after admin approval
+        if ($user->role === 'superadmin') {
+            if (!Str::startsWith($status, 'superadmin_') || $course->admin_status !== 'approved') {
+                return response()->json(['message' => 'Superadmin can only act after admin approval.'], 422);
+            }
+        }
+
+        // Admin cannot perform superadmin actions
+        if ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return response()->json(['message' => 'Admin cannot perform superadmin actions.'], 422);
+        }
+
+        // Update status and reason
+        $course->admin_status = $status;
+        $course->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+        $course->save();
+
+        // Send rejection email (HTML) if applicable
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason')) {
+            $trainer = $course->trainer ?? Trainers::find($course->trainer_id);
+
+            if ($trainer && $trainer->email) {
+                $trainerName = $trainer->name ?? $trainer->email;
+                $reason = $request->reason;
+                $year = date('Y');
+
+                $html = "
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset='UTF-8'>
+                        <title>Application Rejected – Talentrek</title>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                background-color: #f6f8fa;
+                                padding: 20px;
+                                color: #333;
+                            }
+                            .container {
+                                background: #fff;
+                                padding: 30px;
+                                border-radius: 8px;
+                                max-width: 600px;
+                                margin: auto;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            }
+                            .header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+                            .reason {
+                                background-color: #ffe6e6;
+                                border-left: 4px solid #dc3545;
+                                padding: 10px 15px;
+                                margin: 20px 0;
+                            }
+                            .footer {
+                                font-size: 12px;
+                                color: #999;
+                                text-align: center;
+                                margin-top: 30px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2>Application <span style='color: #dc3545;'>Rejected</span></h2>
+                            </div>
+
+                            <p>Hello <strong>{$trainerName}</strong>,</p>
+
+                            <p>We regret to inform you that your application on <strong>Talentrek</strong> has been rejected.</p>
+
+                            <div class='reason'>
+                                <strong>Reason:</strong><br>
+                                {$reason}
+                            </div>
+
+                            <p>If you believe this was a mistake, feel free to contact us at <a href='mailto:support@talentrek.com'>support@talentrek.com</a>.</p>
+
+                            <p>Best regards,<br><strong>Talentrek Team</strong></p>
+
+                            <div class='footer'>
+                                © {$year} Talentrek. All rights reserved.
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                ";
+
+                Mail::html($html, function ($message) use ($trainer) {
+                    $message->to($trainer->email)
+                            ->subject('Application Rejected – Talentrek');
+                });
+            }
+        }
+
+        return response()->json(['message' => 'Status updated.']);
+    }
+
+
+
+    public function updateStatusTrainer(Request $request)
+    {
+        $request->validate([
+            'trainer_id' => 'required|exists:trainers,id',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $trainer = Trainers::findOrFail($request->trainer_id);
+        $user = auth()->user();
+        $previousStatus = $trainer->admin_status;
+        $status = $request->status;
+
+        // Role validation
+        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Invalid status for superadmin');
+        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Admins cannot perform superadmin actions');
+        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
+            Log::warning('Unauthorized trainer status update attempt', [
+                'attempted_by' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ],
+                'trainer_id' => $trainer->id,
+                'time' => now(),
+            ]);
+            return back()->with('error', 'Unauthorized action.');
+        }
+
+        // Update status and rejection reason
+        $trainer->admin_status = $status;
+        $trainer->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+        $trainer->save();
+
+        // Log the update
+        Log::info('Rrainer admin status updated', [
+            'trainer' => [
+                'id' => $trainer->id,
+                'name' => $trainer->name,
+                'email' => $trainer->email,
+                'previous_status' => $previousStatus,
+                'new_status' => $status,
+                'rejection_reason' => $trainer->rejection_reason,
+            ],
+            'updated_by' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'time' => now(),
+        ]);
+
+        // Send email if rejected
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $trainer->email) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Application Rejected – Talentrek</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+                    .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+                    .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Application Update – <span style="color:#dc3545;">Rejected</span></h2>
+                        </div>
+                        <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
+                        <p>We regret to inform you that your application on <strong>Talentrek</strong> has been rejected.</p>
+                        <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+                        <p>If you believe this was a mistake, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+                </body>
+                </html>
+            ', function ($message) use ($trainer) {
+                $message->to($trainer->email)->subject('Application Rejected – Talentrek');
+            });
+        }
+
+        return back()->with('success', 'Status updated successfully.');
+    }
+
+
+    public function viewTrainerAssessment($id)
+    {
+        $assessments = TrainerAssessment::select('trainer_assessments.*')
+                                        ->where('trainer_assessments.id',$id)
+                                        ->get();
+        // echo "<pre>"; print_r($assessments); die;
+        return view('admin.trainers.assessment.training-assessment', compact('assessments'));
+    }
+
+    
+    public function viewTrainingAssessmentDetail($trainerId, $assessmentId)
+    {
+        $assessment = TrainerAssessment::where('trainer_id', $trainerId)
+                        ->where('id', $assessmentId)
+                        ->with(['questions.options', 'course']) // Load questions with their options and course
+                        ->firstOrFail();
+
+        return view('admin.trainers.assessment.training-assessment-detail', compact('assessment'));
+
+    }
+
+
+
+
+    public function certificationTemplate() {
+        return view('admin.certificate.index');
+    }
+
+
+    public function updateTemplate(Request $request)
+    {
+
+        // Validate the incoming request
+        $request->validate([
+            'description' => 'required|string',
+        ]);
+
+        // Assuming the certificate ID is passed as hidden input or route parameter
+        $certificateId = $request->input('id'); // or retrieve from route if using route-model binding
+        $certificate = CertificateTemplate::findOrFail($certificateId);
+
+        // Update the HTML content
+        $certificate->template_html = $request->input('description');
+        $certificate->save();
+
+        return redirect()->back()->with('success', 'Certificate template updated successfully.');
+    }
+
+
+    public function languages() {
+        $language = Language::all();
+        return view('admin.languages.index', compact('language'));
+    }
+
+    public function updateLanguage(Request $request)
+    {
+        $language = Language::findOrFail($request->id);
+        $language->english = $request->english;
+        $language->arabic = $request->arabic;
+        $language->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Language updated successfully.'
+        ]);
+    }
+
+
+
+    public function contactSupport()
+    {
+        return view('admin.contact-support');
+    }
+
    public function showActivityLog()
     {
         $logPath = storage_path('logs/laravel.log');
