@@ -12,6 +12,7 @@ use App\Models\TrainerAssessment;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentOption;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingBatch;
 use App\Models\TrainingMaterialsDocument;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -460,10 +461,6 @@ class TrainerController extends Controller
         return view('site.trainer.add-assessment');
     }
 
-    public function batch() {
-        return view('site.trainer.batch');
-    }
-
     public function traineesJobseekers() {
         return view('site.trainer.trainees-jobseekers');
     }
@@ -670,9 +667,9 @@ class TrainerController extends Controller
         return view('site.trainer.edit-recorded-course', compact('training', 'contentSections'));
     }
 
+    
     public function updateRecordedTraining(Request $request, $id)
     {
-        
         $data = $request->validate([
             'training_title' => 'required',
             'training_sub_title' => 'required',
@@ -680,13 +677,14 @@ class TrainerController extends Controller
             'training_category' => 'required',
             'training_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
+            'content_sections' => 'nullable|array',
             'content_sections.*.document_id' => 'nullable|exists:training_materials_documents,id',
-            'content_sections.*.title' => 'required',
-            'content_sections.*.description' => 'required',
+            'content_sections.*.title' => 'required_with:content_sections',
+            'content_sections.*.description' => 'required_with:content_sections',
             'content_sections.*.file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
-        // Update training material
         $training = TrainingMaterial::findOrFail($id);
         $training->training_title = $data['training_title'];
         $training->training_sub_title = $data['training_sub_title'];
@@ -697,42 +695,155 @@ class TrainerController extends Controller
         if ($request->hasFile('thumbnail')) {
             $file = $request->file('thumbnail');
             $name = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads'), $name); 
+            $file->move(public_path('uploads'), $name);
             $training->thumbnail_file_name = $name;
-            $training->thumbnail_file_path = asset('uploads/' . $name); 
+            $training->thumbnail_file_path = asset('uploads/' . $name);
         }
 
-       
         $training->save();
-      
-        // Update existing documents only if they belong to this training
-        foreach ($data['content_sections'] as $section) {
+
+        if (!empty($data['content_sections']) && is_array($data['content_sections'])) {
+            $existingIds = TrainingMaterialsDocument::where('training_material_id', $id)->pluck('id')->toArray();
+            $requestIds = [];
+
+            foreach ($data['content_sections'] as $section) {
+                
             if (!empty($section['document_id'])) {
                 $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
                     ->where('training_material_id', $training->id)
                     ->first();
 
-                if (!$doc) continue;
+                if ($doc) {
+                    $doc->training_title = $section['title'];
+                    $doc->description = $section['description'];
 
-                $doc->training_title = $section['title'];
-                $doc->description = $section['description'];
+                    if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+                        $file = $section['file'];
+                        $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+                        $path = $file->storeAs('uploads', $name, 'public');
+                        $doc->file_name = $name;
+                        $doc->file_path = asset('storage/' . $path);
+                    }
 
-                if (!empty($section['file'])) {
-                    $file = $section['file'];
-                    $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('uploads', $name, 'public');
-                    $doc->file_name = $name;
-                    $doc->file_path = asset('storage/' . $path);
+                    $doc->save();
+                    $requestIds[] = $doc->id;
                 }
+            } else {
+                    $doc = new TrainingMaterialsDocument();
+                    $doc->training_material_id = $training->id;
+                    $doc->trainer_id = auth()->id();
+                    $doc->training_title = $section['title'];
+                    $doc->description = $section['description'];
 
-                $doc->save();
+                    if (!empty($section['file'])) {
+                        $file = $section['file'];
+                        $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+                        $path = $file->storeAs('uploads', $name, 'public');
+                        $doc->file_name = $name;
+                        $doc->file_path = asset('storage/' . $path);
+                    }
+
+                    $doc->save();
+                    $requestIds[] = $doc->id;
+                }
+            }
+
+            $toDelete = array_diff($existingIds, $requestIds);
+            if (!empty($toDelete)) {
+                TrainingMaterialsDocument::whereIn('id', $toDelete)->delete();
             }
         }
-
 
         return redirect()->route('training.list')->with('success', 'Recorded Training course updated successfully!');
     }
 
 
+    public function editOnlineTraining($id)
+    {
+        // Get the training material by ID
+        $training = TrainingMaterial::findOrFail($id);
+        
+        // Get all batches linked to this training material by ID
+        $batches = TrainingBatch::where('training_material_id', $id)
+            ->select([
+                'id',
+                'batch_no',
+                'start_date',
+                'start_timing',
+                'end_timing',
+                'duration'
+            ])
+            ->get();
+       
+        return view('site.trainer.edit-online-training', compact('training', 'batches'));
+    }
+
+    public function updateOnlineTraining(Request $request, $id)
+    {
+        $request->validate([
+            'training_title' => 'required|string',
+            'training_sub_title' => 'required|string',
+            'training_objective' => 'nullable|string',
+            'training_descriptions' => 'nullable|string',
+            'training_category' => 'required|string',
+            'training_price' => 'required|numeric',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $training = TrainingMaterial::findOrFail($id);
+
+        // Handle thumbnail if uploaded
+        if ($request->hasFile('thumbnail')) {
+            $file = $request->file('thumbnail');
+            $fileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $fileName);
+            $training->thumbnail_file_path = url('uploads/' . $fileName);
+            $training->thumbnail_file_name = $fileName;
+        }
+
+
+        // Update training fields
+        $training->training_title = $request->training_title;
+        $training->training_sub_title = $request->training_sub_title;
+        $training->training_objective = $request->training_objective;
+        $training->training_descriptions = $request->training_descriptions;
+        $training->session_type = $request->training_category;
+        $training->training_price = $request->training_price;
+        $training->save();
+
+        // Delete existing batches and insert new ones
+        TrainingBatch::where('training_material_id', $id)->delete();
+
+        if ($request->has('content_sections')) {
+            foreach ($request->content_sections as $batch) {
+                TrainingBatch::create([
+                    'trainer_id' => auth()->id(),
+                    'training_material_id' => $training->id,
+                    'batch_no' => $batch['batch_no'],
+                    'start_date' => $batch['batch_date'],
+                    'start_timing' => $batch['start_time'],
+                    'end_timing' => $batch['end_time'],
+                    'duration' => $batch['duration'],
+                ]);
+            }
+        }
+
+        return redirect()->route('training.list')->with('success', 'Online Training course updated successfully!');
+    }
+
+    public function batch() 
+    {
+        $trainerId = auth()->id(); 
+        
+        $batches = TrainingBatch::where('trainer_id', $trainerId)
+            ->with('trainingMaterial:id,id,session_type,training_title') 
+            ->get();
+       return view('site.trainer.batch', [
+                'batches' => $batches,
+            ]);
+
+    }
+
+    
 
 }
