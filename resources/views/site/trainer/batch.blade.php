@@ -13,7 +13,7 @@
 
 	
     <div class="page-wraper">
-        <div class="flex h-screen">
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
             @include('site.trainer.componants.sidebar')
 
@@ -61,115 +61,128 @@
                     </div>
                 </nav>
 
-              <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="trainingDashboard()">
+            <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
                 <h2 class="text-2xl font-semibold mb-6">Batch List</h2>
+
                 <div class="overflow-x-auto bg-white rounded-lg shadow relative">
                     <table class="min-w-full text-sm text-left">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                        <th class="px-6 py-3">Sr. No.</th>
-                        <th class="px-6 py-3">Batch Name</th>
-                        <th class="px-6 py-3">Course name</th>
-                        <th class="px-6 py-3">Enrolled Student</th>
-                        <th class="px-6 py-3">Date</th>
-                        <th class="px-6 py-3">Time</th>
-                        <th class="px-6 py-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template x-for="(batch, index) in paginatedBatches" :key="batch.id">
-                        <tr class="border-t">
-                            <td class="px-6 py-4" x-text="startIndex + index + 1"></td>
-                            <td class="px-6 py-4" x-text="batch.batchName"></td>
-                            <td class="px-6 py-4" x-text="batch.courseName"></td>
-                            <td class="px-6 py-4" x-text="batch.enrolledStudents"></td>
-                            <td class="px-6 py-4" x-text="batch.date"></td>
-                            <td class="px-6 py-4" x-text="batch.time"></td>
-                            <td class="px-6 py-4 flex space-x-4">
-                            <!-- Edit Icon Button with circular blue background -->
-                            <button @click="editBatch(batch.id)"
-                                class="bg-blue-500 text-white hover:bg-blue-700 p-2 rounded-full w-8 h-8 flex items-center justify-center"
-                                aria-label="Edit Batch">
-                                <i class="fa fa-pen" aria-hidden="true"></i>
-                            </button>
-
-                            <!-- Delete Icon Button with circular blue background -->
-                            <button @click="deleteBatch(batch.id)"
-                                class="bg-red-500 text-white hover:bg-red-700 p-2 rounded-full w-8 h-8 flex items-center justify-center"
-                                aria-label="Delete Batch">
-                                <i class="fa fa-trash" aria-hidden="true"></i>
-                            </button>
-
-                            </td>
-                        </tr>
-                        </template>
-                    </tbody>
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="px-6 py-3">Sr. No.</th>
+                                <th class="px-6 py-3">Session Type</th>
+                                <th class="px-6 py-3">Batch Name</th>
+                                <th class="px-6 py-3">Course Name</th>
+                                <th class="px-6 py-3">Enrolled Students</th>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($batches as $index => $batch)
+                                <tr class="border-t batch-row">
+                                    <td class="px-6 py-4">{{ $index + 1 }}</td>
+                                    <td class="px-6 py-4">{{ $batch->trainingMaterial->session_type}}</td>
+                                    <td class="px-6 py-4">{{ $batch->batch_no }}</td>
+                                    <td class="px-6 py-4">{{ $batch->trainingMaterial->training_title}}</td>
+                                    <td class="px-6 py-4">-</td>
+                                    <td class="px-6 py-4">{{ \Carbon\Carbon::parse($batch->start_date)->format('d-m-Y') }}</td>
+                                    <td class="px-6 py-4">
+                                        {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
+                                        {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="px-6 py-4 text-center">No batches found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
                     </table>
-
-                    <!-- Pagination -->
-                    <div class="flex justify-end items-center px-6 py-4 space-x-4">
-                    <button @click="prevPage" :disabled="currentPage === 1"
-                        class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
-                    <span class="text-sm text-gray-600">
-                        Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
-                    </span>
-                    <button @click="nextPage" :disabled="currentPage >= totalPages"
-                        class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
-                    </div>
+                    
                 </div>
-                </main>
+                <!-- Pagination Buttons -->
+                <div id="batchPagination" class="flex justify-center mt-4 gap-2"></div>
+            </main>
 
-                <script>
-                function trainingDashboard() {
-                    return {
-                    batches: [
-                        { id: 1, batchName: 'Batch A', courseName: 'Java Basics', enrolledStudents: 30, date: '2025-06-10', time: '10:00 AM - 12:00 PM' },
-                        { id: 2, batchName: 'Batch B', courseName: 'React JS', enrolledStudents: 25, date: '2025-06-12', time: '02:00 PM - 04:00 PM' },
-                        { id: 3, batchName: 'Batch C', courseName: 'Python Programming', enrolledStudents: 28, date: '2025-06-15', time: '11:00 AM - 01:00 PM' },
-                        { id: 4, batchName: 'Batch D', courseName: 'Data Structures', enrolledStudents: 20, date: '2025-06-18', time: '03:00 PM - 05:00 PM' },
-                        { id: 5, batchName: 'Batch E', courseName: 'Node.js Fundamentals', enrolledStudents: 22, date: '2025-06-20', time: '09:00 AM - 11:00 AM' },
-                        { id: 6, batchName: 'Batch F', courseName: 'UI/UX Design', enrolledStudents: 18, date: '2025-06-22', time: '01:00 PM - 03:00 PM' },
-                        { id: 7, batchName: 'Batch G', courseName: 'Machine Learning', enrolledStudents: 15, date: '2025-06-25', time: '10:00 AM - 12:00 PM' },
-                        { id: 8, batchName: 'Batch H', courseName: 'Cloud Computing', enrolledStudents: 27, date: '2025-06-27', time: '02:00 PM - 04:00 PM' },
-                        { id: 9, batchName: 'Batch I', courseName: 'Cybersecurity Essentials', enrolledStudents: 16, date: '2025-06-30', time: '11:00 AM - 01:00 PM' },
-                        { id: 10, batchName: 'Batch J', courseName: 'Agile Methodologies', enrolledStudents: 19, date: '2025-07-02', time: '03:00 PM - 05:00 PM' },
-                        { id: 11, batchName: 'Batch K', courseName: 'Database Management', enrolledStudents: 23, date: '2025-07-05', time: '09:00 AM - 11:00 AM' }
-                    ],
-                    currentPage: 1,
-                    perPage: 5,
-                    get totalPages() {
-                        return Math.ceil(this.batches.length / this.perPage);
-                    },
-                    get paginatedBatches() {
-                        const start = (this.currentPage - 1) * this.perPage;
-                        return this.batches.slice(start, start + this.perPage);
-                    },
-                    get startIndex() {
-                        return (this.currentPage - 1) * this.perPage;
-                    },
-                    nextPage() {
-                        if (this.currentPage < this.totalPages) this.currentPage++;
-                    },
-                    prevPage() {
-                        if (this.currentPage > 1) this.currentPage--;
-                    },
-                    editBatch(id) {
-                        alert('Edit batch with ID: ' + id);
-                        // Add your edit logic here
-                    },
-                    deleteBatch(id) {
-                        if (confirm('Are you sure you want to delete batch with ID: ' + id + '?')) {
-                        this.batches = this.batches.filter(batch => batch.id !== id);
-                        if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
-                        }
-                    }
-                    }
-                }
-                </script>
+
+          
+
 
 
 
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+            <script>
+                $(document).ready(function () {
+                    const itemsPerPage = 10;
+                    const $entries = $('.batch-row');
+                    const totalItems = $entries.length;
+                    const totalPages = Math.ceil(totalItems / itemsPerPage);
+                    let currentPage = 1;
+
+                    function showPage(page) {
+                        $entries.hide();
+                        const start = (page - 1) * itemsPerPage;
+                        const end = start + itemsPerPage;
+                        $entries.slice(start, end).fadeIn(200);
+                        currentPage = page;
+                        updatePagination();
+                    }
+
+                    function updatePagination() {
+                        $('.page-btn').removeClass('bg-blue-500 text-white').addClass('bg-gray-200 text-black');
+                        $(`.page-btn[data-page="${currentPage}"]`).addClass('bg-blue-500 text-white').removeClass('bg-gray-200 text-black');
+
+                        $('#prev-btn').prop('disabled', currentPage === 1);
+                        $('#next-btn').prop('disabled', currentPage === totalPages);
+                    }
+
+                    function createPagination() {
+                        $('#batchPagination').empty();
+
+                        // Prev Button
+                        $('#batchPagination').append(`
+                            <button id="prev-btn" class="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition">&lt;</button>
+                        `);
+
+                        // Page Buttons
+                        for (let i = 1; i <= totalPages; i++) {
+                            $('#batchPagination').append(`
+                                <button 
+                                    class="page-btn px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition" 
+                                    data-page="${i}"
+                                >${i}</button>
+                            `);
+                        }
+
+                        // Next Button
+                        $('#batchPagination').append(`
+                            <button id="next-btn" class="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition">&gt;</button>
+                        `);
+
+                        // Events
+                        $('.page-btn').on('click', function () {
+                            const page = $(this).data('page');
+                            showPage(page);
+                        });
+
+                        $('#prev-btn').on('click', function () {
+                            if (currentPage > 1) showPage(currentPage - 1);
+                        });
+
+                        $('#next-btn').on('click', function () {
+                            if (currentPage < totalPages) showPage(currentPage + 1);
+                        });
+                    }
+
+                    if (totalItems > 0) {
+                        createPagination();
+                        showPage(1);
+                    } else {
+                        $('#batchPagination').html('<p class="text-center text-gray-500">No batches found.</p>');
+                    }
+                });
+                </script>
+
           
 
 

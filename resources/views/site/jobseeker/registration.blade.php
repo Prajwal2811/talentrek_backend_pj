@@ -330,14 +330,42 @@
                                                 </div>
 
                                                 {{-- End Date --}}
-                                                <div>
+                                                @php
+                                                    $isWorking = old("currently_working.$i") == 'on';
+                                                @endphp
+
+                                                <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
-                                                    <input name="end_to[]" class="datepicker-end w-full border rounded-md p-2"
-                                                        value="{{ old("end_to.$i") }}" readonly />
+
+                                                    <input 
+                                                        type="text" 
+                                                        name="end_to[]" 
+                                                        class="w-full border rounded-md p-2 datepicker-end" 
+                                                        :disabled="working"
+                                                        :readonly="working"
+                                                        :value="working ? '' : '{{ old("end_to.$i") }}'"
+                                                    />
+
                                                     @error("end_to.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
+
+                                                    <label class="inline-flex items-center mt-2 space-x-2">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            name="currently_working[{{ $i }}]" 
+                                                            x-model="working"
+                                                            {{ $isWorking ? 'checked' : '' }}
+                                                        >
+                                                        <span>I currently work here</span>
+                                                    </label>
                                                 </div>
+
+
+
+
+
+
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
@@ -471,7 +499,8 @@
 
                                     <div class="text-sm">
                                         <label class="flex items-start gap-2 mt-3">
-                                            <input type="checkbox" id="termsCheckbox" class="mt-1" />
+                                            <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}>
+
                                             <span>
                                                 I have read and agreed to
                                                 <a href="#" class="text-blue-600 underline">terms and conditions</a>
@@ -609,5 +638,50 @@
                 });
             });
        
+            document.addEventListener('alpine:init', () => {
+                Alpine.effect(() => {
+                    setTimeout(() => {
+                        $('.datepicker-end:not(:disabled)').datepicker(); // or flatpickr()
+                    }, 100);
+                });
+            });
+
         </script>
-        
+        <!-- Alpine.js v3 CDN -->
+        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                var $submitBtn = $('#submitBtn');
+                var $form = $('form');
+                var $checkbox = $('#termsCheckbox'); // Make sure this is the actual ID of your checkbox
+
+                function toggleSubmitButton() {
+                    if ($checkbox.is(':checked')) {
+                        $submitBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    } else {
+                        $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                    }
+                }
+
+                // Always run this on page load (including error reloads)
+                toggleSubmitButton();
+
+                // On checkbox click, enable/disable submit
+                $checkbox.on('change', function () {
+                    toggleSubmitButton();
+                });
+
+                // Prevent multiple submits
+                $form.on('submit', function (e) {
+                    if ($submitBtn.prop('disabled')) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                });
+            });
+        </script>
+
+
+

@@ -42,6 +42,7 @@
                             class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
                         <i class="fa fa-user-circle" aria-hidden="true"></i>
                             <span>{{ Auth::user()->name }}</span>
+
                         </a>
                     </div>
                     </div>
