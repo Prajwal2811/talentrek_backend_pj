@@ -13,62 +13,23 @@
 
 	
     <div class="page-wraper">
-        <div class="flex h-screen">
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
             @include('site.trainer.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
-                        Talent<span class="text-blue-500">rek</span>
-                    </div>
-                    <div class="relative w-full">
-                        <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.trainer.componants.navbar')
 
             <main class="p-6 ">
                 <h2 class="text-xl font-semibold mb-6">Online/Offline course</h2>
-                <form action="{{ route('trainer.training.online.save.data') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
+               <form action="{{ route('trainer.training.online.update.data', $training->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
                         <!-- Course Title -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Title</label>
-                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_title"
+                            value="{{ old('training_title', $training->training_title ?? '') }}"
+                            placeholder="Enter the Course Title" class="w-full border rounded-md p-2" />
                             @error('training_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -77,7 +38,9 @@
                         <!-- Course Sub Title -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Sub Title</label>
-                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_sub_title"
+                            value="{{ old('training_sub_title', $training->training_sub_title ?? '') }}"
+                            placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" />
                             @error('training_sub_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -86,18 +49,14 @@
                         <!-- Description -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Training Objective</label>
-                            <textarea placeholder="Enter the Training Objective" name="training_objective" class="w-full border rounded-md p-2 h-24"></textarea>
-                            @error('training_objective')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                            <textarea name="training_objective"
+                                class="w-full border rounded-md p-2 h-24">{{ old('training_objective', $training->training_objective ?? '') }}</textarea>
                         </div>
 
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Content</label>
-                            <textarea placeholder="Enter the Course Content" name="training_descriptions" class="w-full border rounded-md p-2 h-24"></textarea>
-                            @error('training_descriptions')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                            <textarea name="training_descriptions"
+                            class="w-full border rounded-md p-2 h-24">{{ old('training_descriptions', $training->training_descriptions ?? '') }}</textarea>
                         </div>
 
                         <!-- Category -->
@@ -105,10 +64,14 @@
                             <label class="block font-medium mb-2">Session Type</label>
                             <div class="flex flex-wrap gap-4">
                                 <label>
-                                    <input type="radio" name="training_category" value="Online" class="mr-2" /> Online
+                                    <input type="radio" name="training_category" value="Online"
+                                    {{ old('training_category', $training->session_type ?? '') == 'Online' ? 'checked' : '' }} /> 
+                                        Online
                                 </label>
                                 <label>
-                                    <input type="radio" name="training_category" value="Classroom" class="mr-2" /> Classroom
+                                    <input type="radio" name="training_category" value="Classroom"
+                                    {{ old('training_category', $training->session_type ?? '') == 'Classroom' ? 'checked' : '' }} /> Classroom
+
                                 </label>
                             </div>
                         </div>
@@ -120,20 +83,28 @@
                             <label class="block font-medium mb-1">Upload Thumbnail</label>
                             <div class="flex gap-4 items-center">
                             <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
-                            <button class="bg-green-600 hover:bg-green-500 text-white rounded-md px-4 py-2">Upload</button>
                             </div>
+                            <!-- Show existing thumbnail (optional) -->
+                            @if (!empty($training->thumbnail_file_path))
+                                <div class="mb-2">
+                                    <img src="{{ $training->thumbnail_file_path }}" alt="Thumbnail" class="w-24 h-16 rounded">
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Course Price -->
                         <div class="mb-6">
                             <label class="block font-medium mb-1">Course price</label>
-                            <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_price"
+                            value="{{ old('training_price', $training->training_price ?? '') }}"
+                            placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
                         </div>
 
 
                        
 
-                    <div x-data="batchManager()">
+                    <div x-data="batchManager()" x-init='initializeBatches(@json($batches))'>
+
                         <!-- Batch Input Fields -->
                         <div class="mb-8">
                             <h2 class="text-xl font-semibold mb-4">Batch details</h2>
@@ -255,6 +226,16 @@
                         isEditing: false,
                         editIndex: null,
 
+                        initializeBatches(serverBatches) {
+                            this.batches = serverBatches.map(b => ({
+                                batchNo: b.batch_no,
+                                batchDate: b.start_date,
+                                startTime: b.start_timing,
+                                endTime: b.end_timing,
+                                duration: b.duration
+                            }));
+                        },
+
                         addBatch() {
                             if (this.batchNo && this.batchDate && this.startTime && this.endTime && this.duration) {
                                 this.batches.push({
@@ -312,7 +293,8 @@
                         }
                     }
                 }
-                </script>
+            </script>
+
 
           
 

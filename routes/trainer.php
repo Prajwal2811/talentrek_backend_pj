@@ -41,9 +41,10 @@ Route::group(['prefix' => 'trainer'], function() {
 		Route::post('training/online/save-online-data', [App\Http\Controllers\TrainerController::class, 'saveTrainingOnlineData'])->name('trainer.training.online.save.data');
 
 		Route::get('/training/recorded/edit/{id}', [TrainerController::class, 'editRecordedTraining'])->name('trainer.training.recorded.edit');
-
 		Route::post('/training/recorded/update/{id}', [TrainerController::class, 'updateRecordedTraining'])->name('trainer.training.recorded.update.data');
 
+		Route::get('/training/online/edit/{id}', [TrainerController::class, 'editOnlineTraining'])->name('trainer.training.online.edit');
+		Route::post('/training/online/update/{id}', [TrainerController::class, 'updateOnlineTraining'])->name('trainer.training.online.update.data');
 
 		// Assessment
 		Route::get('/assessment/list', [App\Http\Controllers\TrainerController::class, 'assessmentList'])->name('assessment.list');

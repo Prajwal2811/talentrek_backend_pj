@@ -84,10 +84,10 @@ class JobseekerController extends Controller
             'gender' => 'required|string|in:Male,Female,Other',
 
             // // Education array validations
-            'high_education.*' => 'required|string',
-            'field_of_study.*' => 'nullable|string',
-            'institution.*' => 'required|string',
-            'graduate_year.*' => 'required|string',
+            // 'high_education.*' => 'required|string',
+            // 'field_of_study.*' => 'nullable|string',
+            // 'institution.*' => 'required|string',
+            // 'graduate_year.*' => 'required|string',
 
             // Work experience array validations
             'job_role.*' => 'required|string',
@@ -96,15 +96,15 @@ class JobseekerController extends Controller
             'end_to.*' => 'required|date|after_or_equal:starts_from.*',
 
             // skills validations
-            'skills' => 'required|string',
-            'interest' => 'required|string',
-            'job_category' => 'required|string|max:255',
-            'website_link' => 'required|url',
-            'portfolio_link' => 'required|url',
+            // 'skills' => 'required|string',
+            // 'interest' => 'required|string',
+            // 'job_category' => 'required|string|max:255',
+            // 'website_link' => 'required|url',
+            // 'portfolio_link' => 'required|url',
 
-             // Files
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            //  // Files
+            // 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            // 'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Update jobseeker details
@@ -119,84 +119,92 @@ class JobseekerController extends Controller
         ]);
 
         // Save education details
-        foreach ($request->high_education as $index => $education) {
-            EducationDetails::create([
-                'user_id' => $jobseeker->id,
-                'user_type' => 'jobseeker',
-                'high_education' => $education,
-                'field_of_study' => $request->field_of_study[$index] ?? null,
-                'institution' => $request->institution[$index],
-                'graduate_year' => $request->graduate_year[$index],
-            ]);
-        }
+        // foreach ($request->high_education as $index => $education) {
+        //     EducationDetails::create([
+        //         'user_id' => $jobseeker->id,
+        //         'user_type' => 'jobseeker',
+        //         'high_education' => $education,
+        //         'field_of_study' => $request->field_of_study[$index] ?? null,
+        //         'institution' => $request->institution[$index],
+        //         'graduate_year' => $request->graduate_year[$index],
+        //     ]);
+        // }
 
         // Save work experiences
         if ($request->has('job_role')) {
             foreach ($request->job_role as $index => $role) {
+                $isCurrentlyWorking = $request->input("currently_working.$index") === 'on';
+
+                $startDate = $request->starts_from[$index] ?? null;
+                $endDate = $isCurrentlyWorking 
+                    ? 'work here'
+                    : ($request->end_to[$index] ?? null);
+
                 WorkExperience::create([
-                    'user_id' => $jobseeker->id,
-                    'user_type' => 'jobseeker',
-                    'job_role' => $role,
-                    'organization' => $request->organization[$index] ?? null,
-                    'starts_from' => $request->starts_from[$index] ?? null,
-                    'end_to' => $request->end_to[$index] ?? null,
+                    'user_id'       => $jobseeker->id,
+                    'user_type'     => 'jobseeker',
+                    'job_role'      => $role,
+                    'organization'  => $request->organization[$index] ?? null,
+                    'starts_from'   => $startDate,
+                    'end_to'        => $endDate,
                 ]);
             }
         }
+
 
         // Save skills
-        Skills::create([
-            'jobseeker_id' => $jobseeker->id,
-            'skills' => $request->skills,
-            'interest' => $request->interest,
-            'job_category' => $request->job_category,
-            'website_link' => $request->website_link,
-            'portfolio_link' => $request->portfolio_link,
-        ]);
+        // Skills::create([
+        //     'jobseeker_id' => $jobseeker->id,
+        //     'skills' => $request->skills,
+        //     'interest' => $request->interest,
+        //     'job_category' => $request->job_category,
+        //     'website_link' => $request->website_link,
+        //     'portfolio_link' => $request->portfolio_link,
+        // ]);
 
         // Upload Resume
-        if ($request->hasFile('resume')) {
-            $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
-                ->where('user_type', 'jobseeker')
-                ->where('doc_type', 'resume')
-                ->first();
+        // if ($request->hasFile('resume')) {
+        //     $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
+        //         ->where('user_type', 'jobseeker')
+        //         ->where('doc_type', 'resume')
+        //         ->first();
 
-            if (!$existingResume) {
-                $resumeName = $request->file('resume')->getClientOriginalName();
-                $fileNameToStoreResume = 'resume_' . time() . '.' . $request->file('resume')->getClientOriginalExtension();
-                $request->file('resume')->move('uploads/', $fileNameToStoreResume);
+        //     if (!$existingResume) {
+        //         $resumeName = $request->file('resume')->getClientOriginalName();
+        //         $fileNameToStoreResume = 'resume_' . time() . '.' . $request->file('resume')->getClientOriginalExtension();
+        //         $request->file('resume')->move('uploads/', $fileNameToStoreResume);
 
-                AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
-                    'user_type'     => 'jobseeker',
-                    'doc_type'      => 'resume',
-                    'document_name' => $resumeName,
-                    'document_path' => asset('uploads/' . $fileNameToStoreResume),
-                ]);
-            }
-        }
+        //         AdditionalInfo::create([
+        //             'user_id'       => $jobseeker->id,
+        //             'user_type'     => 'jobseeker',
+        //             'doc_type'      => 'resume',
+        //             'document_name' => $resumeName,
+        //             'document_path' => asset('uploads/' . $fileNameToStoreResume),
+        //         ]);
+        //     }
+        // }
 
-        // Upload Profile Picture
-        if ($request->hasFile('profile_picture')) {
-            $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
-                ->where('user_type', 'jobseeker')
-                ->where('doc_type', 'profile_picture')
-                ->first();
+        // // Upload Profile Picture
+        // if ($request->hasFile('profile_picture')) {
+        //     $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
+        //         ->where('user_type', 'jobseeker')
+        //         ->where('doc_type', 'profile_picture')
+        //         ->first();
 
-            if (!$existingProfile) {
-                $profileName = $request->file('profile_picture')->getClientOriginalName();
-                $fileNameToStoreProfile = 'profile_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
-                $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
+        //     if (!$existingProfile) {
+        //         $profileName = $request->file('profile_picture')->getClientOriginalName();
+        //         $fileNameToStoreProfile = 'profile_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension();
+        //         $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
 
-                AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
-                    'user_type'     => 'jobseeker',
-                    'doc_type'      => 'profile_picture',
-                    'document_name' => $profileName,
-                    'document_path' => asset('uploads/' . $fileNameToStoreProfile),
-                ]);
-            }
-        }
+        //         AdditionalInfo::create([
+        //             'user_id'       => $jobseeker->id,
+        //             'user_type'     => 'jobseeker',
+        //             'doc_type'      => 'profile_picture',
+        //             'document_name' => $profileName,
+        //             'document_path' => asset('uploads/' . $fileNameToStoreProfile),
+        //         ]);
+        //     }
+        // }
 
         session()->forget('jobseeker_id');
         return redirect()->route('signin.form')->with('success_popup', true);
