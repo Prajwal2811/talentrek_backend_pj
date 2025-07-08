@@ -433,12 +433,6 @@ class TrainerController extends Controller
         }
     }
 
-
-    public function trainingList() {
-        return view('site.trainer.training-list');
-    }
-
-
     public function addTraining() {
         return view('site.trainer.add-training');
     }
