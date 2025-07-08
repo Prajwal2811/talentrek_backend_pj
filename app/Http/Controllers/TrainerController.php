@@ -433,12 +433,6 @@ class TrainerController extends Controller
         }
     }
 
-
-    public function trainingList() {
-        return view('site.trainer.training-list');
-    }
-
-
     public function addTraining() {
         return view('site.trainer.add-training');
     }
@@ -686,7 +680,7 @@ class TrainerController extends Controller
             'training_category' => 'required',
             'training_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'content_sections.*.document_id' => 'required|exists:training_materials_documents,id',
+            'content_sections.*.document_id' => 'nullable|exists:training_materials_documents,id',
             'content_sections.*.title' => 'required',
             'content_sections.*.description' => 'required',
             'content_sections.*.file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
@@ -703,34 +697,38 @@ class TrainerController extends Controller
         if ($request->hasFile('thumbnail')) {
             $file = $request->file('thumbnail');
             $name = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('uploads', $name, 'public');
+            $file->move(public_path('uploads'), $name); 
             $training->thumbnail_file_name = $name;
-            $training->thumbnail_file_path = asset('storage/' . $path);
+            $training->thumbnail_file_path = asset('uploads/' . $name); 
         }
+
        
         $training->save();
-
+      
         // Update existing documents only if they belong to this training
         foreach ($data['content_sections'] as $section) {
-            $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
-                ->where('training_material_id', $training->id)
-                ->first();
+            if (!empty($section['document_id'])) {
+                $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
+                    ->where('training_material_id', $training->id)
+                    ->first();
 
-            if (!$doc) continue; // Skip if document does not belong to this training
+                if (!$doc) continue;
 
-            $doc->training_title = $section['title'];
-            $doc->description = $section['description'];
+                $doc->training_title = $section['title'];
+                $doc->description = $section['description'];
 
-            if (!empty($section['file'])) {
-                $file = $section['file'];
-                $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('uploads', $name, 'public');
-                $doc->file_name = $name;
-                $doc->file_path = asset('storage/' . $path);
+                if (!empty($section['file'])) {
+                    $file = $section['file'];
+                    $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('uploads', $name, 'public');
+                    $doc->file_name = $name;
+                    $doc->file_path = asset('storage/' . $path);
+                }
+
+                $doc->save();
             }
-
-            $doc->save(); // Only update
         }
+
 
         return redirect()->route('training.list')->with('success', 'Recorded Training course updated successfully!');
     }
