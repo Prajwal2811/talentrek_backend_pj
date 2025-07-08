@@ -25,6 +25,11 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::post('/settings/store', [AdminController::class, 'settingsUpdate'])->name('admin.settings.store');
 		Route::post('/settings/store-media', [AdminController::class, 'storeMediaLinks'])->name('admin.settings.store-media');
 
+
+		Route::get('/resume-format', [AdminController::class, 'resume'])->name('admin.resume');
+		Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
+
+
 		// Logout
 		Route::get('/logout', [AdminController::class, 'signOut'])->name('admin.signOut');
 

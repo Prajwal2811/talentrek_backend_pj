@@ -106,6 +106,7 @@
                         'Languages' => ['route' => 'admin.languages', 'icon' => 'fa-language'],
                         'Settings' => ['route' => 'admin.settings', 'icon' => 'fa-cog'],
                         'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-cog'],
+                        'Resume Format' => ['route' => 'admin.resume', 'icon' => 'fa-file-word'],
                     ];
                 @endphp
 

@@ -153,7 +153,7 @@ class JobseekerController extends Controller
                 'status' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
-            ], 422);
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -409,7 +409,7 @@ class JobseekerController extends Controller
                 'status'  => false,
                 'message' => 'Validation failed',
                 'errors'  => $e->errors()
-            ], 422);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -432,7 +432,7 @@ class JobseekerController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 201);
         }
 
         // Generate 6-digit OTP
@@ -540,7 +540,7 @@ class JobseekerController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 201);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';
@@ -578,7 +578,7 @@ class JobseekerController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 201);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
-            $table->string('status')->nullable(); 
+           $table->string('status')->default('active');
             $table->string('inactive_reason')->nullable(); 
             $table->string('admin_status')->nullable(); 
             $table->string('rejection_reason')->nullable(); 

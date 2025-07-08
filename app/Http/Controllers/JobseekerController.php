@@ -8,7 +8,7 @@ use App\Models\Jobseekers;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
-use App\Models\Additionalinfo;
+use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;

@@ -518,7 +518,7 @@ class TrainerController extends Controller
         }
 
         // Save course
-        $trainingId = \DB::table('training_materials')->insertGetId([
+        $trainingId = DB::table('training_materials')->insertGetId([
             'trainer_id'             => $trainer->id,
             'training_type'          => 'recorded',
             'training_title'         => $request->training_title,
@@ -549,7 +549,7 @@ class TrainerController extends Controller
                     $filePath = asset('uploads/' . $fileName);
                 }
 
-                \DB::table('training_materials_documents')->insert([
+                DB::table('training_materials_documents')->insert([
                     'trainer_id' => $trainer->id,
                     'training_material_id' => $trainingId,
                     'training_title' => $section['title'],
@@ -596,7 +596,7 @@ class TrainerController extends Controller
             $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
         }
 
-        $trainingId = \DB::table('training_materials')->insertGetId([
+        $trainingId = DB::table('training_materials')->insertGetId([
             'trainer_id'             => $trainer->id, // if you're saving trainer ID
             'training_title'         => $request->training_title,
             'training_sub_title'     => $request->training_sub_title,
@@ -612,7 +612,7 @@ class TrainerController extends Controller
         ]);
 
         foreach ($request->input('content_sections', []) as $section) {
-            \DB::table('training_batches')->insert([
+            DB::table('training_batches')->insert([
                 'trainer_id'           => $trainer->id, 
                 'training_material_id' => $trainingId, 
                 'batch_no'             => $section['batch_no'],

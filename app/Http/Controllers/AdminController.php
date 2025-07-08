@@ -17,6 +17,7 @@ use App\Models\AdditionalInfo;
 use App\Models\Testimonial;
 use App\Models\Trainers;
 use App\Models\Language;
+use App\Models\Resume;
 use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
@@ -739,8 +740,6 @@ class AdminController extends Controller
         return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos'));
     }
 
-
-    
     public function viewShortlistedJobseekers($id)
     {
         // echo "<pre>"; print_r($id); die;
@@ -755,7 +754,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'jobseeker_id' => 'required|exists:jobseekers,id',
-            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'status' => 'required|in:approved,rejected',
             'reason' => 'nullable|string|max:500',
             'role' => 'required|in:admin,superadmin',
         ]);
@@ -764,19 +763,11 @@ class AdminController extends Controller
 
         if ($request->role === 'admin') {
             $jobseeker->admin_status = $request->status;
-            if ($request->status === 'rejected') {
-                $jobseeker->rejection_reason = $request->reason;
-            } else {
-                $jobseeker->rejection_reason = null; // clear old reason
-            }
+            $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
         } elseif ($request->role === 'superadmin') {
             if ($jobseeker->admin_status === 'approved') {
-                $jobseeker->admin_status = 'superadmin_'.$request->status;
-                if ($request->status === 'rejected') {
-                    $jobseeker->rejection_reason = 'superadmin_'.$request->reason;
-                } else {
-                    $jobseeker->rejection_reason = null;
-                }
+                $jobseeker->admin_status = 'superadmin_' . $request->status;
+                $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
             }
         }
 
@@ -784,6 +775,7 @@ class AdminController extends Controller
 
         return back()->with('success', 'Status updated.');
     }
+
 
 
     public function updateRecruiterStatus(Request $request)
@@ -983,6 +975,41 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Site settings updated successfully.');
     }
+
+
+    public function resume()
+    {
+        return view('admin.resume.index');
+    }
+
+
+    public function resumeUpdate(Request $request)
+    {
+        $request->validate([
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048', // Accept only document types
+        ]);
+
+        $resume = Resume::find($request->input('id')) ?? new Resume();
+
+        $uploadPath = public_path('uploads');
+
+        if ($request->hasFile('resume')) {
+            // Delete old resume file
+            if (!empty($resume->resume) && file_exists(public_path($resume->resume))) {
+                unlink(public_path($resume->resume));
+            }
+
+            $resumeFile = $request->file('resume');
+            $resumeFileName = 'resume_' . time() . '.' . $resumeFile->getClientOriginalExtension();
+            $resumeFile->move($uploadPath, $resumeFileName);
+            $resume->resume = 'uploads/' . $resumeFileName;
+        }
+
+        $resume->save();
+
+        return redirect()->back()->with('success', 'Resume format uploaded successfully.');
+    }
+
 
 
     public function storeMediaLinks(Request $request)
