@@ -120,14 +120,27 @@
                             </div>
                         </div>
 
-                        <!-- Course Price -->
-                        <div class="mb-6">
-                            <label class="block font-medium mb-1">Course Price</label>
-                            <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
-                            @error('training_price')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                        <!-- Course Price and Offer Price -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Course Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Price</label>
+                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
+                                @error('training_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Course Offer Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Offer Price</label>
+                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" />
+                                @error('training_offer_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
+
 
                         <!-- Submit Button -->
                         <div class="text-right">

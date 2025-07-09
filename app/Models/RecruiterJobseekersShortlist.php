@@ -19,6 +19,7 @@ class RecruiterJobseekersShortlist extends Model
         'recruiter_id',
         'jobseeker_id',
         'status',
+        'interview_request',
         'admin_status',
         'interview_url',
     ];

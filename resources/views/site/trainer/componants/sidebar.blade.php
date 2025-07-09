@@ -4,9 +4,9 @@
     <aside 
         class="bg-blue-900 text-white flex flex-col py-8 px-4 transition-all duration-300"
         :class="{ 'w-64': sidebarOpen, 'w-16': !sidebarOpen }">
-
+    
         <!-- Logo -->
-        <div class="flex justify-center mb-8">
+        <div class="flex justify-center mb-8" style="background">
             <img src="{{ asset('asset/images/Talentrek.png') }}" alt="Talentrek Logo"
                 class="h-10 transition-all duration-300"
                 :class="{ 'hidden': !sidebarOpen }" />

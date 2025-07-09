@@ -32,6 +32,7 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::get('/jobseeker',[RecruiterController::class, 'showJobseekerListForm'])->name('recruiter.jobseeker');
 		Route::get('/jobseeker/list',[RecruiterController::class, 'getAllJobseekerList'])->name('recruiter.dashboard.jobseeker.list');
 		Route::post('/recruiter/shortlist/submit',[RecruiterController::class, 'shortlistSubmit'])->name('recruiter.shortlist.submit');
+		Route::post('/recruiter/interview/submit',[RecruiterController::class, 'interviewRequestSubmit'])->name('recruiter.interview.request.submit');
 		Route::get('/jobseeker/{jobseeker_id}/details', [RecruiterController::class, 'getJobseekerDetails'])
 		->name('recruiter.jobseeker.details');
 		Route::get('/settings', [RecruiterController::class, 'showRecruitmentSettingForm'])
