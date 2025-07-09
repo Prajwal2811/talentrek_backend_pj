@@ -4,12 +4,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\JobseekerController;
+
+
+//Junaid APi Controllers in Jobseeker folder
 use App\Http\Controllers\API\Jobseeker\AssesssorController;
 use App\Http\Controllers\API\Jobseeker\ExplorerController;
 use App\Http\Controllers\API\Jobseeker\AppHomeController;
 use App\Http\Controllers\API\Jobseeker\MyLearningController;
 use App\Http\Controllers\API\Jobseeker\ProfileController;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +30,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::post('/jobseeker/sign-in', [JobseekerController::class, 'signIn']);
+
 Route::post('/jobseeker/sign-up', [JobseekerController::class, 'signUp']);
 Route::post('/jobseeker/registration', [JobseekerController::class, 'registration']);
 Route::post('/jobseeker/forget-password', [JobseekerController::class, 'forgetPassword']);
@@ -52,3 +55,4 @@ Route::get('/jobseeker/quizByAssessorId/{assessorId}/{userId}', [AssesssorContro
 Route::get('/jobseeker/quizNavigator/{assessorId}/{userId}', [AssesssorController::class, 'quizNavigatorList']);
 Route::get('/jobseeker/quizScorecard/{assessorId}/{userId}', [AssesssorController::class, 'quizScorecardResult']);
 Route::post('/jobseeker/submitQuiz', [AssesssorController::class, 'submitQuizAnswer']);
+
