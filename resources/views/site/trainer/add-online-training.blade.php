@@ -79,16 +79,31 @@
                             <label class="block font-medium mb-1">Upload Thumbnail</label>
                             <div class="flex gap-4 items-center">
                             <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
-                            <button class="bg-green-600 hover:bg-green-500 text-white rounded-md px-4 py-2">Upload</button>
                             </div>
                         </div>
 
-                        <!-- Course Price -->
-                        <div class="mb-6">
-                            <label class="block font-medium mb-1">Course price</label>
-                            <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
-                        </div>
+                        
 
+                        <!-- Course Price and Offer Price -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Course Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Price</label>
+                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
+                                @error('training_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Course Offer Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Offer Price</label>
+                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" />
+                                @error('training_offer_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
 
                        
 

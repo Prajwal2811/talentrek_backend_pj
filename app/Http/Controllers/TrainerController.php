@@ -495,6 +495,7 @@ class TrainerController extends Controller
             'training_descriptions' => 'nullable|string',
             'training_category' => 'required|string', // radio button returns single value
             'training_price' => 'required|numeric',
+            'training_offer_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'content_sections' => 'array',
             'content_sections.*.title' => 'required|string|max:255',
@@ -523,6 +524,7 @@ class TrainerController extends Controller
             'training_descriptions'  => $request->training_descriptions,
             'training_category'      => $request->training_category,
             'training_price'         => $request->training_price,
+            'training_offer_price'   => $request->training_offer_price,
             'thumbnail_file_path'    => $thumbnailFilePath,
             'thumbnail_file_name'    => $thumbnailFileName,
             'training_objective'     => null,
@@ -574,6 +576,7 @@ class TrainerController extends Controller
             'training_descriptions'  => 'nullable|string',
             'training_category'      => 'required|string',
             'training_price'         => 'required|numeric',
+            'training_offer_price'         => 'required|numeric',
             'thumbnail'              => 'nullable|image|max:2048',
 
             'content_sections.*.batch_no'   => 'required|string|max:255',
@@ -600,6 +603,7 @@ class TrainerController extends Controller
             'training_objective'     => $request->training_objective,
             'training_descriptions'  => $request->training_descriptions,
             'training_price'         => $request->training_price,
+            'training_offer_price'   => $request->training_offer_price,
             'training_type'          => 'online',
             'session_type'           => $request->training_category,
             'thumbnail_file_name'    => $thumbnailFileName,
@@ -676,6 +680,7 @@ class TrainerController extends Controller
             'training_descriptions' => 'nullable',
             'training_category' => 'required',
             'training_price' => 'required|numeric',
+            'training_offer_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
 
             'content_sections' => 'nullable|array',
@@ -691,6 +696,7 @@ class TrainerController extends Controller
         $training->training_descriptions = $data['training_descriptions'];
         $training->training_category = $data['training_category'];
         $training->training_price = $data['training_price'];
+        $training->training_offer_price = $data['training_offer_price'];
 
         if ($request->hasFile('thumbnail')) {
             $file = $request->file('thumbnail');
@@ -787,6 +793,7 @@ class TrainerController extends Controller
             'training_descriptions' => 'nullable|string',
             'training_category' => 'required|string',
             'training_price' => 'required|numeric',
+            'training_offer_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -809,6 +816,7 @@ class TrainerController extends Controller
         $training->training_descriptions = $request->training_descriptions;
         $training->session_type = $request->training_category;
         $training->training_price = $request->training_price;
+        $training->training_offer_price = $request->training_offer_price;
         $training->save();
 
         // Delete existing batches and insert new ones
@@ -844,6 +852,289 @@ class TrainerController extends Controller
 
     }
 
-    
+    public function deleteAccount()
+     {
+          $trainerId = auth()->id();
+          Trainers::where('id', $trainerId)->delete();
+          //Recruiters::where('company_id', $trainerId)->delete();
+          auth()->logout();
+
+          return redirect()->route('trainer.login')->with('success', 'Your account has been deleted successfully.');
+     }
+
+     public function getTrainerAllDetails()
+    {
+        $trainer = Auth::guard('trainer')->user(); 
+       
+        $trainerId = $trainer->id;
+
+        // Trainer basic details and skill details
+        $trainerSkills = DB::table('trainers')
+            ->leftJoin('training_experience', 'training_experience.user_id', '=', 'trainers.id')
+            ->where('trainers.id', $trainerId)
+            ->select('trainers.*', 'training_experience.*')
+            ->first();
+        
+        // Education details (multiple)
+        $educationDetails = DB::table('education_details')
+            ->where('user_id', $trainerId)
+            ->where('user_type', 'trainer')
+            ->get();
+
+        // Work experience (multiple)
+        $workExperiences = DB::table('work_experience')
+            ->where('user_id', $trainerId)
+             ->where('user_type', 'trainer')
+            ->get();
+
+        $additonalDetails = DB::table('additional_info')
+        ->where('user_id', $trainerId)
+        ->where('user_type', 'trainer')
+        ->get();
+
+        return view('site.trainer.trainer-settings', compact(
+            'trainerSkills',
+            'educationDetails',
+            'workExperiences',
+            'additonalDetails'
+        ));
+    }
+
+    public function updatePersonalInfo(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:jobseekers,email,' . $user->id,
+            'phone' => 'required|digits:10',
+            'dob' => 'required|date',
+            'location' => 'required|string|max:255',
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone'],
+            'date_of_birth' => $validated['dob'],
+            'city' => $validated['location'],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Personal information updated successfully!',
+        ]);
+    }
+
+    public function updateEducationInfo(Request $request)
+    {
+        $user = auth()->user();
+        $userId = $user->id;
+
+        $validated = $request->validate([
+            'high_education.*' => 'required|string|max:255',
+            'field_of_study.*' => 'required|string|max:255',
+            'institution.*' => 'required|string|max:255',
+            'graduate_year.*' => 'required|string|max:255', 
+        ]);
+
+        $incomingIds = $request->input('education_id', []);
+
+        $existingIds = EducationDetails::where('user_id', $userId)
+                        ->where('user_type', 'trainer')
+                        ->pluck('id')
+                        ->toArray();
+
+        $toDelete = array_diff($existingIds, $incomingIds);
+        EducationDetails::whereIn('id', $toDelete)->delete();
+
+        foreach ($request->input('high_education', []) as $i => $education) {
+            $data = [
+                'user_id' => $userId,
+                'user_type' => 'trainer',
+                'high_education' => $request->high_education[$i],
+                'field_of_study' => $request->field_of_study[$i] ?? null,
+                'institution' => $request->institution[$i] ?? null,
+                'graduate_year' => $request->graduate_year[$i] ?? null,
+            ];
+
+            if (!empty($request->education_id[$i])) {
+                EducationDetails::where('id', $request->education_id[$i])
+                    ->update($data);
+            } else {
+                EducationDetails::create($data);
+            }
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Education information saved successfully!']);
+
+    }
+
+    public function updateWorkExprienceInfo(Request $request)
+    {
+        $user_id = auth()->id();
+
+        // Flattened validation
+        $validated = $request->validate([
+            'job_role.*' => 'required|string|max:255',
+            'organization.*' => 'required|string|max:255',
+            'starts_from.*' => 'required|date',
+            'end_to.*' => 'nullable|date',
+            'currently_working' => 'nullable|array',
+        ]);
+
+        $workIds = $request->input('work_id', []);
+        $existingIds = WorkExperience::where('user_id', $user_id)
+                        ->where('user_type', 'trainer')
+                        ->pluck('id')
+                        ->toArray();
+
+        // Delete entries not present in the submitted data
+        $toDelete = array_diff($existingIds, $workIds);
+        if (!empty($toDelete)) {
+            WorkExperience::whereIn('id', $toDelete)->delete();
+        }
+
+        $currentlyWorkingIndices = $request->input('currently_working', []);
+
+        foreach ($request->input('job_role', []) as $i => $role) {
+            $currentlyWorking = in_array($i, $currentlyWorkingIndices);
+            $startDate = $request->starts_from[$i] ?? null;
+            $endDate = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
+
+            // Manual validation: ensure end date is not before start date if not currently working
+            if (!$currentlyWorking && $startDate && $endDate && $endDate < $startDate) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => ["end_to.$i" => ["The end date must be after or equal to the start date."]]
+                ], 422);
+            }
+
+            $data = [
+                'user_id' => $user_id,
+                'user_type' => 'trainer',
+                'job_role' => $role,
+                'organization' => $request->organization[$i] ?? null,
+                'starts_from' => $startDate,
+                'end_to' => $endDate,
+            ];
+
+            if (!empty($request->work_id[$i])) {
+                WorkExperience::where('id', $request->work_id[$i])->update($data);
+            } else {
+                WorkExperience::create($data);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Work Experience information saved successfully!'
+        ]);
+    }
+
+
+    public function updateTrainerSkillsInfo(Request $request)
+    {
+        $user = auth()->user();
+        $user_id = $user->id;
+
+        $validated = $request->validate([
+            'training_experience' => 'required|string',
+            'training_skills' => 'required|string',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
+        ]);
+
+        $skills = TrainingExperience::where('user_id', $user_id)
+            ->where('user_type', 'trainer')
+            ->first();
+
+        if ($skills) {
+            $skills->update([
+                'training_experience' => $validated['training_experience'] ?? null,
+                'training_skills' => $validated['training_skills'] ?? null,
+                'website_link' => $validated['website_link'] ?? null,
+                'portfolio_link' => $validated['portfolio_link'] ?? null,
+            ]);
+        } else {
+            TrainingExperience::create([
+                'user_id' => $user_id,
+                'user_type' => 'trainer',
+                'training_experience' => $validated['training_experience'] ?? null,
+                'training_skills' => $validated['training_skills'] ?? null,
+                'website_link' => $validated['website_link'] ?? null,
+                'portfolio_link' => $validated['portfolio_link'] ?? null,
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Trainer skills updated successfully!',
+        ]);
+    }
+
+    public function updateAdditionalInfo(Request $request)
+    {
+        $userId = auth()->id();
+        
+        // Validate all 3 possible uploads
+        $validated = $request->validate([
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        // Loop over each type
+        foreach (['resume', 'profile', 'training_certificate'] as $type) {
+            if ($request->hasFile($type)) {
+                $file = $request->file($type);
+                $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads'), $fileName);
+                $path = asset('uploads/' . $fileName);
+
+                AdditionalInfo::updateOrCreate(
+                    ['user_id' => $userId, 'user_type' => 'trainer', 'doc_type' => $type],
+                    ['document_path' => $path, 'document_name' => $fileName]
+                );
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Trainer documents updated successfully!'
+        ]);
+    }
+
+
+    public function deleteAdditionalFile($type)
+    {
+        $userId = auth()->id();
+
+        $file = AdditionalInfo::where('user_id', $userId)->where('doc_type', $type)->first();
+
+        if ($file) {
+            $publicPath = str_replace(asset('') . '/', '', $file->document_path);
+            $filePath = public_path($publicPath);
+
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+
+            $file->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => ucfirst(str_replace('_', ' ', $type)) . ' deleted successfully.',
+                'type' => $type
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => ucfirst(str_replace('_', ' ', $type)) . ' not found.'
+        ], 404);
+    }
+
+
 
 }

@@ -44,6 +44,7 @@
                                             <th class="px-6 py-3 text-left">Sr. No.</th>
                                             <th class="px-6 py-3 text-left">Title</th>
                                             <th class="px-6 py-3 text-left">Price</th>
+                                            <th class="px-6 py-3 text-left">Offer Price</th>
                                             <th class="px-6 py-3 text-left">Action</th>
                                         </tr>
                                     </thead>
@@ -53,6 +54,7 @@
                                                 <td class="px-6 py-3">{{ $loop->iteration }}</td>
                                                 <td class="px-6 py-3">{{ $training->training_title }}</td>
                                                 <td class="px-6 py-3">₹{{ number_format($training->training_price ?? 0, 2) }}</td>
+                                                <td class="px-6 py-3">₹{{ number_format($training->training_offer_price ?? 0, 2) }}</td>
                                                 <td class="px-6 py-3">
                                                     <a href="{{ route('trainer.training.recorded.edit', $training->id) }}"
                                                     class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
@@ -83,6 +85,7 @@
                                             <th class="px-6 py-3 text-left">Sr. No.</th>
                                             <th class="px-6 py-3 text-left">Title</th>
                                             <th class="px-6 py-3 text-left">Price</th>
+                                            <th class="px-6 py-3 text-left">Offer Price</th>
                                             <th class="px-6 py-3 text-left">Action</th>
                                         </tr>
                                     </thead>
@@ -92,6 +95,7 @@
                                                 <td class="px-6 py-3">{{ $loop->iteration }}</td>
                                                 <td class="px-6 py-3">{{ $training->training_title }}</td>
                                                 <td class="px-6 py-3">₹{{ number_format($training->training_price ?? 0, 2) }}</td>
+                                                <td class="px-6 py-3">₹{{ number_format($training->training_offer_price ?? 0, 2) }}</td>
                                                 <td class="px-6 py-3">
                                                     <a href="{{ route('trainer.training.online.edit', $training->id) }}"
                                                     class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
@@ -121,6 +125,7 @@
                                             <th class="px-6 py-3 text-left">Sr. No.</th>
                                             <th class="px-6 py-3 text-left">Title</th>
                                             <th class="px-6 py-3 text-left">Price</th>
+                                            <th class="px-6 py-3 text-left">Offer Price</th>
                                             <th class="px-6 py-3 text-left">Action</th>
                                         </tr>
                                     </thead>
@@ -130,6 +135,7 @@
                                                 <td class="px-6 py-3">{{ $loop->iteration }}</td>
                                                 <td class="px-6 py-3">{{ $training->training_title }}</td>
                                                 <td class="px-6 py-3">₹{{ number_format($training->training_price ?? 0, 2) }}</td>
+                                                <td class="px-6 py-3">₹{{ number_format($training->training_offer_price ?? 0, 2) }}</td>
                                                 <td class="px-6 py-3">
                                                     <a href="{{ route('trainer.training.online.edit', $training->id) }}"
                                                     class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
