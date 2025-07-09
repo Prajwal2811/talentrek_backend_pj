@@ -36,8 +36,11 @@ class JobseekerController extends Controller
             ], 401);
         }
 
+        $iSRegistered = $jobseeker->status !== null;
+
         return response()->json([
             'status' => true,
+            'iSRegistered' => $iSRegistered,
             'message' => 'Login successful',
             'data' => [
                 'id' => $jobseeker->id,
@@ -45,6 +48,7 @@ class JobseekerController extends Controller
                 'email' => $jobseeker->email
             ]
         ]);
+
 
     }
 

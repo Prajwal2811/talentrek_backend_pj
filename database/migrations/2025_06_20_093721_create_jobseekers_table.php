@@ -34,6 +34,8 @@ return new class extends Migration
             $table->text('rejection_reason')->nullable(); // Removed ->after('status')
             $table->text('shortlist')->nullable(); // Removed ->after('status')
             $table->text('admin_recruiter_status')->nullable(); // Removed ->after('status')
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
             $table->timestamps();
         });
 

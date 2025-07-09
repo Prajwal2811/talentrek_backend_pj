@@ -27,6 +27,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-verify-otp', [JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
 		Route::get('reset-password', [JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');
 		Route::post('/submit-reset-password', [JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
+
+
+		Route::get('jobseeker/auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		Route::get('jobseeker/auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
+
 	});
 	
 	Route::group(['middleware' => 'jobseeker.auth'], function(){
@@ -42,7 +47,6 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/profile/update-skills-info',[JobseekerController::class, 'updateSkillsInfo'])->name('jobseeker.skill.update'); 
 		Route::post('/profile/additional-info',[JobseekerController::class, 'updateAdditionalInfo'])->name('jobseeker.additional.update'); 
 		Route::delete('/jobseeker/additional/delete/{type}', [JobseekerController::class, 'deleteAdditionalFile'])->name('jobseeker.additional.delete');
-
 
 	});
 });

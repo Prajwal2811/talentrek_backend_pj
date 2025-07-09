@@ -54,29 +54,20 @@
                             @enderror
                         </div>
 
-                        
+                        @php
+                            $categories = App\Models\TrainingCategory::all();
+                        @endphp
                         <!-- Category (Single selection with radio buttons) -->
                         <div class="mb-4">
                             <label class="block font-medium mb-2">Category</label>
                             <div class="flex flex-wrap gap-4">
-                                <label>
-                                    <input type="radio" name="training_category" value="business" class="mr-2" /> Business
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="development" class="mr-2" /> Development
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="design" class="mr-2" /> Design
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="marketing" class="mr-2" /> Marketing
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="health & fitness" class="mr-2" /> Health & Fitness
-                                </label>
+                                @foreach ($categories as $category)
+                                    <label>
+                                        <input type="radio" name="training_category" value="{{ $category->category }}" class="mr-2" /> {{ $category->category }}
+                                    </label>
+                                @endforeach
                             </div>
                         </div>
-
 
                        
                         <!-- Course Content Structure -->
@@ -116,7 +107,7 @@
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Upload Thumbnail</label>
                             <div class="flex gap-4 items-center">
-                                <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
+                                <input type="file" accept="image/*" name="thumbnail" class="border rounded-md p-2 flex-1" />
                             </div>
                         </div>
 
@@ -279,7 +270,7 @@
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input type="file" name="content_sections[${index}][file]" style="display:none" />
+                                <input  accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">

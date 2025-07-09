@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;    
 use DB;
+use Laravel\Socialite\Facades\Socialite;
+
 
 class JobseekerController extends Controller
 {
@@ -258,6 +260,36 @@ class JobseekerController extends Controller
     }
 
 
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
+
+            if (!$jobseeker) {
+                session()->flash('error', 'No account associated with this Google email.');
+                return redirect()->route('jobseeker.sign-in');
+            }
+
+            if ($jobseeker->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('jobseeker.sign-in');
+            }
+
+            Auth::guard('jobseeker')->login($jobseeker);
+            return redirect()->route('jobseeker.registration');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed.');
+            return redirect()->route('jobseeker.sign-in');
+        }
+    }
+
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
@@ -293,7 +325,6 @@ class JobseekerController extends Controller
         ));
 
     }
-
 
 
     

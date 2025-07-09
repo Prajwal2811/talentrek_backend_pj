@@ -99,6 +99,8 @@
 
                 @php
                     $menuItems = [
+                        'Training Category' => ['route' => 'admin.training-category', 'icon' => 'fa-file-alt'],
+                        'Reviews' => ['route' => 'admin.reviews', 'icon' => 'fa-file-alt'],
                         'CMS' => ['route' => 'admin.cms', 'icon' => 'fa-file-alt'],
                         'Subscriptions' => ['route' => 'admin.subscriptions', 'icon' => 'fa-credit-card'],
                         'Certification Template' => ['route' => 'admin.certification.template', 'icon' => 'fa-certificate'],

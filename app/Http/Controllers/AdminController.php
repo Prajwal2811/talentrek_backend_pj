@@ -18,6 +18,7 @@ use App\Models\Testimonial;
 use App\Models\Trainers;
 use App\Models\Language;
 use App\Models\Resume;
+use App\Models\Review;
 use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use DB;
 class AdminController extends Controller
 {
     public function authenticate(Request $request)
@@ -1512,6 +1514,54 @@ class AdminController extends Controller
     {
         return view('admin.contact-support');
     }
+
+
+    public function reviews()
+    {
+        $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
+                    ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+                    ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+                    ->get();
+
+        // echo "<pre>"; print_r($reviews); die;
+        return view('admin.reviews.index', compact('reviews'));
+    }
+
+
+    public function viewReview($id)
+    {
+        $review = Review::select('reviews.*', 'jobseekers.name as reviewer_name', 'jobseekers.email as reviewer_email')
+            ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+            ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+            ->where('reviews.id', $id)
+            ->first();
+
+        // Determine Reviewee Name based on user_type
+        $revieweeName = null;
+
+        switch ($review->user_type) {
+            case 'trainer':
+                $reviewee = DB::table('trainers')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+            case 'mentor':
+                $reviewee = DB::table('mentors')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+            case 'coach':
+                $reviewee = DB::table('coaches')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+            case 'assessor':
+                $reviewee = DB::table('assessors')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+        }
+
+        return view('admin.reviews.view', compact('review', 'revieweeName'));
+    }
+
+
 
    public function showActivityLog()
     {

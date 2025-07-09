@@ -78,8 +78,7 @@
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Upload Thumbnail</label>
                             <div class="flex gap-4 items-center">
-                            <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
-                            <button class="bg-green-600 hover:bg-green-500 text-white rounded-md px-4 py-2">Upload</button>
+                            <input type="file" accept="image/*" name="thumbnail" class="border rounded-md p-2 flex-1" />
                             </div>
                         </div>
 

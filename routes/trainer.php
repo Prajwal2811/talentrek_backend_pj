@@ -49,6 +49,8 @@ Route::group(['prefix' => 'trainer'], function() {
 		// Assessment
 		Route::get('/assessment/list', [App\Http\Controllers\TrainerController::class, 'assessmentList'])->name('assessment.list');
 		Route::get('/assessment/add', [App\Http\Controllers\TrainerController::class, 'addAssessment'])->name('assessment.add');
+		Route::post('/assessment/store', [App\Http\Controllers\TrainerController::class, 'assessmentStore'])->name('trainer.assessment.store');
+		Route::post('/assessment/assign/course', [App\Http\Controllers\TrainerController::class, 'assignCourse'])->name('trainer.assessment.assign.course');
 
 		// Batch
 		Route::get('/batch', [App\Http\Controllers\TrainerController::class, 'batch'])->name('batch');

@@ -35,6 +35,8 @@ class DatabaseSeeder extends Seeder
             AssessmentOptionsTableSeeder::class,
             LanguageSeeder::class,
             ResumeSeeder::class,
+            TrainingCategorySeeder::class,
+            ReviewSeeder::class,
 
         ]);
         

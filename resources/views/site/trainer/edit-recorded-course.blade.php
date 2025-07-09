@@ -14,12 +14,9 @@
 	
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
-          
             @include('site.trainer.componants.sidebar')
-
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
-
                 <main class="p-6 ">
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
 
@@ -60,35 +57,27 @@
                         </div>
 
                         <!-- Category (Radio buttons) -->
+                        @php
+                            use App\Models\TrainingCategory;
+
+                            $categories = TrainingCategory::all();
+                            $selectedCategory = old('training_category', $training->training_category ?? '');
+                        @endphp
+
+                        <!-- Category (Single selection with radio buttons) -->
                         <div class="mb-4">
                             <label class="block font-medium mb-2">Category</label>
                             <div class="flex flex-wrap gap-4">
-                                @php
-                                    $selectedCategory = old('training_category', $training->training_category);
-                                @endphp
-
-                                <label>
-                                    <input type="radio" name="training_category" value="business" class="mr-2"
-                                        {{ $selectedCategory === 'business' ? 'checked' : '' }} /> Business
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="development" class="mr-2"
-                                        {{ $selectedCategory === 'development' ? 'checked' : '' }} /> Development
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="design" class="mr-2"
-                                        {{ $selectedCategory === 'design' ? 'checked' : '' }} /> Design
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="marketing" class="mr-2"
-                                        {{ $selectedCategory === 'marketing' ? 'checked' : '' }} /> Marketing
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="health & fitness" class="mr-2"
-                                        {{ $selectedCategory === 'health & fitness' ? 'checked' : '' }} /> Health & Fitness
-                                </label>
+                                @foreach ($categories as $category)
+                                    <label>
+                                        <input type="radio" name="training_category" value="{{ $category->category }}" class="mr-2"
+                                            {{ $selectedCategory === $category->category ? 'checked' : '' }} />
+                                        {{ $category->category }}
+                                    </label>
+                                @endforeach
                             </div>
                         </div>
+
 
 
 
@@ -197,233 +186,128 @@
    
                      
                 </main>
+                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                <script>
+                    const otherCheckbox = document.getElementById('other-checkbox');
+                    const otherTextInput = document.getElementById('other-text');
+                    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
 
-
-
-            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-            <script>
-                const otherCheckbox = document.getElementById('other-checkbox');
-                const otherTextInput = document.getElementById('other-text');
-                const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
-
-                otherCheckbox.addEventListener('change', () => {
-                    if (otherCheckbox.checked) {
-                        // Uncheck all other checkboxes and hide their effect
-                        categoryCheckboxes.forEach(cb => {
-                            cb.checked = false;
-                        });
-                        otherTextInput.style.display = 'block';
-                        otherTextInput.focus();
-                    } else {
-                        otherTextInput.style.display = 'none';
-                        otherTextInput.value = '';
-                    }
-                });
-
-                categoryCheckboxes.forEach(cb => {
-                    cb.addEventListener('change', () => {
-                        if (cb.checked) {
-                            // If any other checkbox is checked, uncheck "Others" and hide text input
-                            otherCheckbox.checked = false;
+                    otherCheckbox.addEventListener('change', () => {
+                        if (otherCheckbox.checked) {
+                            // Uncheck all other checkboxes and hide their effect
+                            categoryCheckboxes.forEach(cb => {
+                                cb.checked = false;
+                            });
+                            otherTextInput.style.display = 'block';
+                            otherTextInput.focus();
+                        } else {
                             otherTextInput.style.display = 'none';
                             otherTextInput.value = '';
                         }
                     });
-                });
-            </script>
-            <!-- <script>
-                const addBtn = document.getElementById('addContentBtn');
-                const titleInput = document.getElementById('sectionTitle');
-                const contentInput = document.getElementById('contentText');
-                const tableBody = document.querySelector('#courseTable tbody');
 
-                addBtn.addEventListener('click', () => {
-                    const title = titleInput.value.trim();
-                    const content = contentInput.value.trim();
-
-                    if (!title || !content) {
-                        alert('Please enter both Section Title and Contents.');
-                        return;
-                    }
-
-                    const rowCount = tableBody.rows.length + 1;
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="p-2 border">${rowCount}</td>
-                        <td class="p-2 border font-medium">${title}</td>
-                        <td class="p-2 border text-sm text-gray-600">${content}</td>
-                        <td class="p-2 border text-center">
-                            <button class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">
-                                Upload File
-                            </button>
-                            <input type="file" style="display:none" />
-                        </td>
-                        <td class="p-2 border text-center">
-                            <button class="text-red-600 delete-btn" aria-label="Delete row">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6 2a2 2 0 00-2 2v1H2v2h1v9a2 2 0 002 2h10a2 2 0 002-2V7h1V5h-2V4a2 2 0 00-2-2H6zm0 3h8v1H6V5zm1 3v7h2V8H7zm4 0v7h2V8h-2z" />
-                                </svg>
-                            </button>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(tr);
-
-                    titleInput.value = '';
-                    contentInput.value = '';
-
-                    updateSerialNumbers();
-                });
-
-                tableBody.addEventListener('click', (e) => {
-                    if (e.target.closest('.delete-btn')) {
-                        e.target.closest('tr').remove();
-                        updateSerialNumbers();
-                    } else if (e.target.closest('.upload-btn')) {
-                        const btn = e.target.closest('.upload-btn');
-                        const fileInput = btn.nextElementSibling;
-                        fileInput.click();
-                    }
-                });
-
-                tableBody.addEventListener('change', (e) => {
-                    if (e.target.type === 'file') {
-                        const fileInput = e.target;
-                        const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
-                        const btn = fileInput.previousElementSibling;
-                        btn.textContent = fileName;
-                    }
-                });
-
-                function updateSerialNumbers() {
-                    [...tableBody.rows].forEach((row, i) => {
-                        row.cells[0].textContent = i + 1;
-                    });
-                }
-            </script> -->
-
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    const addBtn = document.getElementById('addContentBtn');
-                    const titleInput = document.getElementById('sectionTitle');
-                    const contentInput = document.getElementById('contentText');
-                    const tableBody = document.querySelector('#courseTable tbody');
-
-                    // Start from existing count
-                    let index = tableBody.querySelectorAll('tr').length;
-
-                    addBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-
-                        const title = titleInput.value.trim();
-                        const content = contentInput.value.trim();
-
-                        if (!title || !content) {
-                            alert('Please enter both Section Title and Contents.');
-                            return;
-                        }
-
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td class="p-2 border">${tableBody.rows.length + 1}</td>
-                            <td class="p-2 border font-medium">
-                                ${title}
-                                <input type="hidden" name="content_sections[${index}][title]" value="${title}">
-                            </td>
-                            <td class="p-2 border text-sm text-gray-600">
-                                ${content}
-                                <input type="hidden" name="content_sections[${index}][description]" value="${content}">
-                            </td>
-                            <td class="p-2 border text-center">
-                                <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input type="file" name="content_sections[${index}][file]" style="display:none" />
-                            </td>
-                            <td class="p-2 border text-center">
-                                <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 2a2 2 0 00-2 2v1H2v2h1v9a2 2 0 002 2h10a2 2 0 002-2V7h1V5h-2V4a2 2 0 00-2-2H6zm0 3h8v1H6V5zm1 3v7h2V8H7zm4 0v7h2V8h-2z" />
-                                    </svg>
-                                </button>
-                            </td>
-                        `;
-
-                        tableBody.appendChild(tr);
-                        titleInput.value = '';
-                        contentInput.value = '';
-                        index++;
-                        updateSerialNumbers();
-                    });
-
-                    tableBody.addEventListener('click', (e) => {
-                        if (e.target.closest('.delete-btn')) {
-                            e.target.closest('tr').remove();
-                            updateSerialNumbers();
-                        } else if (e.target.closest('.upload-btn')) {
-                            const btn = e.target.closest('.upload-btn');
-                            const fileInput = btn.nextElementSibling;
-                            fileInput.click();
-                        }
-                    });
-
-                    tableBody.addEventListener('change', (e) => {
-                        if (e.target.type === 'file') {
-                            const fileInput = e.target;
-                            const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
-                            const btn = fileInput.previousElementSibling;
-                            btn.textContent = fileName;
-                        }
-                    });
-
-                    function updateSerialNumbers() {
-                        [...tableBody.rows].forEach((row, i) => {
-                            row.cells[0].textContent = i + 1;
+                    categoryCheckboxes.forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            if (cb.checked) {
+                                // If any other checkbox is checked, uncheck "Others" and hide text input
+                                otherCheckbox.checked = false;
+                                otherTextInput.style.display = 'none';
+                                otherTextInput.value = '';
+                            }
                         });
-                    }
-                });
-            </script>
+                    });
+                </script>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const addBtn = document.getElementById('addContentBtn');
+                        const titleInput = document.getElementById('sectionTitle');
+                        const contentInput = document.getElementById('contentText');
+                        const tableBody = document.querySelector('#courseTable tbody');
 
+                        // Start from existing count
+                        let index = tableBody.querySelectorAll('tr').length;
 
+                        addBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
 
+                            const title = titleInput.value.trim();
+                            const content = contentInput.value.trim();
 
+                            if (!title || !content) {
+                                alert('Please enter both Section Title and Contents.');
+                                return;
+                            }
 
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td class="p-2 border">${tableBody.rows.length + 1}</td>
+                                <td class="p-2 border font-medium">
+                                    ${title}
+                                    <input type="hidden" name="content_sections[${index}][title]" value="${title}">
+                                </td>
+                                <td class="p-2 border text-sm text-gray-600">
+                                    ${content}
+                                    <input type="hidden" name="content_sections[${index}][description]" value="${content}">
+                                </td>
+                                <td class="p-2 border text-center">
+                                    <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
+                                    <input type="file" name="content_sections[${index}][file]" style="display:none" />
+                                </td>
+                                <td class="p-2 border text-center">
+                                    <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M6 2a2 2 0 00-2 2v1H2v2h1v9a2 2 0 002 2h10a2 2 0 002-2V7h1V5h-2V4a2 2 0 00-2-2H6zm0 3h8v1H6V5zm1 3v7h2V8H7zm4 0v7h2V8h-2z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            `;
+
+                            tableBody.appendChild(tr);
+                            titleInput.value = '';
+                            contentInput.value = '';
+                            index++;
+                            updateSerialNumbers();
+                        });
+
+                        tableBody.addEventListener('click', (e) => {
+                            if (e.target.closest('.delete-btn')) {
+                                e.target.closest('tr').remove();
+                                updateSerialNumbers();
+                            } else if (e.target.closest('.upload-btn')) {
+                                const btn = e.target.closest('.upload-btn');
+                                const fileInput = btn.nextElementSibling;
+                                fileInput.click();
+                            }
+                        });
+
+                        tableBody.addEventListener('change', (e) => {
+                            if (e.target.type === 'file') {
+                                const fileInput = e.target;
+                                const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
+                                const btn = fileInput.previousElementSibling;
+                                btn.textContent = fileName;
+                            }
+                        });
+
+                        function updateSerialNumbers() {
+                            [...tableBody.rows].forEach((row, i) => {
+                                row.cells[0].textContent = i + 1;
+                            });
+                        }
+                    });
+                </script>
             </div>
         </div>
     </div>
+
+
+
+            @include('site.trainer.componants.footer')
+
+
            
 
 
 
           
 
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>

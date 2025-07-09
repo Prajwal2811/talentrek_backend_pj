@@ -151,6 +151,15 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/cms/banner-update', [AdminController::class, 'updateBanner'])->name('admin.cms.banner.update');
 		});
 
+
+		// Training Category Module
+		Route::middleware('admin.module:Training Category')->group(function () {
+			Route::get('/training-category', [AdminController::class, 'trainingCategory'])->name('admin.training-category');
+			Route::get('/training-category/{slug}/edit', [AdminController::class, 'trainingCategoryEdit'])->name('admin.cmtraining-categorys.edit');
+			Route::post('/training-category/training-category-update', [AdminController::class, 'updatetrainingCategory'])->name('admin.training-category.update');
+		});
+
+
 		// Testimonials Module
 		Route::middleware('admin.module:Testimonials')->group(function () {
 			Route::get('/testimonials', [AdminController::class, 'testimonials'])->name('admin.testimonials');
@@ -162,6 +171,13 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/testimonials/delete/{id}', [AdminController::class, 'destroyTestimonial'])->name('admin.testimonials.delete');
 		});
 
+
+		// Reviews
+		Route::middleware('admin.module:Reviews')->group(function () {
+			Route::get('/reviews', [AdminController::class, 'reviews'])->name('admin.reviews');
+			Route::get('/reviews/view/{id}', [AdminController::class, 'viewReview'])->name('admin.reviews.view');
+
+		});
 	
 		// Certification Template
 		Route::middleware('admin.module:Certification Template')->group(function () {

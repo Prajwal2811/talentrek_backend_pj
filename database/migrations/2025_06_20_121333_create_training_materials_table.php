@@ -26,6 +26,7 @@ return new class extends Migration
 
             $table->string('training_category')->nullable();            // Technical, Soft Skills, etc.
             $table->decimal('training_price', 10, 2)->default(0);       // e.g. 299.99
+            $table->decimal('training_offer_price', 10, 2)->default(0);       // e.g. 299.99
 
             // Thumbnail
             $table->string('thumbnail_file_path')->nullable();          // Storage path
