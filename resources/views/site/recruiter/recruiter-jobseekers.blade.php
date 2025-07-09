@@ -75,7 +75,7 @@
                     </div>
                 </nav>
 
-                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="jobseekerDashboard()">
+                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="">
                     <h2 class="text-2xl font-semibold mb-6">Jobseekers</h2>
                     <div class="flex space-x-6">
 
@@ -231,26 +231,48 @@
 
                                             <!-- Shortlist Button -->
                                             <div class="ml-4 flex space-x-2">
-                                                @if($shortlisted_jobseeker->admin_recruiter_status === 'approved')
-                                                    <button class="border border-green-500 text-green-500 text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
-                                                        Approved
-                                                    </button>
-                                                    <a href="{{ route('recruiter.jobseeker.details', ['jobseeker_id' => $shortlisted_jobseeker->id]) }}" 
-                                                        class="bg-blue-500 text-white text-sm px-4 py-1.5 rounded inline-block">
-                                                        View Profile
-                                                    </a>
+                                                @php
+                                                    $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'approved';
+                                                    $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? NULL) === 'yes';
+                                                    $jobseekerId = $shortlisted_jobseeker->id;
+                                                @endphp
 
-                                                    
-                                                @else
-                                                    <button class="border border-red-500 text-red-500 text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
-                                                        Pending
-                                                    </button>
-                                                    <button class="bg-gray-600 text-white text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
-                                                        View Profile
-                                                    </button>
-                                                    
-                                                @endif
+                                                <!-- Status Label -->
+                                                <button class="border text-xs px-2 py-1 rounded cursor-not-allowed
+                                                    {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}" disabled>
+                                                    {{ $isApproved ? 'Approved' : 'Pending' }}
+                                                </button>
+
+                                                <!-- View Profile -->
+                                                <a href="{{ $isApproved ? route('recruiter.jobseeker.details', ['jobseeker_id' => $jobseekerId]) : '#' }}"
+                                                class="text-white text-xs px-2 py-1 rounded inline-block
+                                                {{ $isApproved ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 cursor-not-allowed' }}"
+                                                {{ $isApproved ? '' : 'onclick=event.preventDefault()' }}>
+                                                    View Profile
+                                                </a>
+
+                                                <!-- Interview Request Button -->
+                                                <button
+                                                    id="interview-btn-{{ $jobseekerId }}"
+                                                    onclick="confirmInterviewRequest({{ $jobseekerId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
+                                                    class="text-white text-xs px-2 py-1 rounded
+                                                    {{ $isApproved ? ($interviewRequested ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-500 hover:bg-purple-600') : 'bg-gray-600 cursor-not-allowed' }}"
+                                                    @if($interviewRequested || !$isApproved) disabled @endif
+                                                >
+                                                    {{ $interviewRequested ? 'Interview Requested' : 'Interview Request' }}
+                                                </button>
+
                                             </div>
+
+
+
+
+
+
+
+
+
+
 
 
                                         </div>
@@ -267,6 +289,74 @@
                         </div>
                     </div> 
                 </main>
+                <!-- SweetAlert2 CDN -->
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                <script>
+                    function confirmInterviewRequest(jobseekerId, isApproved, interviewRequested) {
+                        if (!isApproved || interviewRequested) return;
+
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: "Do you want to send interview request?",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#4CAF50',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, send it!',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                sendInterviewRequest(jobseekerId);
+                            }
+                        });
+                    }
+
+                    function sendInterviewRequest(jobseekerId) {
+                        const btn = document.getElementById('interview-btn-' + jobseekerId);
+                        btn.disabled = true;
+                        btn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                        btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        btn.innerText = 'Interview Requested';
+
+                        fetch("{{ route('recruiter.interview.request.submit') }}", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ jobseeker_id: jobseekerId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire(
+                                    'Success!',
+                                    'Interview request sent successfully.',
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    data.message || 'Something went wrong.',
+                                    'error'
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error!', 'Failed to send request.', 'error');
+                        });
+                    }
+                    </script>
+
+
+
+
+              
+
+
+
                 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
                 <script>

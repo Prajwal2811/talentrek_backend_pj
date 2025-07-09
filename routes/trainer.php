@@ -66,7 +66,16 @@ Route::group(['prefix' => 'trainer'], function() {
 
 		// Trainer Settings
 		Route::get('/trainer-settings', [App\Http\Controllers\TrainerController::class, 'trainerSettings'])->name('trainer.settings');
-		
+		Route::delete('/delete', [App\Http\Controllers\TrainerController::class, 'deleteAccount'])->name('trainer.destroy');
+		Route::get('/trainer-settings', [App\Http\Controllers\TrainerController::class, 'getTrainerAllDetails'])->name('trainer.settings');
+
+		Route::post('/profile/update-personal-info',[TrainerController::class, 'updatePersonalInfo'])->name('trainer.profile.update');
+		Route::post('/profile/update-education-info',[TrainerController::class, 'updateEducationInfo'])->name('trainer.education.update');
+		Route::post('/profile/update-work-exprience-info',[TrainerController::class, 'updateWorkExprienceInfo'])->name('trainer.workexprience.update'); 
+		Route::post('/profile/update-skills-info',[TrainerController::class, 'updateTrainerSkillsInfo'])->name('trainer.skill.update'); 
+		Route::post('/profile/additional-info',[TrainerController::class, 'updateAdditionalInfo'])->name('trainer.additional.update'); 
+		Route::delete('/profile/additional/delete/{type}', [TrainerController::class, 'deleteAdditionalFile'])->name('trainer.additional.delete');
+
 
 	});
 

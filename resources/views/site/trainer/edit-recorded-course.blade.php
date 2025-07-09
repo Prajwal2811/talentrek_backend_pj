@@ -176,6 +176,32 @@
                         </div>
 
 
+                        <!-- Course Price and Offer Price -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Course Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Price</label>
+                                <input type="text" name="training_price" placeholder="Enter Course Price"
+                                value="{{ old('training_price', $training->training_price) }}"
+                                class="w-full border rounded-md p-2" />
+                                @error('training_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Course Offer Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Offer Price</label>
+                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price"
+                                value="{{ old('training_offer_price', $training->training_offer_price) }}"
+                                class="w-full border rounded-md p-2" />
+                                @error('training_offer_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+
                         <!-- Submit Button -->
                         <div class="text-right">
                             <button type="submit" class="bg-blue-800 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-md font-semibold">

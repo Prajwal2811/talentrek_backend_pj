@@ -346,13 +346,19 @@ class RecruiterController extends Controller
                ->whereNotIn('id', $shortlistedIds)
                ->get();
           
+          // $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+          //      ->where('status', 'active')
+          //      ->where('admin_status', 'approved','superadmin_approved')
+          //      ->whereIn('id', $shortlistedIds)
+          //      ->get();
+
           $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-               ->where('status', 'active')
-               ->where('admin_status', 'approved','superadmin_approved')
-               ->whereIn('id', $shortlistedIds)
+               ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+               ->where('shortlist.recruiter_id', $recruiterId)
+               ->where('jobseekers.status', 'active')
+               ->select('jobseekers.*', 'shortlist.admin_status as shortlist_admin_status')
                ->get();
 
-          // echo "<pre>"; print_r($jobseekers); die;
           return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }
 
@@ -380,6 +386,42 @@ class RecruiterController extends Controller
 
           return redirect()->back()->with('success', 'Jobseeker shortlisted successfully');
      }
+
+     public function interviewRequestSubmit(Request $request)
+     {
+     $request->validate([
+          'jobseeker_id' => 'required|integer',
+     ]);
+
+     $recruiter = auth()->user();
+     $jobseekerId = $request->input('jobseeker_id');
+
+     $shortlist = RecruiterJobseekersShortlist::where([
+          'company_id' => $recruiter->id,
+          'recruiter_id' => $recruiter->recruiter_id,
+          'jobseeker_id' => $jobseekerId,
+     ])->first();
+
+     if ($shortlist) {
+          $shortlist->update([
+               'interview_request' => 'yes',
+          ]);
+     } else {
+          RecruiterJobseekersShortlist::create([
+               'company_id' => $recruiter->id,
+               'recruiter_id' => $recruiter->recruiter_id,
+               'jobseeker_id' => $jobseekerId,
+               'status' => 'yes',
+               'admin_status' => 'pending',
+               'interview_request' => 'yes',
+               'interview_url' => null,
+          ]);
+     }
+
+     return response()->json(['success' => true, 'message' => 'Interview request sent.']);
+     }
+
+
 
 
      public function getJobseekerDetails($jobseeker_id)
