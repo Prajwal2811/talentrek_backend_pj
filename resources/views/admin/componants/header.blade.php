@@ -30,8 +30,8 @@
 <link rel="stylesheet" href="{{ asset('asset/backend/vendor/sweetalert/sweetalert.css') }}">
     
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
 <!-- Custom Css -->
 <link rel="stylesheet" href="{{ asset('asset/backend/css/mooli.min.css') }}">

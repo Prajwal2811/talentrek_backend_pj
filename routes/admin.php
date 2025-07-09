@@ -25,6 +25,11 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::post('/settings/store', [AdminController::class, 'settingsUpdate'])->name('admin.settings.store');
 		Route::post('/settings/store-media', [AdminController::class, 'storeMediaLinks'])->name('admin.settings.store-media');
 
+
+		Route::get('/resume-format', [AdminController::class, 'resume'])->name('admin.resume');
+		Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
+
+
 		// Logout
 		Route::get('/logout', [AdminController::class, 'signOut'])->name('admin.signOut');
 
@@ -81,7 +86,6 @@ Route::group(['prefix' => 'admin'], function() {
             Route::get('/trainer/{trainer}/training-assessment/{assessment}/view', [App\Http\Controllers\AdminController::class, 'viewTrainingAssessmentDetail'])->name('admin.trainer.training-assessment.view');
 
 		});
-
         // Expats Module
         Route::middleware('admin.module:Expats')->group(function () {
 			Route::get('/expat', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expat');
@@ -125,8 +129,6 @@ Route::group(['prefix' => 'admin'], function() {
         // Languages
         Route::middleware('admin.module:Languages')->group(function () {
 		    Route::get('/languages', [App\Http\Controllers\AdminController::class, 'languages'])->name('admin.languages');
-		    Route::post('/languages/update', [AdminController::class, 'updateLanguage'])->name('admin.language.update');
-
         });
 
 
@@ -134,8 +136,12 @@ Route::group(['prefix' => 'admin'], function() {
         Route::middleware('admin.module:Recruiters')->group(function () {
 			Route::get('/recruiters', [App\Http\Controllers\AdminController::class, 'recruiters'])->name('admin.recruiters');
             Route::get('/recruiter/{id}/view', [App\Http\Controllers\AdminController::class, 'recruiterView'])->name('admin.recruiter.view');
+            Route::get('/recruiter/{id}/shortlisted-jobseekers', [App\Http\Controllers\AdminController::class, 'viewShortlistedJobseekers'])->name('admin.recruiter.shortlisted-jobseekers');
+			Route::post('/shortlist/update-status', [App\Http\Controllers\AdminController::class, 'updateStatusForShortlist'])->name('admin.shortlist.updateStatus');
             Route::post('/recruiter/changeStatus', [App\Http\Controllers\AdminController::class, 'recruiterChangeStatus'])->name('admin.recruiter.changeStatus');	
             Route::post('/recruiter/update-status', [App\Http\Controllers\AdminController::class, 'updateRecruiterStatus'])->name('admin.recruiter.updateStatus');
+
+
 		});
 
 		// CMS Module
@@ -144,6 +150,15 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::get('/cms/{slug}/edit', [AdminController::class, 'cmsEdit'])->name('admin.cms.edit');
 			Route::post('/cms/banner-update', [AdminController::class, 'updateBanner'])->name('admin.cms.banner.update');
 		});
+
+
+		// Training Category Module
+		Route::middleware('admin.module:Training Category')->group(function () {
+			Route::get('/training-category', [AdminController::class, 'trainingCategory'])->name('admin.training-category');
+			Route::get('/training-category/{slug}/edit', [AdminController::class, 'trainingCategoryEdit'])->name('admin.cmtraining-categorys.edit');
+			Route::post('/training-category/training-category-update', [AdminController::class, 'updatetrainingCategory'])->name('admin.training-category.update');
+		});
+
 
 		// Testimonials Module
 		Route::middleware('admin.module:Testimonials')->group(function () {
@@ -156,6 +171,13 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/testimonials/delete/{id}', [AdminController::class, 'destroyTestimonial'])->name('admin.testimonials.delete');
 		});
 
+
+		// Reviews
+		Route::middleware('admin.module:Reviews')->group(function () {
+			Route::get('/reviews', [AdminController::class, 'reviews'])->name('admin.reviews');
+			Route::get('/reviews/view/{id}', [AdminController::class, 'viewReview'])->name('admin.reviews.view');
+
+		});
 	
 		// Certification Template
 		Route::middleware('admin.module:Certification Template')->group(function () {
@@ -163,11 +185,11 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/certification-template-update', [AdminController::class, 'updateTemplate'])->name('admin.certification.update');
 		});
 
-
 		// Contact Support
 		Route::middleware('admin.module:Certification Template')->group(function () {
 			Route::get('/contact-support', [AdminController::class, 'contactSupport'])->name('admin.contact_support');
 		});
+
 
 	
 	});

@@ -99,6 +99,8 @@
 
                 @php
                     $menuItems = [
+                        'Training Category' => ['route' => 'admin.training-category', 'icon' => 'fa-file-alt'],
+                        'Reviews' => ['route' => 'admin.reviews', 'icon' => 'fa-file-alt'],
                         'CMS' => ['route' => 'admin.cms', 'icon' => 'fa-file-alt'],
                         'Subscriptions' => ['route' => 'admin.subscriptions', 'icon' => 'fa-credit-card'],
                         'Certification Template' => ['route' => 'admin.certification.template', 'icon' => 'fa-certificate'],
@@ -106,6 +108,7 @@
                         'Languages' => ['route' => 'admin.languages', 'icon' => 'fa-language'],
                         'Settings' => ['route' => 'admin.settings', 'icon' => 'fa-cog'],
                         'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-cog'],
+                        'Resume Format' => ['route' => 'admin.resume', 'icon' => 'fa-file-word'],
                     ];
                 @endphp
 
