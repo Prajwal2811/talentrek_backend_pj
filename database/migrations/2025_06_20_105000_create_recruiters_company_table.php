@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('no_of_employee')->nullable();
             $table->string('industry_type')->nullable();
             $table->string('registration_number')->nullable();
-            $table->string('status')->nullable();
+            $table->string('status')->default('active');
             $table->string('admin_status')->nullable();
             $table->string('inactive_reason')->nullable();
             $table->string('rejection_reason')->nullable();

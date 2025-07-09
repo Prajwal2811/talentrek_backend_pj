@@ -119,6 +119,7 @@
                                                     <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
                                                 </th>
                                                 <th>Sr. No.</th>
+                                                <th>Tracking ID</th>
                                                 <th>Full Name</th>
                                                 <th>Email</th>
                                                 <th>Phone</th>
@@ -135,6 +136,7 @@
                                                     @endif >
                                                 </th>
                                                 <th>Sr. No.</th>
+                                                <th>Tracking ID</th>
                                                 <th>Full Name</th>
                                                 <th>Email</th>
                                                 <th>Phone</th>
@@ -153,8 +155,16 @@
                                                         data-name="{{ $jobseeker->name }}"
                                                         @if ($jobseeker->assigned_admin) checked disabled @endif>
                                                 </td>
-
                                                 <td>{{ $index + 1 }}</td>
+                                                @php
+                                                    $year = now()->year;
+                                                    $serialNumber = str_pad($jobseeker->id, 3, '0', STR_PAD_LEFT);
+                                                    $trackingNumber = 'TT-' . $year . $serialNumber;
+                                                @endphp
+
+                                                <td>{{ $trackingNumber }}</td>
+
+
                                                 <td>{{ $jobseeker->name }}</td>
                                                 <td>{{ $jobseeker->email }}</td>
                                                 <td>{{ $jobseeker->phone_code . '-' . $jobseeker->phone_number }}</td>

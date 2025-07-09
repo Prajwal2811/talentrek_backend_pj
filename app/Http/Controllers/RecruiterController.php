@@ -78,123 +78,107 @@ class RecruiterController extends Controller
           return redirect()->route('recruiter.registration');
      }
 
-
+    
      public function storeRecruiterInformation(Request $request)
      {
-          DB::beginTransaction();
-          
-          try {
-               
-               $validated = $request->validate([
-                    'company_id' => 'required',
-                    'name' => 'required|string|max:255',
-                    'email' => 'required|email|unique:recruiters,email',
-                    'company_name' => 'required|string',
-                    'company_website' => 'required|url',
-                    'company_city' => 'required|string|max:255',
-                    'company_address' => 'required|string|max:500',
-                    'business_email' => 'required|email|unique:recruiters_company,business_email,' . $request->company_id,
-                    'phone_code' => 'required|string',
-                    'company_phone_number' => 'required|unique:recruiters_company,company_phone_number,' . $request->company_id,
-                    'no_of_employee' => 'required|string|max:255',
-                    'industry_type' => 'required|string|max:255',
-                    'registration_number' => 'required|string|max:255',
+     $validated = $request->validate([
+          'company_id' => 'required|exists:recruiters_company,id',
+          'name' => 'required|string|max:255',
+          'email' => 'required|email|unique:recruiters,email',
+          'company_name' => 'required|string',
+          'company_website' => 'required|url',
+          'company_city' => 'required|string|max:255',
+          'company_address' => 'required|string|max:500',
+          'business_email' => 'required|email|unique:recruiters_company,business_email,' . $request->company_id,
+          'phone_code' => 'required|string',
+          'company_phone_number' => 'required|unique:recruiters_company,company_phone_number,' . $request->company_id,
+          'no_of_employee' => 'required|string|max:255',
+          'industry_type' => 'required|string|max:255',
+          'registration_number' => 'required|string|max:255',
 
-                    //file valiadtion
-                    'company_profile' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-                    'registration_documents.*' => 'nullable|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
-               ]);
+          'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+          'registration_documents'   => 'required|array',
+          'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
+     ]);
 
-               
+     DB::beginTransaction();
 
-               // Step 1: Update company using company_id
-               $company = RecruiterCompany::find($validated['company_id']);
-               // echo "ddddddddddddddd";exit;
-               $company->update([
-                    'company_name' => $validated['company_name'],
-                    'company_website' => $validated['company_website'],
-                    'company_city' => $validated['company_city'],
-                    'company_address' => $validated['company_address'],
-                    'business_email' => $validated['business_email'],
-                    'phone_code' => $validated['phone_code'],
-                    'company_phone_number' => $validated['company_phone_number'],
-                    'no_of_employee' => $validated['no_of_employee'],
-                    'industry_type' => $validated['industry_type'],
-                    'registration_number' => $validated['registration_number'],
-               ]);
+     try {
+          // Step 1: Update company
+          $company = RecruiterCompany::find($validated['company_id']);
+          $company->update([
+               'company_name' => $validated['company_name'],
+               'company_website' => $validated['company_website'],
+               'company_city' => $validated['company_city'],
+               'company_address' => $validated['company_address'],
+               'business_email' => $validated['business_email'],
+               'phone_code' => $validated['phone_code'],
+               'company_phone_number' => $validated['company_phone_number'],
+               'no_of_employee' => $validated['no_of_employee'],
+               'industry_type' => $validated['industry_type'],
+               'registration_number' => $validated['registration_number'],
+          ]);
 
-               // Upload Company Profile
-               if ($request->hasFile('company_profile')) {
-                    $existingProfile = AdditionalInfo::where('user_id', $company->id)
-                         ->where('user_type', 'recruiter')
-                         ->where('doc_type', 'company_profile')
-                         ->first();
+          // Step 2: Create recruiter
+          $recruiter = Recruiters::create([
+               'name' => $validated['name'],
+               'email' => $validated['email'],
+          ]);
 
-                    if (!$existingProfile) {
-                         $originalName = $request->file('company_profile')->getClientOriginalName();
-                         $storedName = 'company_profile_' . time() . '.' . $request->file('company_profile')->getClientOriginalExtension();
-                         $request->file('company_profile')->move('uploads/', $storedName);
+          // Step 3: Update company with recruiter_id
+          $company->update([
+               'recruiter_id' => $recruiter->id,
+          ]);
 
-                         AdditionalInfo::create([
-                              'user_id'       => $company->id,
-                              'user_type'     => 'recruiter',
-                              'doc_type'      => 'company_profile',
-                              'document_name' => $originalName,
-                              'document_path' => asset('uploads/' . $storedName),
-                         ]);
-                    }
+          // Step 4: Upload company profile
+          if ($request->hasFile('company_profile')) {
+               $existingProfile = AdditionalInfo::where('user_id', $recruiter->id)
+                    ->where('user_type', 'recruiter')
+                    ->where('doc_type', 'company_profile')
+                    ->first();
+
+               if (!$existingProfile) {
+                    $originalName = $request->file('company_profile')->getClientOriginalName();
+                    $storedName = 'company_profile_' . time() . '.' . $request->file('company_profile')->getClientOriginalExtension();
+                    $request->file('company_profile')->move('uploads/', $storedName);
+
+                    AdditionalInfo::create([
+                         'user_id'       => $recruiter->id,
+                         'user_type'     => 'recruiter',
+                         'doc_type'      => 'company_profile',
+                         'document_name' => $originalName,
+                         'document_path' => asset('uploads/' . $storedName),
+                    ]);
                }
-               // echo "BBBBB";exit;
-               // Upload Registration Documents
-               if ($request->hasFile('registration_documents')) {
-                    // echo "AAAAAAA";exit;
-                    foreach ($request->file('registration_documents') as $file) {
-                         $originalName = $file->getClientOriginalName();
-                         $storedName = 'registration_documents_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                         $file->move('uploads/', $storedName);
-
-                         AdditionalInfo::create([
-                              'user_id'       => $company->id,
-                              'user_type'     => 'recruiter',
-                              'doc_type'      => 'registration_documents',
-                              'document_name' => $originalName,
-                              'document_path' => asset('uploads/' . $storedName),
-                         ]);
-                    }
-               }
-
-               // Step 2: Create recruiter
-               $recruiter = Recruiters::create([
-                    'name'       => $validated['name'],
-                    'email'      => $validated['email'],
-               ]);
-
-               // Step 3: Update company with recruiter_id
-               $company->update([
-                    'recruiter_id' => $recruiter->id,
-               ]);
-          
-               // Mail::to($validated['business_email'])->send(new RegistrationSuccess($company, 'recruiter'));
-
-               DB::commit();
-
-               // return redirect()->route('recruiter.login')->with('success', 'Company and Recruiter information saved successfully.');
-               return redirect()->route('recruiter.login')->with('success_popup', true);
-
-          } catch (\Exception $e) {
-               DB::rollBack();
-
-               Log::error('Recruiter Registration Failed: ' . $e->getMessage(), [
-                    'line' => $e->getLine(),
-                    'file' => $e->getFile(),
-               ]);
-
-               return back()->with('error', 'An error occurred while saving the data. Please try again.');
           }
-     }
-  
 
-  
+          // Step 5: Upload registration documents
+          if ($request->hasFile('registration_documents')) {
+               foreach ($request->file('registration_documents') as $file) {
+                    $originalName = $file->getClientOriginalName();
+                    $storedName = 'registration_documents_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    $file->move('uploads/', $storedName);
+
+                    AdditionalInfo::create([
+                         'user_id'       => $recruiter->id,
+                         'user_type'     => 'recruiter',
+                         'doc_type'      => 'registration_documents',
+                         'document_name' => $originalName,
+                         'document_path' => asset('uploads/' . $storedName),
+                    ]);
+               }
+          }
+
+          DB::commit(); // ✅ All operations succeeded
+          return redirect()->route('recruiter.login')->with('success', 'Company and Recruiter information saved successfully.');
+
+     } catch (\Exception $e) {
+          DB::rollBack(); // ❌ Something went wrong
+          return back()->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
+     }
+     }
+
+
      public function loginRecruiter(Request $request)
      {
           $this->validate($request, [
@@ -346,44 +330,36 @@ class RecruiterController extends Controller
         return redirect()->route('recruiter.login')->with('success', 'Password change successfully.');
     }
 
-     // public function showJobseekerListForm(){
-     //      $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-     //      ->where('status', 'active')
-     //      ->where('admin_status', 'approved','superadmin_approved')
-     //      // ->where('shortlist', "!=", "yes")
-     //      ->get();
-
-     //      $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-     //      ->where('status', 'active')
-     //      ->where('shortlist', 'yes')
-     //      ->where('admin_status', 'approved','superadmin_approved')
-     //      ->get();
-     //      //dd($shortlisted_obseekers);exit;
-
-     //      return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
-     // }
+   
 
      public function showJobseekerListForm()
      {
-     $recruiterId = auth()->user()->recruiter_id;
+          $recruiterId = auth()->user()->recruiter_id;
 
-     $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
-                         ->pluck('jobseeker_id')
-                         ->toArray();
-       
-     $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-          ->where('status', 'active')
-          ->where('admin_status', 'approved','superadmin_approved')
-          ->whereNotIn('id', $shortlistedIds)
-          ->get();
-     
-     $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-          ->where('status', 'active')
-          ->where('admin_status', 'approved','superadmin_approved')
-          ->whereIn('id', $shortlistedIds)
-          ->get();
+          $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
+                              ->pluck('jobseeker_id')
+                              ->toArray();
+          
+          $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+               ->where('status', 'active')
+               ->where('admin_status', 'approved','superadmin_approved')
+               ->whereNotIn('id', $shortlistedIds)
+               ->get();
+          
+          // $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+          //      ->where('status', 'active')
+          //      ->where('admin_status', 'approved','superadmin_approved')
+          //      ->whereIn('id', $shortlistedIds)
+          //      ->get();
 
-     return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
+          $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+               ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+               ->where('shortlist.recruiter_id', $recruiterId)
+               ->where('jobseekers.status', 'active')
+               ->select('jobseekers.*', 'shortlist.admin_status as shortlist_admin_status')
+               ->get();
+
+          return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }
 
  
@@ -410,6 +386,42 @@ class RecruiterController extends Controller
 
           return redirect()->back()->with('success', 'Jobseeker shortlisted successfully');
      }
+
+     public function interviewRequestSubmit(Request $request)
+     {
+     $request->validate([
+          'jobseeker_id' => 'required|integer',
+     ]);
+
+     $recruiter = auth()->user();
+     $jobseekerId = $request->input('jobseeker_id');
+
+     $shortlist = RecruiterJobseekersShortlist::where([
+          'company_id' => $recruiter->id,
+          'recruiter_id' => $recruiter->recruiter_id,
+          'jobseeker_id' => $jobseekerId,
+     ])->first();
+
+     if ($shortlist) {
+          $shortlist->update([
+               'interview_request' => 'yes',
+          ]);
+     } else {
+          RecruiterJobseekersShortlist::create([
+               'company_id' => $recruiter->id,
+               'recruiter_id' => $recruiter->recruiter_id,
+               'jobseeker_id' => $jobseekerId,
+               'status' => 'yes',
+               'admin_status' => 'pending',
+               'interview_request' => 'yes',
+               'interview_url' => null,
+          ]);
+     }
+
+     return response()->json(['success' => true, 'message' => 'Interview request sent.']);
+     }
+
+
 
 
      public function getJobseekerDetails($jobseeker_id)

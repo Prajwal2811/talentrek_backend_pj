@@ -24,15 +24,20 @@ class DatabaseSeeder extends Seeder
             RecruitersCompanySeeder::class,
             TrainerSeeder::class,
             TestimonialSeeder::class,
+
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
-            // EducationDetailsSeeder::class,
+            EducationDetailsSeeder::class,
             TrainingBatchSeeder::class,
             TrainingMaterialsDocumentsSeeder::class,
             TrainerAssessmentsTableSeeder::class,
             AssessmentQuestionsTableSeeder::class,
             AssessmentOptionsTableSeeder::class,
             LanguageSeeder::class,
+            ResumeSeeder::class,
+            TrainingCategorySeeder::class,
+            ReviewSeeder::class,
+
         ]);
         
     }

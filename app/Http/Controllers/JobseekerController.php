@@ -8,12 +8,14 @@ use App\Models\Jobseekers;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
-use App\Models\Additionalinfo;
+use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;    
 use DB;
+use Laravel\Socialite\Facades\Socialite;
+
 
 class JobseekerController extends Controller
 {
@@ -102,7 +104,7 @@ class JobseekerController extends Controller
             'website_link' => 'required|url',
             'portfolio_link' => 'required|url',
 
-             // Files
+            //  // Files
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -133,16 +135,24 @@ class JobseekerController extends Controller
         // Save work experiences
         if ($request->has('job_role')) {
             foreach ($request->job_role as $index => $role) {
+                $isCurrentlyWorking = $request->input("currently_working.$index") === 'on';
+
+                $startDate = $request->starts_from[$index] ?? null;
+                $endDate = $isCurrentlyWorking 
+                    ? 'work here'
+                    : ($request->end_to[$index] ?? null);
+
                 WorkExperience::create([
-                    'user_id' => $jobseeker->id,
-                    'user_type' => 'jobseeker',
-                    'job_role' => $role,
-                    'organization' => $request->organization[$index] ?? null,
-                    'starts_from' => $request->starts_from[$index] ?? null,
-                    'end_to' => $request->end_to[$index] ?? null,
+                    'user_id'       => $jobseeker->id,
+                    'user_type'     => 'jobseeker',
+                    'job_role'      => $role,
+                    'organization'  => $request->organization[$index] ?? null,
+                    'starts_from'   => $startDate,
+                    'end_to'        => $endDate,
                 ]);
             }
         }
+
 
         // Save skills
         Skills::create([
@@ -250,6 +260,36 @@ class JobseekerController extends Controller
     }
 
 
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
+
+            if (!$jobseeker) {
+                session()->flash('error', 'No account associated with this Google email.');
+                return redirect()->route('jobseeker.sign-in');
+            }
+
+            if ($jobseeker->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('jobseeker.sign-in');
+            }
+
+            Auth::guard('jobseeker')->login($jobseeker);
+            return redirect()->route('jobseeker.registration');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed.');
+            return redirect()->route('jobseeker.sign-in');
+        }
+    }
+
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
@@ -287,7 +327,6 @@ class JobseekerController extends Controller
     }
 
 
-
     
     public function logoutJobseeker(Request $request)
     {
@@ -300,7 +339,7 @@ class JobseekerController extends Controller
     }
 
 
-   public function updatePersonalInfo(Request $request)
+    public function updatePersonalInfo(Request $request)
     {
         $user = auth()->user();
 

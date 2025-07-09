@@ -28,12 +28,14 @@ return new class extends Migration
             $table->string('pass')->nullable();
             $table->string('role')->nullable();             // optional role field
             $table->string('otp')->nullable();            
-            $table->string('status')->nullable();            
+            $table->string('status')->default('active');          
             $table->string('admin_status')->nullable();            
             $table->text('inactive_reason')->nullable(); // Removed ->after('status')
             $table->text('rejection_reason')->nullable(); // Removed ->after('status')
             $table->text('shortlist')->nullable(); // Removed ->after('status')
             $table->text('admin_recruiter_status')->nullable(); // Removed ->after('status')
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
             $table->timestamps();
         });
 

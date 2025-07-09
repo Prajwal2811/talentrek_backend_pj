@@ -25,11 +25,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/jobseeker/sign-in', [JobseekerController::class, 'signIn']);
+
+Route::post('/jobseeker/sign-in', [JobseekerController::class, 'signIn']);
+
 Route::post('/jobseeker/sign-up', [JobseekerController::class, 'signUp']);
 Route::post('/jobseeker/registration', [JobseekerController::class, 'registration']);
 Route::post('/jobseeker/forget-password', [JobseekerController::class, 'forgetPassword']);
-Route::get('/jobseeker/verify-otp', [JobseekerController::class, 'verifyOtp']);
+Route::post('/jobseeker/verify-otp', [JobseekerController::class, 'verifyOtp']);
 Route::post('/jobseeker/reset-password', [JobseekerController::class, 'resetPassword']);
 
 Route::get('/jobseeker/banners', [AppHomeController::class, 'bannersList']);

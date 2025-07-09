@@ -93,12 +93,6 @@ Auth::routes();
 
 
 
-// Recruiter Routes
-
-
-
-
-
 
 
 
