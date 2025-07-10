@@ -7,7 +7,7 @@ use App\Models\Api\Assessors;
 use App\Models\Api\Mentors;
 use App\Models\Api\Coach;
 use App\Models\Api\TrainingMaterial;
-
+use App\Models\Api\Trainers;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -20,7 +20,13 @@ class ExplorerController extends Controller
     public function index($tags = 'training')
     {
         if($tags == 'training'){
-            $TrainingMaterial = TrainingMaterial::select('id', 'training_title','training_price','training_offer_price','thumbnail_file_path')->addSelect(DB::raw("'UI UX Designer' as designation"))->get();
+                $TrainingMaterial = TrainingMaterial::select('id','trainer_id', 'training_title','training_price','training_offer_price','thumbnail_file_path')->addSelect(DB::raw("'UI UX Designer' as designation"))->with(['trainer:id,name']) // only fetch trainer id & name
+             ->with(['trainer:id,name','latestWorkExperience'])->withAvg('trainerReviews', 'ratings')->get()->map(function ($item) {
+                $avg = $item->trainer_reviews_avg_ratings;
+                $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+                unset($item->trainer_reviews_avg_ratings); // remove raw field
+                return $item;
+            });
             $cmsData = CMS::whereIn('slug', ['course-overview', 'benefits-of-training'])
             ->select('heading', 'description') // optional: include slug for identification
             ->get();
@@ -29,7 +35,26 @@ class ExplorerController extends Controller
             $assessorList = Assessors::select('id','company_name','company_email','phone_code','company_phone_number','company_instablishment_date','industry_type','company_website')->get();
             return $this->successResponse($assessorList, ucwords($tags).' list fetched successfully.');
         }elseif($tags == 'mentor'){
-            $mentorList = Mentors::select('id','name','email','phone_code','phone_number','date_of_birth','city',)->get();
+            $mentorList = Mentors::select('id','name','email','phone_code','phone_number','date_of_birth','city',)->addSelect(DB::raw("'UI UX Designer' as designation"))
+            ->with('WorkExperience') // only fetch trainer id & name
+            ->withAvg('mentorReviews', 'ratings')
+            ->get()
+            ->map(function ($item) {
+                    $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                    $start = \Carbon\Carbon::parse($exp->start_from);
+                    $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                    return $carry + $start->diffInDays($end);
+                }, 0);
+
+                $item->total_experience_days = $totalDays;
+                $item->total_experience_years = round($totalDays / 365, 1);
+                
+                $avg = $item->mentor_reviews_avg_ratings;
+                $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+                unset($item->mentor_reviews_avg_ratings); // remove raw avg field
+                unset($item->WorkExperience);
+                return $item;
+            });
              $cmsData = CMS::whereIn('slug', ['mentorship-overview', 'benefits-of-mentorship'])
             ->select('heading', 'description') // optional: include slug for identification
             ->get();
@@ -43,7 +68,14 @@ class ExplorerController extends Controller
 
     public function trainingList()
     {
-        $TrainingMaterial = TrainingMaterial::select('id', 'training_title','training_price','training_offer_price','thumbnail_file_path')->addSelect(DB::raw("'UI UX Designer' as designation"))->get();
+        $TrainingMaterial = TrainingMaterial::select('id','trainer_id', 'training_title','training_price','training_offer_price','thumbnail_file_path')
+         ->with(['trainer:id,name','latestWorkExperience']) 
+         ->withAvg('trainerReviews', 'ratings')->get()->map(function ($item) {
+            $avg = $item->trainer_reviews_avg_ratings;
+            $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+            unset($item->trainer_reviews_avg_ratings); // remove raw field
+            return $item;
+        });
         $cmsData = CMS::whereIn('slug', ['course-overview', 'benefits-of-training'])
         ->select('heading', 'description') // optional: include slug for identification
         ->get();        
@@ -52,7 +84,26 @@ class ExplorerController extends Controller
 
     public function mentorsExplorerList()
     {
-        $mentorsList = Mentors::select('id','name','email','phone_code','phone_number','date_of_birth','city',)->get();
+        $mentorsList = Mentors::select('id','name','email','phone_code','phone_number','date_of_birth','city',)->addSelect(DB::raw("'UI UX Designer' as designation"))
+        ->with('WorkExperience') // only fetch trainer id & name
+        ->withAvg('mentorReviews', 'ratings')
+        ->get()
+        ->map(function ($item) {
+            $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $item->total_experience_days = $totalDays;
+            $item->total_experience_years = round($totalDays / 365, 1);
+
+            $avg = $item->mentor_reviews_avg_ratings;
+            $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+            unset($item->mentor_reviews_avg_ratings); // remove raw avg field
+            unset($item->WorkExperience);
+            return $item;
+        });
         $cmsData = CMS::whereIn('slug', ['mentorship-overview', 'benefits-of-mentorship'])
         ->select('heading', 'description') // optional: include slug for identification
         ->get();

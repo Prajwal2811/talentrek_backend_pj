@@ -35,4 +35,28 @@ class TrainingMaterial extends Model
         'date_of_birth' => 'date',
     ];
 
+    // In TrainingMaterial.php model
+    public function trainer()
+    {
+        return $this->belongsTo(Trainers::class, 'trainer_id', 'id');
+    }    
+
+    public function trainerUserId()
+    {
+        return $this->belongsTo(WorkExperience::class, 'user_id', 'id');
+    }
+
+    public function trainerReviews()
+    {
+        return $this->hasMany(Review::class, 'trainer_material', 'id')
+                    ->where('user_type', 'trainer');
+    }   
+
+    public function latestWorkExperience()
+    {
+        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
+            ->where('user_type', 'trainer') // filter only trainer-type
+            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
+            ->select('user_id', 'job_role', 'end_to');
+    }
 }
