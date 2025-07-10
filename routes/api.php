@@ -2,7 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\API\JobseekerController;
+
 
 //Junaid APi Controllers in Jobseeker folder
 use App\Http\Controllers\API\Jobseeker\AssesssorController;
@@ -10,6 +12,7 @@ use App\Http\Controllers\API\Jobseeker\ExplorerController;
 use App\Http\Controllers\API\Jobseeker\AppHomeController;
 use App\Http\Controllers\API\Jobseeker\MyLearningController;
 use App\Http\Controllers\API\Jobseeker\ProfileController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
