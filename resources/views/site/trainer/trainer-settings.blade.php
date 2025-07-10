@@ -548,45 +548,67 @@
                                             <!-- Trainer Info Form -->
                                             <form id="trainer-info-form" action="{{ route('trainer.profile.update') }}" method="POST">
                                                 @csrf
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                                    <!-- Full Name -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Full Name</label>
+                                                        <input type="text" name="name" value="{{ $trainerSkills->name ?? '' }}" placeholder="John Doe" class="w-full border rounded px-3 py-2" />
+                                                        @error('name')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
-                                                <!-- Full Name -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Full Name</label>
-                                                    <input type="text" name="name" value="{{ $trainerSkills->name ?? '' }}" placeholder="John Doe" class="w-full border rounded px-3 py-2" />
-                                                    @error('name')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <!-- Email -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Email</label>
+                                                        <input type="email" name="email" value="{{ $trainerSkills->email ?? '' }}" placeholder="john.doe@example.com" class="w-full border rounded px-3 py-2" />
+                                                        @error('email')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
                                                 </div>
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                                    <!-- Phone Number -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Phone Number</label>
+                                                        <input type="text" name="phone" value="{{ $trainerSkills->phone_number ?? '' }}" placeholder="+91 9876543210" class="w-full border rounded px-3 py-2" />
+                                                        @error('phone')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
-                                                <!-- Email -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Email</label>
-                                                    <input type="email" name="email" value="{{ $trainerSkills->email ?? '' }}" placeholder="john.doe@example.com" class="w-full border rounded px-3 py-2" />
-                                                    @error('email')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <!-- Date of Birth -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Date of Birth</label>
+                                                        <input type="date" name="dob" value="{{ $trainerSkills->date_of_birth ?? '' }}" class="w-full border rounded px-3 py-2" />
+                                                        @error('dob')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
                                                 </div>
-
-                                                <!-- Phone Number -->
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Phone Number</label>
-                                                    <input type="text" name="phone" value="{{ $trainerSkills->phone_number ?? '' }}" placeholder="+91 9876543210" class="w-full border rounded px-3 py-2" />
-                                                    @error('phone')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                        <span class="text-xs text-blue-600">
+                                                            National ID should start with 1 for male and 2 for female.
+                                                        </span>
+                                                        <input 
+                                                            type="text" 
+                                                            name="national_id" 
+                                                            id="national_id" 
+                                                            class="w-full border rounded-md p-2 mt-1" 
+                                                            placeholder="Enter national id number" 
+                                                            value="{{ $trainerSkills->national_id ?? '' }}"
+                                                            maxlength="15"
+                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                        />
+                                                        @error('national_id')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
                                                 </div>
-
-                                                <!-- Date of Birth -->
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Date of Birth</label>
-                                                    <input type="date" name="dob" value="{{ $trainerSkills->date_of_birth ?? '' }}" class="w-full border rounded px-3 py-2" />
-                                                    @error('dob')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
-
                                                 <!-- Location -->
-                                                <div class="md:col-span-2">
+                                                <div class="md:col-span-2 mt-3">
                                                     <label class="block mb-1 font-medium">Location</label>
                                                     <input type="text" name="location" value="{{ $trainerSkills->city ?? '' }}" placeholder="City, State, Country" class="w-full border rounded px-3 py-2" />
                                                     @error('location')

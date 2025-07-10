@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Session;
 use App\Models\Jobseekers;
+use App\Models\Recruiters;
+use App\Models\Trainers;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
@@ -15,7 +17,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;    
 use DB;
 use Laravel\Socialite\Facades\Socialite;
-
 
 class JobseekerController extends Controller
 {
@@ -84,6 +85,22 @@ class JobseekerController extends Controller
             'city' => 'required|string|max:255',
             'address' => 'required|string|max:500',
             'gender' => 'required|string|in:Male,Female,Other',
+            
+            'national_id' => [
+                'required',
+                'min:10', // Minimum 10 digits
+                function ($attribute, $value, $fail) use ($jobseeker) {
+                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                    $existsInJobseekers = Jobseekers::where('national_id', $value)
+                        ->where('id', '!=', $jobseeker->id)
+                        ->exists();
+
+                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                        $fail('The national ID has already been taken.');
+                    }
+                },
+            ],
 
             // // Education array validations
             'high_education.*' => 'required|string',
@@ -118,8 +135,9 @@ class JobseekerController extends Controller
             'city' => $validated['city'],
             'address' => $validated['address'],
             'gender' => $validated['gender'],
+            'national_id' => $validated['national_id'],
         ]);
-
+       
         // Save education details
         foreach ($request->high_education as $index => $education) {
             EducationDetails::create([
@@ -229,6 +247,13 @@ class JobseekerController extends Controller
         return view('site.jobseeker.profile');
     }
 
+    public function showSubscriptionPlanPage()
+    {
+        //$jobseeker = Auth::guard('jobseeker')->user();
+        return view('site.jobseeker.subscription-plan');
+    }
+
+
     public function loginJobseeker(Request $request)
     {
         $this->validate($request, [
@@ -257,6 +282,49 @@ class JobseekerController extends Controller
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
+    }
+
+    // public function loginJobseeker(Request $request)
+    // {
+    //     $this->validate($request, [
+    //         'email'    => 'required|email',
+    //         'password' => 'required',
+    //     ]);
+
+    //     $jobseeker = Jobseekers::where('email', $request->email)->first();
+
+    //     if (!$jobseeker) {
+    //         session()->flash('error', 'Invalid email or password.');
+    //         return back()->withInput($request->only('email'));
+    //     }
+
+    //     if ($jobseeker->status !== 'active') {
+    //         session()->flash('error', 'Your account is inactive. Please contact administrator.');
+    //         return back()->withInput($request->only('email'));
+    //     }
+
+    //     if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
+    //         $jobseeker = Auth::guard('jobseeker')->user();
+
+    //         if ($jobseeker->isSubscriptionBuy === 'yes') { // or === 1 if boolean
+    //             return redirect()->route('jobseeker.profile');
+    //         } else {
+    //             return redirect()->route('jobseeker.subscription.plan');
+    //         }
+    //     } else {
+    //         session()->flash('error', 'Invalid email or password.');
+    //         return back()->withInput($request->only('email'));
+    //     }
+    // }
+
+    public function processSubscriptionPayment(Request $request)
+    {
+        $jobseeker = auth()->user(); 
+
+        $jobseeker->isSubscribtionBuy = 'yes';
+        $jobseeker->save();
+
+        return redirect()->route('jobseeker.profile')->with('success', 'Subscription activated successfully.');
     }
 
 
@@ -351,6 +419,23 @@ class JobseekerController extends Controller
             'dob' => 'required|date',
             'city' => 'required|string|max:255',
             'address' => 'required|string|max:500',
+            'national_id' => [
+                'required',
+                'min:10',
+                function ($attribute, $value, $fail) use ($user) {
+                    if ($value != $user->national_id) {
+                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                        $existsInJobseekers = Jobseekers::where('national_id', $value)
+                            ->where('id', '!=', $user->id)
+                            ->exists();
+
+                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                            $fail('The national ID has already been taken.');
+                        }
+                    }
+                },
+            ],
         ]);
 
         $user->update([
@@ -361,6 +446,7 @@ class JobseekerController extends Controller
             'city' => $validated['city'],
             'address' => $validated['address'],
             'gender' => $validated['gender'],
+            'national_id' => $validated['national_id'],
         ]);
 
         return response()->json(['status' => 'success', 'message' => 'Personal information updated successfully!']);

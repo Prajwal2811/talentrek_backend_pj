@@ -24,6 +24,7 @@ class Jobseekers extends Authenticatable
         'phone_code',
         'phone_number',
         'date_of_birth',
+        'national_id',
         'city',
         'address',
         'password',
@@ -36,7 +37,8 @@ class Jobseekers extends Authenticatable
         'rejection_reason', 
         'shortlist',
         'admin_recruiter_status',
-        'google_id'
+        'google_id',
+        'isSubscribtionBuy'
     ];
 
     /**
