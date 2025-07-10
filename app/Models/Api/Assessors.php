@@ -31,4 +31,23 @@ class Assessors extends Model
     protected $casts = [
         'company_instablishment_date' => 'date',
     ];
+
+    public function assessorReviews()
+    {
+        return $this->hasMany(Review::class, 'trainer_material')->where('user_type', 'assessor');
+    }
+
+    public function latestWorkExperience()
+    {
+        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
+            ->where('user_type', 'assessor') // filter only trainer-type
+            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
+            ->select('user_id', 'job_role', 'end_to');
+    }
+
+    public function WorkExperience()
+    {
+        return $this->hasMany(WorkExperience::class, 'user_id', 'id')
+        ->where('user_type', 'assessor');
+    }
 }
