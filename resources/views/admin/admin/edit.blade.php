@@ -66,10 +66,40 @@
                                         <div class="row">
                                             @php
                                                 $modules = [
-                                                    'User', 'Jobseekers', 'Expat', 'Recruiters', 'Trainers', 'Assessors', 'Coach',
-                                                    'Mentors', 'CMS', 'Subscriptions', 'Certification Template', 'Payments',
-                                                    'Testimonials', 'Languages', 'Settings', 'Activity Log'
-                                                ];
+                                                        // Main
+                                                        'Dashboard',
+
+                                                        // Admin
+                                                        'Admin',
+
+                                                        // User
+                                                        'User',
+
+                                                        // User Roles
+                                                        'Jobseekers',
+                                                        'Expat',
+                                                        'Recruiters',
+                                                        'Trainers',
+                                                        'Assessors',
+                                                        'Coach',
+                                                        'Mentors',
+
+                                                        // Site Activity
+                                                        'Reviews',
+                                                        'CMS',
+                                                        'Subscriptions',
+                                                        'Certification Template',
+                                                        'Payments',
+                                                        'Languages',
+                                                        'Settings',
+                                                        'Contact Support',
+                                                        'Resume Format',
+                                                        'Training Category',
+                                                        'Testimonials',
+
+                                                        // System Log
+                                                        'Logs'
+                                                    ];
                                                 $adminPermissions = $admin->permissions ?? [];
                                             @endphp
 

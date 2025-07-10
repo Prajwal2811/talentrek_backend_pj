@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('admin_status')->nullable();
             $table->string('inactive_reason')->nullable();
             $table->string('rejection_reason')->nullable();
+            $table->string('isSubscribtionBuy')->default('no');
             $table->timestamps();
 
                 // Cascade delete recruiters when company is deleted

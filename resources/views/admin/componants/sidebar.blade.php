@@ -99,7 +99,6 @@
 
                 @php
                     $menuItems = [
-                        'Training Category' => ['route' => 'admin.training-category', 'icon' => 'fa-file-alt'],
                         'Reviews' => ['route' => 'admin.reviews', 'icon' => 'fa-file-alt'],
                         'CMS' => ['route' => 'admin.cms', 'icon' => 'fa-file-alt'],
                         'Subscriptions' => ['route' => 'admin.subscriptions', 'icon' => 'fa-credit-card'],
@@ -121,6 +120,23 @@
                         </li>
                     @endif
                 @endforeach
+
+                @if($role === 'superadmin' || in_array('Training Category', $permissions))
+                    <li class="{{ request()->routeIs('admin.trainingcategory.*') ? 'active' : '' }}">
+                        <a href="#" class="has-arrow">
+                            <i class="fa fa-book"></i> {{-- Changed icon here --}}
+                            <span>Training Category</span>
+                        </a>
+                        <ul class="{{ request()->routeIs('admin.trainingcategory.*') ? 'collapse in' : 'collapse' }}">
+                            <li class="{{ request()->routeIs('admin.trainingcategory.add') ? 'active' : '' }}">
+                                <a href="{{ route('admin.trainingcategory.add') }}">Add Training Category</a>
+                            </li>
+                            <li class="{{ request()->routeIs('admin.training-category') ? 'active' : '' }}">
+                                <a href="{{ route('admin.training-category') }}">Manage Training Category</a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
 
 
                 @if($role === 'superadmin' || in_array('Testimonials', $permissions))

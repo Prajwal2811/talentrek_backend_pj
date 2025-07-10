@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('jobseeker_id');
             $table->unsignedBigInteger('question_id');
             $table->string('selected_answer');
+            $table->string('correct_answer');
             $table->timestamps();
 
             $table->foreign('trainer_id')->references('id')->on('trainers')->onDelete('cascade');

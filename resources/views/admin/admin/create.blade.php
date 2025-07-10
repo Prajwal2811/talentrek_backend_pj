@@ -89,7 +89,16 @@
                                                 <div class="row">
                                                     @php
                                                         $modules = [
+                                                            // Main
+                                                            'Dashboard',
+
+                                                            // Admin
+                                                            'Admin',
+
+                                                            // User
                                                             'User',
+
+                                                            // User Roles
                                                             'Jobseekers',
                                                             'Expat',
                                                             'Recruiters',
@@ -97,16 +106,27 @@
                                                             'Assessors',
                                                             'Coach',
                                                             'Mentors',
+
+                                                            // Site Activity
+                                                            'Reviews',
                                                             'CMS',
                                                             'Subscriptions',
                                                             'Certification Template',
                                                             'Payments',
-                                                            'Testimonials',
                                                             'Languages',
                                                             'Settings',
-                                                            'Activity Log'
+                                                            'Contact Support',
+                                                            'Resume Format',
+                                                            'Training Category',
+                                                            'Testimonials',
+
+                                                            // System Log
+                                                            'Logs'
                                                         ];
                                                     @endphp
+
+
+
 
 
                                                     @foreach($modules as $module)

@@ -16,6 +16,8 @@ return new class extends Migration
          Schema::create('training_categories', function (Blueprint $table) {
             $table->id();
             $table->string('category');
+            $table->string('image_path');
+            $table->string('image_name');
             $table->timestamps();
         });
     }

@@ -57,115 +57,69 @@
                     </button>
                 </div>
 
+                @php
+                    $trainingCategory = App\Models\TrainingCategory::withCount('trainings')->get();
+                @endphp
                 <!-- Swiper Slider -->
                 <div class="swiper trainingSwiper">
                     <div class="swiper-wrapper">
-                        <!-- Slide 1 -->
-                        <div class="swiper-slide">
-                            <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
-                            <div>
-                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                <img src="https://img.icons8.com/ios/50/money.png" class="w-6 h-6" />
+                        @foreach ($trainingCategory as $category)
+                            <div class="swiper-slide">
+                                <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
+                                    <div>
+                                        <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
+                                            <img src="https://img.icons8.com/ios/50/money.png" class="w-6 h-6" />
+                                        </div>
+                                        <h4 class="font-semibold text-lg mb-1 leading-snug">
+                                            @php
+                                                $words = explode(' ', $category->category);
+                                            @endphp
+                                            @foreach ($words as $word)
+                                                {{ $word }}<br>
+                                            @endforeach
+                                        </h4>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-2">{{ $category->trainings_count }}+ Training programs</p>
                                 </div>
-                                <h4 class="font-semibold text-lg mb-1">Finance Accounting</h4>
-                                <p class="text-sm text-gray-600">Learn financial reporting, tax management, and auditing skills.</p>
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">20+ Training programs</p>
-                            </div>
-                        </div>
-
-                        <!-- Slide 2 -->
-                        <div class="swiper-slide">
-                            <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
-                            <div>
-                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                <img src="https://img.icons8.com/ios/50/meditation-guru.png" class="w-6 h-6" />
-                                </div>
-                                <h4 class="font-semibold text-lg mb-1">Personal Development</h4>
-                                <p class="text-sm text-gray-600">Improve communication, confidence, leadership, and emotional intelligence.</p>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">20+ Training programs</p>
-                            </div>
-                        </div>
-
-                        <!-- Slide 3 -->
-                        <div class="swiper-slide">
-                            <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
-                            <div>
-                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                <img src="https://img.icons8.com/ios/50/design.png" class="w-6 h-6" />
-                                </div>
-                                <h4 class="font-semibold text-lg mb-1">Design</h4>
-                                <p class="text-sm text-gray-600">Explore UI/UX design, graphic design, and branding essentials.</p>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">20+ Training programs</p>
-                            </div>
-                        </div>
-
-                        <!-- Slide 4 -->
-                        <div class="swiper-slide">
-                            <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
-                            <div>
-                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                <img src="https://img.icons8.com/ios/50/megaphone.png" class="w-6 h-6" />
-                                </div>
-                                <h4 class="font-semibold text-lg mb-1">Sales & Marketing</h4>
-                                <p class="text-sm text-gray-600">Learn digital marketing, customer engagement, and sales strategies.</p>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">20+ Training programs</p>
-                            </div>
-                        </div>
-
-                        <!-- Slide 5 -->
-                        <div class="swiper-slide">
-                            <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
-                            <div>
-                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                <img src="https://img.icons8.com/ios/50/code.png" class="w-6 h-6" />
-                                </div>
-                                <h4 class="font-semibold text-lg mb-1">Advanced Coding</h4>
-                                <p class="text-sm text-gray-600">Master Python, JavaScript, APIs, backend systems and data structures.</p>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">30+ Training programs</p>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
-
                 </div>
+
                 </div>
             </section>
 
-    <!-- Swiper JS -->
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+            <!-- Swiper JS -->
+            <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
-    <!-- Swiper Initialization -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        new Swiper(".trainingSwiper", {
-        slidesPerView: 1,
-        spaceBetween: 20,
-        loop: true,
-        navigation: {
-            nextEl: ".training-next",
-            prevEl: ".training-prev",
-        },
-        breakpoints: {
-            640: {
-            slidesPerView: 2,
-            },
-            768: {
-            slidesPerView: 3,
-            },
-            1024: {
-            slidesPerView: 4,
-            },
-            1280: {
-            slidesPerView: 6, // ✅ Show 6 items on large screens
-            },
-        },
-        });
-    });
-    </script>
+            <!-- Swiper Initialization -->
+            <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                new Swiper(".trainingSwiper", {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                loop: true,
+                navigation: {
+                    nextEl: ".training-next",
+                    prevEl: ".training-prev",
+                },
+                breakpoints: {
+                    640: {
+                    slidesPerView: 2,
+                    },
+                    768: {
+                    slidesPerView: 3,
+                    },
+                    1024: {
+                    slidesPerView: 4,
+                    },
+                    1280: {
+                    slidesPerView: 6, // ✅ Show 6 items on large screens
+                    },
+                },
+                });
+            });
+            </script>
 
 
             <section class="py-16">

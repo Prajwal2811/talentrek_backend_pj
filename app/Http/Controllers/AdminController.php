@@ -25,6 +25,7 @@ use App\Models\TrainerAssessment;
 use App\Models\TrainingMaterialsDocument;
 use App\Models\CertificateTemplate;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingCategory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -1536,34 +1537,129 @@ class AdminController extends Controller
             ->where('reviews.id', $id)
             ->first();
 
-        // Determine Reviewee Name based on user_type
+        // Initialize variables
         $revieweeName = null;
+        $materialTitle = null;
 
         switch ($review->user_type) {
             case 'trainer':
                 $reviewee = DB::table('trainers')->where('id', $review->user_id)->first();
                 $revieweeName = $reviewee->name ?? 'N/A';
+
+                // Also fetch the trainer's material
+                $material = DB::table('training_materials')->where('trainer_id', $review->user_id)->first();
+                $materialTitle = $material->training_title ?? 'Material not found';
                 break;
+
             case 'mentor':
                 $reviewee = DB::table('mentors')->where('id', $review->user_id)->first();
                 $revieweeName = $reviewee->name ?? 'N/A';
                 break;
+
             case 'coach':
                 $reviewee = DB::table('coaches')->where('id', $review->user_id)->first();
                 $revieweeName = $reviewee->name ?? 'N/A';
                 break;
+
             case 'assessor':
                 $reviewee = DB::table('assessors')->where('id', $review->user_id)->first();
                 $revieweeName = $reviewee->name ?? 'N/A';
                 break;
         }
 
-        return view('admin.reviews.view', compact('review', 'revieweeName'));
+        return view('admin.reviews.view', compact('review', 'revieweeName', 'materialTitle'));
     }
 
 
 
-   public function showActivityLog()
+    public function trainingCategory()
+    {
+        $trainingCategory = TrainingCategory::orderBy('id', 'desc')->get();
+        // echo "<pre>"; print_r($reviews); die;
+        return view('admin.trainingcategory.index', compact('trainingCategory'));
+    }
+
+
+    public function trainingCategoryEdit($id)
+    {
+        $trainingCategory = TrainingCategory::find($id);
+        // echo "<pre>"; print_r($trainingCategory); die;
+        return view('admin.trainingcategory.edit', compact('trainingCategory'));
+    }
+
+    public function updatetrainingCategory(Request $request, $id)
+    {
+        $request->validate([
+            'category_name' => 'required|string|max:255',
+            'category_icon' => 'nullable|image|mimes:jpg,jpeg,png,svg,gif|max:2048',
+        ]);
+
+        $category = TrainingCategory::findOrFail($id);
+        $category->category = $request->category_name;
+
+        if ($request->hasFile('category_icon')) {
+            $file = $request->file('category_icon');
+            $extension = $file->getClientOriginalExtension();
+            $fileNameToStore = 'category_icon_' . time() . '.' . $extension;
+            $file->move(public_path('uploads'), $fileNameToStore);
+            $category->image_path = asset('uploads/' . $fileNameToStore);
+            $category->image_name =  $fileNameToStore;
+        }
+
+        $category->save();
+
+        return redirect()->route('admin.training-category')->with('success', 'Category updated successfully.');
+    }
+
+
+    public function createCategory()
+    {
+        return view('admin.trainingcategory.create');
+    }
+
+
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'category_name' => 'required|string|max:255',
+            'category_icon' => 'nullable|image|mimes:jpg,jpeg,png,svg,gif|max:2048',
+        ]);
+
+        $iconPath = null;
+
+        if ($request->hasFile('category_icon')) {
+            $file = $request->file('category_icon');
+            $extension = $file->getClientOriginalExtension();
+            $fileNameToStore = 'category_icon_' . time() . '.' . $extension;
+            $file->move(public_path('uploads'), $fileNameToStore);
+
+            // Store relative path or filename
+            $iconPath = asset('uploads/' . $fileNameToStore);
+        }
+
+        TrainingCategory::create([
+            'category' => $request->category_name,
+            'image_path' => $iconPath, // make sure 'icon' column exists in the table
+            'image_name' => $fileNameToStore, // make sure 'icon' column exists in the table
+        ]);
+
+        return redirect()->route('admin.training-category')->with('success', 'Category added successfully.');
+    }
+
+
+
+    public function trainingCategoryDestroy($id)
+    {
+        // Find the category by ID
+        $category = TrainingCategory::findOrFail($id);
+        // Delete the category
+        $category->delete();
+        // Redirect back with a success message
+        return redirect()->route('admin.training-category')->with('success', 'Category deleted successfully.');
+    }
+
+
+    public function showActivityLog()
     {
         $logPath = storage_path('logs/laravel.log');
 

@@ -225,7 +225,7 @@
                             </div>
                         </div>
                         <div class="col-xl-4 col-lg-4 col-md-5">
-                            <div class="card">
+                            <div class="card" style="position: sticky; top: 100px;">
                                 <div class="header">
                                     <h2>Basic Information</h2>
                                 </div>

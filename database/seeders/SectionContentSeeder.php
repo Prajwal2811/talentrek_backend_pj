@@ -19,12 +19,12 @@ class SectionContentSeeder extends Seeder
             [
                 'section' => 'Banner',
                 'slug' => 'banner',
-                'heading' => 'Your Journey to Grow & Succeed Starts Here',
+                'heading' => 'Improve your skills & engage with certified professional / industry leaders - anytime, anywhere.',
                 'description' => '<div class="container mx-auto px-6 md:px-12 py-64 flex items-center">
                                     <div class="w-full md:w-1/2 text-white space-y-6">
-                                    <h1 class="text-3xl md:text-5xl font-bold leading-tight text-white">
-                                        Your Journey to <br />
-                                        <span class="text-white">Grow & Succeed Starts Here</span>
+                                    <h1 class="text-2xl md:text-3xl font-bold leading-tight text-white">
+                                        Improve your skills & engage with certified  <br />
+                                        <span class="text-white">professional / industry leaders - anytime, anywhere.</span>
                                     </h1>
                                     <p class="text-base text-gray-100 max-w-md">
                                         Earn certificates and gain new skills with trusted educators and industry leaders—anytime, anywhere.
@@ -49,10 +49,8 @@ class SectionContentSeeder extends Seeder
                                         as a Trainer, Mentor, Assessor, and Coach
                                         </h2>
                                         <p class="text-gray-700 mt-4 mb-6">
-                                        Share your expertise, guide jobseeker/professional, and one stop-shop powerful platform. 
+                                            Share your expertise, guide <span class="text-black font-bold">jobseeker/professional</span>, and one stop-shop powerful platform.
                                         </p>
-
-                                        <!-- Bullet Buttons with Circle Check Icon -->
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div class="flex items-center gap-2 px-4 py-2 border-2 border-blue-600 rounded-full text-blue-600">
                                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold">✓</span>

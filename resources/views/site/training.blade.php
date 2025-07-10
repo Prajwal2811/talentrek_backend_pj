@@ -57,10 +57,12 @@
                         <i id="iconTopic" class="ph ph-caret-down transition-transform duration-300"></i>
                         </div>
                         <div id="topicSection" class="space-y-2">
-                        <label class="block"><input type="checkbox" class="mr-2" value="Design" @change="$dispatch('filter-change')">Design</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Coding" @change="$dispatch('filter-change')">Coding</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Mechanical" @change="$dispatch('filter-change')">Mechanical</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Language" @change="$dispatch('filter-change')">Language</label>
+                            @php
+                                $categories = App\Models\TrainingCategory::all();
+                            @endphp
+                            @foreach ($categories as $category)
+                                <label class="block"><input type="checkbox" class="mr-2" value="Design" @change="$dispatch('filter-change')">{{ $category->category }}</label>
+                            @endforeach
                         </div>
                     </div>
 
@@ -201,91 +203,36 @@
                 </div>
                 </main>
 
+
+                @php
+                    $trainings = \App\Models\TrainingMaterial::select('*')
+                                                            ->where('admin_status', 'approved', 'superadmin_approved')
+                                                            ->get();
+
+                @endphp
                 <script>
                     function courseApp() {
                         return {
                         searchTerm: '',
                         courses: [
-                            {
-                                id: 1,
-                                title: "Mobile App Development",
-                                description: "Build apps for Android and iOS from scratch.",
-                                image: "{{ asset('asset/images/gallery/pic-4.png') }}",
-                                rating: 4,
-                                instructor: "Lisa Turner",
-                                instructorImage: "https://randomuser.me/api/portraits/women/6.jpg",
-                                lessons: 18,
-                                duration: "30hrs",
-                                level: "Intermediate",
-                                topic: "Coding",
-                                trainingType: "Virtual/Online",
-                                originalPrice: "SAR 200",
-                                discountedPrice: "SAR 180",
-                            },
-                            {
-                                id: 2,
-                                title: "Web Design Basics",
-                                description: "Learn the fundamentals of web design with HTML, CSS, and more.",
-                                image: "{{ asset('asset/images/gallery/pic-2.png') }}",
-                                rating: 5,
-                                instructor: "Mark Wilson",
-                                instructorImage: "https://randomuser.me/api/portraits/men/12.jpg",
-                                lessons: 12,
-                                duration: "25hrs",
-                                level: "Beginner",
-                                topic: "Design",
-                                trainingType: "Offline in classroom",
-                                originalPrice: "SAR 150",
-                                discountedPrice: "SAR 130",
-                            },
-                            {
-                                id: 3,
-                                title: "Advanced JavaScript",
-                                description: "Deep dive into JavaScript ES6+ and modern frameworks.",
-                                image: "{{ asset('asset/images/gallery/pic-3.png') }}",
-                                rating: 4.5,
-                                instructor: "Anna Smith",
-                                instructorImage: "https://randomuser.me/api/portraits/women/21.jpg",
-                                lessons: 20,
-                                duration: "40hrs",
-                                level: "Advanced",
-                                topic: "Coding",
-                                trainingType: "Recorded lectures",
-                                originalPrice: "SAR 250",
-                                discountedPrice: "SAR 220",
-                            },
-                            {
-                                id: 4,
-                                title: "Graphic Design Masterclass",
-                                description: "Become a pro at graphic design with practical projects.",
-                                image: "{{ asset('asset/images/gallery/pic-4.png') }}",
-                                rating: 4.2,
-                                instructor: "Jessica Lee",
-                                instructorImage: "https://randomuser.me/api/portraits/women/25.jpg",
-                                lessons: 15,
-                                duration: "28hrs",
-                                level: "Intermediate",
-                                topic: "Design",
-                                trainingType: "Virtual/Online",
-                                originalPrice: "SAR 190",
-                                discountedPrice: "SAR 170",
-                            },
-                            {
-                                id: 5,
-                                title: "Mechanical Engineering Basics",
-                                description: "Introductory course on mechanical engineering concepts.",
-                                image: "{{ asset('asset/images/gallery/pic-1.png') }}",
-                                rating: 3.8,
-                                instructor: "John Doe",
-                                instructorImage: "https://randomuser.me/api/portraits/men/31.jpg",
-                                lessons: 10,
-                                duration: "20hrs",
-                                level: "Beginner",
-                                topic: "Mechanical",
-                                trainingType: "Offline in classroom",
-                                originalPrice: "SAR 140",
-                                discountedPrice: "SAR 120",
-                            },
+                            @foreach($trainings as $course)
+                                {
+                                    id: {{ $course->id }},
+                                    title: @json($course->training_title),
+                                    description: @json($course->training_sub_title),
+                                    image: "{{ asset('storage/' . $course->thumbnail_file_path) }}",
+                                    rating: {{ $course->rating ?? 0 }},
+                                    instructor: @json($course->instructor_name),
+                                    instructorImage: "{{ $course->instructor_image ?? 'https://randomuser.me/api/portraits/lego/1.jpg' }}",
+                                    lessons: {{ $course->lessons ?? 0 }},
+                                    duration: @json($course->duration ?? 'N/A'),
+                                    level: @json($course->level ?? 'N/A'),
+                                    topic: @json($course->topic ?? 'N/A'),
+                                    trainingType: @json($course->training_type ?? 'N/A'),
+                                    originalPrice: @json($course->original_price ?? 'N/A'),
+                                    discountedPrice: @json($course->discounted_price ?? 'N/A'),
+                                },
+                            @endforeach
                         ],
 
                         filteredCourses: [],
