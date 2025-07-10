@@ -15,18 +15,18 @@ class TrainerAuthenticate extends Middleware
     protected function redirectTo($request)
     {
         if (! $request->expectsJson()) {
-            return route('recruiter.login');
+            return route('trainer.login');
         }
     }
 
 
     protected function authenticate($request, array $guards)
     {
-        if ($this->auth->guard('recruiter')->check()) {
-            return $this->auth->shouldUse('recruiter');
+        if ($this->auth->guard('trainer')->check()) {
+            return $this->auth->shouldUse('trainer');
         }
 
-        $this->unauthenticated($request, ['recruiter']);
+        $this->unauthenticated($request, ['trainer']);
     }
 
 }

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->enum('role', ['superadmin', 'admin']);
             $table->string('notes')->nullable();
-            $table->string('status')->nullable();
+            $table->string('status')->default('active');
             $table->json('permissions')->nullable();
             $table->rememberToken();
             $table->timestamps();

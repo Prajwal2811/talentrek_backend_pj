@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 
 class TrainingExperience extends Model
 {
@@ -11,9 +13,6 @@ class TrainingExperience extends Model
 
     protected $table = 'training_experience';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'user_id',
         'user_type',
@@ -23,16 +22,17 @@ class TrainingExperience extends Model
         'portfolio_link',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     */
-    protected $casts = [
-        'date_of_birth' => 'date',
-    ];
 
     public function experience()
     {
         return $this->belongsTo(Trainers::class);
     }
   
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'date_of_birth' => 'date',
+
+    ];
+
 }

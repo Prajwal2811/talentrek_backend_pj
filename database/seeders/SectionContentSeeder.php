@@ -106,6 +106,52 @@ class SectionContentSeeder extends Seeder
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
+            [
+                'section' => 'Training Page(Course Overview)',
+                'slug' => 'course-overview',
+                'heading' => 'Course Overview',
+                'description' => "Unlock your creative potential with our Graphic Design course tailored for beginners and aspiring designers. Learn the fundamentals of design theory, master industry-standard tools like Adobe Photoshop, Illustrator, and Figma, and gain the confidence to create visually compelling designs for digital and print media. Whether you're starting fresh or leveling up, this course sets you on a professional design path.",
+                'file_name' => NULL,
+                'file_path' => NULL,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'section' => 'Training Page(Benefits of training)',
+                'slug' => 'benefits-of-training',
+                'heading' => 'Benefits of training',
+                'description' => "Enhance Creativity – Develop your artistic skills and turn ideas into visually compelling designs.
+                                Master Industry Tools – Learn Photoshop, Illustrator, Figma, and other top design software used by professionals.
+                                Career Opportunities – Open doors to roles like UI/UX Designer, Branding Expert, and Digital Illustrator.
+                                Freelance & Business Growth – Work independently, start your own design agency, or take on freelance projects.
+                                Effective Visual Communication – Learn how to design impactful branding, marketing materials, and user interfaces.
+                                High Demand & Competitive Salaries – Graphic designers are always needed in advertising, tech, and digital media industries.
+                                Build a Strong Portfolio – Work on real-world projects that showcase your skills and help you land jobs or clients.",
+                'file_name' => NULL,
+                'file_path' => NULL,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'section' => 'Mentorship Page(Mentorship overview)',
+                'slug' => 'mentorship-overview',
+                'heading' => 'Mentorship overview',
+                'description' => "As a mentor, you play a pivotal role in shaping the future of your mentees' careers. Your expertise, guidance, and support can have a profound impact on their professional growth and success.",
+                'file_name' => NULL,
+                'file_path' => NULL,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'section' => 'Mentorship Page(Benefits of mentorship)',
+                'slug' => 'benefits-of-mentorship',
+                'heading' => 'Benefits of mentorship',
+                'description' => "lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptas?",
+                'file_name' => NULL,
+                'file_path' => NULL,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
         ]);
     }
 }

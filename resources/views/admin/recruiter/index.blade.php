@@ -190,7 +190,7 @@
                                                 <td>{{ \Carbon\Carbon::parse($recruiter->created_at)->format('d/m/Y') }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.recruiter.view', $recruiter->company_id) }}" class="btn btn-sm btn-primary">View Profile</a>
-                                                    {{-- <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $recruiter->id }})">Delete</button> --}}
+                                                    <a href="{{ route('admin.recruiter.shortlisted-jobseekers', $recruiter->company_id) }}"  class="btn btn-sm btn-warning text-light">Shortlisted Jobseekers</a>
                                                 </td>
                                             </tr>
                                             @endforeach

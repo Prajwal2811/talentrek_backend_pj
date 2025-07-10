@@ -55,7 +55,7 @@
                                                                 <td>{{ $course->assessment_title }}</td>
                                                                 <td>{{ $course->assessment_level }}</td>
                                                                 <td>
-                                                                    <a href="{{ route('admin.trainer.training-assessment.view', [$course->trainer_id, $course->material_id]) }}" class="btn btn-sm btn-primary">
+                                                                    <a href="{{ route('admin.trainer.training-assessment.view', [$course->trainer_id, $course->id]) }}" class="btn btn-sm btn-primary">
                                                                         View
                                                                     </a>
                                                                 </td>

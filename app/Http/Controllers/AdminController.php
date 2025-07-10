@@ -17,6 +17,9 @@ use App\Models\AdditionalInfo;
 use App\Models\Testimonial;
 use App\Models\Trainers;
 use App\Models\Language;
+use App\Models\Resume;
+use App\Models\Review;
+use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
 use App\Models\TrainingMaterialsDocument;
@@ -27,6 +30,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use DB;
 class AdminController extends Controller
 {
     public function authenticate(Request $request)
@@ -738,6 +742,42 @@ class AdminController extends Controller
         return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos'));
     }
 
+    public function viewShortlistedJobseekers($id)
+    {
+        // echo "<pre>"; print_r($id); die;
+        $shortlistJobseekers = RecruiterJobseekersShortlist::select('recruiter_jobseeker_shortlist.*','jobseekers.*','recruiter_jobseeker_shortlist.admin_status as admin_status_rjs')->where('recruiter_id', $id)
+                                                            ->join('jobseekers', 'recruiter_jobseeker_shortlist.jobseeker_id', '=', 'jobseekers.id')
+                                                            ->get();
+        // echo "<pre>";  print_r($shortlistJobseekers); die ;    
+        return view('admin.recruiter.shortlisted-jobseekers', compact('shortlistJobseekers'));
+    }
+
+    public function updateStatusForShortlist(Request $request)
+    {
+        $request->validate([
+            'jobseeker_id' => 'required|exists:jobseekers,id',
+            'status' => 'required|in:approved,rejected',
+            'reason' => 'nullable|string|max:500',
+            'role' => 'required|in:admin,superadmin',
+        ]);
+
+        $jobseeker = RecruiterJobseekersShortlist::where('jobseeker_id', $request->jobseeker_id)->firstOrFail();
+
+        if ($request->role === 'admin') {
+            $jobseeker->admin_status = $request->status;
+            $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
+        } elseif ($request->role === 'superadmin') {
+            if ($jobseeker->admin_status === 'approved') {
+                $jobseeker->admin_status = 'superadmin_' . $request->status;
+                $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
+            }
+        }
+
+        $jobseeker->save();
+
+        return back()->with('success', 'Status updated.');
+    }
+
 
 
     public function updateRecruiterStatus(Request $request)
@@ -937,6 +977,41 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Site settings updated successfully.');
     }
+
+
+    public function resume()
+    {
+        return view('admin.resume.index');
+    }
+
+
+    public function resumeUpdate(Request $request)
+    {
+        $request->validate([
+            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048', // Accept only document types
+        ]);
+
+        $resume = Resume::find($request->input('id')) ?? new Resume();
+
+        $uploadPath = public_path('uploads');
+
+        if ($request->hasFile('resume')) {
+            // Delete old resume file
+            if (!empty($resume->resume) && file_exists(public_path($resume->resume))) {
+                unlink(public_path($resume->resume));
+            }
+
+            $resumeFile = $request->file('resume');
+            $resumeFileName = 'resume_' . time() . '.' . $resumeFile->getClientOriginalExtension();
+            $resumeFile->move($uploadPath, $resumeFileName);
+            $resume->resume = 'uploads/' . $resumeFileName;
+        }
+
+        $resume->save();
+
+        return redirect()->back()->with('success', 'Resume format uploaded successfully.');
+    }
+
 
 
     public function storeMediaLinks(Request $request)
@@ -1370,7 +1445,7 @@ class AdminController extends Controller
     public function viewTrainerAssessment($id)
     {
         $assessments = TrainerAssessment::select('trainer_assessments.*')
-                                        ->where('trainer_assessments.id',$id)
+                                        ->where('trainer_assessments.trainer_id' , $id)
                                         ->get();
         // echo "<pre>"; print_r($assessments); die;
         return view('admin.trainers.assessment.training-assessment', compact('assessments'));
@@ -1379,17 +1454,16 @@ class AdminController extends Controller
     
     public function viewTrainingAssessmentDetail($trainerId, $assessmentId)
     {
-        $assessment = TrainerAssessment::where('trainer_id', $trainerId)
-                        ->where('id', $assessmentId)
-                        ->with(['questions.options', 'course']) // Load questions with their options and course
-                        ->firstOrFail();
+        // echo "<pre>"; print_r($trainerId); die;
 
+        $assessment = TrainerAssessment::where('trainer_id', $trainerId)
+                            ->where('id', $assessmentId)
+                            ->with(['questions.options', 'course']) // Load questions with their options and course
+                            ->firstOrFail();
+        // echo "<pre>"; print_r($assessment); die;
         return view('admin.trainers.assessment.training-assessment-detail', compact('assessment'));
 
     }
-
-
-
 
     public function certificationTemplate() {
         return view('admin.certificate.index');
@@ -1440,6 +1514,54 @@ class AdminController extends Controller
     {
         return view('admin.contact-support');
     }
+
+
+    public function reviews()
+    {
+        $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
+                    ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+                    ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+                    ->get();
+
+        // echo "<pre>"; print_r($reviews); die;
+        return view('admin.reviews.index', compact('reviews'));
+    }
+
+
+    public function viewReview($id)
+    {
+        $review = Review::select('reviews.*', 'jobseekers.name as reviewer_name', 'jobseekers.email as reviewer_email')
+            ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+            ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+            ->where('reviews.id', $id)
+            ->first();
+
+        // Determine Reviewee Name based on user_type
+        $revieweeName = null;
+
+        switch ($review->user_type) {
+            case 'trainer':
+                $reviewee = DB::table('trainers')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+            case 'mentor':
+                $reviewee = DB::table('mentors')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+            case 'coach':
+                $reviewee = DB::table('coaches')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+            case 'assessor':
+                $reviewee = DB::table('assessors')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+        }
+
+        return view('admin.reviews.view', compact('review', 'revieweeName'));
+    }
+
+
 
    public function showActivityLog()
     {
