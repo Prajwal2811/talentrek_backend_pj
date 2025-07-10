@@ -1659,6 +1659,20 @@ class AdminController extends Controller
     }
 
 
+
+    public function subscriptions()
+    {
+        return view('admin.subscriptions.index');
+    }
+
+
+    public function showSubscriptions($type)
+    {
+        // Example logic
+        return view('admin.subscriptions.view', ['type' => ucfirst($type)]);
+    }
+
+
     public function showActivityLog()
     {
         $logPath = storage_path('logs/laravel.log');

@@ -100,6 +100,8 @@ Route::group(['prefix' => 'admin'], function() {
         // Subscriptions
         Route::middleware('admin.module:Subscriptions')->group(function () {
 		    Route::get('/subscriptions', [App\Http\Controllers\AdminController::class, 'subscriptions'])->name('admin.subscriptions');
+			Route::get('/subscription-plans/{type}', [App\Http\Controllers\AdminController::class, 'showSubscriptions'])->name('admin.subscription.subscription-plans.view');
+
         });
         // Languages
         Route::middleware('admin.module:Languages')->group(function () {
