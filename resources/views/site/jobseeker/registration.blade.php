@@ -109,7 +109,7 @@
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Gender</label>
-                                            <select name="gender" class="w-full border rounded-md p-2 mt-1">
+                                            <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
                                                 <option value="">Select gender</option>
                                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male
                                                 </option>
@@ -140,8 +140,29 @@
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Date of birth</label>
                                             <input name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
-                                                value="{{ old('dob') }}" readonly/>
+                                                value="{{ old('dob') }}"/>
                                             @error('dob')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-6 mt-3">
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                            <span class="text-xs text-blue-600">
+                                                National ID should start with 1 for male and 2 for female.
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                name="national_id" 
+                                                id="national_id" 
+                                                class="w-full border rounded-md p-2 mt-1" 
+                                                placeholder="Enter national id number" 
+                                                value="{{ old('national_id') }}" 
+                                                maxlength="15"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                            />
+                                            @error('national_id')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
@@ -682,6 +703,34 @@
                 });
             });
         </script>
+        <!-- Natioanl id and gender logic code -->
+        <script>
+            $(document).ready(function () {
+                function validateNationalIdInput() {
+                    const gender = $('#gender').val();
+                    const value = $('#national_id').val();
 
+                    if (gender === 'Male') {
+                        if (value && !value.startsWith('1')) {
+                            $('#national_id').val('');
+                        }
+                    } else if (gender === 'Female') {
+                        if (value && !value.startsWith('2')) {
+                            $('#national_id').val('');
+                        }
+                    }
+                }
 
+                $('#gender').on('change', function () {
+                    const selectedGender = $(this).val();
 
+                    // Clear National ID field when gender is changed
+                    $('#national_id').val('');
+
+                    // Attach input event for validation
+                    $('#national_id').off('input').on('input', function () {
+                        validateNationalIdInput();
+                    });
+                });
+            });
+        </script>
