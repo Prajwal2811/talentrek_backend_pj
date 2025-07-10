@@ -39,6 +39,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::post('/login',[JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
 		Route::get('/profile', [JobseekerController::class, 'showProfilePage'])->name('jobseeker.profile');
+		Route::get('/subscription-plan', [JobseekerController::class, 'showSubscriptionPlanPage'])->name('jobseeker.subscription.plan');
+		Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
+
 		Route::get('/profile', [JobseekerController::class, 'getJobseekerAllDetails'])->name('jobseeker.profile');
 		Route::post('/logout',[JobseekerController::class, 'logoutJobseeker'])->name('jobseeker.logout');
 		Route::post('/profile/update-personal-info',[JobseekerController::class, 'updatePersonalInfo'])->name('jobseeker.profile.update');

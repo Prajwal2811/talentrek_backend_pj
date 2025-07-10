@@ -106,7 +106,7 @@
                                     <div class="text-center text-gray-500 text-sm mt-4">- or -</div>
 
                                     <div class="text-center text-sm mt-2">
-                                        Don’t have an account?
+                                        I have an account?
                                         <a href="{{ route('recruiter.login') }}" class="text-blue-600 hover:underline">Sign in</a>
                                     </div>
                                 </form>

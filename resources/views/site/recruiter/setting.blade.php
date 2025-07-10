@@ -349,7 +349,24 @@
                                 <div x-show="activeSection === 'profile'" x-transition>
                                     <!-- Company Header -->
                                     <div class="flex items-center space-x-4 mb-4">
-                                        <img src="./images/gallery/pic8.jpg" alt="Logo" class="w-20 h-20 rounded-lg object-cover" />
+                                        @php
+                                            use App\Models\AdditionalInfo;
+                                            $userId = auth()->id();
+                                            
+                                            $profile = AdditionalInfo::where('user_id', $userId)
+                                                        ->where('doc_type', 'company_profile')
+                                                        ->first();
+                                        @endphp
+
+                                        <!-- Image Preview -->
+                                        <img 
+                                                id="profilePreview" 
+                                                src="{{ $profile ? asset($profile->document_path) : 'https://www.lscny.org/app/uploads/2018/05/mystery-person.png' }}" 
+                                                class="h-20 w-20 rounded-md mb-2" 
+                                                alt="Profile Preview" 
+                                            />
+
+
                                         <div>
                                             <h3 class="text-xl font-semibold">                {{$companyDetails->name}}
                                             </h3>
@@ -418,32 +435,30 @@
                                     <div>
                                         <!-- Company Info Tab -->
                                         <div x-show="activeSubTab === 'company'" x-transition>
-                                            <form action="{{ route('recruiter.company.profile.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            <!-- Success Message -->
+                                            <div id="company-profile-success" class="alert alert-success text-center" style="display: none;">
+                                                <strong>Success!</strong> <span class="message-text"></span>
+                                            </div>    
+                                            <form id="company-profile-form" action="{{ route('recruiter.company.profile.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                                 @csrf
 
-                                                <!-- Company name spans both columns -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Company name</label>
-                                                    <input type="text" name="company_name" value="{{$companyDetails->company_name}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("company_name")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
-
+                                                <!-- Company Info -->
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Phone number</label>
-                                                    <input type="text"  name="company_phone_number"  value="{{$companyDetails->company_phone_number}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("company_phone_number")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block mb-1 font-medium">Company name</label>
+                                                    <input type="text" name="company_name" value="{{ $companyDetails->company_name }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("company_name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
                                                     <label class="block mb-1 font-medium">Company email</label>
-                                                    <input type="email"  name="business_email"  value="{{$companyDetails->business_email}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("business_email")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <input type="email" name="business_email" value="{{ $companyDetails->business_email }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("business_email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
+
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Company Phone number</label>
+                                                    <input type="text" name="company_phone_number" value="{{ $companyDetails->company_phone_number }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("company_phone_number") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
@@ -454,67 +469,230 @@
                                                         <option value="Healthcare" {{ old('industry_type', $companyDetails->industry_type) == 'Healthcare' ? 'selected' : '' }}>Healthcare</option>
                                                         <option value="Finance" {{ old('industry_type', $companyDetails->industry_type) == 'Finance' ? 'selected' : '' }}>Finance</option>
                                                     </select>
-                                                    @error("industry_type")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    @error("industry_type") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
-
 
                                                 <div>
                                                     <label class="block mb-1 font-medium">Company establishment date</label>
-                                                    <input   id="establishment_date" name="establishment_date" value="{{ \Carbon\Carbon::parse($companyDetails->updated_at)->format('d-m-Y') }}" class="w-full border rounded px-3 py-2 form-control" />
-                                                    @error("establishment_date")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <input id="establishment_date" name="establishment_date" value="{{ \Carbon\Carbon::parse($companyDetails->updated_at)->format('d-m-Y') }}" class="w-full border rounded px-3 py-2 form-control" />
+                                                    @error("establishment_date") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
-                                                
+
                                                 <div>
                                                     <label class="block mb-1 font-medium">Company website</label>
-                                                    <input type="text"  name="company_website"  value="{{$companyDetails->company_website}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("company_website")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <input type="text" name="company_website" value="{{ $companyDetails->company_website }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("company_website") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
-                                          
+
+                                                <!-- Recruiter Info -->
+                                                <div class="col-span-2 mt-4">
+                                                    <h3 class="text-xl font-semibold">Recruiter Details</h3>
+                                                </div>
+
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Recruiter Name</label>
+                                                    <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
+
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Recruiter Email</label>
+                                                    <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
+
+                                                <div class="">
+                                                    <label class="block mb-1 font-medium">National ID Number</label>
+                                                    <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
+
                                                 <!-- Buttons -->
-                                                <div class="mt-6 flex justify-end space-x-3">
-                                                    <button
-                                                        @click.prevent="activeSubTab = 'documents'"
-                                                        class="border px-6 py-2 rounded hover:bg-gray-100" >
-                                                        Next
-                                                    </button>
-                                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                                        Update
-                                                    </button>
+                                                <div class="col-span-2 mt-6 flex justify-end space-x-3">
+                                                    <button @click.prevent="activeSubTab = 'documents'" class="border px-6 py-2 rounded hover:bg-gray-100">Next</button>
+                                                    <button type="submit" id="save-company-profile" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Update</button>
                                                 </div>
                                             </form>
                                         </div>
+                                        <script>
+                                            document.getElementById('save-company-profile').addEventListener('click', function (e) {    
+                                                e.preventDefault(); // Prevent default form submission
+
+                                                const form = document.getElementById('company-profile-form');
+                                                const formData = new FormData(form);
+                                                const successBox = document.getElementById('company-profile-success');
+                                                const successText = successBox.querySelector('.message-text');
+
+                                                // Clear previous error messages
+                                                form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+
+                                                fetch(form.action, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
+                                                        'Accept': 'application/json'
+                                                    },
+                                                    body: formData
+                                                })
+                                                .then(response => {
+                                                    if (!response.ok) return response.json().then(err => Promise.reject(err));
+                                                    return response.json();
+                                                })
+                                                .then(data => {
+                                                    // Show success alert
+                                                    successText.textContent = data.message;
+                                                    successBox.style.display = 'block';
+
+                                                    // Hide after 3 seconds
+                                                    setTimeout(() => {
+                                                        successBox.style.display = 'none';
+                                                        successText.textContent = '';
+                                                    }, 3000);
+
+                                                    // Optional: switch to next tab
+                                                    if (typeof nextTab === "function") nextTab();
+                                                })
+                                                .catch(error => {
+                                                    const errors = error.errors || {};
+                                                    Object.keys(errors).forEach(field => {
+                                                        const message = errors[field][0];
+                                                        const input = form.querySelector(`[name="${field}"]`);
+                                                        if (input) {
+                                                            const errorElem = document.createElement('p');
+                                                            errorElem.className = 'text-red-600 text-sm mt-1';
+                                                            errorElem.textContent = message;
+                                                            input.insertAdjacentElement('afterend', errorElem);
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                        </script>
+
+    
 
                                         <!-- Documents Tab -->
                                         <div x-show="activeSubTab === 'documents'" x-transition>
-                                            <form method="POST" action="{{ route('recruiter.company.document.update') }}" class="space-y-4 text-sm" enctype="multipart/form-data">
-                                                <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
+                                            <!-- Success Alert -->
+                                            <div id="company-docs-success" class="alert alert-success mt-4 text-center hidden">
+                                                <span class="message-text font-semibold"></span>
+                                            </div>
+
+                                            <form id="company-documents-form" method="POST" action="{{ route('recruiter.company.document.update') }}" enctype="multipart/form-data" class="space-y-4 text-sm">
                                                 @csrf
+                                                <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
 
-                                                {{-- Company Profile Picture --}}
+                                                <!-- Company Profile Picture -->
                                                 <div>
-                                                    <label class="block mb-1 font-medium" for="company_profile_pic">Upload Company Profile Picture</label>
-                                                    <input type="file" id="company_profile_pic" class="w-full border rounded px-3 py-2" name="company_profile_pic" accept="image/*" required />
+                                                    <label class="block font-medium mb-1">Company Profile Picture</label>
+                                                    @if($companyProfile)
+                                                        <div class="flex items-center gap-4">
+                                                            <a href="{{ asset($companyProfile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">📄 View Image</a>
+                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="company_profile">Delete</button>
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="company_profile" accept="image/*" class="w-full border rounded px-3 py-2" />
                                                 </div>
 
-                                                {{-- Company Registration Document --}}
+                                                <!-- Registration Document -->
                                                 <div>
-                                                    <label class="block mb-1 font-medium" for="doc1">Upload Company Registration Document</label>
-                                                    <input type="file" id="doc1" class="w-full border rounded px-3 py-2" name="register_document" required />
+                                                    <label class="block font-medium mb-1">Registration Document</label>
+                                                    @if($registrationDoc)
+                                                        <div class="flex items-center gap-4">
+                                                            <a href="{{ asset($registrationDoc->document_path) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700">📄 View Document</a>
+                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="register_document">Delete</button>
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="register_document" accept=".pdf,.doc,.docx" class="w-full border rounded px-3 py-2" />
                                                 </div>
 
-                                                <div class="mt-6 flex justify-end space-x-3">
-                                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                                        Update
-                                                    </button>
+                                                <div class="flex justify-end mt-4">
+                                                    <button type="button" id="save-company-docs" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800">Update</button>
                                                 </div>
                                             </form>
+
+                                            <!-- Delete Modal -->
+                                            <div id="deleteCompanyDocModal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
+                                                <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
+                                                    <h2 class="text-lg font-semibold mb-4">Confirm Delete</h2>
+                                                    <p class="mb-4 text-gray-700">Are you sure you want to delete <span id="delete-doc-type" class="font-bold"></span>?</p>
+                                                    <div class="flex justify-end gap-4">
+                                                        <button type="button" id="cancelCompanyDocDelete" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+                                                        <button type="button" id="confirmCompanyDocDelete" class="bg-red-600 text-white px-4 py-2 rounded">Delete</button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
+                                        <script>
+                                            let selectedCompanyDocType = null;
+
+                                            document.getElementById('save-company-docs').addEventListener('click', function () {
+                                                const form = document.getElementById('company-documents-form');
+                                                const formData = new FormData(form);
+                                                const successBox = document.getElementById('company-docs-success');
+                                                const successText = successBox.querySelector('.message-text');
+
+                                                fetch(form.action, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
+                                                        'Accept': 'application/json'
+                                                    },
+                                                    body: formData
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    successText.textContent = data.message;
+                                                    successBox.classList.remove('hidden');
+                                                    setTimeout(() => location.reload(), 2000); // Reload after success
+                                                })
+                                                .catch(error => {
+                                                    alert('Failed to upload documents.');
+                                                });
+                                            });
+
+                                            document.querySelectorAll('.delete-doc').forEach(btn => {
+                                                btn.addEventListener('click', () => {
+                                                    selectedCompanyDocType = btn.dataset.type;
+                                                    document.getElementById('delete-doc-type').textContent = selectedCompanyDocType.replace(/_/g, ' ');
+                                                    document.getElementById('deleteCompanyDocModal').classList.remove('hidden');
+                                                });
+                                            });
+
+                                            document.getElementById('cancelCompanyDocDelete').addEventListener('click', () => {
+                                                selectedCompanyDocType = null;
+                                                document.getElementById('deleteCompanyDocModal').classList.add('hidden');
+                                            });
+
+                                            document.getElementById('confirmCompanyDocDelete').addEventListener('click', () => {
+                                                if (!selectedCompanyDocType) return;
+
+                                                fetch(`{{ route('recruiter.company.document.delete', ':type') }}`.replace(':type', selectedCompanyDocType), {
+                                                    method: 'DELETE',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
+                                                        'Accept': 'application/json'
+                                                    }
+                                                })
+                                                .then(res => res.json())
+                                                .then(data => {
+                                                    document.getElementById('deleteCompanyDocModal').classList.add('hidden');
+                                                    selectedCompanyDocType = null;
+
+                                                    const successBox = document.getElementById('company-docs-success');
+                                                    const successText = successBox.querySelector('.message-text');
+                                                    successText.textContent = data.message;
+                                                    successBox.classList.remove('hidden');
+                                                    setTimeout(() => location.reload(), 2000);
+                                                })
+                                                .catch(() => {
+                                                    alert('Delete failed.');
+                                                    document.getElementById('deleteCompanyDocModal').classList.add('hidden');
+                                                });
+                                            });
+                                        </script>
+
+
                                         
                                     </div>
                                 </div>
