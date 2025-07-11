@@ -33,7 +33,12 @@ class Mentors extends Model
     // Relationship with reviews (assuming `mentor_id` is foreign key in reviews)
     public function mentorReviews()
     {
-        return $this->hasMany(Review::class, 'trainer_material')->where('user_type', 'mentor');
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'mentor');
+    }
+
+    public function mentorEducations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')->where('user_type', 'mentor');
     }
 
     public function latestWorkExperience()

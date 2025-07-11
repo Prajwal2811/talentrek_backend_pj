@@ -8,6 +8,7 @@ use App\Models\Api\Mentors;
 use App\Models\Api\Coach;
 use App\Models\Api\TrainingMaterial;
 use App\Models\Api\Trainers;
+use App\Models\Api\Review;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -112,25 +113,223 @@ class ExplorerController extends Controller
 
     public function assesserList()
     {
-        $assessorList = Assessors::select('id','company_name','company_email','phone_code','company_phone_number','company_instablishment_date','industry_type','company_website')->get();
+        $assessorList = Assessors::select('id','company_name','company_email','phone_code','company_phone_number','company_instablishment_date','industry_type','company_website')
+        ->with('WorkExperience') // only fetch trainer id & name
+        ->withAvg('assessorReviews', 'ratings')
+        ->get()->map(function ($item) {
+            $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $item->total_experience_days = $totalDays;
+            $item->total_experience_years = round($totalDays / 365, 1);
+
+            $avg = $item->assessor_reviews_avg_ratings;
+            $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+            unset($item->assessor_reviews_avg_ratings); // remove raw avg field
+            unset($item->WorkExperience);
+            return $item;
+        });
         return $this->successResponse($assessorList, 'Assessor list fetched successfully.');
     }
 
     public function coachList()
     {
-        $coachList = Coach::select('id','name','email','phone_code','phone_number','date_of_birth','city')->get();
+        $coachList = Coach::select('id','name','email','phone_code','phone_number','date_of_birth','city')
+        ->with('WorkExperience') // only fetch trainer id & name
+        ->withAvg('coachReviews', 'ratings')
+        ->get()->map(function ($item) {
+            $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $item->total_experience_days = $totalDays;
+            $item->total_experience_years = round($totalDays / 365, 1);
+
+            $avg = $item->coach_reviews_avg_ratings;
+            $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+            unset($item->coach_reviews_avg_ratings); // remove raw avg field
+            unset($item->WorkExperience);
+            return $item;
+        });
         return $this->successResponse($coachList, 'Coach list fetched successfully.');
     }
 
     public function trainingMaterialDetailById($trainingId)
     {
-        $TrainingMaterial = TrainingMaterial::select('*')->where('id',$trainingId)->first();
-        return $this->successResponse($TrainingMaterial, 'Training course details fetched successfully.');
+        
+        $TrainingMaterial = TrainingMaterial::select('*')->withCount('trainingMaterialDocuments')->with(['trainer:id,name','latestWorkExperience']) ->with('trainerReviews')->withAvg('trainerReviews', 'ratings')->where('id',$trainingId)->first();
+        if ($TrainingMaterial) {
+            $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
+            $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+
+            // Optional: remove the raw field if not needed in response
+            unset($TrainingMaterial->trainer_reviews_avg_ratings);
+            unset($TrainingMaterial->trainerReviews);
+        }       
+
+        if ($TrainingMaterial) {
+            $reviews = $TrainingMaterial->trainerReviews;
+
+            $total = $reviews->count();
+            $ratingPercentages = [];
+
+            // Initialize rating counts
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+
+            $TrainingReviewsPercentage = $ratingPercentages;
+            unset($TrainingMaterial->trainerReviews);
+        }
+
+        return $this->successwithCMSResponse( $TrainingMaterial,$TrainingReviewsPercentage, 'Training course details with review  percentage fetched successfully.');
     }
 
     public function mentorDetailById($mentorId)
     {
-        $MentorsDetails = Mentors::select('*')->where('id',$mentorId)->first();
-        return $this->successResponse($MentorsDetails, 'Mentor details fetched successfully.');
+        $MentorsDetails = Mentors::select('*')->with('mentorReviews')->with('WorkExperience')->with('mentorEducations')->withAvg('mentorReviews', 'ratings')->where('id',$mentorId)->first();
+
+        if ($MentorsDetails) {
+            $totalDays = collect($MentorsDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $MentorsDetails->total_experience_days = $totalDays;
+            $MentorsDetails->total_experience_years = round($totalDays / 365, 1);
+
+            $reviews = $MentorsDetails->mentorReviews;
+
+            $total = $reviews->count();
+            $ratingPercentages = [];
+
+            // Initialize rating counts
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+
+            $MentorReviewsPercentage = $ratingPercentages;
+            unset($MentorsDetails->mentorReviews);
+            unset($MentorsDetails->WorkExperience);
+
+        }
+        return $this->successwithCMSResponse( $MentorsDetails,$MentorReviewsPercentage, 'Mentor details with review  percentage fetched successfully.');
+    }
+
+    public function assesserDetailById($mentorId)
+    {
+        $AssessorDetails = Assessors::select('*')->with('assessorReviews')->with('assessorEducations')->with('WorkExperience')->withAvg('assessorReviews', 'ratings')->where('id',$mentorId)->first();
+        if ($AssessorDetails) {
+            $totalDays = collect($AssessorDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $AssessorDetails->total_experience_days = $totalDays;
+            $AssessorDetails->total_experience_years = round($totalDays / 365, 1);
+            $reviews = $AssessorDetails->assessorReviews;
+
+            $total = $reviews->count();
+            $ratingPercentages = [];
+
+            // Initialize rating counts
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+
+            $AssessorReviewsPercentage = $ratingPercentages;
+            unset($AssessorDetails->assessorReviews);
+            unset($AssessorDetails->WorkExperience);
+
+        }
+        return $this->successwithCMSResponse( $AssessorDetails,$AssessorReviewsPercentage, 'Assessor details with review  percentage fetched successfully.');
+    }
+
+    public function coachDetailById($mentorId)
+    {
+        $CoachDetails = Coach::select('*')->with('coachReviews')->with('coachEducations')->with('WorkExperience')->withAvg('coachReviews', 'ratings')->where('id',$mentorId)->first();
+
+        if ($CoachDetails) {
+            $totalDays = collect($CoachDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $CoachDetails->total_experience_days = $totalDays;
+            $CoachDetails->total_experience_years = round($totalDays / 365, 1);
+            $reviews = $CoachDetails->coachReviews;
+
+            $total = $reviews->count();
+            $ratingPercentages = [];
+
+            // Initialize rating counts
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+
+            $CoachReviewsPercentage = $ratingPercentages;
+            unset($CoachDetails->coachReviews);
+            unset($CoachDetails->WorkExperience);
+
+        }
+        return $this->successwithCMSResponse( $CoachDetails,$CoachReviewsPercentage, 'Assessor details with review  percentage fetched successfully.');
+    }
+
+    public function reviewsDetailById($mentorId,$tags = 'trainer')
+    {
+        if ($tags == 'trainer') {
+            $reviewsDetails = Review::select('reviews', 'ratings', 'trainer_material')->with('trainer:id,name')
+                ->where('trainer_material', $mentorId)
+                ->where('user_type', $tags)
+                ->get()
+                ->map(function ($item) {
+                    $item->user_name = $item->trainer->name ?? null;
+                    unset($item->trainer);
+                    return $item;
+                });
+        } elseif ($tags == 'mentor') {
+            $reviewsDetails = Review::select('reviews', 'ratings', 'trainer_material')->with('mentor:id,name')
+                ->where('trainer_material', $mentorId)
+                ->where('user_type', $tags)
+                ->get()
+                ->map(function ($item) {
+                    $item->user_name = $item->mentor->name ?? null;
+                    unset($item->mentor);
+                    return $item;
+                });
+        } elseif ($tags == 'coach') {
+            $reviewsDetails = Review::select('reviews', 'ratings', 'trainer_material')->with('coach:id,name')
+                ->where('trainer_material', $mentorId)
+                ->where('user_type', $tags)
+                ->get()
+                ->map(function ($item) {
+                    $item->user_name = $item->coach->name ?? null;
+                    unset($item->coach);
+                    return $item;
+                });
+        } elseif ($tags == 'assessor') {
+            $reviewsDetails = Review::select('reviews', 'ratings', 'trainer_material')->with('assessor:id,company_name')
+                ->where('trainer_material', $mentorId)
+                ->where('user_type', $tags)
+                ->get()
+                ->map(function ($item) {
+                    $item->user_name = $item->assessor->company_name ?? null;
+                    unset($item->assessor);
+                    return $item;
+                });
+        }
+        return $this->successResponse( $reviewsDetails, ucwords($tags).' reviews fetched successfully.');
     }
 }

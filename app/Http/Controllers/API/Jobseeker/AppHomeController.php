@@ -22,13 +22,13 @@ class AppHomeController extends Controller
 
     public function bannersList()
     {
-        $banners = CMS::select('heading', 'description', 'file_path')->get();
+        $banners = CMS::select('heading', 'description', 'file_path')->where('slug','banner')->get();
         return $this->successResponse($banners, 'Banner list fetched successfully.');
     }
 
     public function trainingPrograms()
     {
-        $TrainingPrograms = TrainingPrograms::select('id', 'category')->get();
+        $TrainingPrograms = TrainingPrograms::select('id', 'category','image_path')->get();
         return $this->successResponse($TrainingPrograms, 'Training Programs list fetched successfully.');
     }
 
