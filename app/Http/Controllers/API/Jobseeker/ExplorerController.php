@@ -161,7 +161,8 @@ class ExplorerController extends Controller
 
     public function trainingMaterialDetailById($trainingId)
     {
-        $TrainingMaterial = TrainingMaterial::select('*')->with('trainerReviews')->withAvg('trainerReviews', 'ratings')->where('id',$trainingId)->first();
+        
+        $TrainingMaterial = TrainingMaterial::select('*')->withCount('trainingMaterialDocuments')->with(['trainer:id,name','latestWorkExperience']) ->with('trainerReviews')->withAvg('trainerReviews', 'ratings')->where('id',$trainingId)->first();
         if ($TrainingMaterial) {
             $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
             $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
@@ -169,8 +170,7 @@ class ExplorerController extends Controller
             // Optional: remove the raw field if not needed in response
             unset($TrainingMaterial->trainer_reviews_avg_ratings);
             unset($TrainingMaterial->trainerReviews);
-        }
-       
+        }       
 
         if ($TrainingMaterial) {
             $reviews = $TrainingMaterial->trainerReviews;
@@ -193,9 +193,18 @@ class ExplorerController extends Controller
 
     public function mentorDetailById($mentorId)
     {
-        $MentorsDetails = Mentors::select('*')->with('mentorReviews')->withAvg('mentorReviews', 'ratings')->where('id',$mentorId)->first();
+        $MentorsDetails = Mentors::select('*')->with('mentorReviews')->with('WorkExperience')->with('mentorEducations')->withAvg('mentorReviews', 'ratings')->where('id',$mentorId)->first();
 
         if ($MentorsDetails) {
+            $totalDays = collect($MentorsDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $MentorsDetails->total_experience_days = $totalDays;
+            $MentorsDetails->total_experience_years = round($totalDays / 365, 1);
+
             $reviews = $MentorsDetails->mentorReviews;
 
             $total = $reviews->count();
@@ -209,14 +218,24 @@ class ExplorerController extends Controller
 
             $MentorReviewsPercentage = $ratingPercentages;
             unset($MentorsDetails->mentorReviews);
+            unset($MentorsDetails->WorkExperience);
+
         }
         return $this->successwithCMSResponse( $MentorsDetails,$MentorReviewsPercentage, 'Mentor details with review  percentage fetched successfully.');
     }
 
     public function assesserDetailById($mentorId)
     {
-        $AssessorDetails = Assessors::select('*')->with('assessorReviews')->withAvg('assessorReviews', 'ratings')->where('id',$mentorId)->first();
+        $AssessorDetails = Assessors::select('*')->with('assessorReviews')->with('assessorEducations')->with('WorkExperience')->withAvg('assessorReviews', 'ratings')->where('id',$mentorId)->first();
         if ($AssessorDetails) {
+            $totalDays = collect($AssessorDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $AssessorDetails->total_experience_days = $totalDays;
+            $AssessorDetails->total_experience_years = round($totalDays / 365, 1);
             $reviews = $AssessorDetails->assessorReviews;
 
             $total = $reviews->count();
@@ -230,15 +249,25 @@ class ExplorerController extends Controller
 
             $AssessorReviewsPercentage = $ratingPercentages;
             unset($AssessorDetails->assessorReviews);
+            unset($AssessorDetails->WorkExperience);
+
         }
         return $this->successwithCMSResponse( $AssessorDetails,$AssessorReviewsPercentage, 'Assessor details with review  percentage fetched successfully.');
     }
 
     public function coachDetailById($mentorId)
     {
-        $CoachDetails = Coach::select('*')->with('coachReviews')->withAvg('coachReviews', 'ratings')->where('id',$mentorId)->first();
+        $CoachDetails = Coach::select('*')->with('coachReviews')->with('coachEducations')->with('WorkExperience')->withAvg('coachReviews', 'ratings')->where('id',$mentorId)->first();
 
         if ($CoachDetails) {
+            $totalDays = collect($CoachDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = \Carbon\Carbon::parse($exp->start_from);
+                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                return $carry + $start->diffInDays($end);
+            }, 0);
+
+            $CoachDetails->total_experience_days = $totalDays;
+            $CoachDetails->total_experience_years = round($totalDays / 365, 1);
             $reviews = $CoachDetails->coachReviews;
 
             $total = $reviews->count();
@@ -252,6 +281,8 @@ class ExplorerController extends Controller
 
             $CoachReviewsPercentage = $ratingPercentages;
             unset($CoachDetails->coachReviews);
+            unset($CoachDetails->WorkExperience);
+
         }
         return $this->successwithCMSResponse( $CoachDetails,$CoachReviewsPercentage, 'Assessor details with review  percentage fetched successfully.');
     }

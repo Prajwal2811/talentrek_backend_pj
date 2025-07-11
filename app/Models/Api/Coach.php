@@ -33,7 +33,12 @@ class Coach extends Model
 
     public function coachReviews()
     {
-        return $this->hasMany(Review::class, 'trainer_material')->where('user_type', 'coach');
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'coach');
+    }
+
+    public function coachEducations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')->where('user_type', 'coach');
     }
 
     public function latestWorkExperience()

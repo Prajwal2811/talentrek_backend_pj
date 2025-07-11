@@ -34,7 +34,12 @@ class Assessors extends Model
 
     public function assessorReviews()
     {
-        return $this->hasMany(Review::class, 'trainer_material')->where('user_type', 'assessor');
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'assessor');
+    }
+
+    public function assessorEducations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')->where('user_type', 'assessor');
     }
 
     public function latestWorkExperience()
