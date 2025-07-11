@@ -39,7 +39,6 @@ class SeekerProfileController extends Controller
             'date_of_birth'=> 'required|date|before:today',
             'location'     => 'required|string|max:255',
             'address'      => 'required|string|max:500',
-            'password'     => 'required|string|min:6|confirmed',
             'jobseeker_id' => 'required'            
         ]);
         $jobseekerId = $request->jobseeker_id ;
@@ -104,12 +103,12 @@ class SeekerProfileController extends Controller
         $jobseekerId = $request->jobseeker_id ;
         $EducationDetails = EducationDetails::where('user_id', $jobseekerId)->get();
         if ($EducationDetails) {
-            EducationDetails::where('user_id', $jobseeker->id)->delete();
+            EducationDetails::where('user_id', $jobseekerId)->delete();
         }
         // Save education
         foreach ($request->education as $edu) {
             EducationDetails::create([
-                'user_id'         => $jobseeker->id,
+                'user_id'         => $jobseekerId,
                 'user_type'       => 'jobseeker',
                 'high_education'  => $edu['high_education'],
                 'field_of_study'  => $edu['field_of_study'],
@@ -134,7 +133,7 @@ class SeekerProfileController extends Controller
             } else {
                 // Create new record
                 AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
+                    'user_id'       => $jobseekerId,
                     'user_type'     => 'jobseeker',
                     'doc_type'      => 'profile_picture',
                     'document_name' => $profileName,
@@ -147,8 +146,9 @@ class SeekerProfileController extends Controller
 
     public function updateWorkExperienceInfoDetails(Request $request)
     {
-        // Validate registration fields
-        $request->validate([
+        //print_r($request->all());exit;
+        //Validate registration fields
+        $validator = $request->validate([
             // Experience
             'experience' => 'nullable|array',
             'experience.*.job_role' => 'required|string|max:255',
@@ -157,16 +157,17 @@ class SeekerProfileController extends Controller
             'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
             'jobseeker_id' => 'required'
         ]);
-
+// print_r($validator->errors());exit;
         $jobseekerId = $request->jobseeker_id ;
         $WorkExperience = WorkExperience::where('user_id', $jobseekerId)->get();
         if ($WorkExperience) {
-            WorkExperience::where('user_id', $jobseeker->id)->delete();
+            WorkExperience::where('user_id', $jobseekerId)->delete();
         }
+       
         // Save experience
         foreach ($request->experience as $exp) {
             WorkExperience::create([
-                'user_id'      => $jobseeker->id,
+                'user_id'      => $jobseekerId,
                 'user_type'    => 'jobseeker',
                 'job_role'     => $exp['job_role'],
                 'organization' => $exp['organization'],
@@ -191,7 +192,7 @@ class SeekerProfileController extends Controller
             } else {
                 // Create new record
                 AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
+                    'user_id'       => $jobseekerId,
                     'user_type'     => 'jobseeker',
                     'doc_type'      => 'profile_picture',
                     'document_name' => $profileName,
@@ -199,7 +200,7 @@ class SeekerProfileController extends Controller
                 ]);
             } 
         }
-        return $this->successResponse(null, 'Eork experience  details updated successfully.');
+        return $this->successResponse(null, 'Work experience  details updated successfully.');
     }
 
     public function updateSkillsInfoDetails(Request $request)
@@ -255,7 +256,7 @@ class SeekerProfileController extends Controller
             } else {
                 // Create new record
                 AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
+                    'user_id'       => $jobseekerId,
                     'user_type'     => 'jobseeker',
                     'doc_type'      => 'profile_picture',
                     'document_name' => $profileName,
@@ -268,7 +269,7 @@ class SeekerProfileController extends Controller
 
     public function updateAdditionalInfoDetails(Request $request)
     {
-        $// Validate registration fields
+        // Validate registration fields
             $request->validate([
                 // Files
                 'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
@@ -276,7 +277,7 @@ class SeekerProfileController extends Controller
                 'jobseeker_id' => 'required'
             ]);
 
-        
+        $jobseekerId = $request->jobseeker_id ;
         // Upload Profile Picture
         if ($request->hasFile('resume')) {
             $existingProfile = AdditionalInfo::where('user_id', $jobseekerId)->where('user_type', 'jobseeker')->where('doc_type', 'resume')->first();
@@ -320,7 +321,7 @@ class SeekerProfileController extends Controller
             } else {
                 // Create new record
                 AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
+                    'user_id'       => $jobseekerId,
                     'user_type'     => 'jobseeker',
                     'doc_type'      => 'profile_picture',
                     'document_name' => $profileName,
