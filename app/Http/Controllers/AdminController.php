@@ -990,17 +990,17 @@ class AdminController extends Controller
     public function resumeUpdate(Request $request)
     {
         $request->validate([
-            'resume' => 'required', 
+            'resume' => 'required',
         ]);
 
-        // Find or create a new Resume model instance
         $resume = Resume::find($request->input('id')) ?? new Resume();
-        // Set the 'resume' field with HTML content from the form
         $resume->resume = $request->input('resume');
         $resume->save();
 
-        return redirect()->back()->with('success', 'Resume format uploaded successfully.');
+        return redirect()->route('admin.resume.download.option', ['id' => $resume->id])
+                        ->with('success', 'Resume format uploaded successfully.');
     }
+
 
 
 
@@ -1480,10 +1480,10 @@ class AdminController extends Controller
     }
 
 
-    // public function languages() {
-    //     $language = Language::all();
-    //     return view('admin.languages.index', compact('language'));
-    // }
+    public function languages() {
+        $language = Language::all();
+        return view('admin.languages.index', compact('language'));
+    }
 
     public function updateLanguage(Request $request)
     {
@@ -1506,16 +1506,16 @@ class AdminController extends Controller
     }
 
 
-    // public function reviews()
-    // {
-    //     $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
-    //                 ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
-    //                 ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
-    //                 ->get();
+    public function reviews()
+    {
+        $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
+                    ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+                    ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+                    ->get();
 
-    //     // echo "<pre>"; print_r($reviews); die;
-    //     return view('admin.reviews.index', compact('reviews'));
-    // }
+        // echo "<pre>"; print_r($reviews); die;
+        return view('admin.reviews.index', compact('reviews'));
+    }
 
 
     public function viewReview($id)
@@ -1649,10 +1649,10 @@ class AdminController extends Controller
 
 
 
-    // public function subscriptions()
-    // {
-    //     return view('admin.subscriptions.index');
-    // }
+    public function subscriptions()
+    {
+        return view('admin.subscriptions.index');
+    }
 
 
     public function showSubscriptions($type)
@@ -1662,15 +1662,15 @@ class AdminController extends Controller
     }
 
 
-    // public function payments()
-    // {   
-    //     $payments = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments.id as payment_id')
-    //                 ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
-    //                 ->orderBy('payments.created_at', 'desc')
-    //                 ->get();
-    //     // echo "<pre>"; print_r($payments); die;
-    //     return view('admin.payments.index', compact('payments'));
-    // }
+    public function payments()
+    {   
+        $payments = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments.id as payment_id')
+                    ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
+                    ->orderBy('payments.created_at', 'desc')
+                    ->get();
+        // echo "<pre>"; print_r($payments); die;
+        return view('admin.payments.index', compact('payments'));
+    }
 
     public function viewPayment($id)
     {
