@@ -19,6 +19,7 @@ use App\Models\Trainers;
 use App\Models\Language;
 use App\Models\Resume;
 use App\Models\Review;
+use App\Models\Payment;
 use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
@@ -989,25 +990,13 @@ class AdminController extends Controller
     public function resumeUpdate(Request $request)
     {
         $request->validate([
-            'resume' => 'nullable|mimes:pdf,doc,docx|max:2048', // Accept only document types
+            'resume' => 'required', 
         ]);
 
+        // Find or create a new Resume model instance
         $resume = Resume::find($request->input('id')) ?? new Resume();
-
-        $uploadPath = public_path('uploads');
-
-        if ($request->hasFile('resume')) {
-            // Delete old resume file
-            if (!empty($resume->resume) && file_exists(public_path($resume->resume))) {
-                unlink(public_path($resume->resume));
-            }
-
-            $resumeFile = $request->file('resume');
-            $resumeFileName = 'resume_' . time() . '.' . $resumeFile->getClientOriginalExtension();
-            $resumeFile->move($uploadPath, $resumeFileName);
-            $resume->resume = 'uploads/' . $resumeFileName;
-        }
-
+        // Set the 'resume' field with HTML content from the form
+        $resume->resume = $request->input('resume');
         $resume->save();
 
         return redirect()->back()->with('success', 'Resume format uploaded successfully.');
@@ -1491,10 +1480,10 @@ class AdminController extends Controller
     }
 
 
-    public function languages() {
-        $language = Language::all();
-        return view('admin.languages.index', compact('language'));
-    }
+    // public function languages() {
+    //     $language = Language::all();
+    //     return view('admin.languages.index', compact('language'));
+    // }
 
     public function updateLanguage(Request $request)
     {
@@ -1517,16 +1506,16 @@ class AdminController extends Controller
     }
 
 
-    public function reviews()
-    {
-        $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
-                    ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
-                    ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
-                    ->get();
+    // public function reviews()
+    // {
+    //     $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
+    //                 ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+    //                 ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+    //                 ->get();
 
-        // echo "<pre>"; print_r($reviews); die;
-        return view('admin.reviews.index', compact('reviews'));
-    }
+    //     // echo "<pre>"; print_r($reviews); die;
+    //     return view('admin.reviews.index', compact('reviews'));
+    // }
 
 
     public function viewReview($id)
@@ -1660,10 +1649,10 @@ class AdminController extends Controller
 
 
 
-    public function subscriptions()
-    {
-        return view('admin.subscriptions.index');
-    }
+    // public function subscriptions()
+    // {
+    //     return view('admin.subscriptions.index');
+    // }
 
 
     public function showSubscriptions($type)
@@ -1672,6 +1661,30 @@ class AdminController extends Controller
         return view('admin.subscriptions.view', ['type' => ucfirst($type)]);
     }
 
+
+    // public function payments()
+    // {   
+    //     $payments = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments.id as payment_id')
+    //                 ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
+    //                 ->orderBy('payments.created_at', 'desc')
+    //                 ->get();
+    //     // echo "<pre>"; print_r($payments); die;
+    //     return view('admin.payments.index', compact('payments'));
+    // }
+
+    public function viewPayment($id)
+    {
+        $payment = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
+                                ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('training_materials', 'payments.course_id', '=', 'training_materials.id')
+                                ->where('payments.id', $id)
+                                ->firstOrFail();
+
+        // Get the jobseeker's details
+        $jobseeker = JobSeekers::find($payment->jobseeker_id);
+
+        return view('admin.payments.view', compact('payment', 'jobseeker'));
+    }
 
     public function showActivityLog()
     {

@@ -17,17 +17,27 @@ class SectionContentSeeder extends Seeder
     {
         DB::table('cms_module')->insert([
             [
-                'section' => 'Banner',
+                'section' => 'Mobile Banner',
                 'slug' => 'banner',
+                'heading' => 'Your Journey to Grow & Succeed Starts Here.',
+                'description' => 'Improve your skills & engage with certified professional / industry leaders - anytime, anywhere.',
+                'file_name' => 'Banner.png',
+                'file_path' => 'https://talentrek.reviewdevelopment.net/asset/images/banner/Banner.png',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'section' => 'Web Banner',
+                'slug' => 'web_banner',
                 'heading' => 'Improve your skills & engage with certified professional / industry leaders - anytime, anywhere.',
                 'description' => '<div class="container mx-auto px-6 md:px-12 py-64 flex items-center">
                                     <div class="w-full md:w-1/2 text-white space-y-6">
-                                    <h1 class="text-2xl md:text-3xl font-bold leading-tight text-white">
-                                        Improve your skills & engage with certified  <br />
-                                        <span class="text-white">professional / industry leaders - anytime, anywhere.</span>
+                                    <h1 class="text-3xl md:text-5xl font-bold leading-tight text-white">
+                                         Your Journey to <br />
+                                        <span class="text-white">Grow & Succeed Starts Here</span>
                                     </h1>
                                     <p class="text-base text-gray-100 max-w-md">
-                                        Earn certificates and gain new skills with trusted educators and industry leaders—anytime, anywhere.
+                                       Improve your skills & engage with certified professional / industry leaders - anytime, anywhere
                                     </p>
                                     <button class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded text-sm">
                                         Sign In / Sign Up

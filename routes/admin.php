@@ -91,6 +91,8 @@ Route::group(['prefix' => 'admin'], function() {
         // Payments
         Route::middleware('admin.module:Payments')->group(function () {
 		    Route::get('/payments', [App\Http\Controllers\AdminController::class, 'payments'])->name('admin.payments');
+			Route::get('/payment/{id}/view', [App\Http\Controllers\AdminController::class, 'viewPayment'])->name('admin.payment.view');
+			
                     
         });
         // Activity Log
@@ -106,6 +108,7 @@ Route::group(['prefix' => 'admin'], function() {
         // Languages
         Route::middleware('admin.module:Languages')->group(function () {
 		    Route::get('/languages', [App\Http\Controllers\AdminController::class, 'languages'])->name('admin.languages');
+		    Route::post('/language/update', [App\Http\Controllers\AdminController::class, 'updateLanguage'])->name('admin.language.update');
         });
         // Recruiters Module
         Route::middleware('admin.module:Recruiters')->group(function () {
@@ -161,6 +164,7 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::middleware('admin.module:Resume Format')->group(function () {
 			Route::get('/resume-format', [AdminController::class, 'resume'])->name('admin.resume');
 			Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
+			
 		});
 	});
 });

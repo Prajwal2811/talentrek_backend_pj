@@ -147,7 +147,7 @@
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-6 mt-3">
-                                        <div>
+                                        <div class="col-span-2">
                                             <label class="block mb-1 text-sm font-medium">National ID Number</label>
                                             <span class="text-xs text-blue-600">
                                                 National ID should start with 1 for male and 2 for female.
@@ -167,6 +167,7 @@
                                             @enderror
                                         </div>
                                     </div>
+
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Location</label>
                                         <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
@@ -310,17 +311,50 @@
 
                                     <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
                                         @for ($i = 0; $i < $workCount; $i++)
+                                            @php
+                                                $isWorking = old("currently_working.$i") == 'on';
+                                            @endphp
                                             <div
-                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
+                                                x-data="{
+                                                    working: {{ $isWorking ? 'true' : 'false' }},
+                                                    index: {{ $i }},
+                                                    init() {
+                                                        this.$watch('working', value => {
+                                                            const entries = document.querySelectorAll('.work-entry');
+                                                            entries.forEach((entry, idx) => {
+                                                                const checkbox = entry.querySelector('.currently-working-checkbox');
+                                                                const endInput = entry.querySelector('.datepicker-end');
+
+                                                                if (value) {
+                                                                    // If this checkbox is checked, disable all others
+                                                                    if (idx !== this.index) {
+                                                                        checkbox.disabled = true;
+                                                                        checkbox.checked = false;
+                                                                        if (entry.__x) entry.__x.$data.working = false;
+                                                                    } else {
+                                                                        endInput.value = '';
+                                                                        endInput.readOnly = true;
+                                                                        endInput.disabled = true;
+                                                                    }
+                                                                } else {
+                                                                    // Enable all checkboxes and date inputs
+                                                                    checkbox.disabled = false;
+                                                                    endInput.readOnly = false;
+                                                                    endInput.disabled = false;
+                                                                }
+                                                            });
+                                                        });
+                                                    }
+                                                }"
+                                                x-init="init()"
+                                            >
 
                                                 {{-- Job Role --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job
-                                                        Title</label>
-                                                    <input type="text" name="job_role[]"
-                                                        class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. Software Engineer"
-                                                        value="{{ old("job_role.$i") }}" />
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
                                                     @error("job_role.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -328,11 +362,9 @@
 
                                                 {{-- Organization --}}
                                                 <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
-                                                    <input type="text" name="organization[]"
-                                                        class="w-full border rounded-md p-2" placeholder="e.g. ABC Corp"
-                                                        value="{{ old("organization.$i") }}" />
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
                                                     @error("organization.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -340,67 +372,79 @@
 
                                                 {{-- Start Date --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started
-                                                        From</label>
-                                                    <input  name="starts_from[]"
-                                                        class="datepicker-start w-full border rounded-md p-2"
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From</label>
+                                                    <input name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
                                                         value="{{ old("starts_from.$i") }}" readonly />
                                                     @error("starts_from.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                {{-- End Date --}}
-                                                @php
-                                                    $isWorking = old("currently_working.$i") == 'on';
-                                                @endphp
-
-                                                <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
+                                                {{-- End Date & Checkbox --}}
+                                                <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
-
-                                                    <input 
-                                                        type="text" 
-                                                        name="end_to[]" 
-                                                        class="w-full border rounded-md p-2 datepicker-end" 
-                                                        :disabled="working"
-                                                        :readonly="working"
-                                                        :value="working ? '' : '{{ old("end_to.$i") }}'"
-                                                    />
-
+                                                    <input type="text" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
+                                                        :disabled="working" :readonly="working"
+                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" />
                                                     @error("end_to.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
 
                                                     <label class="inline-flex items-center mt-2 space-x-2">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            name="currently_working[{{ $i }}]" 
-                                                            x-model="working"
-                                                            {{ $isWorking ? 'checked' : '' }}
-                                                        >
+                                                        <input type="checkbox" class="currently-working-checkbox"
+                                                            name="currently_working[{{ $i }}]" x-model="working"
+                                                            {{ $isWorking ? 'checked' : '' }}>
                                                         <span>I currently work here</span>
                                                     </label>
                                                 </div>
-
-
-
-
-
-
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
                                                     class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
                                                     style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
-
                                             </div>
                                         @endfor
                                     </div>
 
                                     <div class="col-span-2">
-                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work
-                                            experience +</button>
+                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
                                     </div>
+
+                                    <script>
+                                        const workContainer = document.getElementById('work-container');
+                                        const addWorkBtn = document.getElementById('add-work');
+
+                                        addWorkBtn.addEventListener('click', () => {
+                                            const firstEntry = workContainer.querySelector('.work-entry');
+                                            const clone = firstEntry.cloneNode(true);
+
+                                            // Clear inputs and errors
+                                            clone.querySelectorAll('input').forEach(input => {
+                                                if (input.type === 'checkbox') {
+                                                    input.checked = false;
+                                                    input.disabled = false;
+                                                } else {
+                                                    input.value = '';
+                                                    input.readOnly = false;
+                                                    input.disabled = false;
+                                                }
+                                            });
+
+                                            clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+                                            clone.querySelector('.remove-work').style.display = 'block';
+
+                                            workContainer.appendChild(clone);
+                                            Alpine.initTree(clone);
+                                        });
+
+                                        workContainer.addEventListener('click', (e) => {
+                                            if (e.target.classList.contains('remove-work')) {
+                                                const entry = e.target.closest('.work-entry');
+                                                entry.remove();
+                                            }
+                                        });
+                                    </script>
+
 
                                     <div class="col-span-2 flex justify-between">
                                         <button type="button" onclick="showStep(2)"
@@ -601,29 +645,7 @@
                 }
             });
         </script>
-        <script>
-            // Function to handle work exprience add/remove
-            const workContainer = document.getElementById('work-container');
-            const addWorkBtn = document.getElementById('add-work');
-
-            addWorkBtn.addEventListener('click', () => {
-                const firstEntry = workContainer.querySelector('.work-entry');
-                const clone = firstEntry.cloneNode(true);
-
-                clone.querySelectorAll('input').forEach(input => input.value = '');
-                clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-                clone.querySelector('.remove-work').style.display = 'block';
-
-                workContainer.appendChild(clone);
-            });
-
-            workContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-work')) {
-                    const entry = e.target.closest('.work-entry');
-                    entry.remove();
-                }
-            });
-        </script>
+        
         <script>
             function showStep(step) {
                 for (let i = 1; i <= 5; i++) {

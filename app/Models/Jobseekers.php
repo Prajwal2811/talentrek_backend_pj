@@ -93,4 +93,11 @@ class Jobseekers extends Authenticatable
         return "$years years, $months months";
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    
+
 }

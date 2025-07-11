@@ -18,7 +18,7 @@
     </style>
       @include('site.componants.navbar')
         @php
-            $bannerContent = App\Models\CMS::where('slug', 'banner')->first();
+            $bannerContent = App\Models\CMS::where('slug', 'web_banner')->first();
         @endphp
         <div class="page-content">
             <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" style="background-image: url('{{ $bannerContent->file_path }}');">

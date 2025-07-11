@@ -20,7 +20,7 @@
                 <img src="{{ asset('asset/backend/images/user.png') }}" class="user-photo" alt="User Profile Picture">
             </div>
             <div class="dropdown">
-                <span>{{ $role }}</span>
+                <span>{{ $role === 'superadmin' ? 'Super Admin' : 'Admin' }}</span>
                 <a href="javascript:void(0);" class="dropdown-toggle user-name" data-toggle="dropdown">
                     <strong>{{ $user->name }}</strong>
                 </a>
@@ -95,10 +95,11 @@
                     @endif
                 @endforeach
 
-                <li class="header">Site Activity</li>
+                {{-- ===================== SITE MANAGEMENT ===================== --}}
+                <li class="header">Site Management</li>
 
                 @php
-                    $menuItems = [
+                    $siteManagementMenu = [
                         'Reviews' => ['route' => 'admin.reviews', 'icon' => 'fa-file-alt'],
                         'CMS' => ['route' => 'admin.cms', 'icon' => 'fa-file-alt'],
                         'Subscriptions' => ['route' => 'admin.subscriptions', 'icon' => 'fa-credit-card'],
@@ -106,12 +107,12 @@
                         'Payments' => ['route' => 'admin.payments', 'icon' => 'fa-money-check-alt'],
                         'Languages' => ['route' => 'admin.languages', 'icon' => 'fa-language'],
                         'Settings' => ['route' => 'admin.settings', 'icon' => 'fa-cog'],
-                        'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-cog'],
+                        'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-headset'],
                         'Resume Format' => ['route' => 'admin.resume', 'icon' => 'fa-file-word'],
                     ];
                 @endphp
 
-                @foreach ($menuItems as $label => $data)
+                @foreach ($siteManagementMenu as $label => $data)
                     @if($role === 'superadmin' || in_array($label, $permissions))
                         <li class="{{ request()->routeIs($data['route']) ? 'active' : '' }}">
                             <a href="{{ route($data['route']) }}">
@@ -121,10 +122,14 @@
                     @endif
                 @endforeach
 
+
+                {{-- ===================== TRAINING MANAGEMENT ===================== --}}
                 @if($role === 'superadmin' || in_array('Training Category', $permissions))
+                    <li class="header">Training Management</li>
+
                     <li class="{{ request()->routeIs('admin.trainingcategory.*') ? 'active' : '' }}">
                         <a href="#" class="has-arrow">
-                            <i class="fa fa-book"></i> {{-- Changed icon here --}}
+                            <i class="fa fa-book"></i>
                             <span>Training Category</span>
                         </a>
                         <ul class="{{ request()->routeIs('admin.trainingcategory.*') ? 'collapse in' : 'collapse' }}">
@@ -139,7 +144,10 @@
                 @endif
 
 
+                {{-- ===================== FEEDBACK & SUPPORT ===================== --}}
                 @if($role === 'superadmin' || in_array('Testimonials', $permissions))
+                    <li class="header">Feedback & Support</li>
+
                     <li class="{{ request()->routeIs('admin.testimonials.*') ? 'active' : '' }}">
                         <a href="#" class="has-arrow"><i class="fa fa-comments"></i><span>Testimonials</span></a>
                         <ul class="{{ request()->routeIs('admin.testimonials.*') ? 'collapse in' : 'collapse' }}">
@@ -153,10 +161,15 @@
                     </li>
                 @endif
 
+
+                {{-- ===================== SYSTEM LOG ===================== --}}
                 @if($role === 'superadmin' || in_array('Activity Log', $permissions))
                     <li class="header">System Log</li>
+
                     <li class="{{ request()->routeIs('admin.activity.log') ? 'active' : '' }}">
-                        <a href="{{ route('admin.activity.log') }}"><i class="fa fa-history"></i><span>Logs</span></a>
+                        <a href="{{ route('admin.activity.log') }}">
+                            <i class="fa fa-history"></i><span>Logs</span>
+                        </a>
                     </li>
                 @endif
             </ul>
