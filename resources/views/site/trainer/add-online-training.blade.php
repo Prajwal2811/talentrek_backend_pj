@@ -59,6 +59,22 @@
                             @enderror
                         </div>
 
+                        <!-- Training Level -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block font-medium mb-1">Training Level</label>
+                                <select name="training_level" class="w-full border rounded-md p-2">
+                                    <option value="">Select Training Level</option>
+                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
+                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                </select>
+                                @error('training_level')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         <!-- Category -->
                         <div class="mb-4">
                             <label class="block font-medium mb-2">Session Type</label>

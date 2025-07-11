@@ -14,7 +14,7 @@ use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;    
+use Illuminate\Support\Facades\Mail;   
 use DB;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -24,33 +24,122 @@ class JobseekerController extends Controller
     {
         return view('site.jobseeker.registration');
     }
+    // public function postRegistration(Request $request)
+    // {
+    //     $validated = $request->validate([
+       
+    //         'email' => 'required|email|unique:jobseekers,email',
+    //         // 'phone_number' => 'required|digits:10|unique:jobseekers,phone_number',
+    //         'phone_number' => 'required|unique:jobseekers,phone_number',
+    //         'password' => 'required|min:6|same:confirm_password',
+    //         'confirm_password' => 'required|min:6',
+    //     ]);
+     
+
+    //      $jobseekers = Jobseekers::create([
+    //         'email' => $request->email,
+    //         'phone_number' => $request->phone_number,
+    //         'password' => Hash::make($request->password),
+    //         'pass' => $request->password,
+             
+    //     ]);
+    //     session([
+    //         'jobseeker_id' => $jobseekers->id,
+    //         'email' => $request->email,
+    //         'phone_number' => $request->phone_number,
+    //     ]);
+
+    //     return redirect()->route('jobseeker.registration');
+    // }
+
     public function postRegistration(Request $request)
     {
         $validated = $request->validate([
-       
             'email' => 'required|email|unique:jobseekers,email',
-            // 'phone_number' => 'required|digits:10|unique:jobseekers,phone_number',
             'phone_number' => 'required|unique:jobseekers,phone_number',
             'password' => 'required|min:6|same:confirm_password',
             'confirm_password' => 'required|min:6',
         ]);
-     
 
-         $jobseekers = Jobseekers::create([
+        $jobseeker = Jobseekers::create([
             'email' => $request->email,
             'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
-            'pass' => $request->password,
-             
+            'pass' => $request->password, // Only for development
         ]);
+
+        // Send welcome email
+        Mail::html('
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Welcome to Talentrek</title>
+                <style>
+                    body {
+                        background-color: #f4f6f9;
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                        margin: 0;
+                    }
+                    .email-container {
+                        background: #ffffff;
+                        max-width: 600px;
+                        margin: auto;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    }
+                    h2 {
+                        color: #007bff;
+                        margin-bottom: 20px;
+                    }
+                    p {
+                        line-height: 1.6;
+                        color: #333333;
+                    }
+                    .footer {
+                        margin-top: 30px;
+                        font-size: 12px;
+                        color: #888888;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <h2>Welcome to Talentrek!</h2>
+                    <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+
+                    <p>You have successfully signed up on <strong>Talentrek</strong>. We\'re excited to have you with us!</p>
+
+                    <p>Start exploring career opportunities, connect with employers, and grow your professional journey.</p>
+
+                    <p>If you ever need help, feel free to contact our support team.</p>
+
+                    <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
+                </div>
+
+                <div class="footer">
+                    © ' . date('Y') . ' Talentrek. All rights reserved.
+                </div>
+            </body>
+            </html>
+        ', function ($message) use ($jobseeker) {
+            $message->to($jobseeker->email)
+                    ->subject('Welcome to Talentrek – Signup Successful');
+        });
+
+        // Set session
         session([
-            'jobseeker_id' => $jobseekers->id,
+            'jobseeker_id' => $jobseeker->id,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
 
         return redirect()->route('jobseeker.registration');
     }
+
   
     public function showDetailsForm()
     {
@@ -225,6 +314,81 @@ class JobseekerController extends Controller
                 ]);
             }
         }
+
+
+        Mail::html('
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Welcome to Talentrek</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f6f8fa;
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                    }
+                    .container {
+                        background-color: #ffffff;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        max-width: 600px;
+                        margin: auto;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }
+                    .footer {
+                        font-size: 12px;
+                        text-align: center;
+                        color: #999;
+                        margin-top: 30px;
+                    }
+                    .btn {
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background-color: #007bff;
+                        color: #fff !important;
+                        text-decoration: none;
+                        border-radius: 4px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                    </div>
+                    <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+
+                    <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+
+                    <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+
+                    <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
+                    <p>
+                        <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                    </p>
+
+                    <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                </div>
+
+                <div class="footer">
+                    © ' . date('Y') . ' Talentrek. All rights reserved.
+                </div>
+            </body>
+            </html>
+        ', function ($message) use ($jobseeker) {
+            $message->to($jobseeker->email)
+                    ->subject('Welcome to Talentrek – Registration Successful');
+        });
+
 
         session()->forget('jobseeker_id');
         return redirect()->route('signin.form')->with('success_popup', true);
@@ -657,12 +821,72 @@ class JobseekerController extends Controller
             'updated_at' => now()
         ]);
 
-        // === OTP sending is disabled for now ===
+        // === OTP sending ===
         if ($isEmail) {
-            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
-            //     $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
-            // });
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Password Reset OTP</title>
+                    <style>
+                        body {
+                            background-color: #f6f8fa;
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            margin: 0;
+                            color: #333;
+                        }
+                        .container {
+                            background-color: #ffffff;
+                            padding: 30px;
+                            max-width: 500px;
+                            margin: 20px auto;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .otp-box {
+                            font-size: 24px;
+                            font-weight: bold;
+                            background-color: #f0f4ff;
+                            padding: 15px;
+                            text-align: center;
+                            border: 1px dashed #007bff;
+                            border-radius: 6px;
+                            margin: 20px 0;
+                            color: #007bff;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            text-align: center;
+                            margin-top: 30px;
+                            color: #888;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Password Reset Request</h2>
+                        <p>Hello,</p>
+                        <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+
+                        <div class="otp-box">' . $otp . '</div>
+
+                        <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+
+                        <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+
+                    <div class="footer">
+                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+                </body>
+                </html>
+            ', function ($message) use ($contact) {
+                $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+            });
         } else {
+            // Simulate SMS sending (replace with Msg91 / Twilio integration)
             // SmsService::send($contact, "Your OTP is: $otp");
         }
 
@@ -672,11 +896,9 @@ class JobseekerController extends Controller
             'otp_value' => $contact
         ]);
 
-        // Then redirect to OTP verification page
         return redirect()->route('jobseeker.verify-otp')->with('success', 'OTP sent!');
-
-
     }
+
 
      
     public function showOtpForm(){
@@ -717,40 +939,95 @@ class JobseekerController extends Controller
     }
 
 
-    public function resetPassword(Request $request){
-       $request->validate([
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
             'new_password' => 'required|min:6|same:confirm_password',
             'confirm_password' => 'required|min:6',
         ]);
+
         $jobseekerId = session('verified_jobseeker');
-       
+
         if (!$jobseekerId) {
-            return redirect()->route('jobseeker.forget-password')->withErrors(['session' => 'Session expired. Please try again.']);
+            return redirect()->route('jobseeker.forget-password')->withErrors([
+                'session' => 'Session expired. Please try again.'
+            ]);
         }
 
-        $updated = DB::table('jobseekers')->where('id', $jobseekerId)->update([
+        $jobseeker = DB::table('jobseekers')->where('id', $jobseekerId)->first();
+
+        if (!$jobseeker) {
+            return redirect()->route('jobseeker.forget-password')->withErrors([
+                'not_found' => 'User not found.'
+            ]);
+        }
+
+        DB::table('jobseekers')->where('id', $jobseekerId)->update([
             'password' => Hash::make($request->new_password),
             'pass' => $request->new_password,
-            'otp' => null, 
+            'otp' => null,
             'updated_at' => now(),
         ]);
-         
+
+        // ✅ Send Password Reset Confirmation Email (if email available)
+        if (!empty($jobseeker->email)) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Password Reset Confirmation</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f6f9;
+                            margin: 0;
+                            padding: 20px;
+                            color: #333;
+                        }
+                        .container {
+                            background: #fff;
+                            padding: 30px;
+                            border-radius: 8px;
+                            max-width: 600px;
+                            margin: auto;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                        }
+                        .footer {
+                            text-align: center;
+                            font-size: 12px;
+                            color: #888;
+                            margin-top: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Password Reset Successfully</h2>
+                        <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+                        <p>Your password has been successfully updated for your Talentrek account.</p>
+                        <p>If you didn\'t initiate this change, please contact our support team immediately.</p>
+                        <p>Stay safe,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">
+                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+                </body>
+                </html>
+            ', function ($message) use ($jobseeker) {
+                $message->to($jobseeker->email)
+                        ->subject('Your Talentrek Password Has Been Reset');
+            });
+        }
+
+        // Clear session
         session()->forget('verified_jobseeker');
         session()->forget('otp_value');
         session()->forget('otp_method');
 
-        // if ($updated && $jobseeker && $jobseeker->email) {
-        //     $toEmail = $jobseeker->email;
-        //     $subject = "Password Changed Successfully";
-        //     $body = "Dear " . ($jobseeker->name ?? 'User') . ",\n\nYour password has been successfully changed.\n\nIf this wasn't you, please contact our support immediately.\n\nThanks,\nTeam";
-
-        //     Mail::raw($body, function ($message) use ($toEmail, $subject) {
-        //         $message->to($toEmail)->subject($subject);
-        //     });
-        // }
-
-        return redirect()->route('signin.form')->with('success', 'Password change successfully.');
+        return redirect()->route('signin.form')->with('success', 'Password changed successfully.');
     }
+
 
     
 

@@ -78,7 +78,21 @@
                             </div>
                         </div>
 
-
+                        <!-- Training Level -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block font-medium mb-1">Training Level</label>
+                                <select name="training_level" class="w-full border rounded-md p-2">
+                                    <option value="">Select Training Level</option>
+                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
+                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                </select>
+                                @error('training_level')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
 
 
                        
@@ -112,25 +126,37 @@
                                         @foreach($contentSections as $i => $section)
                                             <tr>
                                                 <td class="p-2 border">{{ $loop->iteration }}</td>
+
                                                 <td class="p-2 border font-medium">
                                                     {{ $section['title'] ?? '' }}
                                                     <input type="hidden" name="content_sections[{{ $i }}][title]" value="{{ $section['title'] ?? '' }}">
                                                 </td>
+
                                                 <td class="p-2 border text-sm text-gray-600">
                                                     {{ $section['description'] ?? '' }}
                                                     <input type="hidden" name="content_sections[{{ $i }}][description]" value="{{ $section['description'] ?? '' }}">
                                                 </td>
+
                                                 <td class="p-2 border text-center">
                                                     <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">
                                                         {{ $section['file_name'] ?? 'Upload File' }}
                                                     </button>
+
                                                     <input type="file" name="content_sections[{{ $i }}][file]" style="display:none" />
+
+                                                    {{-- 🟢 Preserve old file --}}
+                                                    @if(!empty($section['file_name']))
+                                                        <input type="hidden" name="content_sections[{{ $i }}][existing_file_name]" value="{{ $section['file_name'] }}">
+                                                        <input type="hidden" name="content_sections[{{ $i }}][existing_file_path]" value="{{ $section['file_path'] }}">
+                                                    @endif
+
                                                     @if(!empty($section['file_path']))
                                                         <div class="mt-1 text-xs text-green-600">
                                                             <a href="{{ $section['file_path'] }}" target="_blank">View File</a>
                                                         </div>
                                                     @endif
                                                 </td>
+
                                                 <td class="p-2 border text-center">
                                                     <input type="hidden" name="content_sections[{{ $i }}][document_id]" value="{{ $section['document_id'] ?? '' }}">
                                                     <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
@@ -141,8 +167,9 @@
                                                 </td>
                                             </tr>
                                         @endforeach
+                                    </tbody>
 
-                                        </tbody>
+
 
                                 </table>
                             </div>
@@ -153,7 +180,7 @@
                             <label class="block font-medium mb-1">Upload Thumbnail</label>
 
                             <div class="flex gap-4 items-center">
-                                <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
+                                <input type="file" name="thumbnail" accept="image/*" class="border rounded-md p-2 flex-1" />
                             </div>
 
                             @if(!empty($training->thumbnail_file_path))
@@ -162,6 +189,7 @@
                                 </div>
                             @endif
                         </div>
+
 
                         <!-- Course Price -->
                         <div class="mb-6">
@@ -209,7 +237,19 @@
                             </button>
                         </div>
                     </form>
-   
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            document.querySelectorAll('.upload-btn').forEach(function (btn) {
+                                btn.addEventListener('click', function () {
+                                    const input = btn.nextElementSibling;
+                                    if (input && input.type === 'file') {
+                                        input.click();
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+
                      
                 </main>
                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

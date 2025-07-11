@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; 
 
-class Mentors extends Model
+class Mentors extends Authenticatable
 {
     use HasFactory;
 
@@ -21,6 +22,13 @@ class Mentors extends Model
         'phone_number',
         'date_of_birth',
         'city',
+        'password',
+        'pass',
+        'otp',
+        'national_id',
+        'status',
+        'admin_status',
+
     ];
 
     /**
