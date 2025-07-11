@@ -63,6 +63,7 @@ Route::get('/jobseeker/coachById/{coachId}', [ExplorerController::class, 'coachD
 
 //Mentor Training Coach Assessor Review By Id and tags ['trainer','coach','assessor','mentor']
 Route::get('/jobseeker/reviewsById/{mentorId}/{tags}', [ExplorerController::class, 'reviewsDetailById']);
+Route::post('/jobseeker/submitReview', [ExplorerController::class, 'submitReviewByJobSeeker']);
 
 Route::get('/jobseeker/quizByTrainerId/{trainerId}', [AssesssorController::class, 'quizDetailsByTrainerId']);
 Route::post('/jobseeker/trainingAssesmentQuizFaq', [AssesssorController::class, 'quizFaqList']);

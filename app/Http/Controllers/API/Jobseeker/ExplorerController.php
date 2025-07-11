@@ -332,4 +332,65 @@ class ExplorerController extends Controller
         }
         return $this->successResponse( $reviewsDetails, ucwords($tags).' reviews fetched successfully.');
     }
+
+    public function submitQuizAnswer(Request $request)
+    {
+        $request->validate([
+            'training_id'    => 'required|integer',
+            'trainer_id'     => 'required|integer',
+            'jobseeker_id'   => 'required|integer',
+            'assessment_id'  => 'required|integer',
+            'question_id'    => 'required|integer',
+            'selected_answer'=> 'required|integer',
+        ]);
+
+        // Optional: You may fetch correct_answer from the options table
+        $correctAnswerId = AssessmentOption::where('question_id', $request->question_id)
+            ->where('correct_option', 1) // Assuming a boolean column
+            ->value('id');
+       
+        $data = [
+            'training_id'      => $request->training_id,
+            'trainer_id'       => $request->trainer_id,
+            'jobseeker_id'     => $request->jobseeker_id,
+            'assessment_id'    => $request->assessment_id,
+            'question_id'      => $request->question_id,
+            'selected_answer'  => $request->selected_answer,
+            'correct_answer'   => $correctAnswerId ?? null,
+        ];
+
+        // Update or create based on composite keys
+        AssessmentJobseekerData::updateOrCreate(
+            [
+                'assessment_id' => $request->assessment_id,
+                'jobseeker_id'  => $request->jobseeker_id,
+                'question_id'   => $request->question_id,
+            ],
+            $data
+        );
+
+        return $this->successResponse(null, 'Answer submitted successfully.');
+    }
+
+    public function submitReviewByJobSeeker(Request $request)
+    {
+        $request->validate([
+            'jobseeker_id'    => 'required|integer',
+            'user_id'     => 'required|integer',
+            'review'   => 'required',
+            'rating '  => 'required|integer',
+            'reviewType'    => 'required'
+        ]);
+
+       Review::create([
+            'jobseeker_id'  => $request->jobseeker_id,
+            'user_type'     => $request->reviewType,
+            'user_id'      => $request->user_id,
+            'reviews' => $request->review,
+            'ratings' => $request->rating,
+            'trainer_material' => $request->reviewType === 'training' ? $request->user_id : null,
+        ]);
+
+        return $this->successResponse(null, 'Job seeker review added successfully.');
+    }
 }
