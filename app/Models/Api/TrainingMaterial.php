@@ -59,4 +59,10 @@ class TrainingMaterial extends Model
             ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
             ->select('user_id', 'job_role', 'end_to');
     }
+
+    public function trainingMaterialDocuments()
+    {
+        return $this->hasMany(TrainingMaterialsDocument::class, 'training_material_id', 'id');
+    }
+
 }

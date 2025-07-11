@@ -30,4 +30,28 @@ class Coach extends Model
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+    public function coachReviews()
+    {
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'coach');
+    }
+
+    public function coachEducations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')->where('user_type', 'coach');
+    }
+
+    public function latestWorkExperience()
+    {
+        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
+            ->where('user_type', 'coach') // filter only trainer-type
+            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
+            ->select('user_id', 'job_role', 'end_to');
+    }
+
+    public function WorkExperience()
+    {
+        return $this->hasMany(WorkExperience::class, 'user_id', 'id')
+        ->where('user_type', 'coach');
+    }
 }
