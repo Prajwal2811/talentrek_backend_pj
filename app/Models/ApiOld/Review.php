@@ -11,9 +11,6 @@ class Review extends Model
         'trainer_material',
         'user_type',
         'ratings',
-        'jobseeker_id',
-        'user_id',
-        'reviews'
         // Add other fields as needed
     ];
 
