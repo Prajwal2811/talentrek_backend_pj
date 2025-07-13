@@ -31,15 +31,15 @@
         </a>
 
         <!-- About Coach -->
-        <a href="{{ route('about.coach') }}"
+        <a href="{{ route('about.mentor') }}"
            :class="[
-               active === 'about.coach' ? 'bg-white text-blue-900 font-semibold' : 'hover:bg-white hover:text-blue-900',
+               active === 'about.mentor' ? 'bg-white text-blue-900 font-semibold' : 'hover:bg-white hover:text-blue-900',
                'flex items-center px-4 py-2 rounded-md transition duration-200'
            ]"
-           @click="active = 'about.coach'"
-           :title="!sidebarOpen ? 'About Coach' : ''">
+           @click="active = 'about.mentor'"
+           :title="!sidebarOpen ? 'About mentor' : ''">
             <i data-feather="user" class="mr-3"></i>
-            <span x-show="sidebarOpen" x-transition>About Coach</span>
+            <span x-show="sidebarOpen" x-transition>About Mentor</span>
         </a>
 
         <!-- Booking Slots -->

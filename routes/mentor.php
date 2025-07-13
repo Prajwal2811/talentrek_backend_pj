@@ -33,7 +33,7 @@ Route::group(['prefix' => 'mentor'], function() {
 
 
 		// About Coach
-		Route::get('/about-coach', [App\Http\Controllers\MentorController::class, 'aboutCoach'])->name('about.coach');
+		Route::get('/about-mentor', [App\Http\Controllers\MentorController::class, 'aboutMentor'])->name('about.mentor');
 	
 		// manage-booking-slots-mentor
 		Route::get('bookingslot/manage-booking-slots-mentor', [MentorController::class, 'manageBookingSlotsMentor'])->name('manage.booking.slots.mentor');
@@ -44,14 +44,28 @@ Route::group(['prefix' => 'mentor'], function() {
 
 		// Reviews
 		Route::get('/mentor/reviews', [MentorController::class, 'mentorReviews'])->name('mentor.reviews');
+		Route::delete('/delete-mentor-review/{id}', [MentorController::class, 'deleteMentorReview'])->name('mentor.review.delete');
+
+
 
 		// Admin Support
 		Route::get('/admin-support-mentor', [MentorController::class, 'adminSupportMentor'])->name('admin-support-mentor');
 
 		// mentor Settings
 		Route::get('/settings-mentor', [MentorController::class, 'settingsMentor'])->name('setting.mentor');
+		Route::get('/settings-mentor/details', [MentorController::class, 'getMentorAllDetails'])->name('setting.mentor.details');
+		// Mentor Routes - routes/web.php or routes/mentor.php
+		Route::post('/mentor/profile-update', [MentorController::class, 'mentorProfileUpdate'])->name('mentor.profile.update');
+		Route::post('/mentor/education-update', [MentorController::class, 'updateMentorEducationInfo'])->name('mentor.education.update');
+		Route::post('/mentor/work-update', [MentorController::class, 'updateMentorWorkExperienceInfo'])->name('mentor.workexprience.update');
+		Route::post('/mentor/skills-update', [MentorController::class, 'updateMentorSkillsInfo'])->name('mentor.skills.update');
+		Route::post('/mentor/additional-info-update', [MentorController::class, 'updateMentorAdditionalInfo'])->name('mentor.additional.update');
+		Route::delete('mentor/delete-document/{type}', [MentorController::class, 'deleteMentorDocument'])->name('mentor.additional.delete');
 
-		// Route::delete('/delete', [MentorController::class, 'deleteAccount'])->name('trainer.destroy');
+
+			
+
+		Route::delete('/delete', [MentorController::class, 'deleteAccount'])->name('mentor.destroy');
 		// Route::get('/trainer-settings', [MentorController::class, 'getTrainerAllDetails'])->name('trainer.settings');
 
 	});
