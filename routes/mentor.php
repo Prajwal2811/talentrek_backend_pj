@@ -32,13 +32,10 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::post('/logout',[MentorController::class, 'logoutMentor'])->name('mentor.logout');
 
 
-<<<<<<< HEAD
-		// About Mentor
-		Route::get('/about-coach', [App\Http\Controllers\MentorController::class, 'aboutCoach'])->name('about.coach');
-=======
+
 		// About Coach
 		Route::get('/about-mentor', [App\Http\Controllers\MentorController::class, 'aboutMentor'])->name('about.mentor');
->>>>>>> 5d14cb5a3e592e2ce6e2b9e37d7a0e76204097b6
+
 	
 		// manage-booking-slots-mentor
 		Route::get('manage-bookings', [MentorController::class, 'manageBooking'])->name('mentor.manage-bookings');
