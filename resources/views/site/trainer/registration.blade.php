@@ -82,17 +82,18 @@
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Email</label>
-                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{old('email', $email)}}"/>
+                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{old('email', $email)}}" readonly/>
                                             @error('email')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
+                                        
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium">Phone number</label>
                                                 <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2"><option>+91</option></select>
-                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number', $phone)}}"/>
+                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number', $phone)}}" readonly/>
                                                 
                                             </div>
                                             @error('phone_number')
@@ -106,6 +107,27 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-6 mt-3">
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                <span class="text-xs text-blue-600">
+                                                    National ID should start with 1 for male and 2 for female.
+                                                </span>
+                                                <input 
+                                                    type="text" 
+                                                    name="national_id" 
+                                                    id="national_id" 
+                                                    class="w-full border rounded-md p-2 mt-1" 
+                                                    placeholder="Enter national id number" 
+                                                    value="{{ old('national_id') }}" 
+                                                    maxlength="15"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                />
+                                                @error('national_id')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Location</label>
@@ -333,7 +355,7 @@
 
                                         <div class="text-sm">
                                             <label class="flex items-start gap-2">
-                                            <input type="checkbox" class="mt-1" />
+                                            <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}></input>
                                             <span>
                                                 I have read and agreed to 
                                                 <a href="#" class="text-blue-600 underline">terms and conditions</a>
@@ -351,7 +373,7 @@
                                         </div>
                                         <div class="flex justify-between">
                                         <button type="button" onclick="showStep(4)" class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md">
+                                        <button type="submit" id="submitBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md">
                                             Submit
                                         </button>
 
@@ -435,8 +457,53 @@
                     
  	        </div>
 
+ <script>
+    const checkbox = document.getElementById('termsCheckbox');
+    const submitBtn = document.getElementById('submitBtn');
 
-          
+    checkbox.addEventListener('change', function () {
+        if (this.checked) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    });
+</script>                                   
+  <script>
+    $(document).ready(function () {
+        var $submitBtn = $('#submitBtn');
+        var $form = $('form');
+        var $checkbox = $('#termsCheckbox'); 
+
+        function toggleSubmitButton() {
+            if ($checkbox.is(':checked')) {
+                $submitBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+            } else {
+                $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            }
+        }
+
+        // Always run this on page load (including error reloads)
+        toggleSubmitButton();
+
+        // On checkbox click, enable/disable submit
+        $checkbox.on('change', function () {
+            toggleSubmitButton();
+        });
+
+        // Prevent multiple submits
+        $form.on('submit', function (e) {
+            if ($submitBtn.prop('disabled')) {
+                e.preventDefault();
+                return;
+            }
+
+            $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+        });
+    });
+</script>          
 
 
 <script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->

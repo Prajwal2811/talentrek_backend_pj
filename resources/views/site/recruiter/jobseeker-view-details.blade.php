@@ -70,7 +70,7 @@
                     <nav aria-label="breadcrumb" class="mb-6">
                         <ol class="flex text-2xl font-semibold">
                             <li>
-                            <a href="{{route('recruiter.dashboard.jobseeker')}}" class="text-blue-600 hover:underline">Jobseekers</a>
+                            <a href="{{route('recruiter.jobseeker')}}" class="text-blue-600 hover:underline">Jobseekers</a>
                             </li>
                             <li><span class="mx-2 text-black">></span></li>
                             <li>Jobseeker Details</li>

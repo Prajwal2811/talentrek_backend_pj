@@ -109,7 +109,7 @@
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Gender</label>
-                                            <select name="gender" class="w-full border rounded-md p-2 mt-1">
+                                            <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
                                                 <option value="">Select gender</option>
                                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male
                                                 </option>
@@ -140,12 +140,34 @@
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Date of birth</label>
                                             <input name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
-                                                value="{{ old('dob') }}" readonly/>
+                                                value="{{ old('dob') }}"/>
                                             @error('dob')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                     </div>
+                                    <div class="grid grid-cols-2 gap-6 mt-3">
+                                        <div class="col-span-2">
+                                            <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                            <span class="text-xs text-blue-600">
+                                                National ID should start with 1 for male and 2 for female.
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                name="national_id" 
+                                                id="national_id" 
+                                                class="w-full border rounded-md p-2 mt-1" 
+                                                placeholder="Enter national id number" 
+                                                value="{{ old('national_id') }}" 
+                                                maxlength="15"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                            />
+                                            @error('national_id')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Location</label>
                                         <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
@@ -289,17 +311,50 @@
 
                                     <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
                                         @for ($i = 0; $i < $workCount; $i++)
+                                            @php
+                                                $isWorking = old("currently_working.$i") == 'on';
+                                            @endphp
                                             <div
-                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
+                                                x-data="{
+                                                    working: {{ $isWorking ? 'true' : 'false' }},
+                                                    index: {{ $i }},
+                                                    init() {
+                                                        this.$watch('working', value => {
+                                                            const entries = document.querySelectorAll('.work-entry');
+                                                            entries.forEach((entry, idx) => {
+                                                                const checkbox = entry.querySelector('.currently-working-checkbox');
+                                                                const endInput = entry.querySelector('.datepicker-end');
+
+                                                                if (value) {
+                                                                    // If this checkbox is checked, disable all others
+                                                                    if (idx !== this.index) {
+                                                                        checkbox.disabled = true;
+                                                                        checkbox.checked = false;
+                                                                        if (entry.__x) entry.__x.$data.working = false;
+                                                                    } else {
+                                                                        endInput.value = '';
+                                                                        endInput.readOnly = true;
+                                                                        endInput.disabled = true;
+                                                                    }
+                                                                } else {
+                                                                    // Enable all checkboxes and date inputs
+                                                                    checkbox.disabled = false;
+                                                                    endInput.readOnly = false;
+                                                                    endInput.disabled = false;
+                                                                }
+                                                            });
+                                                        });
+                                                    }
+                                                }"
+                                                x-init="init()"
+                                            >
 
                                                 {{-- Job Role --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job
-                                                        Title</label>
-                                                    <input type="text" name="job_role[]"
-                                                        class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. Software Engineer"
-                                                        value="{{ old("job_role.$i") }}" />
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
                                                     @error("job_role.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -307,11 +362,9 @@
 
                                                 {{-- Organization --}}
                                                 <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
-                                                    <input type="text" name="organization[]"
-                                                        class="w-full border rounded-md p-2" placeholder="e.g. ABC Corp"
-                                                        value="{{ old("organization.$i") }}" />
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
                                                     @error("organization.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -319,39 +372,79 @@
 
                                                 {{-- Start Date --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started
-                                                        From</label>
-                                                    <input  name="starts_from[]"
-                                                        class="datepicker-start w-full border rounded-md p-2"
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From</label>
+                                                    <input name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
                                                         value="{{ old("starts_from.$i") }}" readonly />
                                                     @error("starts_from.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                {{-- End Date --}}
+                                                {{-- End Date & Checkbox --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
-                                                    <input name="end_to[]" class="datepicker-end w-full border rounded-md p-2"
-                                                        value="{{ old("end_to.$i") }}" readonly />
+                                                    <input type="text" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
+                                                        :disabled="working" :readonly="working"
+                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" />
                                                     @error("end_to.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
+
+                                                    <label class="inline-flex items-center mt-2 space-x-2">
+                                                        <input type="checkbox" class="currently-working-checkbox"
+                                                            name="currently_working[{{ $i }}]" x-model="working"
+                                                            {{ $isWorking ? 'checked' : '' }}>
+                                                        <span>I currently work here</span>
+                                                    </label>
                                                 </div>
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
                                                     class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
                                                     style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
-
                                             </div>
                                         @endfor
                                     </div>
 
                                     <div class="col-span-2">
-                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work
-                                            experience +</button>
+                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
                                     </div>
+
+                                    <script>
+                                        const workContainer = document.getElementById('work-container');
+                                        const addWorkBtn = document.getElementById('add-work');
+
+                                        addWorkBtn.addEventListener('click', () => {
+                                            const firstEntry = workContainer.querySelector('.work-entry');
+                                            const clone = firstEntry.cloneNode(true);
+
+                                            // Clear inputs and errors
+                                            clone.querySelectorAll('input').forEach(input => {
+                                                if (input.type === 'checkbox') {
+                                                    input.checked = false;
+                                                    input.disabled = false;
+                                                } else {
+                                                    input.value = '';
+                                                    input.readOnly = false;
+                                                    input.disabled = false;
+                                                }
+                                            });
+
+                                            clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+                                            clone.querySelector('.remove-work').style.display = 'block';
+
+                                            workContainer.appendChild(clone);
+                                            Alpine.initTree(clone);
+                                        });
+
+                                        workContainer.addEventListener('click', (e) => {
+                                            if (e.target.classList.contains('remove-work')) {
+                                                const entry = e.target.closest('.work-entry');
+                                                entry.remove();
+                                            }
+                                        });
+                                    </script>
+
 
                                     <div class="col-span-2 flex justify-between">
                                         <button type="button" onclick="showStep(2)"
@@ -471,7 +564,8 @@
 
                                     <div class="text-sm">
                                         <label class="flex items-start gap-2 mt-3">
-                                            <input type="checkbox" id="termsCheckbox" class="mt-1" />
+                                            <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}>
+
                                             <span>
                                                 I have read and agreed to
                                                 <a href="#" class="text-blue-600 underline">terms and conditions</a>
@@ -551,29 +645,7 @@
                 }
             });
         </script>
-        <script>
-            // Function to handle work exprience add/remove
-            const workContainer = document.getElementById('work-container');
-            const addWorkBtn = document.getElementById('add-work');
-
-            addWorkBtn.addEventListener('click', () => {
-                const firstEntry = workContainer.querySelector('.work-entry');
-                const clone = firstEntry.cloneNode(true);
-
-                clone.querySelectorAll('input').forEach(input => input.value = '');
-                clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-                clone.querySelector('.remove-work').style.display = 'block';
-
-                workContainer.appendChild(clone);
-            });
-
-            workContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-work')) {
-                    const entry = e.target.closest('.work-entry');
-                    entry.remove();
-                }
-            });
-        </script>
+        
         <script>
             function showStep(step) {
                 for (let i = 1; i <= 5; i++) {
@@ -609,5 +681,78 @@
                 });
             });
        
+            document.addEventListener('alpine:init', () => {
+                Alpine.effect(() => {
+                    setTimeout(() => {
+                        $('.datepicker-end:not(:disabled)').datepicker(); // or flatpickr()
+                    }, 100);
+                });
+            });
+
         </script>
-        
+        <!-- Alpine.js v3 CDN -->
+        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                var $submitBtn = $('#submitBtn');
+                var $form = $('form');
+                var $checkbox = $('#termsCheckbox'); // Make sure this is the actual ID of your checkbox
+
+                function toggleSubmitButton() {
+                    if ($checkbox.is(':checked')) {
+                        $submitBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    } else {
+                        $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                    }
+                }
+
+                // Always run this on page load (including error reloads)
+                toggleSubmitButton();
+
+                // On checkbox click, enable/disable submit
+                $checkbox.on('change', function () {
+                    toggleSubmitButton();
+                });
+
+                // Prevent multiple submits
+                $form.on('submit', function (e) {
+                    if ($submitBtn.prop('disabled')) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                });
+            });
+        </script>
+        <!-- Natioanl id and gender logic code -->
+        <script>
+            $(document).ready(function () {
+                function validateNationalIdInput() {
+                    const gender = $('#gender').val();
+                    const value = $('#national_id').val();
+
+                    if (gender === 'Male') {
+                        if (value && !value.startsWith('1')) {
+                            $('#national_id').val('');
+                        }
+                    } else if (gender === 'Female') {
+                        if (value && !value.startsWith('2')) {
+                            $('#national_id').val('');
+                        }
+                    }
+                }
+
+                $('#gender').on('change', function () {
+                    const selectedGender = $(this).val();
+
+                    // Clear National ID field when gender is changed
+                    $('#national_id').val('');
+
+                    // Attach input event for validation
+                    $('#national_id').off('input').on('input', function () {
+                        validateNationalIdInput();
+                    });
+                });
+            });
+        </script>

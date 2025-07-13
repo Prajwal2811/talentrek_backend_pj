@@ -15,16 +15,16 @@ class TrainingMaterial extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'trainer_id',              // FK to trainers table
-        'training_type' ,                       // e.g., Online, Offline, Hybrid
+        'trainer_id',
+        'training_type' ,  
         'training_title',
         'training_sub_title',
         'training_descriptions',
-        'training_category' ,       // e.g., Technical, Soft Skills
-        'training_price',  // e.g., 299.99
-        'thumbnail_file_path',      // Path to stored image
-        'thumbnail_file_name',      // Original filename
-        'training_objective',         // Objectives
+        'training_category' ,       
+        'training_price',  
+        'thumbnail_file_path',      
+        'thumbnail_file_name',     
+        'training_objective',        
         'session_type',
     ];
 
@@ -34,5 +34,10 @@ class TrainingMaterial extends Model
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'course_id');
+    }
 
 }

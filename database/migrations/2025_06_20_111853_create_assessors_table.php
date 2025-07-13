@@ -17,11 +17,13 @@ return new class extends Migration
             $table->id();
             $table->string('company_name')->nullable();
             $table->string('company_email')->unique();
+            $table->string('national_id')->unique()->nullable();
             $table->string('phone_code')->nullable();              // e.g., +91
             $table->string('company_phone_number')->nullable();    // e.g., 9876543210
             $table->date('company_instablishment_date')->nullable(); // e.g., 2005-06-15
             $table->string('industry_type')->nullable();           // e.g., Education, IT
-            $table->string('company_website')->nullable();         // e.g., https://company.com
+            $table->string('company_website')->nullable();  
+            $table->string('isSubscribtionBuy')->default('no');       // e.g., https://company.com
             $table->timestamps();
         });
     }

@@ -103,7 +103,7 @@
                                 <span class="text-xs mt-1 text-center">Additional<br />Information</span>
                             </div>
                             </div>
-                            <form class="space-y-6" action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
+                            <form class="space-y-6" id="myForm" action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ session('company_id') }}">
 
@@ -146,7 +146,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">Business email</label>
-                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter email id" value="{{ old('business_email', $business_email) }}"/>
+                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter email id" value="{{ old('business_email', $business_email) }}" readonly/>
                                                 @error('business_email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -172,7 +172,7 @@
                                                         <option value="+7">🇷🇺 Russia (+7)</option>
                                                     </select>
 
-                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="Enter phone number"  value="{{ old('company_phone_number', $company_phone_number) }}"/>
+                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="Enter phone number"  value="{{ old('company_phone_number', $company_phone_number) }}" readonly/>
                                                     @error('company_phone_number')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -251,6 +251,27 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+                                                <div>
+                                                    <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                    <span class="text-xs text-blue-600">
+                                                        National ID should start with 1 for male and 2 for female.
+                                                    </span>
+                                                    <input 
+                                                        type="text" 
+                                                        name="national_id" 
+                                                        id="national_id" 
+                                                        class="w-full border rounded-md p-2 mt-1" 
+                                                        placeholder="Enter national id number" 
+                                                        value="{{ old('national_id') }}" 
+                                                        maxlength="15"
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                    />
+                                                    @error('national_id')
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div>
@@ -288,7 +309,7 @@
 
                                         <div class="flex justify-between pt-4">
                                             <button type="button" onclick="showStep(1)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">Back</button>
-                                            <button type="submit" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
+                                            <button type="submit" id="submitBtn" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
                                                 Register
                                             </button>
 
@@ -324,7 +345,20 @@
                 </div>
                 </div>
 
+<!-- jQuery Script -->
 
+<script>
+    $(document).ready(function () {
+        $('#myForm').on('submit', function (e) {
+            if (this.checkValidity()) {
+                // If form is valid, disable the button
+                $('#submitBtn').prop('disabled', true)
+                    .addClass('opacity-50 cursor-not-allowed')
+            }
+        });
+    });
+
+</script>
 <script src="{{ asset('asset/js/jquery-3.6.0.min.js') }}"></script>
 <script src="{{ asset('asset/js/popper.min.js') }}"></script>
 <script src="{{ asset('asset/js/bootstrap.min.js') }}"></script>

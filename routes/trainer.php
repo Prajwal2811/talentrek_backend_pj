@@ -41,13 +41,16 @@ Route::group(['prefix' => 'trainer'], function() {
 		Route::post('training/online/save-online-data', [App\Http\Controllers\TrainerController::class, 'saveTrainingOnlineData'])->name('trainer.training.online.save.data');
 
 		Route::get('/training/recorded/edit/{id}', [TrainerController::class, 'editRecordedTraining'])->name('trainer.training.recorded.edit');
-
 		Route::post('/training/recorded/update/{id}', [TrainerController::class, 'updateRecordedTraining'])->name('trainer.training.recorded.update.data');
 
+		Route::get('/training/online/edit/{id}', [TrainerController::class, 'editOnlineTraining'])->name('trainer.training.online.edit');
+		Route::post('/training/online/update/{id}', [TrainerController::class, 'updateOnlineTraining'])->name('trainer.training.online.update.data');
 
 		// Assessment
 		Route::get('/assessment/list', [App\Http\Controllers\TrainerController::class, 'assessmentList'])->name('assessment.list');
 		Route::get('/assessment/add', [App\Http\Controllers\TrainerController::class, 'addAssessment'])->name('assessment.add');
+		Route::post('/assessment/store', [App\Http\Controllers\TrainerController::class, 'assessmentStore'])->name('trainer.assessment.store');
+		Route::post('/assessment/assign/course', [App\Http\Controllers\TrainerController::class, 'assignCourse'])->name('trainer.assessment.assign.course');
 
 		// Batch
 		Route::get('/batch', [App\Http\Controllers\TrainerController::class, 'batch'])->name('batch');
@@ -63,7 +66,16 @@ Route::group(['prefix' => 'trainer'], function() {
 
 		// Trainer Settings
 		Route::get('/trainer-settings', [App\Http\Controllers\TrainerController::class, 'trainerSettings'])->name('trainer.settings');
-		
+		Route::delete('/delete', [App\Http\Controllers\TrainerController::class, 'deleteAccount'])->name('trainer.destroy');
+		Route::get('/trainer-settings', [App\Http\Controllers\TrainerController::class, 'getTrainerAllDetails'])->name('trainer.settings');
+
+		Route::post('/profile/update-personal-info',[TrainerController::class, 'updatePersonalInfo'])->name('trainer.profile.update');
+		Route::post('/profile/update-education-info',[TrainerController::class, 'updateEducationInfo'])->name('trainer.education.update');
+		Route::post('/profile/update-work-exprience-info',[TrainerController::class, 'updateWorkExprienceInfo'])->name('trainer.workexprience.update'); 
+		Route::post('/profile/update-skills-info',[TrainerController::class, 'updateTrainerSkillsInfo'])->name('trainer.skill.update'); 
+		Route::post('/profile/additional-info',[TrainerController::class, 'updateAdditionalInfo'])->name('trainer.additional.update'); 
+		Route::delete('/profile/additional/delete/{type}', [TrainerController::class, 'deleteAdditionalFile'])->name('trainer.additional.delete');
+
 
 	});
 

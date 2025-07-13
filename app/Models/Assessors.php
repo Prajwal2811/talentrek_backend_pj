@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; 
 
-class Assessors extends Model
+class Assessors extends Authenticatable
 {
     use HasFactory;
 
@@ -23,6 +24,12 @@ class Assessors extends Model
         'company_instablishment_date',
         'industry_type',
         'company_website',
+        'password',
+        'pass',
+        'otp',
+        'national_id',
+        'status',
+        'admin_status',
     ];
 
     /**

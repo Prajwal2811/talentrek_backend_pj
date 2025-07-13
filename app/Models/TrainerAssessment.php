@@ -19,6 +19,7 @@ class TrainerAssessment extends Model
         'passing_questions',
         'passing_percentage',
         'course_id',
+        'material_id',
     ];
 
     // Relationships

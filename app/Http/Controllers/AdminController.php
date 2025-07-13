@@ -17,17 +17,24 @@ use App\Models\AdditionalInfo;
 use App\Models\Testimonial;
 use App\Models\Trainers;
 use App\Models\Language;
+use App\Models\Resume;
+use App\Models\Review;
+use App\Models\Payment;
+use App\Models\Mentors;
+use App\Models\BookingSession;
 use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
 use App\Models\TrainingMaterialsDocument;
 use App\Models\CertificateTemplate;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingCategory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use DB;
 class AdminController extends Controller
 {
     public function authenticate(Request $request)
@@ -197,11 +204,40 @@ class AdminController extends Controller
         
         return redirect()->route('admin.login'); // Redirect to named route
     }
-     public function dashboard()
-    {
-        return view('admin.dashboard');
-    }
 
+    public function dashboard()
+    {
+        $jobseekerCount = Jobseekers::where('status', 'active')->count();
+        $recruiterCount = Recruiters::where('status', 'active')->count();
+        $trainerCount   = Trainers::where('status', 'active')->count();
+        // $expatCount     = Expats::where('status', 'active')->count();
+        // $coachCount     = Coach::where('status', 'active')->count();
+        $mentorCount    = Mentors::where('status', 'active')->count();
+        // $assessorCount  = Assessors::where('status', 'active')->count();
+
+        // Example logic for revenue and session counts
+        // $materialSales = Orders::where('type', 'material')
+        //                 ->where('status', 'paid')
+        //                 ->sum('amount');
+
+        // $mentorSessionCount = Bookings::where('type', 'mentor')->count();
+        // $coachSessionCount = Bookings::where('type', 'coach')->count();
+        // $assessorSessionCount = Bookings::where('type', 'assessor')->count();
+
+        return view('admin.dashboard', [
+            'jobseekerCount'        => $jobseekerCount,
+            'recruiterCount'        => $recruiterCount,
+            'trainerCount'          => $trainerCount,
+            // 'expatCount'            => $expatCount,
+            // 'coachCount'            => $coachCount,
+            'mentorCount'           => $mentorCount,
+            // 'assessorCount'         => $assessorCount,
+            // 'materialSales'         => $materialSales,
+            // 'mentorSessionCount'    => $mentorSessionCount,
+            // 'coachSessionCount'     => $coachSessionCount,
+            // 'assessorSessionCount'  => $assessorSessionCount,
+        ]);
+    }
 
     public function create()
     {
@@ -739,8 +775,6 @@ class AdminController extends Controller
         return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos'));
     }
 
-
-    
     public function viewShortlistedJobseekers($id)
     {
         // echo "<pre>"; print_r($id); die;
@@ -755,7 +789,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'jobseeker_id' => 'required|exists:jobseekers,id',
-            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'status' => 'required|in:approved,rejected',
             'reason' => 'nullable|string|max:500',
             'role' => 'required|in:admin,superadmin',
         ]);
@@ -764,19 +798,11 @@ class AdminController extends Controller
 
         if ($request->role === 'admin') {
             $jobseeker->admin_status = $request->status;
-            if ($request->status === 'rejected') {
-                $jobseeker->rejection_reason = $request->reason;
-            } else {
-                $jobseeker->rejection_reason = null; // clear old reason
-            }
+            $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
         } elseif ($request->role === 'superadmin') {
             if ($jobseeker->admin_status === 'approved') {
-                $jobseeker->admin_status = 'superadmin_'.$request->status;
-                if ($request->status === 'rejected') {
-                    $jobseeker->rejection_reason = 'superadmin_'.$request->reason;
-                } else {
-                    $jobseeker->rejection_reason = null;
-                }
+                $jobseeker->admin_status = 'superadmin_' . $request->status;
+                $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
             }
         }
 
@@ -784,6 +810,7 @@ class AdminController extends Controller
 
         return back()->with('success', 'Status updated.');
     }
+
 
 
     public function updateRecruiterStatus(Request $request)
@@ -983,6 +1010,29 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Site settings updated successfully.');
     }
+
+
+    public function resume()
+    {
+        return view('admin.resume.index');
+    }
+
+
+    public function resumeUpdate(Request $request)
+    {
+        $request->validate([
+            'resume' => 'required',
+        ]);
+
+        $resume = Resume::find($request->input('id')) ?? new Resume();
+        $resume->resume = $request->input('resume');
+        $resume->save();
+
+        return redirect()->route('admin.resume.download.option', ['id' => $resume->id])
+                        ->with('success', 'Resume format uploaded successfully.');
+    }
+
+
 
 
     public function storeMediaLinks(Request $request)
@@ -1486,7 +1536,277 @@ class AdminController extends Controller
         return view('admin.contact-support');
     }
 
-   public function showActivityLog()
+
+    public function reviews()
+    {
+        $reviews = Review::select('reviews.*', 'jobseekers.name as reviewer_name','reviews.id as review_id')
+                    ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+                    ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+                    ->get();
+
+        // echo "<pre>"; print_r($reviews); die;
+        return view('admin.reviews.index', compact('reviews'));
+    }
+
+
+    public function viewReview($id)
+    {
+        $review = Review::select('reviews.*', 'jobseekers.name as reviewer_name', 'jobseekers.email as reviewer_email')
+            ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+            ->whereIn('reviews.user_type', ['trainer', 'mentor', 'coach', 'assessor'])
+            ->where('reviews.id', $id)
+            ->first();
+
+        // Initialize variables
+        $revieweeName = null;
+        $materialTitle = null;
+
+        switch ($review->user_type) {
+            case 'trainer':
+                $reviewee = DB::table('trainers')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+
+                // Also fetch the trainer's material
+                $material = DB::table('training_materials')->where('trainer_id', $review->user_id)->first();
+                $materialTitle = $material->training_title ?? 'Material not found';
+                break;
+
+            case 'mentor':
+                $reviewee = DB::table('mentors')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+
+            case 'coach':
+                $reviewee = DB::table('coaches')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+
+            case 'assessor':
+                $reviewee = DB::table('assessors')->where('id', $review->user_id)->first();
+                $revieweeName = $reviewee->name ?? 'N/A';
+                break;
+        }
+
+        return view('admin.reviews.view', compact('review', 'revieweeName', 'materialTitle'));
+    }
+
+
+
+    public function trainingCategory()
+    {
+        $trainingCategory = TrainingCategory::orderBy('id', 'desc')->get();
+        // echo "<pre>"; print_r($reviews); die;
+        return view('admin.trainingcategory.index', compact('trainingCategory'));
+    }
+
+
+    public function trainingCategoryEdit($id)
+    {
+        $trainingCategory = TrainingCategory::find($id);
+        // echo "<pre>"; print_r($trainingCategory); die;
+        return view('admin.trainingcategory.edit', compact('trainingCategory'));
+    }
+
+    public function updatetrainingCategory(Request $request, $id)
+    {
+        $request->validate([
+            'category_name' => 'required|string|max:255',
+            'category_icon' => 'nullable|image|mimes:jpg,jpeg,png,svg,gif|max:2048',
+        ]);
+
+        $category = TrainingCategory::findOrFail($id);
+        $category->category = $request->category_name;
+
+        if ($request->hasFile('category_icon')) {
+            $file = $request->file('category_icon');
+            $extension = $file->getClientOriginalExtension();
+            $fileNameToStore = 'category_icon_' . time() . '.' . $extension;
+            $file->move(public_path('uploads'), $fileNameToStore);
+            $category->image_path = asset('uploads/' . $fileNameToStore);
+            $category->image_name =  $fileNameToStore;
+        }
+
+        $category->save();
+
+        return redirect()->route('admin.training-category')->with('success', 'Category updated successfully.');
+    }
+
+
+    public function createCategory()
+    {
+        return view('admin.trainingcategory.create');
+    }
+
+
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'category_name' => 'required|string|max:255',
+            'category_icon' => 'nullable|image|mimes:jpg,jpeg,png,svg,gif|max:2048',
+        ]);
+
+        $iconPath = null;
+
+        if ($request->hasFile('category_icon')) {
+            $file = $request->file('category_icon');
+            $extension = $file->getClientOriginalExtension();
+            $fileNameToStore = 'category_icon_' . time() . '.' . $extension;
+            $file->move(public_path('uploads'), $fileNameToStore);
+
+            // Store relative path or filename
+            $iconPath = asset('uploads/' . $fileNameToStore);
+        }
+
+        TrainingCategory::create([
+            'category' => $request->category_name,
+            'image_path' => $iconPath, // make sure 'icon' column exists in the table
+            'image_name' => $fileNameToStore, // make sure 'icon' column exists in the table
+        ]);
+
+        return redirect()->route('admin.training-category')->with('success', 'Category added successfully.');
+    }
+
+
+
+    public function trainingCategoryDestroy($id)
+    {
+        // Find the category by ID
+        $category = TrainingCategory::findOrFail($id);
+        // Delete the category
+        $category->delete();
+        // Redirect back with a success message
+        return redirect()->route('admin.training-category')->with('success', 'Category deleted successfully.');
+    }
+
+
+
+    public function subscriptions()
+    {
+        return view('admin.subscriptions.index');
+    }
+
+
+    public function showSubscriptions($type)
+    {
+        // Example logic
+        return view('admin.subscriptions.view', ['type' => ucfirst($type)]);
+    }
+
+
+    public function payments()
+    {   
+        $payments = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments.id as payment_id')
+                    ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
+                    ->orderBy('payments.created_at', 'desc')
+                    ->get();
+        // echo "<pre>"; print_r($payments); die;
+        return view('admin.payments.index', compact('payments'));
+    }
+
+    public function viewPayment($id)
+    {
+        $payment = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
+                                ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('training_materials', 'payments.course_id', '=', 'training_materials.id')
+                                ->where('payments.id', $id)
+                                ->firstOrFail();
+
+        // Get the jobseeker's details
+        $jobseeker = JobSeekers::find($payment->jobseeker_id);
+
+        return view('admin.payments.view', compact('payment', 'jobseeker'));
+    }
+
+
+
+    public function mentors()
+    {
+        $mentors = Mentors::all();
+        return view('admin.mentors.index', compact('mentors'));
+    }
+
+    public function mentorChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'mentor_id' => 'required|exists:trainers,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
+
+        $user = Mentors::findOrFail($validated['mentor_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
+
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
+
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+        // Logging the change
+        Log::info('Mentors status updated', [
+            'mentors' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Mentors status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+
+    public function viewMentor($id)
+    {
+        $mentor = Mentors::findOrFail($id);
+        $educations = $mentor->educations()->orderBy('id', 'desc')->get();
+        $experiences = $mentor->experiences()->orderBy('id', 'desc')->get();
+        $trainingexperience = $mentor->trainingexperience()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','mentor')->get();
+        return view('admin.mentors.view', compact('mentor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+    }
+
+
+    public function viewBookingSession($id)
+    {
+        $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*', 'mentors.name as mentor_name', 'mentors.email as mentor_email','jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','booking_slots.start_time', 'booking_slots.end_time','booking_slots.*','jobseeker_saved_booking_session.status as booking_status')
+                                ->join('mentors', 'jobseeker_saved_booking_session.user_id', '=', 'mentors.id')
+                                ->join('jobseekers', 'jobseeker_saved_booking_session.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('booking_slots', 'jobseeker_saved_booking_session.booking_slot_id', '=', 'booking_slots.id')
+                                ->where('jobseeker_saved_booking_session.id', $id)
+                                ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+                                ->get();
+        // echo "<pre>"; print_r($booking); die;
+        return view('admin.mentors.booking-session', compact('bookingSessions'));
+    }
+
+
+
+
+
+
+
+    public function showActivityLog()
     {
         $logPath = storage_path('logs/laravel.log');
 

@@ -24,6 +24,7 @@ class Trainers extends Authenticatable
         'pass',
         'date_of_birth',
         'city',
+        'national_id',
         'otp',
         'status',
         'admin_status',

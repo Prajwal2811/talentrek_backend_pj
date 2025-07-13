@@ -13,53 +13,12 @@
 
 	
     <div class="page-wraper">
-        <div class="flex h-screen">
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
             @include('site.trainer.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
-                        Talent<span class="text-blue-500">rek</span>
-                    </div>
-                    <!-- <div class="relative w-full">
-                        <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.trainer.componants.navbar')
 
                 <main class="p-6 ">
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
@@ -95,31 +54,38 @@
                             @enderror
                         </div>
 
-                        
+                        @php
+                            $categories = App\Models\TrainingCategory::all();
+                        @endphp
                         <!-- Category (Single selection with radio buttons) -->
                         <div class="mb-4">
                             <label class="block font-medium mb-2">Category</label>
                             <div class="flex flex-wrap gap-4">
-                                <label>
-                                    <input type="radio" name="training_category" value="business" class="mr-2" /> Business
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="development" class="mr-2" /> Development
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="design" class="mr-2" /> Design
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="marketing" class="mr-2" /> Marketing
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="health & fitness" class="mr-2" /> Health & Fitness
-                                </label>
+                                @foreach ($categories as $category)
+                                    <label>
+                                        <input type="radio" name="training_category" value="{{ $category->category }}" class="mr-2" /> {{ $category->category }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        <!-- Training Level -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block font-medium mb-1">Training Level</label>
+                                <select name="training_level" class="w-full border rounded-md p-2">
+                                    <option value="">Select Training Level</option>
+                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
+                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                </select>
+                                @error('training_level')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
 
-                       
+
                         <!-- Course Content Structure -->
                         <div class="mb-4">
                             <label class="block font-medium mb-2">Course Content Structure</label>
@@ -157,18 +123,31 @@
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Upload Thumbnail</label>
                             <div class="flex gap-4 items-center">
-                                <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
+                                <input type="file" accept="image/*" name="thumbnail" class="border rounded-md p-2 flex-1" />
                             </div>
                         </div>
 
-                        <!-- Course Price -->
-                        <div class="mb-6">
-                            <label class="block font-medium mb-1">Course Price</label>
-                            <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
-                            @error('training_price')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                        <!-- Course Price and Offer Price -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Course Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Price</label>
+                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
+                                @error('training_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Course Offer Price -->
+                            <div>
+                                <label class="block font-medium mb-1">Course Offer Price</label>
+                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" />
+                                @error('training_offer_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
+
 
                         <!-- Submit Button -->
                         <div class="text-right">
@@ -320,7 +299,7 @@
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input type="file" name="content_sections[${index}][file]" style="display:none" />
+                                <input  accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">

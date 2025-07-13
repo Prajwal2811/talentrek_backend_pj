@@ -27,6 +27,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-verify-otp', [JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
 		Route::get('reset-password', [JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');
 		Route::post('/submit-reset-password', [JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
+
+
+		Route::get('jobseeker/auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		Route::get('jobseeker/auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
+
 	});
 	
 	Route::group(['middleware' => 'jobseeker.auth'], function(){
@@ -34,6 +39,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::post('/login',[JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
 		Route::get('/profile', [JobseekerController::class, 'showProfilePage'])->name('jobseeker.profile');
+		Route::get('/subscription-plan', [JobseekerController::class, 'showSubscriptionPlanPage'])->name('jobseeker.subscription.plan');
+		Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
+
 		Route::get('/profile', [JobseekerController::class, 'getJobseekerAllDetails'])->name('jobseeker.profile');
 		Route::post('/logout',[JobseekerController::class, 'logoutJobseeker'])->name('jobseeker.logout');
 		Route::post('/profile/update-personal-info',[JobseekerController::class, 'updatePersonalInfo'])->name('jobseeker.profile.update');
@@ -44,5 +52,18 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::delete('/jobseeker/additional/delete/{type}', [JobseekerController::class, 'deleteAdditionalFile'])->name('jobseeker.additional.delete');
 
 
+		
 	});
+
+	
+	Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');
+	Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
+	Route::get('/get-available-slots', [JobseekerController::class, 'getAvailableSlots'])->name('get-available-slots');
+	Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
+
+
+
+
+
+
 });

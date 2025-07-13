@@ -13,8 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('training_experiences', function (Blueprint $table) {
+         Schema::create('training_categories', function (Blueprint $table) {
             $table->id();
+            $table->string('category');
+            $table->string('image_path');
+            $table->string('image_name');
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('training_experiences');
+        Schema::dropIfExists('training_categories');
     }
 };
