@@ -20,6 +20,8 @@ use App\Models\Language;
 use App\Models\Resume;
 use App\Models\Review;
 use App\Models\Payment;
+use App\Models\Mentors;
+use App\Models\BookingSession;
 use App\Models\RecruiterJobseekersShortlist;
 use App\Models\TrainingBatch;
 use App\Models\TrainerAssessment;
@@ -202,11 +204,40 @@ class AdminController extends Controller
         
         return redirect()->route('admin.login'); // Redirect to named route
     }
-     public function dashboard()
-    {
-        return view('admin.dashboard');
-    }
 
+    public function dashboard()
+    {
+        $jobseekerCount = Jobseekers::where('status', 'active')->count();
+        $recruiterCount = Recruiters::where('status', 'active')->count();
+        $trainerCount   = Trainers::where('status', 'active')->count();
+        // $expatCount     = Expats::where('status', 'active')->count();
+        // $coachCount     = Coach::where('status', 'active')->count();
+        $mentorCount    = Mentors::where('status', 'active')->count();
+        // $assessorCount  = Assessors::where('status', 'active')->count();
+
+        // Example logic for revenue and session counts
+        // $materialSales = Orders::where('type', 'material')
+        //                 ->where('status', 'paid')
+        //                 ->sum('amount');
+
+        // $mentorSessionCount = Bookings::where('type', 'mentor')->count();
+        // $coachSessionCount = Bookings::where('type', 'coach')->count();
+        // $assessorSessionCount = Bookings::where('type', 'assessor')->count();
+
+        return view('admin.dashboard', [
+            'jobseekerCount'        => $jobseekerCount,
+            'recruiterCount'        => $recruiterCount,
+            'trainerCount'          => $trainerCount,
+            // 'expatCount'            => $expatCount,
+            // 'coachCount'            => $coachCount,
+            'mentorCount'           => $mentorCount,
+            // 'assessorCount'         => $assessorCount,
+            // 'materialSales'         => $materialSales,
+            // 'mentorSessionCount'    => $mentorSessionCount,
+            // 'coachSessionCount'     => $coachSessionCount,
+            // 'assessorSessionCount'  => $assessorSessionCount,
+        ]);
+    }
 
     public function create()
     {
@@ -1685,6 +1716,95 @@ class AdminController extends Controller
 
         return view('admin.payments.view', compact('payment', 'jobseeker'));
     }
+
+
+
+    public function mentors()
+    {
+        $mentors = Mentors::all();
+        return view('admin.mentors.index', compact('mentors'));
+    }
+
+    public function mentorChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'mentor_id' => 'required|exists:trainers,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
+
+        $user = Mentors::findOrFail($validated['mentor_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
+
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
+
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+        // Logging the change
+        Log::info('Mentors status updated', [
+            'mentors' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Mentors status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+
+    public function viewMentor($id)
+    {
+        $mentor = Mentors::findOrFail($id);
+        $educations = $mentor->educations()->orderBy('id', 'desc')->get();
+        $experiences = $mentor->experiences()->orderBy('id', 'desc')->get();
+        $trainingexperience = $mentor->trainingexperience()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','mentor')->get();
+        return view('admin.mentors.view', compact('mentor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+    }
+
+
+    public function viewBookingSession($id)
+    {
+        $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*', 'mentors.name as mentor_name', 'mentors.email as mentor_email','jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','booking_slots.start_time', 'booking_slots.end_time','booking_slots.*','jobseeker_saved_booking_session.status as booking_status')
+                                ->join('mentors', 'jobseeker_saved_booking_session.user_id', '=', 'mentors.id')
+                                ->join('jobseekers', 'jobseeker_saved_booking_session.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('booking_slots', 'jobseeker_saved_booking_session.booking_slot_id', '=', 'booking_slots.id')
+                                ->where('jobseeker_saved_booking_session.id', $id)
+                                ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+                                ->get();
+        // echo "<pre>"; print_r($booking); die;
+        return view('admin.mentors.booking-session', compact('bookingSessions'));
+    }
+
+
+
+
+
+
 
     public function showActivityLog()
     {

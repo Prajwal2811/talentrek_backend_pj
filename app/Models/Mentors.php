@@ -37,4 +37,23 @@ class Mentors extends Authenticatable
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+    public function educations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'mentors');
+    }
+    public function experiences()
+    {
+
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'mentors');
+    }
+
+    public function trainingexperience()
+    {
+        return $this->hasMany(TrainingExperience::class, 'user_id');
+       
+    }
+
 }

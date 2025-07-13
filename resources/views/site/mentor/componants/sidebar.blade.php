@@ -31,7 +31,7 @@
         </a>
 
         <!-- About Coach -->
-        <a href="{{ route('about.coach') }}"
+        {{-- <a href="{{ route('about.coach') }}"
            :class="[
                active === 'about.coach' ? 'bg-white text-blue-900 font-semibold' : 'hover:bg-white hover:text-blue-900',
                'flex items-center px-4 py-2 rounded-md transition duration-200'
@@ -40,10 +40,10 @@
            :title="!sidebarOpen ? 'About Coach' : ''">
             <i data-feather="user" class="mr-3"></i>
             <span x-show="sidebarOpen" x-transition>About Coach</span>
-        </a>
+        </a> --}}
 
         <!-- Booking Slots -->
-        <div x-data="{ open: {{ request()->routeIs('manage.booking.slots.mentor') || request()->routeIs('create.booking.slots.mentor') ? 'true' : 'false' }} }" class="flex flex-col">
+        <div x-data="{ open: {{ request()->routeIs('mentor.manage-bookings') || request()->routeIs('mentor.create-bookings') ? 'true' : 'false' }} }" class="flex flex-col">
             <button @click="open = !open"
                 class="flex items-center px-4 py-2 rounded-md transition duration-200 hover:bg-white hover:text-blue-900"
                 :class="sidebarOpen ? '' : 'justify-center'"
@@ -57,13 +57,13 @@
             </button>
 
             <div x-show="open && sidebarOpen" x-transition class="flex flex-col ml-8 mt-1 space-y-1">
-                <a href="{{ route('manage.booking.slots.mentor') }}"
-                   class="px-4 py-2 rounded-md {{ request()->routeIs('manage.booking.slots.mentor') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                    Manage Booking Slots
+                <a href="{{ route('mentor.manage-bookings') }}"
+                   class="px-4 py-2 rounded-md {{ request()->routeIs('mentor.manage-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
+                    Booking Slots
                 </a>
-                <a href="{{ route('create.booking.slots.mentor') }}"
-                   class="px-4 py-2 rounded-md {{ request()->routeIs('create.booking.slots.mentor') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                    Create Booking Slots
+                <a href="{{ route('mentor.create-bookings') }}"
+                   class="px-4 py-2 rounded-md {{ request()->routeIs('mentor.create-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
+                    Create Slots
                 </a>
             </div>
         </div>

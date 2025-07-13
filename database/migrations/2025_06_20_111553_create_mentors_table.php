@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-       Schema::create('mentors', function (Blueprint $table) {
+        Schema::create('mentors', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
             $table->string('email')->unique();
@@ -24,7 +24,16 @@ return new class extends Migration
             $table->string('city')->nullable();
             $table->string('password')->nullable(); 
             $table->string('pass')->nullable();    
-            $table->string('isSubscribtionBuy')->default('no');         // e.g., New York, Delhi
+            $table->string('otp')->nullable();            
+            $table->string('status')->default('active');          
+            $table->string('admin_status')->nullable();            
+            $table->text('inactive_reason')->nullable(); // Removed ->after('status')
+            $table->text('rejection_reason')->nullable(); // Removed ->after('status')
+            $table->text('shortlist')->nullable(); // Removed ->after('status')
+            $table->text('admin_recruiter_status')->nullable(); // Removed ->after('status')
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
+            $table->string('isSubscribtionBuy')->default('no');        // e.g., New York, Delhi
             $table->timestamps();
         });
     }

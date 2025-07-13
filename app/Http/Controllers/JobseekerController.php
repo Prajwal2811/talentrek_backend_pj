@@ -10,6 +10,9 @@ use App\Models\Trainers;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
+use App\Models\Mentors;
+use App\Models\BookingSession;
+use App\Models\BookingSlot;
 use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -1028,8 +1031,110 @@ class JobseekerController extends Controller
         return redirect()->route('signin.form')->with('success', 'Password changed successfully.');
     }
 
+    public function mentorshipDetails($id) {
+        $mentorDetails = Mentors::select('mentors.*','booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
+                                ->where('mentors.id', $id)
+                                ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
+                                ->where('booking_slots.user_type', 'mentor')
+                                ->first();
 
+    //    echo "<pre>";
+    //     print_r($mentorDetails); die;
+        return view('site.mentorship-details', compact('mentorDetails'));
+    }
     
+
+    public function bookingSession($mentor_id, $slot_id) {
+        $mentorDetails = Mentors::select('mentors.*','booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
+                                ->where('mentors.id', $mentor_id)
+                                ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
+                                ->where('booking_slots.id', $slot_id)
+                                ->first();
+        // echo "<pre>";
+        // print_r($slot_id); die;
+        return view('site.mentorship-book-session', compact('mentorDetails'));
+    }
+
+
+    public function submitMentorshipBooking(Request $request)
+    {
+        // Check if jobseeker is logged in
+        if (!auth('jobseeker')->check()) {
+            return redirect()->back()->with('error', 'Please log in to book a mentorship session.');
+        }
+
+        $request->validate([
+            'mentor_id' => 'required|exists:mentors,id',
+            'mode' => 'required|in:online,offline',
+            'date' => 'required|date',
+            'slot_id' => 'required|exists:booking_slots,id',
+        ]);
+
+        $jobseekerId = auth('jobseeker')->id();
+
+        // Save the booking
+        BookingSession::create([
+            'jobseeker_id' => $jobseekerId,
+            'user_type' => 'mentor',
+            'user_id' => $request->mentor_id,
+            'booking_slot_id' => $request->slot_id,
+            'slot_date' => $request->date,
+            'slot_mode' => $request->mode,
+            'slot_time' => $request->slot_time,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('mentorship-booking-success')->with('success', 'Session booked successfully.');
+    }
+
+
+
+
+
+
+
+    public function getAvailableSlots(Request $request)
+    {
+        $mode = $request->query('mode');
+        $date = $request->query('date'); // Expecting format: YYYY-MM-DD
+        $mentor_id = $request->query('mentor_id');
+
+        $formattedDate = date('Y-m-d', strtotime($date));
+
+        // Fetch all slots for this mentor and mode
+        $slots = BookingSlot::where('slot_mode', $mode)
+                            ->where('user_type', 'mentor')
+                            ->where('user_id', $mentor_id)
+                            ->get();
+
+        $slots->transform(function ($slot) use ($formattedDate) {
+        $isUnavailable = false;
+        $unavailableDates = [];
+
+        if (!empty($slot->unavailable_dates)) {
+            if (is_string($slot->unavailable_dates)) {
+                $decoded = json_decode($slot->unavailable_dates, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $unavailableDates = $decoded;
+                }
+            } elseif (is_array($slot->unavailable_dates)) {
+                $unavailableDates = $slot->unavailable_dates;
+            }
+        }
+
+        $isUnavailable = in_array($formattedDate, $unavailableDates);
+
+        $slot->is_unavailable = $isUnavailable;
+        $slot->start_time = \Carbon\Carbon::parse($slot->start_time)->format('h:i A');
+        $slot->end_time = \Carbon\Carbon::parse($slot->end_time)->format('h:i A');
+
+        return $slot;
+    });
+
+
+        return response()->json($slots);
+    }
+
 
 
 

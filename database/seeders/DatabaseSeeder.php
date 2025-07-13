@@ -39,6 +39,8 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             BookingSlotsSeeder::class,
             PaymentSeeder::class,
+            MentorSeeder::class,
+            JobseekerSavedBookingSessionSeeder::class,
 
         ]);
         

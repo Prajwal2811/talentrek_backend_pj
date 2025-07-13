@@ -15,7 +15,8 @@ use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Log;
 use DB;
 use Auth;
-
+use App\Models\BookingSlot;
+use Carbon\Carbon;
 
 
 class MentorController extends Controller
@@ -367,12 +368,70 @@ class MentorController extends Controller
     public function aboutCoach(){
         return view('site.mentor.about-mentor'); 
     }
-    public function manageBookingSlotsMentor(){
-        return view('site.mentor.manage-booking-slots-mentor'); 
+    
+   // Controller method for initial view
+    public function manageBooking()
+    {
+        $mentor = auth()->user();
+
+        $allSlots = BookingSlot::where('user_type', 'mentor')
+            ->where('user_id', $mentor->id)
+            ->get();
+
+        $onlineSlots = $allSlots->where('slot_type', 'online');
+        $offlineSlots = $allSlots->where('slot_type', 'offline');
+
+        $unavailableDates = $allSlots->pluck('unavailable_dates')
+            ->filter()
+            ->flatMap(function ($dates) {
+                return is_string($dates) ? json_decode($dates, true) ?? [] : (array)$dates;
+            })
+            ->countBy()
+            ->filter(fn($count) => $count === $allSlots->count())
+            ->keys()
+            ->values();
+
+        return view('site.mentor.manage-booking', [
+            'bookingSlots'     => $allSlots,
+            'onlineSlots'      => $onlineSlots,
+            'offlineSlots'     => $offlineSlots,
+            'unavailableDates' => $unavailableDates,
+        ]);
     }
-    public function createBookingSlotsMentor(){
-        return view('site.mentor.create-booking-slots-mentor'); 
+
+
+
+    public function createBooking(){
+        return view('site.mentor.create-booking'); 
     }
+
+    public function submitBooking(Request $request)
+    {
+        $request->validate([
+            'mode' => 'required|in:online,offline',
+            'slots' => 'required|array|min:1',
+            'slots.*' => 'string'
+        ]);
+
+        foreach ($request->slots as $slot) {
+            [$start, $end] = explode(' - ', $slot);
+
+            BookingSlot::create([
+                'user_type' => 'mentor',
+                'user_id' => auth()->id(),
+                'slot_mode' => $request->mode,
+                'start_time' => Carbon::createFromFormat('h:i a', $start)->format('H:i:s'),
+                'end_time' => Carbon::createFromFormat('h:i a', $end)->format('H:i:s'),
+                'unavailable_dates' => NULL,
+            ]);
+        }
+
+        return redirect()->route('mentor.manage-bookings')->with('success', 'Booking slots saved successfully.');
+    }
+
+
+
+
     public function chatWithJobseekerMentor(){
         return view('site.mentor.chat-jobseeker-mentor'); 
     }

@@ -32,12 +32,15 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::post('/logout',[MentorController::class, 'logoutMentor'])->name('mentor.logout');
 
 
-		// About Coach
+		// About Mentor
 		Route::get('/about-coach', [App\Http\Controllers\MentorController::class, 'aboutCoach'])->name('about.coach');
 	
 		// manage-booking-slots-mentor
-		Route::get('bookingslot/manage-booking-slots-mentor', [MentorController::class, 'manageBookingSlotsMentor'])->name('manage.booking.slots.mentor');
-		Route::get('bookingslot/create-booking-slots-mentor', [MentorController::class, 'createBookingSlotsMentor'])->name('create.booking.slots.mentor');
+		Route::get('manage-bookings', [MentorController::class, 'manageBooking'])->name('mentor.manage-bookings');
+		Route::get('create-bookings', [MentorController::class, 'createBooking'])->name('mentor.create-bookings');
+		Route::post('submit-bookings', [MentorController::class, 'submitBooking'])->name('mentor.submit-bookings');
+
+
 
 		// Chat with Jobseeker
 		Route::get('/chat-with-jobseeker', [MentorController::class, 'chatWithJobseekerMentor'])->name('chat.with.jobseeker.mentor');

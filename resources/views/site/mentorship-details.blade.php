@@ -59,7 +59,7 @@
                     <div class="flex items-center gap-6">
                     <img src="{{ asset('asset/images/client-logo/w2.png') }}" alt="Mentor" class="w-28 h-28 rounded-full object-cover border" />
                     <div>
-                        <h1 class="text-xl font-semibold text-gray-900">Mohammad Raza</h1>
+                        <h1 class="text-xl font-semibold text-gray-900">{{ $mentorDetails->name }}</h1>
                         <p class="text-sm text-gray-600 mt-1">Web Designer</p>
                         <p class="text-sm text-gray-500 mt-0.5">5+ years experience</p>
                         <div class="flex items-center mt-1 text-sm">
@@ -78,9 +78,13 @@
                     </div>
                     </div>
                     <div class="mt-4 md:mt-0">
-                    <a href="{{ route('mentorship-book-session') }}">
-                        <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">Book Session</button>
+                    <a href="{{ route('mentorship-book-session', ['mentor_id' => $mentorDetails->mentor_id, 'slot_id' => $mentorDetails->booking_slot_id]) }}">
+                        <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">
+                            Book Session
+                        </button>
                     </a>
+
+
                     </div>
                 </div>
 
