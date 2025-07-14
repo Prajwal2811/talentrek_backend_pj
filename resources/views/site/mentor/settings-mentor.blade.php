@@ -480,7 +480,10 @@ $mentor = Auth()->user();
                                         @php
                                             $user = auth()->user();
                                             $userId = $user->id;
-                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'mentor')->first();
+                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'mentor')
+                                            ->where('doc_type', 'mentor_profile_picture')
+                                            ->first();
+                                            
                                         @endphp
 
                                         @if($profile && $profile->document_path)
@@ -601,7 +604,7 @@ $mentor = Auth()->user();
 
                                                 <!-- About Coach -->
                                                 <div class="mt-3">
-                                                    <label class="block font-medium mb-1">About Coach</label>
+                                                    <label class="block font-medium mb-1">About Mentor</label>
                                                     <textarea name="about_coach" class="w-full border rounded px-3 py-2 h-24">{{ $mentor->about_coach }}</textarea>
                                                 </div>
 
@@ -1007,7 +1010,7 @@ $mentor = Auth()->user();
 
                                         
                                         <!-- Skills & Training Tab -->
-                                        <div x-show="activeSubTab === 'skills'" x-transition>
+                                        <div x-show="activeSubTab === 'skills'" x-transition x-cloak>
                                             <!-- Skills Success Message -->
                                             <div id="trainer-skills-success" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
                                                 <strong>Success!</strong> <span class="message-text"></span>
@@ -1016,9 +1019,8 @@ $mentor = Auth()->user();
                                             <!-- Skills & Training Form -->
                                             <form id="trainer-skills-info-form" method="POST" action="{{ route('mentor.skills.update') }}">
                                                 @csrf
-                                                <div x-show="activeSubTab === 'skills'" x-cloak class="space-y-4">
-
-                                                    <!-- Training Skills -->
+                                                <div class="space-y-4">
+                                                    <!-- Skills -->
                                                     <div>
                                                         <label class="block text-sm font-medium mb-1">Skills</label>
                                                         <input type="text" name="training_skills" placeholder="E.g., JavaScript, UI/UX, Communication"
@@ -1029,6 +1031,33 @@ $mentor = Auth()->user();
                                                         @enderror
                                                     </div>
 
+                                                    <!-- Area Of Interest (Dropdown) -->
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium">Area Of Interest</label>
+                                                        <select name="area_of_interest" class="w-full border rounded-md p-2">
+                                                            <option value="">-- Select Area of Interest --</option>
+                                                            @foreach($categories as $category)
+                                                                <option value="{{ $category->category }}"
+                                                                    {{ old('area_of_interest', $mentorDetails->area_of_interest ?? '') == $category->category ? 'selected' : '' }}>
+                                                                    {{ $category->category }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('area_of_interest')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Job Category (Text Input) -->
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium">Job Category</label>
+                                                        <input type="text" name="job_category" class="w-full border rounded-md p-2"
+                                                            placeholder="e.g. Communication, Leadership, Python, Cloud Computing"
+                                                            value="{{ old('job_category', $mentorDetails->job_category ?? '') }}" />
+                                                        @error('job_category')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
                                                     <!-- Website Link -->
                                                     <div>
@@ -1058,7 +1087,7 @@ $mentor = Auth()->user();
                                                             @click="nextTab">
                                                             Next
                                                         </button>
-                                                        <button type="button" id="save-trainer-skills-info"
+                                                        <button type="submit" id="save-trainer-skills-info"
                                                             class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
                                                     </div>
                                                 </div>
@@ -1066,8 +1095,10 @@ $mentor = Auth()->user();
 
 
                                         </div>
+
                                         <script>
-                                            document.getElementById('save-trainer-skills-info').addEventListener('click', function () {
+                                            document.getElementById('save-trainer-skills-info').addEventListener('click', function (e) {
+                                               e.preventDefault();
                                                 const form = document.getElementById('trainer-skills-info-form');
                                                 const formData = new FormData(form);
                                                 const successBox = document.getElementById('trainer-skills-success');
@@ -1112,6 +1143,8 @@ $mentor = Auth()->user();
                                                 });
                                             });
                                         </script>
+
+
 
                                         <!-- Additional Information Tab -->
                                         <div x-show="activeSubTab === 'additional'" x-transition>

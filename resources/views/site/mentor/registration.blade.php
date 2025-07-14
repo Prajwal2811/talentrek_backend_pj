@@ -282,6 +282,31 @@
                                             @enderror
                                         </div>
                                         <div>
+                                            <label class="block mb-1 text-sm font-medium">Area Of Interest</label>
+                                            <select name="area_of_interest" class="w-full border rounded-md p-2">
+                                                <option value="">-- Select Area of Interest --</option>
+                                                @foreach($categories as $category)
+                                                    <option value="{{ $category->category }}" {{ old('area_of_interest') == $category->category ? 'selected' : '' }}>
+                                                        {{ $category->category }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('area_of_interest')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Job Category</label>
+                                            <input type="text" name="job_category" class="w-full border rounded-md p-2"
+                                                placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{ old('job_category') }}" />
+                                            @error('job_category')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+
+                                        <div>
                                             <label class="block mb-1 text-sm font-medium">Website Link</label>
                                             <input type="url" name="website_link" class="w-full border rounded-md p-2" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
                                             @error('website_link')

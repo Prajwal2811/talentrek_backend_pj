@@ -52,7 +52,7 @@
                             <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
                                 <tr>
                                     <th class="px-4 py-3">Sr. No.</th>
-                                    <th class="px-4 py-3">Course</th>
+                                    <!-- <th class="px-4 py-3">Course</th> -->
                                     <th class="px-4 py-3">Jobseeker Name</th>
                                     <th class="px-4 py-3">Review</th>
                                     <th class="px-4 py-3">Rating</th>
@@ -64,10 +64,10 @@
                                 @foreach($reviews as $index => $review)
                                     <tr class="review-row border-b hover:bg-gray-50">
                                         <td class="px-4 py-3">{{ $index + 1 }}</td>
-                                        <td class="px-4 py-3">{{ $review->course_title ?? 'N/A' }}</td>
+                                        <!-- <td class="px-4 py-3">{{ $review->course_title ?? 'N/A' }}</td> -->
                                         <td class="px-4 py-3">{{ $review->jobseeker_name ?? 'N/A' }}</td>
                                         <td class="px-4 py-3 max-w-xs">{{ \Illuminate\Support\Str::limit($review->reviews, 50) }}</td>
-                                        <td class="px-4 py-3">{{ $review->ratings }}</td>
+                                        <td class="px-4 py-3">{{ $review->ratings }}/5</td>
                                         <td class="px-4 py-3">{{ \Carbon\Carbon::parse($review->created_at)->format('d-m-Y') }}</td>
                                         <td class="px-4 py-3">
                                             <form action="{{ route('mentor.review.delete', $review->id) }}" method="POST" class="delete-form">

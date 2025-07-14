@@ -191,19 +191,6 @@
                         </div>
 
 
-                        <!-- Course Price -->
-                        <div class="mb-6">
-                            <label class="block font-medium mb-1">Course Price</label>
-                            <input type="text" name="training_price" placeholder="Enter Course Price"
-                                value="{{ old('training_price', $training->training_price) }}"
-                                class="w-full border rounded-md p-2" />
-
-                            @error('training_price')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-
                         <!-- Course Price and Offer Price -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <!-- Course Price -->

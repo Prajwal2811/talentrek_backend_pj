@@ -31,8 +31,6 @@
         </a>
 
 
-
-
         <!-- Booking Slots -->
         <div x-data="{ open: {{ request()->routeIs('mentor.manage-bookings') || request()->routeIs('mentor.create-bookings') ? 'true' : 'false' }} }" class="flex flex-col">
             <button @click="open = !open"

@@ -1140,7 +1140,152 @@ class JobseekerController extends Controller
 
 
 
+    public function courseDetails($id)
+    {
+        $material = DB::table('training_materials')->where('id', $id)->first();
+        if (!$material) {
+            abort(404, 'Course not found');
+        }
 
-   
+        $material->documents = DB::table('training_materials_documents')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $material->batches = DB::table('training_batches')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $userType = null;
+        $userId = null;
+        $user = null;
+
+        // Detect user type and get basic info
+        if (!empty($material->trainer_id)) {
+            $userType = 'trainer';
+            $userId = $material->trainer_id;
+            $user = DB::table('trainers')->where('id', $userId)->first();
+        } elseif (!empty($material->mentor_id)) {
+            $userType = 'mentor';
+            $userId = $material->mentor_id;
+            $user = DB::table('mentors')->where('id', $userId)->first();
+        } elseif (!empty($material->coach_id)) {
+            $userType = 'coach';
+            $userId = $material->coach_id;
+            $user = DB::table('coaches')->where('id', $userId)->first();
+        } elseif (!empty($material->assessor_id)) {
+            $userType = 'assessor';
+            $userId = $material->assessor_id;
+            $user = DB::table('assessors')->where('id', $userId)->first();
+        }
+
+        if (!$userType || !$userId || !$user) {
+            abort(404, 'User info not found');
+        }
+
+        // Fetch profile picture from talentrek_additional_info
+        $profile = DB::table('additional_info')
+        ->where('user_id', $userId)
+        ->where('user_type', 'trainer')
+        ->where('doc_type', 'profile') // ✅ important fix here
+        ->orderByDesc('id')
+        ->first();
+
+    $material->user_name = $user->name ?? '';
+    $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
+
+        // Ratings and reviews
+        $total = DB::table('reviews')
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->count();
+
+        $average = $total > 0
+            ? round(DB::table('reviews')
+                ->where('user_type', $userType)
+                ->where('user_id', $userId)
+                ->when($userType === 'trainer', function ($q) use ($material) {
+                    $q->where('trainer_material', $material->id);
+                })
+                ->avg('ratings'), 1)
+            : 0;
+
+        $ratings = DB::table('reviews')
+            ->select('ratings', DB::raw('COUNT(*) as count'))
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->groupBy('ratings')
+            ->pluck('count', 'ratings');
+
+        $ratingsPercent = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = $ratings[$i] ?? 0;
+            $ratingsPercent[$i] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+        }
+
+        $reviews = DB::table('reviews as r')
+            ->join('jobseekers as j', 'r.jobseeker_id', '=', 'j.id')
+            ->select('r.*', 'j.name as jobseeker_name')
+            ->where('r.user_type', $userType)
+            ->where('r.user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('r.trainer_material', $material->id);
+            })
+            ->latest('r.created_at')
+            ->limit(10)
+            ->get();
+
+        return view('site.training-detail', compact(
+            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews'
+        ));
+    }
+
+
+
+
+    public function submitReview(Request $request)
+    {
+        $user = auth()->guard('jobseeker')->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
+        if (!in_array($request->user_type, $allowedTypes)) {
+            return response()->json(['success' => false, 'message' => 'Invalid user type'], 400);
+        }
+
+        $data = [
+            'jobseeker_id'     => $user->id,
+            'user_type'        => $request->user_type,
+            'user_id'          => $request->user_id,
+            'reviews'          => $request->reviews,
+            'ratings'          => $request->ratings,
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ];
+
+        if ($request->user_type === 'trainer' && $request->filled('material_id')) {
+            $data['trainer_material'] = $request->material_id;
+        }
+
+        DB::table('reviews')->insert($data);
+
+        return response()->json([
+            'success' => true,
+            'review' => [
+                'jobseeker_name' => $user->name,
+                'ratings'        => $request->ratings,
+                'reviews'        => $request->reviews
+            ]
+        ]);
+    }
+
+     
     
 }
