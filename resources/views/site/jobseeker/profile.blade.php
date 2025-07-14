@@ -758,13 +758,13 @@ $skills = $user->skills->first();
                                                     <!-- End To & Checkbox -->
                                                     @php
                                                         $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-                                                        (isset($data->end_to) && $data->end_to === 'Work here');
+                                                        (isset($data->end_to) && $data->end_to === 'work here');
                                                     @endphp
                                                     <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
                                                         <label class="block text-sm font-medium mb-1">To</label>
                                                         <input readonly name="end_to[]" class="datepicker-end w-full border rounded px-3 py-2"
                                                             x-bind:disabled="working"
-                                                            :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
+                                                            :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
 
                                                         <label class="inline-flex items-center space-x-2 mt-2">
                                                             <input type="checkbox" name="currently_working[]" value="{{ $i }}"

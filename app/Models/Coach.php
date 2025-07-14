@@ -29,6 +29,8 @@ class Coach extends Authenticatable
         'national_id',
         'status',
         'admin_status',
+        'about_coach',
+        'isSubscribtionBuy', // Added to match migration
     ];
 
     /**

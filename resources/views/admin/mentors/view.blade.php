@@ -164,14 +164,14 @@
                                         <!-- JS -->
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                         <script>
-                                            function updateStatus(jobseekerId, status, btn) {
+                                            function updateStatus(mentorId, status, btn) {
                                                 const originalText = btn.innerHTML;
                                                 btn.disabled = true;
                                                 btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...`;
 
-                                                $.post('{{ route("admin.jobseeker.updateStatus") }}', {
+                                                $.post('{{ route("admin.mentor.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    jobseeker_id: jobseekerId,
+                                                    mentor_id: mentorId,
                                                     status: status
                                                 }).done(() => {
                                                     $('.modal').modal('hide');
@@ -182,7 +182,7 @@
                                                 });
                                             }
 
-                                            function submitRejection(jobseekerId, status, reasonId, btn) {
+                                            function submitRejection(mentorId, status, reasonId, btn) {
                                                 const reason = document.getElementById(reasonId).value.trim();
                                                 const errorDiv = document.getElementById(reasonId + "Error");
 
@@ -202,7 +202,7 @@
 
                                                 $.post('{{ route("admin.jobseeker.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    jobseeker_id: jobseekerId,
+                                                    mentor_id: mentorId,
                                                     status: status,
                                                     reason: reason
                                                 }).done(() => {
@@ -237,10 +237,6 @@
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->name }}">
                                             </div>
                                             <div class="col-md-12 form-group">
-                                                <label>Gender</label>
-                                                <input readonly type="text" class="form-control" value="{{ $mentor->gender }}">
-                                            </div>
-                                            <div class="col-md-12 form-group">
                                                 <label>Email address</label>
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->email }}">
                                             </div>
@@ -263,10 +259,6 @@
                                             <div class="col-md-12 form-group">
                                                 <label>Phone number</label>
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->phone_code ? $mentor->phone_code . '-' . $mentor->phone_number : $mentor->phone_number }}">
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Address</label>
-                                                <textarea readonly type="text" class="form-control">{{ $mentor->address }}</textarea>
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Location</label>

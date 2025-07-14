@@ -194,21 +194,9 @@
                             }
                         </script>
                     </section>
-                    
-
-
-
-
-
-                
-
-
-               
               </div>
-
             </div>
           </main>
-
           <script>
             document.addEventListener('DOMContentLoaded', () => {
               const tabs = document.querySelectorAll('.tab-link');

@@ -13,6 +13,7 @@ use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\AdditionalInfo;
 use App\Models\Review;
+use App\Models\BookingSession;
 use Illuminate\Support\Facades\Log;
 use DB;
 use Auth;
@@ -351,10 +352,48 @@ class MentorController extends Controller
         }
     }
 
-    public function showMentorDashboard()
+   public function showMentorDashboard()
     {
-        return view('site.mentor.mentor-dashboard');    
+        $sessions = BookingSession::select(
+                'jobseeker_saved_booking_session.*',
+                'jobseekers.name',
+                'additional_info.document_path as img'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc') // Order by created_at descending
+            ->get()
+            ->map(function ($session) {
+                return [
+                    'name' => $session->name,
+                    'role' => $session->job_role ?? 'N/A',
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    // 'agenda' => $session->agenda ?? 'N/A',
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img, 
+                    'feedback' => $session->feedback ?? null,
+                    'status' => $session->status,
+                ];
+            })
+            ->groupBy('status');
+
+        return view('site.mentor.mentor-dashboard', [
+            'upcoming' => $sessions['pending'] ?? [],
+            'cancelled' => $sessions['cancelled'] ?? [],
+            'completed' => $sessions['completed'] ?? [],
+        ]);
     }
+
+
+
+
 
     public function logoutMentor(Request $request)
     {

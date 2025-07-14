@@ -7,7 +7,7 @@
 <script src="{{ asset('asset/backend/bundles/c3.bundle.js') }}"></script>
 <script src="{{ asset('asset/backend/bundles/apexcharts.bundle.js') }}"></script>
 <script src="{{ asset('asset/backend/bundles/jvectormap.bundle.js') }}"></script>
-{{-- <script src="{{ asset('asset/backend/vendor/toastr/toastr.js') }}"></script> --}}
+<script src="{{ asset('asset/backend/vendor/toastr/toastr.js') }}"></script>
 
 <!-- datatables and sweetalert -->
 <script src="{{ asset('asset/backend/bundles/datatablescripts.bundle.js') }}"></script>

@@ -1728,7 +1728,7 @@ class AdminController extends Controller
     public function mentorChangeStatus(Request $request)
     {
         $validated = $request->validate([
-            'mentor_id' => 'required|exists:trainers,id',
+            'mentor_id' => 'required|exists:mentors,id',
             'status' => 'required|in:active,inactive',
             'reason' => 'nullable|string|max:1000'
         ]);
@@ -1787,16 +1787,116 @@ class AdminController extends Controller
     }
 
 
+    public function updateMentorStatus(Request $request)
+    {
+        $request->validate([
+            'mentor_id' => 'required|exists:mentors,id',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $mentor = Mentors::findOrFail($request->mentor_id);
+        $user = auth()->user();
+        $previousStatus = $mentor->admin_status;
+        $status = $request->status;
+
+        // Role validation
+        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Invalid status for superadmin');
+        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Admins cannot perform superadmin actions');
+        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
+            Log::warning('Unauthorized mentor status update attempt', [
+                'attempted_by' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ],
+                'mentor_id' => $mentor->id,
+                'time' => now(),
+            ]);
+            return back()->with('error', 'Unauthorized action.');
+        }
+
+        // Update status and rejection reason
+        $mentor->admin_status = $status;
+        $mentor->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+        $mentor->save();
+
+        // Log the update
+        Log::info('mentor admin status updated', [
+            'mentor' => [
+                'id' => $mentor->id,
+                'name' => $mentor->name,
+                'email' => $mentor->email,
+                'previous_status' => $previousStatus,
+                'new_status' => $status,
+                'rejection_reason' => $mentor->rejection_reason,
+            ],
+            'updated_by' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'time' => now(),
+        ]);
+
+        // Send email if rejected
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $mentor->email) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Application Rejected – Talentrek</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+                    .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+                    .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Application Update – <span style="color:#dc3545;">Rejected</span></h2>
+                        </div>
+                        <p>Hi <strong>' . e($mentor->name ?? $mentor->email) . '</strong>,</p>
+                        <p>We regret to inform you that your application on <strong>Talentrek</strong> has been rejected.</p>
+                        <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+                        <p>If you believe this was a mistake, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+                </body>
+                </html>
+            ', function ($message) use ($mentor) {
+                $message->to($mentor->email)->subject('Application Rejected – Talentrek');
+            });
+        }
+
+        return back()->with('success', 'Status updated successfully.');
+    }
+
+
+
     public function viewBookingSession($id)
     {
-        $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*', 'mentors.name as mentor_name', 'mentors.email as mentor_email','jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','booking_slots.start_time', 'booking_slots.end_time','booking_slots.*','jobseeker_saved_booking_session.status as booking_status')
+        $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*', 'mentors.name as mentor_name', 'mentors.email as mentor_email','jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','booking_slots.start_time', 'booking_slots.end_time','booking_slots.*','jobseeker_saved_booking_session.status as booking_status','jobseeker_saved_booking_session.id as booking_id')
                                 ->join('mentors', 'jobseeker_saved_booking_session.user_id', '=', 'mentors.id')
                                 ->join('jobseekers', 'jobseeker_saved_booking_session.jobseeker_id', '=', 'jobseekers.id')
                                 ->join('booking_slots', 'jobseeker_saved_booking_session.booking_slot_id', '=', 'booking_slots.id')
-                                ->where('jobseeker_saved_booking_session.id', $id)
+                                ->where('jobseeker_saved_booking_session.user_id', $id)
                                 ->where('jobseeker_saved_booking_session.user_type', 'mentor')
                                 ->get();
-        // echo "<pre>"; print_r($booking); die;
+
+
+        // $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*')
+        //                                         ->where('jobseeker_saved_booking_session.user_id', $id)
+        //                                         ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+        //                                         ->get();
+        // echo "<pre>"; print_r($bookingSessions); die;
         return view('admin.mentors.booking-session', compact('bookingSessions'));
     }
 

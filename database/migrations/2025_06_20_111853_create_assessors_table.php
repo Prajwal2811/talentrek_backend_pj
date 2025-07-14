@@ -23,7 +23,8 @@ return new class extends Migration
             $table->date('company_instablishment_date')->nullable(); // e.g., 2005-06-15
             $table->string('industry_type')->nullable();           // e.g., Education, IT
             $table->string('company_website')->nullable();  
-            $table->string('isSubscribtionBuy')->default('no');       // e.g., https://company.com
+            $table->string('isSubscribtionBuy')->default('no'); 
+            $table->text('about_assessor')->nullable();
             $table->timestamps();
         });
     }

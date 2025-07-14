@@ -1032,11 +1032,13 @@ class JobseekerController extends Controller
     }
 
     public function mentorshipDetails($id) {
-        $mentorDetails = Mentors::select('mentors.*','booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
-                                ->where('mentors.id', $id)
-                                ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
-                                ->where('booking_slots.user_type', 'mentor')
-                                ->first();
+       $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
+                            ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
+                            ->where('booking_slots.user_type', 'mentor')
+                            ->where('mentors.id', $id)
+                            ->with(['reviews', 'additionalInfo', 'profilePicture'])
+                            ->first();
+
 
     //    echo "<pre>";
     //     print_r($mentorDetails); die;

@@ -15,10 +15,7 @@
                         <div class="row clearfix">
                             <div class="col-xl-5 col-md-5 col-sm-12">
                                 <h1>Hi, {{  Auth()->user()->name }}!</h1>
-                                <span>JustDo Shortlisted Jobseekers Management,</span>
-                            </div>
-                            <div class="col-xl-7 col-md-7 col-sm-12 text-md-right">
-
+                                <span>JustDo Booking Sessions Management,</span>
                             </div>
                         </div>
                     </div>
@@ -26,7 +23,7 @@
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="header">
-                                    <h2>Shortlisted Jobseekers Management</h2>
+                                    <h2>Booking Sessions Management</h2>
                                 </div>
                                 <div class="body">
                                     <div class="table-responsive">
@@ -82,12 +79,65 @@
                                                         @endphp
                                                         <td>{{ $statusText }}</td>
                                                         <td>
-                                                            <a href="" class="btn btn-sm btn-primary">View</a>
+                                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#slotModal{{$session->booking_id}}" onclick="loadSlotDetails()">View</button>
+                                                            <div class="modal fade" id="slotModal{{$session->booking_id}}" tabindex="-1" aria-labelledby="slotModalLabel" aria-hidden="true">
+                                                                <div class="modal-dialog modal-dialog-centered">
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header">
+                                                                            <h5 class="modal-title" id="slotModalLabel">Slot Details</h5>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+
+                                                                        <div class="modal-body">
+                                                                            <form>
+                                                                                <div class="mb-3">
+                                                                                    <label for="slotMode" class="form-label">Slot Mode</label>
+                                                                                    <input type="text" value="{{ $session->slot_mode }}" class="form-control" id="slotMode" readonly>
+                                                                                </div>
+
+                                                                                <div class="mb-3">
+                                                                                    <label for="slotDate" class="form-label">Slot Date</label>
+                                                                                    <input type="text" value="{{ $session->slot_date }}" class="form-control" id="slotDate" readonly>
+                                                                                </div>
+
+                                                                                <div class="mb-3">
+                                                                                    <label for="slotTime" class="form-label">Slot Time</label>
+                                                                                    <input type="text" value="{{ $session->slot_time }}" class="form-control" id="slotTime" readonly>
+                                                                                </div>
+
+                                                                                <div class="mb-3">
+                                                                                    <label for="slotStatus" class="form-label">Status</label>
+                                                                                    <input type="text" value="{{ $session->status }}" class="form-control" id="slotStatus" readonly>
+                                                                                </div>
+                                                                                @if($session->is_postpone == '1')
+                                                                                    <div class="mb-3">
+                                                                                        <label for="slotStatus" class="form-label">New Date</label>
+                                                                                        <input type="text" value="{{ $session->slot_date_after_postpone }}" class="form-control" id="slotStatus" readonly>
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label for="slotStatus" class="form-label">New Slot Time</label>
+                                                                                        <input type="text" value="{{ $session->slot_time_after_postpone }}" class="form-control" id="slotStatus" readonly>
+                                                                                    </div>
+                                                                                @endif
+                                                                                @if($session->cancellation_reason != NULL)
+                                                                                    <div class="mb-3">
+                                                                                        <label for="slotStatus" class="form-label">Cancellation Reason</label>
+                                                                                        <input type="text" value="{{ $session->cancellation_reason }}" class="form-control" id="slotStatus" readonly>
+                                                                                    </div>
+                                                                                @endif
+                                                                            </form>
+                                                                        </div>
+
+
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                    </div>
+                                                                    
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
                                                         </td>
-
-
-                                                        
-
                                                     </tr>
 
 

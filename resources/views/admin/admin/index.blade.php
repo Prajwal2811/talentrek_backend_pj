@@ -68,8 +68,7 @@
                                                                 <span class="slider round"></span>
                                                             </label>
                                                         </td> --}}
-
-                                                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                                                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                                         <script>
                                                             function toggleStatus(checkbox) {
                                                                 const adminId = $(checkbox).data('admin-id');

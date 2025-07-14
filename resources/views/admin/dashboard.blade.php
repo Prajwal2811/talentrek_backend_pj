@@ -4,10 +4,6 @@
 <body data-theme="light">
 
     <div id="body" class="theme-cyan">
-        <!-- Theme setting div -->
-        <div class="themesetting">
-        </div>
-        <!-- Overlay For Sidebars -->
         <div class="overlay"></div>
         <div id="wrapper">
             @include('admin.componants.navbar')

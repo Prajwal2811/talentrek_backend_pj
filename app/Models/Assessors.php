@@ -30,6 +30,7 @@ class Assessors extends Authenticatable
         'national_id',
         'status',
         'admin_status',
+        'about_assessor',
     ];
 
     /**

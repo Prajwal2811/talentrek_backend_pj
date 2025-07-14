@@ -30,26 +30,8 @@
             <span x-show="sidebarOpen" x-transition>Dashboard</span>
         </a>
 
-        <!-- About Coach -->
-<<<<<<< HEAD
-        {{-- <a href="{{ route('about.coach') }}"
-=======
-        <a href="{{ route('about.mentor') }}"
->>>>>>> 5d14cb5a3e592e2ce6e2b9e37d7a0e76204097b6
-           :class="[
-               active === 'about.mentor' ? 'bg-white text-blue-900 font-semibold' : 'hover:bg-white hover:text-blue-900',
-               'flex items-center px-4 py-2 rounded-md transition duration-200'
-           ]"
-           @click="active = 'about.mentor'"
-           :title="!sidebarOpen ? 'About mentor' : ''">
-            <i data-feather="user" class="mr-3"></i>
-<<<<<<< HEAD
-            <span x-show="sidebarOpen" x-transition>About Coach</span>
-        </a> --}}
-=======
-            <span x-show="sidebarOpen" x-transition>About Mentor</span>
-        </a>
->>>>>>> 5d14cb5a3e592e2ce6e2b9e37d7a0e76204097b6
+
+
 
         <!-- Booking Slots -->
         <div x-data="{ open: {{ request()->routeIs('mentor.manage-bookings') || request()->routeIs('mentor.create-bookings') ? 'true' : 'false' }} }" class="flex flex-col">

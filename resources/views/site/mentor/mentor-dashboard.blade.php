@@ -75,18 +75,14 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-1 justify-between ml-10 text-sm text-gray-700">
+                        <div class="flex flex-1 justify-evenly  ml-10 text-sm text-gray-700">
                             <div>
-                                <p class="font-semibold">Date</p>
+                                <p class="font-semibold">Session Date</p>
                                 <p x-text="session.date"></p>
                             </div>
                             <div>
-                                <p class="font-semibold">Time</p>
+                                <p class="font-semibold">Session Time</p>
                                 <p x-text="session.time"></p>
-                            </div>
-                            <div>
-                                <p class="font-semibold">Agenda</p>
-                                <p x-text="session.agenda"></p>
                             </div>
                             <div>
                                 <p class="font-semibold">Mode</p>
@@ -204,94 +200,88 @@
             </div>
 
             <script>
-            function sessionManager() {
-                return {
-                    currentTab: 'upcoming',
-                    currentPage: 1,
-                    perPage: 4,
-                    cancelledSession: null,
-                    showCancelModal: false,
-                    showFeedbackModal: false,
-                    selectedFeedback: null,
+                window.mentorSessions = {
+                    upcoming: @json($upcoming),
+                    cancelled: @json($cancelled),
+                    completed: @json($completed),
+                };
+            </script>
+            <script>
+                function sessionManager() {
+                    return {
+                        currentTab: 'upcoming',
+                        currentPage: 1,
+                        perPage: 4,
+                        cancelledSession: null,
+                        showCancelModal: false,
+                        showFeedbackModal: false,
+                        selectedFeedback: null,
 
-                    cancelReason: '',
-                    postponeSession: 'No',
-                    newDate: '',
-                    newTime: '',
+                        cancelReason: '',
+                        postponeSession: 'No',
+                        newDate: '',
+                        newTime: '',
 
-                    sessions: {
-                        upcoming: [
-                            { name: 'Peter Parker', role: 'UI UX designer', date: '01/05/2025', time: '02:00 – 03:00 am', agenda: 'UI design', mode: 'Online', img: 'https://randomuser.me/api/portraits/men/1.jpg' },
-                            { name: 'Mohit Raina', role: 'UI UX designer', date: '01/05/2025', time: '03:00 – 04:00 am', agenda: 'UI design', mode: 'Online', img: 'https://randomuser.me/api/portraits/men/2.jpg' },
-                            { name: 'Prabhakar Mishra', role: 'UI UX designer', date: '24/04/2025', time: '02:00 – 03:00 am', agenda: 'UI design', mode: 'Online', img: 'https://randomuser.me/api/portraits/men/3.jpg' },
-                            { name: 'Sohail Sheikh', role: 'UI UX designer', date: '23/04/2025', time: '02:00 – 03:00 am', agenda: 'UX design', mode: 'Online', img: 'https://randomuser.me/api/portraits/men/4.jpg' }
-                        ],
-                        cancelled: [
-                            { name: 'Arjun Singh', role: 'UX designer', date: '22/04/2025', time: '02:00 – 03:00 am', agenda: 'UX review', mode: 'Online', img: 'https://randomuser.me/api/portraits/men/5.jpg' }
-                        ],
-                        completed: [
-                            { name: 'Neha Sharma', role: 'UI/UX Lead', date: '20/04/2025', time: '01:00 – 02:00 am', agenda: 'UX Audit', mode: 'Online', img: 'https://randomuser.me/api/portraits/women/6.jpg', feedback: 'Great session, very insightful.' }
-                        ]
-                    },
+                        sessions: window.mentorSessions,
 
-                    switchTab(tab) {
-                        this.currentTab = tab;
-                        this.currentPage = 1;
-                    },
-                    tabClass(tab) {
-                        return this.currentTab === tab
-                            ? 'text-blue-600 border-b-2 border-blue-600 pb-2'
-                            : 'pb-2 hover:text-blue-600';
-                    },
-                    paginatedSessions() {
-                        const list = this.sessions[this.currentTab] || [];
-                        const start = (this.currentPage - 1) * this.perPage;
-                        return list.slice(start, start + this.perPage);
-                    },
-                    totalPages() {
-                        const list = this.sessions[this.currentTab] || [];
-                        return Math.ceil(list.length / this.perPage) || 1;
-                    },
-                    prevPage() {
-                        if (this.currentPage > 1) this.currentPage--;
-                    },
-                    nextPage() {
-                        if (this.currentPage < this.totalPages()) this.currentPage++;
-                    },
-                    joinSession(session) {
-                        alert(`Joining session with ${session.name}`);
-                    },
-                    openCancelModal(session) {
-                        this.cancelledSession = session;
-                        this.showCancelModal = true;
-                    },
-                    closeCancelModal() {
-                        this.cancelledSession = null;
-                        this.showCancelModal = false;
-                        this.cancelReason = '';
-                        this.postponeSession = 'No';
-                        this.newDate = '';
-                        this.newTime = '';
-                    },
-                    confirmCancel() {
-                        this.sessions.upcoming = this.sessions.upcoming.filter(s => s !== this.cancelledSession);
-                        this.sessions.cancelled.push(this.cancelledSession);
-                        this.closeCancelModal();
-                    },
-                    confirmReschedule() {
-                        alert(`Rescheduling ${this.cancelledSession.name} to ${this.newDate} ${this.newTime}`);
-                        this.closeCancelModal();
-                    },
-                    openFeedbackModal(session) {
-                        this.selectedFeedback = session;
-                        this.showFeedbackModal = true;
-                    },
-                    closeFeedbackModal() {
-                        this.selectedFeedback = null;
-                        this.showFeedbackModal = false;
+                        switchTab(tab) {
+                            this.currentTab = tab;
+                            this.currentPage = 1;
+                        },
+                        tabClass(tab) {
+                            return this.currentTab === tab
+                                ? 'text-blue-600 border-b-2 border-blue-600 pb-2'
+                                : 'pb-2 hover:text-blue-600';
+                        },
+                        paginatedSessions() {
+                            const list = this.sessions[this.currentTab] || [];
+                            const start = (this.currentPage - 1) * this.perPage;
+                            return list.slice(start, start + this.perPage);
+                        },
+                        totalPages() {
+                            const list = this.sessions[this.currentTab] || [];
+                            return Math.ceil(list.length / this.perPage) || 1;
+                        },
+                        prevPage() {
+                            if (this.currentPage > 1) this.currentPage--;
+                        },
+                        nextPage() {
+                            if (this.currentPage < this.totalPages()) this.currentPage++;
+                        },
+                        joinSession(session) {
+                            alert(`Joining session with ${session.name}`);
+                        },
+                        openCancelModal(session) {
+                            this.cancelledSession = session;
+                            this.showCancelModal = true;
+                        },
+                        closeCancelModal() {
+                            this.cancelledSession = null;
+                            this.showCancelModal = false;
+                            this.cancelReason = '';
+                            this.postponeSession = 'No';
+                            this.newDate = '';
+                            this.newTime = '';
+                        },
+                        confirmCancel() {
+                            this.sessions.upcoming = this.sessions.upcoming.filter(s => s !== this.cancelledSession);
+                            this.sessions.cancelled.push(this.cancelledSession);
+                            this.closeCancelModal();
+                        },
+                        confirmReschedule() {
+                            alert(`Rescheduling ${this.cancelledSession.name} to ${this.newDate} ${this.newTime}`);
+                            this.closeCancelModal();
+                        },
+                        openFeedbackModal(session) {
+                            this.selectedFeedback = session;
+                            this.showFeedbackModal = true;
+                        },
+                        closeFeedbackModal() {
+                            this.selectedFeedback = null;
+                            this.showFeedbackModal = false;
+                        }
                     }
                 }
-            }
             </script>
     </main>
   </div>

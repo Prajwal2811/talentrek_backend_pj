@@ -27,12 +27,13 @@ return new class extends Migration
             $table->string('otp')->nullable();            
             $table->string('status')->default('active');          
             $table->string('admin_status')->nullable();            
-            $table->text('inactive_reason')->nullable(); // Removed ->after('status')
-            $table->text('rejection_reason')->nullable(); // Removed ->after('status')
-            $table->text('shortlist')->nullable(); // Removed ->after('status')
-            $table->text('admin_recruiter_status')->nullable(); // Removed ->after('status')
+            $table->string('inactive_reason')->nullable(); // Removed ->after('status')
+            $table->string('rejection_reason')->nullable(); // Removed ->after('status')
+            $table->string('shortlist')->nullable(); // Removed ->after('status')
+            $table->string('admin_recruiter_status')->nullable(); // Removed ->after('status')
             $table->string('google_id')->nullable()->unique();
             $table->string('avatar')->nullable();
+            $table->text('about_mentor')->nullable();
             $table->string('isSubscribtionBuy')->default('no');        // e.g., New York, Delhi
             $table->timestamps();
         });

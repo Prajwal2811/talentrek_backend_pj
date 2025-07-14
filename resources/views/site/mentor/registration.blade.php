@@ -17,16 +17,13 @@
     </div>
 
 	@include('site.componants.navbar')
-     
-        
-        <div class="page-content">
+            <div class="page-content">
                 <div class="section-full site-bg-white">
                     <div class="container-fluid mt-3">
                         <div class="row">
                             <div class="col-xl-12 col-lg-12 col-md-12">
                                 <!-- <div class="container d-flex justify-content-center align-items-center min-vh-100"> -->
                                 <div class="max-w-4xl mx-auto p-8 mt-5">
-
                                     <!-- Stepper -->
                                     <div class="flex items-center justify-between mb-10">
                                     <!-- Step Buttons -->
