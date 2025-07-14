@@ -13,6 +13,7 @@ use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\AdditionalInfo;
 use App\Models\Review;
+use App\Models\TrainingCategory;
 use Illuminate\Support\Facades\Log;
 use DB;
 use Auth;
@@ -31,7 +32,8 @@ class MentorController extends Controller
     }
     public function showRegistrationForm()
     {
-    return view('site.mentor.registration');
+        $categories = TrainingCategory::all();
+        return view('site.mentor.registration', compact('categories'));
     }
     public function showForgotPasswordForm()
     {
@@ -229,6 +231,8 @@ class MentorController extends Controller
             'end_to.*' => 'required|date',
 
             'training_skills' => 'required|string',
+            'area_of_interest' => 'required|string',
+            'job_category' => 'required|string',
             'website_link' => 'required|url',
             'portfolio_link' => 'required|url',
 
@@ -278,6 +282,8 @@ class MentorController extends Controller
             'user_id' => $mentor->id,
             'user_type' => 'mentor',
             'training_skills' => $request->training_skills,
+            'area_of_interest' => $request->area_of_interest,
+            'job_category' => $request->job_category,
             'website_link' => $request->website_link,
             'portfolio_link' => $request->portfolio_link,
         ]);
@@ -489,11 +495,13 @@ class MentorController extends Controller
                 'mentors.*',
                 'training_experience.training_experience',
                 'training_experience.training_skills',
+                'training_experience.area_of_interest',
+                'training_experience.job_category',
                 'training_experience.website_link',
                 'training_experience.portfolio_link'
             )
             ->first();
-
+        // dd( $mentorDetails);exit;        
         $educationDetails = DB::table('education_details')
             ->where([
                 ['user_id', '=', $mentorId],
@@ -508,56 +516,64 @@ class MentorController extends Controller
             ])
             ->get();
 
-        return view('site.mentor.settings-mentor', compact(
-            'mentor',
-            'mentorDetails',
-            'educationDetails',
-            'workExperiences'
-        ));
-    }
-
-    public function getMentorAllDetails()
-    {
-        $mentor = Auth::guard('mentor')->user();
-        $mentorId = $mentor->id;
-
-        // Mentor with training experience
-        $mentorDetails = DB::table('mentors')
-            ->leftJoin('training_experience', function ($join) {
-                $join->on('training_experience.user_id', '=', 'mentors.id')
-                    ->where('training_experience.user_type', 'mentor');
-            })
-            ->where('mentors.id', $mentorId)
-            ->select(
-                'mentors.*',
-                'training_experience.training_experience',
-                'training_experience.training_skills',
-                'training_experience.website_link',
-                'training_experience.portfolio_link'
-            )
-            ->first();
-
-        $educationDetails = DB::table('education_details')
-            ->where([
-                ['user_id', '=', $mentorId],
-                ['user_type', '=', 'mentor']
-            ])
-            ->get();
-
-        $workExperiences = DB::table('work_experience')
-            ->where([
-                ['user_id', '=', $mentorId],
-                ['user_type', '=', 'mentor']
-            ])
-            ->get();
+        $categories = TrainingCategory::all();    
 
         return view('site.mentor.settings-mentor', compact(
             'mentor',
             'mentorDetails',
             'educationDetails',
-            'workExperiences'
+            'workExperiences',
+            'categories'
         ));
     }
+
+    // public function getMentorAllDetails()
+    // {
+
+    //     $mentor = Auth::guard('mentor')->user();
+    //     $mentorId = $mentor->id;
+
+    //     // Mentor with training experience
+    //    $mentorDetails = DB::table('mentors')
+    //         ->leftJoin('training_experience', function ($join) {
+    //             $join->on('training_experience.user_id', '=', 'mentors.id')
+    //                 ->where('training_experience.user_type', 'mentor');
+    //         })
+    //         ->where('mentors.id', $mentorId)
+    //         ->select(
+    //             'mentors.*',
+            
+    //             'training_experience.*'
+    //         )
+    //         ->first();
+    //     // print_r($mentorDetails); die;    
+
+
+    //     $educationDetails = DB::table('education_details')
+    //         ->where([
+    //             ['user_id', '=', $mentorId],
+    //             ['user_type', '=', 'mentor']
+    //         ])
+    //         ->get();
+
+    //     $workExperiences = DB::table('work_experience')
+    //         ->where([
+    //             ['user_id', '=', $mentorId],
+    //             ['user_type', '=', 'mentor']
+    //         ])
+    //         ->get();
+
+    //      // Get categories for dropdown
+    //     $categories = TrainingCategory::all();
+             
+    //     return view('site.mentor.settings-mentor', compact(
+    //         'mentor',
+    //         'mentorDetails',
+    //         'educationDetails',
+    //         'workExperiences',
+    //         'categories'
+    //     ));
+    // }
 
 
 
@@ -700,6 +716,8 @@ class MentorController extends Controller
 
         $validated = $request->validate([
             'training_skills' => 'required|string',
+            'area_of_interest' => 'required|string',
+            'job_category' => 'required|string',
             'website_link' => 'required|url',
             'portfolio_link' => 'required|url',
         ]);
@@ -715,6 +733,8 @@ class MentorController extends Controller
                 'user_id' => $user_id,
                 'user_type' => 'mentor',
                 'training_skills' => $validated['training_skills'],
+                'area_of_interest' => $validated['area_of_interest'],
+                'job_category' => $validated['job_category'],
                 'website_link' => $validated['website_link'],
                 'portfolio_link' => $validated['portfolio_link'],
             ]);
