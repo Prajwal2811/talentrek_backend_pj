@@ -51,8 +51,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/profile/additional-info',[JobseekerController::class, 'updateAdditionalInfo'])->name('jobseeker.additional.update'); 
 		Route::delete('/jobseeker/additional/delete/{type}', [JobseekerController::class, 'deleteAdditionalFile'])->name('jobseeker.additional.delete');
 
-
 		
+
+
 	});
 
 	
@@ -62,6 +63,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 	Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
 
 
+	Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
+
+	Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
 
 
 

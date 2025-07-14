@@ -76,6 +76,7 @@ Route::group(['prefix' => 'trainer'], function() {
 		Route::post('/profile/additional-info',[TrainerController::class, 'updateAdditionalInfo'])->name('trainer.additional.update'); 
 		Route::delete('/profile/additional/delete/{type}', [TrainerController::class, 'deleteAdditionalFile'])->name('trainer.additional.delete');
 
+		
 
 	});
 
