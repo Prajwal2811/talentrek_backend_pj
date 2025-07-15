@@ -92,9 +92,6 @@
                                                             // Main
                                                             'Dashboard',
 
-                                                            // Admin
-                                                            'Admin',
-
                                                             // User
                                                             'User',
 

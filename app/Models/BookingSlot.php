@@ -23,4 +23,10 @@ class BookingSlot extends Model
         'start_time' => 'datetime:H:i:s',
         'end_time' => 'datetime:H:i:s',
     ];
+
+    public function unavailableDates()
+    {
+        return $this->hasMany(BookingSlotUnavailableDate::class, 'booking_slot_id');
+    }
+
 }

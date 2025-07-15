@@ -29,6 +29,7 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::get('/dashboard',[MentorController::class, 'dashboard'])->name('mentor.dashboard');
 
 		Route::get('/dashboard',[MentorController::class, 'showMentorDashboard'])->name('mentor.dashboard');
+		Route::post('/dashboard-action',[MentorController::class, 'dashboardAction'])->name('mentor.dashboard-action');
 		Route::post('/logout',[MentorController::class, 'logoutMentor'])->name('mentor.logout');
 
 
@@ -41,6 +42,9 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::get('manage-bookings', [MentorController::class, 'manageBooking'])->name('mentor.manage-bookings');
 		Route::get('create-bookings', [MentorController::class, 'createBooking'])->name('mentor.create-bookings');
 		Route::post('submit-bookings', [MentorController::class, 'submitBooking'])->name('mentor.submit-bookings');
+		Route::post('update-slot-status', [MentorController::class, 'updateStatus'])->name('mentor.update-slot-status');
+		Route::post('/mentor/update-slot-time', [MentorController::class, 'updateSlotTime'])->name('mentor.update-slot-time');
+		Route::post('/mentor/delete-slot', [MentorController::class, 'deleteSlot'])->name('mentor.delete-slot');
 
 
 

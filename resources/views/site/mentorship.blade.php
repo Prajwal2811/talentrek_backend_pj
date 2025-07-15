@@ -46,14 +46,25 @@
 
             <!-- Alpine.js CDN -->
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-           @php
-                $mentors = App\Models\Mentors::with(['reviews', 'additionalInfo','profilePicture'])
-                                            ->where('status', 'active')
-                                            ->get();
-
+            @php
+                $mentors = App\Models\Mentors::with([
+                        'reviews' => function ($q) {
+                            $q->where('user_type', 'mentor');
+                        },
+                        'additionalInfo' => function ($q) {
+                            $q->where('user_type', 'mentor');
+                        },
+                        'profilePicture' => function ($q) {
+                            $q->where('user_type', 'mentor')
+                            ->where('doc_type', 'mentor_profile_picture');
+                        }
+                    ])->where('status', 'active')->get();
 
             
                 $trainingCategory = App\Models\TrainingCategory::select('training_categories.*')->get();
+
+                $mentorshipOverview = App\Models\Cms::where('slug', 'mentorship-overview')->first();
+                $benefitsOfMentorship = App\Models\Cms::where('slug', 'benefits-of-mentorship')->first();
             @endphp
 
             <div class="flex max-w-7xl mx-auto px-4 py-6">
@@ -102,19 +113,13 @@
                     <!-- Mentorship Overview (static) -->
                     <div class="border-b pb-4 mb-4">
                         <h2 class="text-lg font-semibold mb-2">Mentorship overview</h2>
-                        <p>Hi, I’m Mohammad Raza — a dedicated mentor with over 5 years of experience in web development...</p>
+                        <p>{{ $mentorshipOverview->description }}</p>
                     </div>
 
                     <!-- Benefits (static) -->
                     <div class="border-b pb-4 mb-6">
                         <h2 class="text-lg font-semibold mb-2">Benefits of mentorship</h2>
-                        <ul class="list-disc list-inside space-y-2">
-                            <li>Personalized guidance tailored to your learning goals</li>
-                            <li>Insight into real-world applications and industry practices</li>
-                            <li>Motivation, support, and feedback</li>
-                            <li>Networking opportunities</li>
-                            <li>Boosted confidence to apply knowledge effectively</li>
-                        </ul>
+                         <p>{{ $benefitsOfMentorship->description }}</p>
                     </div>
 
                     <!-- Mentor cards -->
@@ -140,14 +145,64 @@
                             </div>
                         @endforeach
                     </div>
+                    <div id="pagination" class="flex justify-start items-center mt-8 space-x-2"></div>
 
 
-                    <!-- Pagination UI (static) -->
-                    <div class="flex justify-start items-center mt-8 space-x-2">
-                        <button class="px-3 py-1 border rounded bg-gray-200 font-semibold">1</button>
-                        <button class="px-3 py-1 border rounded hover:bg-gray-100">2</button>
-                        <button class="px-3 py-1 border rounded hover:bg-gray-100">Next</button>
-                    </div>
+                    <script>
+                        const mentorCards = Array.from(document.querySelectorAll('.mentor-card'));
+                        const mentorList = document.getElementById('mentorList');
+                        const paginationContainer = document.getElementById('pagination');
+                        const perPage = 6;
+                        let currentPage = 1;
+
+                        function renderPage(page) {
+                            currentPage = page;
+                            const start = (page - 1) * perPage;
+                            const end = start + perPage;
+
+                            // Clear and show current page's cards
+                            mentorList.innerHTML = '';
+                            mentorCards.slice(start, end).forEach(card => mentorList.appendChild(card));
+
+                            renderPagination();
+                        }
+
+                        function renderPagination() {
+                            const totalPages = Math.ceil(mentorCards.length / perPage);
+                            paginationContainer.innerHTML = '';
+
+                            // Prev button
+                            const prevBtn = document.createElement('button');
+                            prevBtn.textContent = 'Prev';
+                            prevBtn.className = 'px-3 py-1 border rounded hover:bg-gray-100';
+                            prevBtn.disabled = currentPage === 1;
+                            prevBtn.classList.toggle('bg-gray-200', currentPage === 1);
+                            prevBtn.addEventListener('click', () => renderPage(currentPage - 1));
+                            paginationContainer.appendChild(prevBtn);
+
+                            // Page numbers
+                            for (let i = 1; i <= totalPages; i++) {
+                                const btn = document.createElement('button');
+                                btn.textContent = i;
+                                btn.className = 'px-3 py-1 border rounded ' + (i === currentPage ? 'bg-gray-300 font-semibold' : 'hover:bg-gray-100');
+                                btn.addEventListener('click', () => renderPage(i));
+                                paginationContainer.appendChild(btn);
+                            }
+
+                            // Next button
+                            const nextBtn = document.createElement('button');
+                            nextBtn.textContent = 'Next';
+                            nextBtn.className = 'px-3 py-1 border rounded hover:bg-gray-100';
+                            nextBtn.disabled = currentPage === totalPages;
+                            nextBtn.classList.toggle('bg-gray-200', currentPage === totalPages);
+                            nextBtn.addEventListener('click', () => renderPage(currentPage + 1));
+                            paginationContainer.appendChild(nextBtn);
+                        }
+
+                        // Initial render
+                        renderPage(1);
+                    </script>
+
                 </main>
                 <script>
                     document.getElementById('searchInput').addEventListener('input', function () {

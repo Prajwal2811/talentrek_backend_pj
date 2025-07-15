@@ -28,6 +28,8 @@ return new class extends Migration
             $table->date('slot_date_after_postpone')->nullable(); // Date after postponing, if applicable
             $table->string('slot_time_after_postpone')->nullable();
             $table->text('cancellation_reason')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('rescheduled_at')->nullable();
             $table->timestamps();
 
             // Optional: Add foreign keys if tables exist

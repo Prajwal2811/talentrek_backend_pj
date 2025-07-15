@@ -13,6 +13,7 @@ use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\AdditionalInfo;
 use App\Models\Review;
+use App\Models\BookingSlotUnavailableDate;
 
 use App\Models\BookingSession;
 
@@ -361,12 +362,13 @@ class MentorController extends Controller
         }
     }
 
-   public function showMentorDashboard()
+    public function showMentorDashboard()
     {
         $sessions = BookingSession::select(
                 'jobseeker_saved_booking_session.*',
                 'jobseekers.name',
-                'additional_info.document_path as img'
+                'additional_info.document_path as img',
+                'jobseeker_saved_booking_session.id as session_id'
             )
             ->where('jobseeker_saved_booking_session.user_id', auth()->id())
             ->where('jobseeker_saved_booking_session.user_type', 'mentor')
@@ -376,31 +378,111 @@ class MentorController extends Controller
                     ->where('additional_info.user_type', 'jobseeker')
                     ->where('additional_info.doc_type', 'profile_picture');
             })
-            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc') // Order by created_at descending
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
             ->get()
             ->map(function ($session) {
                 return [
+                    'session_id' => $session->session_id,
                     'name' => $session->name,
                     'role' => $session->job_role ?? 'N/A',
                     'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
                     'time' => $session->slot_time,
-                    // 'agenda' => $session->agenda ?? 'N/A',
                     'mode' => ucfirst($session->slot_mode),
-                    'img' => $session->img, 
+                    'img' => $session->img,
                     'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null, // ✅ Add this
                     'status' => $session->status,
                 ];
             })
             ->groupBy('status');
 
+        $today = \Carbon\Carbon::today()->format('Y-m-d');
+
+        $todayCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+            ->whereDate('jobseeker_saved_booking_session.slot_date', $today)
+            ->count();
+
+        $upcomingCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+            ->where('jobseeker_saved_booking_session.status', 'pending')
+            ->count();
+
+        // ✅ Properly formatted cancelled sessions for modal use
+        $cancelled = BookingSession::select(
+                'jobseeker_saved_booking_session.*',
+                'jobseekers.name',
+                'additional_info.document_path as img'
+            )
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+            ->where('jobseeker_saved_booking_session.status', 'cancelled')
+            ->get()
+            ->map(function ($session) {
+                return [
+                    'session_id' => $session->id,
+                    'name' => $session->name,
+                    'role' => $session->job_role ?? 'N/A',
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'cancellation_reason' => $session->cancellation_reason ?? 'Not specified',
+                    'status' => $session->status,
+                ];
+            });
+
         return view('site.mentor.mentor-dashboard', [
             'upcoming' => $sessions['pending'] ?? [],
-            'cancelled' => $sessions['cancelled'] ?? [],
             'completed' => $sessions['completed'] ?? [],
+            'cancelled' => $cancelled,
+            'todayCount' => $todayCount,
+            'upcomingCount' => $upcomingCount,
         ]);
     }
 
 
+
+
+
+    public function dashboardAction(Request $request)
+    {
+
+        // Find the session
+        $session = BookingSession::findOrFail($request->session_id);
+
+        if ($request->action_type === 'cancel') {
+            $session->status = 'cancelled';
+            $session->cancellation_reason = $request->cancel_reason;
+            // $session->cancelled_at = now();
+            $session->save();
+
+            return redirect()->back()->with('success', 'Session cancelled successfully.');
+        }
+
+        if ($request->action_type === 'reschedule') {
+            // Optional: Validate that both new_date and new_time are present
+            if (!$request->new_date || !$request->new_time) {
+                return redirect()->back()->withErrors(['new_date' => 'Both date and time are required to reschedule.']);
+            }
+
+            $session->slot_date_after_postpone = $request->new_date;
+            $session->slot_time_after_postpone = $request->new_time;
+            $session->status = 'rescheduled';
+            $session->rescheduled_at = now();
+            $session->save();
+
+            return redirect()->back()->with('success', 'Session rescheduled successfully.');
+        }
+
+        return redirect()->back()->with('error', 'Invalid action.');
+    }
 
 
 
@@ -423,29 +505,107 @@ class MentorController extends Controller
     {
         $mentor = auth()->user();
 
-        $allSlots = BookingSlot::where('user_type', 'mentor')
+        // Load all slots with their unavailable dates
+        $allSlots = BookingSlot::with('unavailableDates')
+            ->where('user_type', 'mentor')
             ->where('user_id', $mentor->id)
             ->get();
 
-        $onlineSlots = $allSlots->where('slot_type', 'online');
-        $offlineSlots = $allSlots->where('slot_type', 'offline');
+        $onlineSlots = $allSlots->where('slot_mode', 'online')->values();
+        $offlineSlots = $allSlots->where('slot_mode', 'offline')->values();
 
-        $unavailableDates = $allSlots->pluck('unavailable_dates')
-            ->filter()
-            ->flatMap(function ($dates) {
-                return is_string($dates) ? json_decode($dates, true) ?? [] : (array)$dates;
-            })
-            ->countBy()
-            ->filter(fn($count) => $count === $allSlots->count())
-            ->keys()
-            ->values();
+        $unavailableDatesMap = [];
+        foreach ($allSlots as $slot) {
+            foreach ($slot->unavailableDates as $date) {
+                $unavailableDatesMap[$slot->id][] = $date->unavailable_date;
+            }
+        }
 
         return view('site.mentor.manage-booking', [
-            'bookingSlots'     => $allSlots,
-            'onlineSlots'      => $onlineSlots,
-            'offlineSlots'     => $offlineSlots,
-            'unavailableDates' => $unavailableDates,
+            'onlineSlots' => $onlineSlots,
+            'offlineSlots' => $offlineSlots,
+            'unavailableDatesMap' => $unavailableDatesMap,
         ]);
+    }
+
+
+    public function updateSlotTime(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:booking_slots,id',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+        ]);
+
+        // Convert to 24-hour format
+        $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
+        $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+
+        $slot = BookingSlot::findOrFail($request->id);
+        $slot->update([
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Slot time updated successfully.',
+            'slot' => $slot,
+        ]);
+    }
+
+
+    public function deleteSlot(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:booking_slots,id',
+        ]);
+
+        $slot = BookingSlot::findOrFail($request->id);
+        
+        // Optional: Ensure current mentor owns this slot
+        if ($slot->user_id !== auth()->id()) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        // Delete the slot and its related unavailable dates
+        $slot->unavailableDates()->delete(); // If using relation
+        $slot->delete();
+
+        return response()->json(['status' => 'success']);
+    }
+
+
+
+
+
+    public function updateStatus(Request $request)
+    {
+        $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+        $slot = BookingSlot::find($request->slot_id);
+
+        if (!$slot) {
+            return response()->json(['status' => 'error', 'message' => 'Slot not found.'], 404);
+        }
+
+        // Update is_available field in BookingSlot (optional: you can remove this if availability is fully date-based)
+        $slot->is_available = $request->is_available;
+        $slot->save();
+
+        if ($request->is_available == 0) {
+            // Mark this specific date as unavailable
+            BookingSlotUnavailableDate::firstOrCreate([
+                'booking_slot_id' => $slot->id,
+                'unavailable_date' => $date,
+            ]);
+        } else {
+            // Remove unavailable entry for that date
+            BookingSlotUnavailableDate::where('booking_slot_id', $slot->id)
+                ->where('unavailable_date', $date)
+                ->delete();
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Slot status updated.']);
     }
 
 
@@ -457,26 +617,28 @@ class MentorController extends Controller
     public function submitBooking(Request $request)
     {
         $request->validate([
-            'mode' => 'required|in:online,offline',
             'slots' => 'required|array|min:1',
-            'slots.*' => 'string'
+            'slots.*' => 'string',
         ]);
 
         foreach ($request->slots as $slot) {
-            [$start, $end] = explode(' - ', $slot);
+            // Example slot: "online | 01:00 am - 02:00 am"
+            [$mode, $range] = explode(' | ', $slot);
+            [$start, $end] = explode(' - ', $range);
 
             BookingSlot::create([
                 'user_type' => 'mentor',
                 'user_id' => auth()->id(),
-                'slot_mode' => $request->mode,
+                'slot_mode' => $mode,
                 'start_time' => Carbon::createFromFormat('h:i a', $start)->format('H:i:s'),
                 'end_time' => Carbon::createFromFormat('h:i a', $end)->format('H:i:s'),
-                'unavailable_dates' => NULL,
+                'is_available' => true,
             ]);
         }
 
         return redirect()->route('mentor.manage-bookings')->with('success', 'Booking slots saved successfully.');
     }
+
 
 
 
@@ -568,54 +730,6 @@ class MentorController extends Controller
             'categories'
         ));
     }
-
-    // public function getMentorAllDetails()
-    // {
-
-    //     $mentor = Auth::guard('mentor')->user();
-    //     $mentorId = $mentor->id;
-
-    //     // Mentor with training experience
-    //    $mentorDetails = DB::table('mentors')
-    //         ->leftJoin('training_experience', function ($join) {
-    //             $join->on('training_experience.user_id', '=', 'mentors.id')
-    //                 ->where('training_experience.user_type', 'mentor');
-    //         })
-    //         ->where('mentors.id', $mentorId)
-    //         ->select(
-    //             'mentors.*',
-            
-    //             'training_experience.*'
-    //         )
-    //         ->first();
-    //     // print_r($mentorDetails); die;    
-
-
-    //     $educationDetails = DB::table('education_details')
-    //         ->where([
-    //             ['user_id', '=', $mentorId],
-    //             ['user_type', '=', 'mentor']
-    //         ])
-    //         ->get();
-
-    //     $workExperiences = DB::table('work_experience')
-    //         ->where([
-    //             ['user_id', '=', $mentorId],
-    //             ['user_type', '=', 'mentor']
-    //         ])
-    //         ->get();
-
-    //      // Get categories for dropdown
-    //     $categories = TrainingCategory::all();
-             
-    //     return view('site.mentor.settings-mentor', compact(
-    //         'mentor',
-    //         'mentorDetails',
-    //         'educationDetails',
-    //         'workExperiences',
-    //         'categories'
-    //     ));
-    // }
 
 
 

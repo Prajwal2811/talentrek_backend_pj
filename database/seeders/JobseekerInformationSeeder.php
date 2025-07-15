@@ -71,7 +71,7 @@ class JobseekerInformationSeeder extends Seeder
                 'user_type' => 'jobseeker',
                 'doc_type' => 'resume',
                 'document_name' => 'resume_' . $jobseeker->name . '.pdf',
-                'document_path' => asset('uploads/resume_sample.pdf'),
+                'document_path' =>'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
             ]);
 
             // Profile Picture
@@ -80,7 +80,7 @@ class JobseekerInformationSeeder extends Seeder
                 'user_type' => 'jobseeker',
                 'doc_type' => 'profile_picture',
                 'document_name' => 'profile_' . $jobseeker->name . '.png',
-                'document_path' => asset('uploads/profile_sample.png'),
+                'document_path' => 'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
             ]);
         }
     }
