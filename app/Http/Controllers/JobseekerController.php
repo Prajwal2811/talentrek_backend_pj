@@ -72,66 +72,66 @@ class JobseekerController extends Controller
         ]);
 
         // Send welcome email
-        Mail::html('
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>Welcome to Talentrek</title>
-                <style>
-                    body {
-                        background-color: #f4f6f9;
-                        font-family: Arial, sans-serif;
-                        padding: 20px;
-                        margin: 0;
-                    }
-                    .email-container {
-                        background: #ffffff;
-                        max-width: 600px;
-                        margin: auto;
-                        padding: 30px;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                    }
-                    h2 {
-                        color: #007bff;
-                        margin-bottom: 20px;
-                    }
-                    p {
-                        line-height: 1.6;
-                        color: #333333;
-                    }
-                    .footer {
-                        margin-top: 30px;
-                        font-size: 12px;
-                        color: #888888;
-                        text-align: center;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="email-container">
-                    <h2>Welcome to Talentrek!</h2>
-                    <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+        // Mail::html('
+        //     <!DOCTYPE html>
+        //     <html lang="en">
+        //     <head>
+        //         <meta charset="UTF-8">
+        //         <title>Welcome to Talentrek</title>
+        //         <style>
+        //             body {
+        //                 background-color: #f4f6f9;
+        //                 font-family: Arial, sans-serif;
+        //                 padding: 20px;
+        //                 margin: 0;
+        //             }
+        //             .email-container {
+        //                 background: #ffffff;
+        //                 max-width: 600px;
+        //                 margin: auto;
+        //                 padding: 30px;
+        //                 border-radius: 8px;
+        //                 box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        //             }
+        //             h2 {
+        //                 color: #007bff;
+        //                 margin-bottom: 20px;
+        //             }
+        //             p {
+        //                 line-height: 1.6;
+        //                 color: #333333;
+        //             }
+        //             .footer {
+        //                 margin-top: 30px;
+        //                 font-size: 12px;
+        //                 color: #888888;
+        //                 text-align: center;
+        //             }
+        //         </style>
+        //     </head>
+        //     <body>
+        //         <div class="email-container">
+        //             <h2>Welcome to Talentrek!</h2>
+        //             <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
 
-                    <p>You have successfully signed up on <strong>Talentrek</strong>. We\'re excited to have you with us!</p>
+        //             <p>You have successfully signed up on <strong>Talentrek</strong>. We\'re excited to have you with us!</p>
 
-                    <p>Start exploring career opportunities, connect with employers, and grow your professional journey.</p>
+        //             <p>Start exploring career opportunities, connect with employers, and grow your professional journey.</p>
 
-                    <p>If you ever need help, feel free to contact our support team.</p>
+        //             <p>If you ever need help, feel free to contact our support team.</p>
 
-                    <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
-                </div>
+        //             <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
+        //         </div>
 
-                <div class="footer">
-                    © ' . date('Y') . ' Talentrek. All rights reserved.
-                </div>
-            </body>
-            </html>
-        ', function ($message) use ($jobseeker) {
-            $message->to($jobseeker->email)
-                    ->subject('Welcome to Talentrek – Signup Successful');
-        });
+        //         <div class="footer">
+        //             © ' . date('Y') . ' Talentrek. All rights reserved.
+        //         </div>
+        //     </body>
+        //     </html>
+        // ', function ($message) use ($jobseeker) {
+        //     $message->to($jobseeker->email)
+        //             ->subject('Welcome to Talentrek – Signup Successful');
+        // });
 
         // Set session
         session([
@@ -169,7 +169,15 @@ class JobseekerController extends Controller
             return redirect()->route('signup.form')->with('error', 'Jobseeker not found.');
         }
 
+        // 🔥 Step 1: Before validation, store resume file name in session if exists
+        if ($request->hasFile('resume')) {
+            $resumeFile = $request->file('resume');
+            session()->flash('old_resume_name', $resumeFile->getClientOriginalName());
+        }
+
+
         $validated = $request->validate([
+            // Basic Info
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:jobseekers,email,' . $jobseeker->id,
             'phone_number' => 'required|unique:jobseekers,phone_number,' . $jobseeker->id,
@@ -177,10 +185,11 @@ class JobseekerController extends Controller
             'city' => 'required|string|max:255',
             'address' => 'required|string|max:500',
             'gender' => 'required|string|in:Male,Female,Other',
-            
+
+            // National ID
             'national_id' => [
                 'required',
-                'min:10', // Minimum 10 digits
+                'min:10',
                 function ($attribute, $value, $fail) use ($jobseeker) {
                     $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
                     $existsInTrainers = Trainers::where('national_id', $value)->exists();
@@ -194,29 +203,83 @@ class JobseekerController extends Controller
                 },
             ],
 
-            // // Education array validations
+            // Education
             'high_education.*' => 'required|string',
-            'field_of_study.*' => 'nullable|string',
+            'field_of_study.*' => 'required|string',
             'institution.*' => 'required|string',
             'graduate_year.*' => 'required|string',
 
-            // Work experience array validations
+            // Work Experience
             'job_role.*' => 'required|string',
             'organization.*' => 'required|string',
             'starts_from.*' => 'required|date',
             'end_to.*' => 'required|date|after_or_equal:starts_from.*',
 
-            // skills validations
+            // Skills & Interests
             'skills' => 'required|string',
             'interest' => 'required|string',
             'job_category' => 'required|string|max:255',
-            'website_link' => 'required|url',
-            'portfolio_link' => 'required|url',
+            'website_link' => 'nullable|url',
+            'portfolio_link' => 'nullable|url',
 
-            //  // Files
+            // Files
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+
+        ], [
+
+            // Basic Info
+            'name.required' => 'Please enter your name.',
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered.',
+            'phone_number.required' => 'Please enter your phone number.',
+            'phone_number.unique' => 'This phone number is already registered.',
+            'dob.required' => 'Please select your date of birth.',
+            'dob.date' => 'Date of birth must be a valid date.',
+            'city.required' => 'Please enter your city.',
+            'address.required' => 'Please enter your address.',
+            'gender.required' => 'Please select your gender.',
+            'gender.in' => 'Gender must be Male, Female, or Other.',
+
+            // National ID
+            'national_id.required' => 'Please enter your national ID.',
+            'national_id.min' => 'National ID must be at least 10 digits.',
+
+            // Education
+            'high_education.*.required' => 'Please enter your highest education.',
+            'field_of_study.*.required' => 'Please enter your field of study.',
+            'institution.*.required' => 'Please enter your institution name.',
+            'graduate_year.*.required' => 'Please enter your graduation year.',
+
+            // Work Experience
+            'job_role.*.required' => 'Please enter your job role.',
+            'organization.*.required' => 'Please enter your organization name.',
+            'starts_from.*.required' => 'Please enter the job start date.',
+            'starts_from.*.date' => 'Start date must be a valid date.',
+            'end_to.*.required' => 'Please enter the job end date.',
+            'end_to.*.date' => 'End date must be a valid date.',
+            'end_to.*.after_or_equal' => 'End date must be the same or after the start date.',
+
+            // Skills & Interests
+            'skills.required' => 'Please list your skills.',
+            'interest.required' => 'Please enter your area of interest.',
+            'job_category.required' => 'Please select your job category.',
+            'job_category.max' => 'Job category may not be greater than 255 characters.',
+            'website_link.url' => 'Website link must be a valid URL.',
+            'portfolio_link.url' => 'Portfolio link must be a valid URL.',
+
+            // Files
+            'resume.required' => 'Please upload your resume.',
+            'resume.file' => 'Resume must be a valid file.',
+            'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
+            'resume.max' => 'Resume must not be larger than 2MB.',
+            'profile_picture.required' => 'Please upload your profile picture.',
+            'profile_picture.image' => 'Profile picture must be an image.',
+            'profile_picture.mimes' => 'Profile picture must be in JPG, JPEG, or PNG format.',
+            'profile_picture.max' => 'Profile picture must not be larger than 2MB.',
         ]);
+
 
         // Update jobseeker details
         $jobseeker->update([
@@ -273,6 +336,7 @@ class JobseekerController extends Controller
             'website_link' => $request->website_link,
             'portfolio_link' => $request->portfolio_link,
         ]);
+        
 
         // Upload Resume
         if ($request->hasFile('resume')) {
@@ -1190,8 +1254,8 @@ class JobseekerController extends Controller
         ->orderByDesc('id')
         ->first();
 
-    $material->user_name = $user->name ?? '';
-    $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
+        $material->user_name = $user->name ?? '';
+        $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
 
         // Ratings and reviews
         $total = DB::table('reviews')
@@ -1287,5 +1351,108 @@ class JobseekerController extends Controller
     }
 
      
-    
+    public function buyCourseDetails($id)
+    {
+        $material = DB::table('training_materials')->where('id', $id)->first();
+        if (!$material) {
+            abort(404, 'Course not found');
+        }
+
+        $material->documents = DB::table('training_materials_documents')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $material->batches = DB::table('training_batches')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $userType = null;
+        $userId = null;
+        $user = null;
+
+        // Detect user type and get basic info
+        if (!empty($material->trainer_id)) {
+            $userType = 'trainer';
+            $userId = $material->trainer_id;
+            $user = DB::table('trainers')->where('id', $userId)->first();
+        } elseif (!empty($material->mentor_id)) {
+            $userType = 'mentor';
+            $userId = $material->mentor_id;
+            $user = DB::table('mentors')->where('id', $userId)->first();
+        } elseif (!empty($material->coach_id)) {
+            $userType = 'coach';
+            $userId = $material->coach_id;
+            $user = DB::table('coaches')->where('id', $userId)->first();
+        } elseif (!empty($material->assessor_id)) {
+            $userType = 'assessor';
+            $userId = $material->assessor_id;
+            $user = DB::table('assessors')->where('id', $userId)->first();
+        }
+
+        if (!$userType || !$userId || !$user) {
+            abort(404, 'User info not found');
+        }
+
+        // Fetch profile picture from talentrek_additional_info
+        $profile = DB::table('additional_info')
+        ->where('user_id', $userId)
+        ->where('user_type', 'trainer')
+        ->where('doc_type', 'profile') // ✅ important fix here
+        ->orderByDesc('id')
+        ->first();
+
+        $material->user_name = $user->name ?? '';
+        $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
+
+        // Ratings and reviews
+        $total = DB::table('reviews')
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->count();
+
+        $average = $total > 0
+            ? round(DB::table('reviews')
+                ->where('user_type', $userType)
+                ->where('user_id', $userId)
+                ->when($userType === 'trainer', function ($q) use ($material) {
+                    $q->where('trainer_material', $material->id);
+                })
+                ->avg('ratings'), 1)
+            : 0;
+
+        $ratings = DB::table('reviews')
+            ->select('ratings', DB::raw('COUNT(*) as count'))
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->groupBy('ratings')
+            ->pluck('count', 'ratings');
+
+        $ratingsPercent = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = $ratings[$i] ?? 0;
+            $ratingsPercent[$i] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+        }
+
+        $reviews = DB::table('reviews as r')
+            ->join('jobseekers as j', 'r.jobseeker_id', '=', 'j.id')
+            ->select('r.*', 'j.name as jobseeker_name')
+            ->where('r.user_type', $userType)
+            ->where('r.user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('r.trainer_material', $material->id);
+            })
+            ->latest('r.created_at')
+            ->limit(10)
+            ->get();
+
+        return view('site.buy-course', compact(
+            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews'
+        ));
+    }
 }

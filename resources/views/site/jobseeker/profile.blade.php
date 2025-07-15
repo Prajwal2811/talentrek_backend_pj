@@ -433,27 +433,27 @@ $skills = $user->skills->first();
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="grid grid-cols-2 gap-6 mt-3">
-                                            <div>
-                                                <label class="block mb-1 text-sm font-medium">National ID Number</label>
-                                                <span class="text-xs text-blue-600">
-                                                    National ID should start with 1 for male and 2 for female.
-                                                </span>
-                                                <input 
-                                                    type="text" 
-                                                    name="national_id" 
-                                                    id="national_id" 
-                                                    class="w-full border rounded-md p-2 mt-1" 
-                                                    placeholder="Enter national id number" 
-                                                    value="{{ Auth()->user()->national_id ?? '' }}"
-                                                    maxlength="15"
-                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
-                                                />
-                                                @error('national_id')
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                @enderror
-                                            </div>
+                                        
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                            <span class="text-xs text-blue-600">
+                                                National ID should start with 1 for male and 2 for female.
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                name="national_id" 
+                                                id="national_id" 
+                                                class="w-full border rounded-md p-2 mt-1" 
+                                                placeholder="Enter national id number" 
+                                                value="{{ Auth()->user()->national_id ?? '' }}"
+                                                maxlength="15"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                            />
+                                            @error('national_id')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
+                                        
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Address</label>
                                             <input type="text" placeholder="Enter address" name="address"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->address ?? '' }}"/>
@@ -1890,19 +1890,28 @@ $(document).ready(function () {
             }
         }
 
-        $('#gender').on('change', function () {
-            const selectedGender = $(this).val();
+        // Always attach input validation
+        $('#national_id').on('input', function () {
+            validateNationalIdInput();
+        });
 
-            // Clear National ID field when gender is changed
+        // Initial call if gender already selected
+        if ($('#gender').val()) {
+            validateNationalIdInput();
+        }
+
+        // On gender change, reset national ID and validate new input
+        $('#gender').on('change', function () {
             $('#national_id').val('');
 
-            // Attach input event for validation
+            // Re-attach input validation
             $('#national_id').off('input').on('input', function () {
                 validateNationalIdInput();
             });
         });
     });
 </script>
+
 
 
 

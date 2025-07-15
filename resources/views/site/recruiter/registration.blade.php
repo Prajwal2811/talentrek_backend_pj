@@ -103,15 +103,14 @@
                                 <span class="text-xs mt-1 text-center">Additional<br />Information</span>
                             </div>
                             </div>
-                            <form class="space-y-6" id="myForm" action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
+                            <form class="space-y-6" action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ session('company_id') }}">
 
                                 <!-- Step 1: Company Information -->
                                 <div id="step-1">
-                                    <!-- <form class="space-y-6"> -->
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Company name</label>
+                                            <label class="block mb-1 text-sm font-medium">Company name <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="company_name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter company name" value="{{old('company_name')}}"/>
                                             @error('company_name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -120,14 +119,14 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Company website</label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Company website <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input type="url" name="company_website" class="w-full border rounded-md p-2 mt-1" placeholder="Paste website link" value="{{old('company_website')}}"/>
                                                 @error('company_website')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Company location</label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Company location <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input type="text" name="company_city" class="w-full border rounded-md p-2 mt-1" placeholder="Enter location" value="{{old('company_city')}}"/>
                                                 @error('company_city')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -136,7 +135,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Company address</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Company address <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="company_address" class="w-full border rounded-md p-2 mt-1" placeholder="Enter the address" value="{{old('company_address')}}"/>
                                             @error('company_address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -145,14 +144,14 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Business email</label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Business email <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter email id" value="{{ old('business_email', $business_email) }}" readonly/>
                                                 @error('business_email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Company phone number</label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Company phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
                                                     <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code" required>
                                                         <option value="">Country</option>
@@ -182,40 +181,41 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Number of employees</label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Number of employees <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input type="number" name="no_of_employee" class="w-full border rounded-md p-2 mt-1" placeholder="Enter number of employees" value="{{old('no_of_employee')}}"/>
                                                 @error('no_of_employee')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Industry type</label>
-                                                <select class="w-full border rounded-md p-2 mt-1" name="industry_type" required>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Industry type <span style="color: red; font-size: 17px;">*</span></label>
+                                                <select class="w-full border rounded-md p-2 mt-1" name="industry_type">
                                                     <option value="">Select type</option>
-                                                    <option value="it">Information Technology</option>
-                                                    <option value="healthcare">Healthcare</option>
-                                                    <option value="finance">Finance</option>
-                                                    <option value="education">Education</option>
-                                                    <option value="manufacturing">Manufacturing</option>
-                                                    <option value="retail">Retail</option>
-                                                    <option value="hospitality">Hospitality</option>
-                                                    <option value="construction">Construction</option>
-                                                    <option value="transportation">Transportation</option>
-                                                    <option value="real_estate">Real Estate</option>
-                                                    <option value="agriculture">Agriculture</option>
-                                                    <option value="telecom">Telecommunications</option>
-                                                    <option value="media">Media & Entertainment</option>
-                                                    <option value="government">Government</option>
-                                                    <option value="legal">Legal</option>
+                                                    <option value="it" {{ old('industry_type') == 'it' ? 'selected' : '' }}>Information Technology</option>
+                                                    <option value="healthcare" {{ old('industry_type') == 'healthcare' ? 'selected' : '' }}>Healthcare</option>
+                                                    <option value="finance" {{ old('industry_type') == 'finance' ? 'selected' : '' }}>Finance</option>
+                                                    <option value="education" {{ old('industry_type') == 'education' ? 'selected' : '' }}>Education</option>
+                                                    <option value="manufacturing" {{ old('industry_type') == 'manufacturing' ? 'selected' : '' }}>Manufacturing</option>
+                                                    <option value="retail" {{ old('industry_type') == 'retail' ? 'selected' : '' }}>Retail</option>
+                                                    <option value="hospitality" {{ old('industry_type') == 'hospitality' ? 'selected' : '' }}>Hospitality</option>
+                                                    <option value="construction" {{ old('industry_type') == 'construction' ? 'selected' : '' }}>Construction</option>
+                                                    <option value="transportation" {{ old('industry_type') == 'transportation' ? 'selected' : '' }}>Transportation</option>
+                                                    <option value="real_estate" {{ old('industry_type') == 'real_estate' ? 'selected' : '' }}>Real Estate</option>
+                                                    <option value="agriculture" {{ old('industry_type') == 'agriculture' ? 'selected' : '' }}>Agriculture</option>
+                                                    <option value="telecom" {{ old('industry_type') == 'telecom' ? 'selected' : '' }}>Telecommunications</option>
+                                                    <option value="media" {{ old('industry_type') == 'media' ? 'selected' : '' }}>Media & Entertainment</option>
+                                                    <option value="government" {{ old('industry_type') == 'government' ? 'selected' : '' }}>Government</option>
+                                                    <option value="legal" {{ old('industry_type') == 'legal' ? 'selected' : '' }}>Legal</option>
                                                 </select>
                                                 @error('industry_type')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
+
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">CR number (Company registration number)</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">CR number (Company registration number) <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="registration_number"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter CR number" value="{{old('registration_number')}}"/>
                                             @error('registration_number')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -227,24 +227,23 @@
                                                 Next
                                             </button>
                                         </div>
-                                    <!-- </form> -->
+                                  
                                 </div>
 
                                 <!-- Step 2: Additional Information -->
                                 <div id="step-2" class="hidden">
-                                    <!-- <form class="space-y-6"> -->
                                         <div>
                                             <h2 class="font-semibold mb-2">Recruiter details:</h2>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's name</label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's name" value="{{old('name')}}"/>
                                                     @error('name')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's email</label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's email <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="email" name="email" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's email" value="{{ old('email') }}"/>
                                                     @error('email')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -253,7 +252,7 @@
                                             </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                    <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                                     <span class="text-xs text-blue-600">
                                                         National ID should start with 1 for male and 2 for female.
                                                     </span>
@@ -279,7 +278,7 @@
                                             <div class="flex flex-col gap-4">
                                                 <!-- Company Profile Upload -->
                                                 <div class="flex flex-col gap-2">
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Company Profile Picuture</label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">Company Profile Picuture <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
 
                                                         <input type="file" name="company_profile" accept=".png,.jpg,.jpeg" class="w-full border rounded-md p-2" />
@@ -292,7 +291,7 @@
 
                                                 <!-- Registration Documents Upload -->
                                                 <div class="flex flex-col gap-2">
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Company Registration Documents</label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">Company Registration Documents <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
                                                         <input type="file" name="registration_documents[]" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple />
                                                     </div>
@@ -304,19 +303,18 @@
 
                                                 </div>
                                             </div>
-
                                         </div>
 
                                         <div class="flex justify-between pt-4">
                                             <button type="button" onclick="showStep(1)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">Back</button>
-                                            <button type="submit" id="submitBtn" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
+                                            
+                                            <button type="submit" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
                                                 Register
                                             </button>
-
                                         </div>
-                                    <!-- </form> -->
                                 </div>
                             </form>
+                            
                             <!-- JavaScript for Step Navigation -->
                             <script>
                                 function showStep(step) {
@@ -345,20 +343,8 @@
                 </div>
                 </div>
 
-<!-- jQuery Script -->
 
-<script>
-    $(document).ready(function () {
-        $('#myForm').on('submit', function (e) {
-            if (this.checkValidity()) {
-                // If form is valid, disable the button
-                $('#submitBtn').prop('disabled', true)
-                    .addClass('opacity-50 cursor-not-allowed')
-            }
-        });
-    });
 
-</script>
 <script src="{{ asset('asset/js/jquery-3.6.0.min.js') }}"></script>
 <script src="{{ asset('asset/js/popper.min.js') }}"></script>
 <script src="{{ asset('asset/js/bootstrap.min.js') }}"></script>

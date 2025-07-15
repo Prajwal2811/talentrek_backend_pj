@@ -66,6 +66,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 	Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
 
 	Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
+	Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 
 
 

@@ -24,20 +24,21 @@
                 <!-- Stat Cards -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
-                    <p class="text-gray-500">Jobseeker Shortlisted</p>
-                    <h3 class="text-3xl font-bold mt-2">24</h3>
+                        <p class="text-xl text-black-500">Jobseeker Shortlisted</p>
+                        <h3 class="text-3xl font-bold mt-2">24</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
-                    <p class="text-gray-500">Interviews scheduled</p>
-                    <h3 class="text-3xl font-bold mt-2">15</h3>
+                        <p class="text-xl text-black-500">Interviews scheduled</p>
+                        <h3 class="text-3xl font-bold mt-2">15</h3>
                     </div>
                 </div>
+
 
 
                 <!-- Jobseekers contacted -->
                 <div class="bg-white p-6 rounded-lg shadow">
                     <h3 class="text-xl font-semibold mb-4">Jobseekers contacted</h3>
-
+                     <hr class="border-t border-gray-300 mb-4">
                     <template x-for="(jobseeker, index) in paginatedJobseekers()" :key="jobseeker.name">
                     <div class="flex justify-between items-center border-b py-4">
                         <div class="flex items-center space-x-4">
