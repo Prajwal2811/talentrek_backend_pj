@@ -23,7 +23,7 @@ class AppHomeController extends Controller
     public function bannersList()
     {
         try {
-            $banners = CMS::select('heading', 'description', 'file_path')
+            $banners = CMS::select('heading', 'description', 'file_path as image')
                         ->where('slug', 'banner')
                         ->get();
 
@@ -41,7 +41,7 @@ class AppHomeController extends Controller
     public function trainingPrograms()
     {
         try {
-            $TrainingPrograms = TrainingPrograms::select('id', 'category','image_path')->get();
+            $TrainingPrograms = TrainingPrograms::select('id', 'category','image_path as image')->get();
             if ($TrainingPrograms->isEmpty()) {
                 return $this->errorResponse('No Training programs found.', 200,[]);
             }
@@ -60,7 +60,7 @@ class AppHomeController extends Controller
                 'training_title',
                 'training_price',
                 'training_offer_price',
-                'thumbnail_file_path'
+                'thumbnail_file_path as image'
             )
             ->with(['trainer:id,name','latestWorkExperience']) // only fetch trainer id & name
             //->with('') // only fetch trainer id & name
@@ -95,7 +95,7 @@ class AppHomeController extends Controller
                 'date_of_birth',
                 'city'
             )
-            ->with('WorkExperience') // only fetch trainer id & name        
+            ->with('WorkExperience','additionalInfo') // only fetch trainer id & name        
             ->withAvg('mentorReviews', 'ratings')
             ->limit(10)
             ->get()
@@ -110,10 +110,19 @@ class AppHomeController extends Controller
                 $item->total_experience_days = $totalDays;
                 $item->total_experience_years = round($totalDays / 365, 1);
                 
+                // Get the most recent job_role based on nearest end_to (null means current)
+                $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
+                    return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
+                })->first();
+
+                $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+
                 $avg = $item->mentor_reviews_avg_ratings;
                 $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                 unset($item->mentor_reviews_avg_ratings); // remove raw avg field
                 unset($item->WorkExperience);
+                $item->image = $item->additionalInfo->document_path ?? null;
+                unset($item->additionalInfo);
                 return $item;
             });
             if ($mentorsList->isEmpty()) {
@@ -129,7 +138,7 @@ class AppHomeController extends Controller
     public function testimonialsList()
     {
        try {
-            $testimonialsList = Testimonial::select('name','designation','message','file_path')->get();
+            $testimonialsList = Testimonial::select('name','designation','message','file_path  as image')->get();
             if ($testimonialsList->isEmpty()) {
                 return $this->errorResponse('No Testimonial list found.', 200,[]);
             }
