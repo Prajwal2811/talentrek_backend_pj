@@ -90,7 +90,7 @@
                                 <div id="step-1" class="">
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Full name</label>
+                                        <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="name" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Enter full name" value="{{ old('name') }}" />
                                         @error('name')
@@ -99,7 +99,7 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Email</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Email <span style="color: red; font-size: 17px;">*</span></label>
                                             <input placeholder="Enter email" name="email" type="email"
                                                 class="w-full border rounded-md p-2 mt-1" value="{{ old('email', $email) }}"
                                                 readonly />
@@ -108,7 +108,7 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Gender</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Gender <span style="color: red; font-size: 17px;">*</span></label>
                                             <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
                                                 <option value="">Select gender</option>
                                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male
@@ -116,15 +116,15 @@
                                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>
                                                     Female</option>
                                             </select>
-
-                                        </div>
                                         @error('gender')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
+                                        </div>
+                                        
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2 mt-1">
                                                     <option>+91</option>
@@ -138,7 +138,7 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
                                             <input name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
                                                 value="{{ old('dob') }}"/>
                                             @error('dob')
@@ -148,7 +148,7 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6 mt-3">
                                         <div class="col-span-2">
-                                            <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                            <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                             <span class="text-xs text-blue-600">
                                                 National ID should start with 1 for male and 2 for female.
                                             </span>
@@ -169,7 +169,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Location</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Location <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="City or State" value="{{ old('city') }}" />
                                         @error('city')
@@ -177,7 +177,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Address</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Address <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Street, Area, ZIP" value="{{ old('address') }}" />
                                         @error('address')
@@ -207,7 +207,7 @@
                                                 {{-- Highest Qualification --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Highest
-                                                        qualification</label>
+                                                        qualification <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="high_education[]"
                                                         class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select highest qualification</option>
@@ -226,7 +226,7 @@
                                                 {{-- Field of Study --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Field of
-                                                        study</label>
+                                                        study <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="field_of_study[]"
                                                         class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select field of study</option>
@@ -249,7 +249,7 @@
                                                 {{-- Institution Name --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Institution
-                                                        name</label>
+                                                        name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input name="institution[]" type="text"
                                                         class="w-full border border-gray-300 rounded-md p-2"
                                                         value="{{ old("institution.$i") }}"
@@ -262,7 +262,7 @@
                                                 {{-- Graduation Year --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Graduation
-                                                        year</label>
+                                                        year <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="graduate_year[]"
                                                         class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select year of passing</option>
@@ -352,7 +352,7 @@
 
                                                 {{-- Job Role --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
                                                         placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
                                                     @error("job_role.$i")
@@ -362,7 +362,7 @@
 
                                                 {{-- Organization --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="organization[]" class="w-full border rounded-md p-2"
                                                         placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
                                                     @error("organization.$i")
@@ -372,7 +372,7 @@
 
                                                 {{-- Start Date --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
                                                         value="{{ old("starts_from.$i") }}" readonly />
                                                     @error("starts_from.$i")
@@ -382,7 +382,7 @@
 
                                                 {{-- End Date & Checkbox --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
                                                         :disabled="working" :readonly="working"
                                                         :value="working ? '' : '{{ old("end_to.$i") }}'" />
@@ -460,7 +460,7 @@
                                 <div id="step-4" class="hidden">
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Skills</label>
+                                        <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="skills" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. AWS Certified, Python, Project Management"
                                             value="{{ old('skills') }}" />
@@ -469,7 +469,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Area of Interests</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Area of Interests <span style="color: red; font-size: 17px;">*</span></label>
                                         <select class="w-full border rounded-md p-2 mt-1" name="interest">
                                             <option value="" disabled {{ old('interest') ? '' : 'selected' }}>Select an
                                                 area</option>
@@ -486,7 +486,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Job Categories</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. Software Engineer, Data Analyst"
                                             value="{{ old('job_category') }}" />
@@ -495,7 +495,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link </label>
                                         <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
                                             value="{{ old('website_link') }}" />
@@ -541,18 +541,53 @@
                                     </div>
                                     <!-- Upload Resume -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 mt-3">Upload resume</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">
+                                            Upload resume <span style="color: red;">*</span>
+                                        </label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" class="border rounded-md p-2 w-full text-sm"  name="resume" accept=".pdf,.doc,.docx,.txt" />
+                                            <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt"
+                                                class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-                                            @error('resume')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+
+                                        {{-- Show old selected file name here --}}
+                                        @if(session('old_resume_name'))
+                                            <p class="text-green-600 text-sm mt-1">
+                                                Previously selected: {{ session('old_resume_name') }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Show validation error --}}
+                                        @error('resume')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
+                                    <script>
+                                        const resumeInput = document.getElementById('resumeFile');
+                                        const resumeFilenameDisplay = document.getElementById('resumeFilename');
+
+                                        // Show filename when user selects a file
+                                        resumeInput.addEventListener('change', function () {
+                                            if (this.files.length > 0) {
+                                                const fileName = this.files[0].name;
+                                                resumeFilenameDisplay.textContent = "Selected: " + fileName;
+                                                sessionStorage.setItem('resumeFileName', fileName); // store temporarily
+                                            }
+                                        });
+
+                                        // On page load, restore filename if available
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const savedFileName = sessionStorage.getItem('resumeFileName');
+                                            if (savedFileName) {
+                                                resumeFilenameDisplay.textContent = "Previously selected: " + savedFileName;
+                                            }
+                                        });
+                                    </script>
+
+
 
                                     <!-- Upload Profile Picture -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />

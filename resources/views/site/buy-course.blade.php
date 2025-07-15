@@ -98,20 +98,43 @@
                         </div>
 
                         <div class="flex border rounded p-4 space-x-4">
-                        <img src="{{ asset('asset/images/gallery/pic-4.png') }}" alt="Course" class="w-28 h-20 object-cover rounded">
-                        <div class="flex-1">
-                            <h4 class="font-semibold text-sm">Graphic design - Advance level</h4>
-                            <p class="text-xs text-gray-600 mt-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                            <div class="flex items-center text-sm text-yellow-500 mt-1">
-                            ★★★★☆ <span class="ml-1 text-gray-500 text-xs">(4.5) Rating</span>
+                            <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}" alt="Course" class="w-28 h-20 object-cover rounded">
+                            
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-sm">{{ $material->training_title }}</h4>
+                                
+                                <p class="text-xs text-gray-600 mt-1">
+                                    {{ Str::limit($material->training_descriptions, 80) }}
+                                </p>
+
+                                <!-- <div class="flex items-center text-sm text-yellow-500 mt-1">
+                                    ★★★★☆ 
+                                    <span class="ml-1 text-gray-500 text-xs">(4.5) Rating</span>
+                                </div> -->
+                                <div class="flex items-center text-yellow-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        @if ($i <= floor($average))
+                                            ★
+                                        @elseif ($i - $average < 1)
+                                            ☆
+                                        @else
+                                            ☆
+                                        @endif
+                                    @endfor
+                                    <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
+                                    <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                </div>
+
+
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="text-gray-400 line-through text-sm">SAR {{ $material->training_price ?? '89' }}</span>
+                                    <span class="text-sm font-bold text-blue-600">SAR {{ $material->training_offer_price ?? '89' }}</span>
+                                </div>
+
+                                <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button>
                             </div>
-                            <div class="flex items-center space-x-2 mt-2">
-                            <span class="text-gray-400 line-through text-sm">SAR 89</span>
-                            <span class="text-sm font-bold text-blue-600">SAR 89</span>
-                            </div>
-                            <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button>
                         </div>
-                        </div>
+
                     </div>
 
                   <!-- Include Alpine.js -->
@@ -132,7 +155,7 @@
                                     <span class="text-sm">UPI / Online Payment</span>
                                 </label>
                             </div>
-                        </div>
+                        </div> 
 
                         <!-- Card Payment Section -->
                         <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
@@ -173,7 +196,7 @@
                             <h3 class="text-sm font-medium border-b pb-2">Billing Information</h3>
                             <div class="flex justify-between text-sm">
                                 <span>Course total</span>
-                                <span>SAR 89</span>
+                                <span>SAR {{ $material->training_offer_price ?? '89' }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span>Saved amount</span>

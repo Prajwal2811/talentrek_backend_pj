@@ -384,7 +384,7 @@
               </div>
 
                   <!-- Buttons -->
-                   <a href="{{ route('buy-course') }}">
+                   <a href="{{ route('buy-course', ['id' => $material->id]) }}">
                       <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
                         Buy course
                       </button>
