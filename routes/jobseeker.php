@@ -29,8 +29,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-reset-password', [JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
 
 
-		Route::get('jobseeker/auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
-		Route::get('jobseeker/auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
+		Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
 
 	});
 	

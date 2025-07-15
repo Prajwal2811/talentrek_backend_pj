@@ -27,33 +27,7 @@ class JobseekerController extends Controller
     {
         return view('site.jobseeker.registration');
     }
-    // public function postRegistration(Request $request)
-    // {
-    //     $validated = $request->validate([
-       
-    //         'email' => 'required|email|unique:jobseekers,email',
-    //         // 'phone_number' => 'required|digits:10|unique:jobseekers,phone_number',
-    //         'phone_number' => 'required|unique:jobseekers,phone_number',
-    //         'password' => 'required|min:6|same:confirm_password',
-    //         'confirm_password' => 'required|min:6',
-    //     ]);
-     
-
-    //      $jobseekers = Jobseekers::create([
-    //         'email' => $request->email,
-    //         'phone_number' => $request->phone_number,
-    //         'password' => Hash::make($request->password),
-    //         'pass' => $request->password,
-             
-    //     ]);
-    //     session([
-    //         'jobseeker_id' => $jobseekers->id,
-    //         'email' => $request->email,
-    //         'phone_number' => $request->phone_number,
-    //     ]);
-
-    //     return redirect()->route('jobseeker.registration');
-    // }
+    
 
     public function postRegistration(Request $request)
     {
@@ -582,12 +556,17 @@ class JobseekerController extends Controller
             }
 
             Auth::guard('jobseeker')->login($jobseeker);
-            return redirect()->route('jobseeker.registration');
+            return redirect()->intended(route('jobseeker.dashboard')); // Use intended for better UX
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Google login failed.');
-            return redirect()->route('jobseeker.sign-in');
+            session()->flash('error', 'Google login failed. Please try again.');
         }
+
+        return redirect()->route('jobseeker.sign-in');
     }
+
 
     public function getJobseekerAllDetails()
     {
