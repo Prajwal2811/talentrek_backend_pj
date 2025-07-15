@@ -79,9 +79,10 @@
                                 <li>
                                 <a
                                     href="#"
-                                    @click.prevent="activeSection = 'profile'"
+                                    @click.prevent="activeSection = 'profile'; activeSubTab = 'company'"
                                     :class="activeSection === 'profile' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Profile</a>
+                                    >Profile</a>
+
                                 </li>
                                 <li>
                                 <a
@@ -346,7 +347,7 @@
 
 
                                 <!-- Subscription Section (with internal tabs) -->
-                                <div x-show="activeSection === 'profile'" x-transition>
+                                <div x-show="activeSection === 'profile'"  x-transition>
                                     <!-- Company Header -->
                                     <div class="flex items-center space-x-4 mb-4">
                                         @php
