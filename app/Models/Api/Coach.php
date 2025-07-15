@@ -54,4 +54,10 @@ class Coach extends Model
         return $this->hasMany(WorkExperience::class, 'user_id', 'id')
         ->where('user_type', 'coach');
     }
+
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
+                    ->where('user_type', 'coach');
+    }
 }

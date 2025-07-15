@@ -55,4 +55,10 @@ class Assessors extends Model
         return $this->hasMany(WorkExperience::class, 'user_id', 'id')
         ->where('user_type', 'assessor');
     }
+
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
+                    ->where('user_type', 'assessor');
+    }
 }
