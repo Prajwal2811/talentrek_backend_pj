@@ -243,8 +243,19 @@ class ExplorerController extends Controller
                 unset($TrainingMaterial->trainer_reviews_avg_ratings);
                 unset($TrainingMaterial->trainerReviews);
             }
-            
-            return $this->successResponse($TrainingMaterial, 'Training course details with review  percentage fetched successfully.');
+            if ($TrainingMaterial) {
+                $reviews = $TrainingMaterial->trainerReviews;
+                $total = $reviews->count();
+                $ratingPercentages = [];
+                // Initialize rating counts
+                foreach (range(1, 5) as $rating) {
+                    $count = $reviews->where('ratings', $rating)->count();
+                    $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+                }
+                $TrainingReviewsPercentage = $ratingPercentages;
+                unset($TrainingMaterial->trainerReviews);
+            }
+            return $this->successwithCMSResponse($TrainingMaterial, $TrainingReviewsPercentage, 'Training course details with review  percentage fetched successfully.');
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -273,7 +284,15 @@ class ExplorerController extends Controller
             }, 0);
             $MentorsDetails->total_experience_days = $totalDays;
             $MentorsDetails->total_experience_years = round($totalDays / 365, 1);
-            
+            // Calculate rating percentages
+            $reviews = $MentorsDetails->mentorReviews ?? collect();
+            $total = $reviews->count();
+            $ratingPercentages = [];
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+            $MentorReviewsPercentage = $ratingPercentages;
             // Set average rating and clean raw data
             $avg = $MentorsDetails->mentor_reviews_avg_ratings;
             $MentorsDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
@@ -289,7 +308,11 @@ class ExplorerController extends Controller
                     $MentorsDetails->mentor_reviews_avg_ratings,
                     $MentorsDetails->WorkExperience // if not needed on frontend
                 );
-            return $this->successResponse($MentorsDetails,'Mentor details with review percentage fetched successfully.');
+            return $this->successwithCMSResponse(
+                $MentorsDetails,
+                $MentorReviewsPercentage,
+                'Mentor details with review percentage fetched successfully.'
+            );
         } catch (\Exception $e) {
             // Log::error('Mentor detail fetch failed: ' . $e->getMessage());
             return $this->errorResponse( 'An error occurred while fetching mentor details.', 500,[]);
@@ -314,7 +337,15 @@ class ExplorerController extends Controller
             }, 0);
             $AssessorDetails->total_experience_days = $totalDays;
             $AssessorDetails->total_experience_years = round($totalDays / 365, 1);
-            
+            // Calculate review percentages
+            $reviews = $AssessorDetails->assessorReviews ?? collect();
+            $total = $reviews->count();
+            $ratingPercentages = [];
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+            $AssessorReviewsPercentage = $ratingPercentages;
             // Set average rating
             $avg = $AssessorDetails->assessor_reviews_avg_ratings;
             $AssessorDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
@@ -327,8 +358,9 @@ class ExplorerController extends Controller
             unset($AssessorDetails->additionalInfo);
             // Cleanup raw data
             unset($AssessorDetails->assessorReviews, $AssessorDetails->assessor_reviews_avg_ratings, $AssessorDetails->WorkExperience);
-            return $this->successResponse(
+            return $this->successwithCMSResponse(
                 $AssessorDetails,
+                $AssessorReviewsPercentage,
                 'Assessor details with review percentage fetched successfully.'
             );
         } catch (\Exception $e) {
@@ -355,7 +387,15 @@ class ExplorerController extends Controller
             }, 0);
             $CoachDetails->total_experience_days = $totalDays;
             $CoachDetails->total_experience_years = round($totalDays / 365, 1);
-            
+            // Calculate review percentages
+            $reviews = $CoachDetails->coachReviews ?? collect();
+            $total = $reviews->count();
+            $ratingPercentages = [];
+            foreach (range(1, 5) as $rating) {
+                $count = $reviews->where('ratings', $rating)->count();
+                $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            }
+            $CoachReviewsPercentage = $ratingPercentages;
             // Set average rating
             $avg = $CoachDetails->coach_reviews_avg_ratings;
             $CoachDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
@@ -370,6 +410,7 @@ class ExplorerController extends Controller
             unset($CoachDetails->coachReviews, $CoachDetails->coach_reviews_avg_ratings, $CoachDetails->WorkExperience);
             return $this->successwithCMSResponse(
                 $CoachDetails,
+                $CoachReviewsPercentage,
                 'Coach details with review percentage fetched successfully.'
             );
         } catch (\Exception $e) {
@@ -384,46 +425,29 @@ class ExplorerController extends Controller
                 return $this->errorResponse('Invalid user type provided.', 422, []);
             }
             $relationMap = [
-                'trainer' => ['relation' => 'jobSeekerInfo', 'selectField' => 'document_path', 'material_field' => 'trainer_material'],
-                'mentor' => ['relation' => 'jobSeekerInfo', 'selectField' => 'document_path', 'material_field' => 'user_id'],
-                'coach' => ['relation' => 'jobSeekerInfo', 'selectField' => 'document_path', 'material_field' => 'user_id'],
-                'assessor' => ['relation' => 'jobSeekerInfo', 'selectField' => 'document_path', 'material_field' => 'user_id'],
+                'trainer' => ['relation' => 'trainer', 'selectField' => 'name'],
+                'mentor' => ['relation' => 'mentor', 'selectField' => 'name'],
+                'coach' => ['relation' => 'coach', 'selectField' => 'name'],
+                'assessor' => ['relation' => 'assessor', 'selectField' => 'company_name'],
             ];
-            $materialField = $relationMap[$tags]['material_field'];
-           
-            $reviewsDetails = Review::select('reviews', 'ratings', 'trainer_material', 'user_id', 'jobseeker_id')
-                ->with('jobSeekerInfo','jobSeekerInfoName')
-                ->where($materialField, $mentorId)
+            $relation = $relationMap[$tags]['relation'];
+            $selectField = $relationMap[$tags]['selectField'];
+            $reviewsDetails = Review::select('reviews', 'ratings', 'trainer_material')
+                ->with([$relation => function ($q) use ($selectField) {
+                    $q->select('id', $selectField);
+                }])
+                ->where('trainer_material', $mentorId)
                 ->where('user_type', $tags)
                 ->get()
-                ->map(function ($item) {
-                    $item->image = $item->jobSeekerInfo->document_path ?? null;
-                    $item->name = $item->jobSeekerInfoName->name ?? null;
-                    unset($item->jobSeekerInfo,$item->jobSeekerInfoName);
+                ->map(function ($item) use ($relation, $selectField) {
+                    $item->user_name = $item->$relation->$selectField ?? null;
+                    unset($item->$relation);
                     return $item;
-                });          
-
-            if ($reviewsDetails) {
-                $reviews = $reviewsDetails;
-                $total = $reviews->count();
-                $ratingPercentages = [];
-                $totalRatingSum = 0;
-
-                // Initialize rating counts
-                foreach (range(1, 5) as $rating) {
-                    $count = $reviews->where('ratings', $rating)->count();
-                    $ratingPercentages[$rating] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
-                    $totalRatingSum += $rating * $count;
-                }
-                $averageRating = $total > 0 ? round($totalRatingSum / $total, 1) : 0;
-                $TrainingReviewsPercentage = $ratingPercentages;
-                $TrainingReviewsPercentage['average_rating'] = $averageRating;                   
-            }
+                });
             if ($reviewsDetails->isEmpty()) {
                 return $this->successResponse([], ucfirst($tags) . ' has no reviews yet.');
             }
-
-            return $this->successwithCMSResponse($reviewsDetails,['ratings' => array_values($ratingPercentages),'averageRating' => $averageRating], ucfirst($tags) . ' reviews fetched successfully.');
+            return $this->successResponse($reviewsDetails, ucfirst($tags) . ' reviews fetched successfully.');
         } catch (\Exception $e) {
             return $this->errorResponse('Something went wrong while fetching reviews.', 500, [
                 'error' => $e->getMessage()

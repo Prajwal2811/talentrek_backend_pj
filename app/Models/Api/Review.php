@@ -36,4 +36,14 @@ class Review extends Model
     {
         return $this->belongsTo(Assessors::class, 'trainer_material', 'id');
     }
+
+    public function jobSeekerInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id', 'jobseeker_id')->where('doc_type', 'profile_picture')->where('user_type', 'jobseeker');
+    }
+	
+	public function jobSeekerInfoName()
+    {
+        return $this->hasOne(Jobseekers::class, 'id', 'jobseeker_id');
+    }
 }
