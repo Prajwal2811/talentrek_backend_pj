@@ -65,4 +65,9 @@ class TrainingMaterial extends Model
         return $this->hasMany(TrainingMaterialsDocument::class, 'training_material_id', 'id');
     }
 
+    public function batches()
+    {
+        return $this->hasMany(TrainingBatch::class, 'training_material_id');
+    }
+
 }

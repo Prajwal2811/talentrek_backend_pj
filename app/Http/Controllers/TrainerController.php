@@ -1282,7 +1282,6 @@ class TrainerController extends Controller
             'message' => ucfirst(str_replace('_', ' ', $type)) . ' not found.'
         ], 404);
     }
-
    
 
 }
