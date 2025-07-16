@@ -271,15 +271,35 @@ class MentorController extends Controller
         }
 
         // Save work experience
-        foreach ($request->job_role as $index => $role) {
-            WorkExperience::create([
-                'user_id' => $mentor->id,
-                'user_type' => 'mentor',
-                'job_role' => $role,
-                'organization' => $request->organization[$index],
-                'starts_from' => $request->starts_from[$index],
-                'end_to' => $request->end_to[$index],
-            ]);
+        // foreach ($request->job_role as $index => $role) {
+        //     WorkExperience::create([
+        //         'user_id' => $mentor->id,
+        //         'user_type' => 'mentor',
+        //         'job_role' => $role,
+        //         'organization' => $request->organization[$index],
+        //         'starts_from' => $request->starts_from[$index],
+        //         'end_to' => $request->end_to[$index],
+        //     ]);
+        // }
+        // Save work experiences
+        if ($request->has('job_role')) {
+            foreach ($request->job_role as $index => $role) {
+                $isCurrentlyWorking = $request->input("currently_working.$index") === 'on';
+
+                $startDate = $request->starts_from[$index] ?? null;
+                $endDate = $isCurrentlyWorking 
+                    ? 'work here'
+                    : ($request->end_to[$index] ?? null);
+
+                WorkExperience::create([
+                    'user_id'       => $mentor->id,
+                    'user_type'     => 'mentor',
+                    'job_role'      => $role,
+                    'organization'  => $request->organization[$index] ?? null,
+                    'starts_from'   => $startDate,
+                    'end_to'        => $endDate,
+                ]);
+            }
         }
 
         // Save training experience
@@ -684,6 +704,8 @@ class MentorController extends Controller
     public function adminSupportMentor(){
         return view('site.mentor.admin-support-mentor'); 
     }
+
+    
     public function settingsMentor(){
         $mentor = Auth::guard('mentor')->user();
         $mentorId = $mentor->id;
@@ -732,7 +754,6 @@ class MentorController extends Controller
     }
 
 
-
     public function mentorProfileUpdate(Request $request)
     {
         $mentor = auth()->guard('mentor')->user();
@@ -744,7 +765,7 @@ class MentorController extends Controller
             'dob' => 'nullable|date',
             'national_id' => 'nullable|string|max:15',
             'location' => 'nullable|string|max:255',
-            'about_coach' => 'nullable|string',
+            'about_mentor' => 'nullable|string',
         ]);
 
         $mentor->update([
@@ -754,7 +775,7 @@ class MentorController extends Controller
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
             'city' => $validated['location'] ?? null,
-            'about_coach' => $validated['about_coach'] ?? null,
+            'about_mentor' => $validated['about_mentor'] ?? null,
         ]);
 
         return response()->json([
@@ -762,7 +783,6 @@ class MentorController extends Controller
             'message' => 'Profile updated successfully!'
         ]);
     }
-
 
 
     public function updateMentorEducationInfo(Request $request)
@@ -862,8 +882,6 @@ class MentorController extends Controller
             'message' => 'Work experience saved successfully!',
         ]);
     }
-
-
 
 
     public function updateMentorSkillsInfo(Request $request)

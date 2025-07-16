@@ -52,7 +52,7 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::get('/chat-with-jobseeker', [MentorController::class, 'chatWithJobseekerMentor'])->name('chat.with.jobseeker.mentor');
 
 		// Reviews
-		Route::get('/mentor/reviews', [MentorController::class, 'mentorReviews'])->name('mentor.reviews');
+		Route::get('/reviews', [MentorController::class, 'mentorReviews'])->name('mentor.reviews');
 		Route::delete('/delete-mentor-review/{id}', [MentorController::class, 'deleteMentorReview'])->name('mentor.review.delete');
 
 

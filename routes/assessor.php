@@ -20,10 +20,13 @@ Route::group(['prefix' => 'assessor'], function() {
 
 		Route::post('/registration', [AssessorController::class, 'postRegistration'])->name('assessor.register.post');
 		Route::post('/submit-forget-password',[AssessorController::class, 'submitForgetPassword'])->name('assessor.submit.forget.password');
+		Route::post('/resend-otp', [AssessorController::class, 'resendOtp'])->name('assessor.resend-otp');
+
 		Route::post('/submit-verify-otp', [AssessorController::class, 'verifyOtp'])->name('assessor.verify-otp.submit');
 		Route::post('/submit-reset-password', [AssessorController::class, 'resetPassword'])->name('assessor.reset-password.submit');
 		Route::post('/registration/store', [AssessorController::class, 'storeAssessorInformation'])->name('assessor.registration.store');
 		Route::post('/assessor/login', [AssessorController::class, 'loginAssessor'])->name('assessor.login.submit');
+
 	});
 	
 	Route::group(['middleware' => 'assessor.auth'], function(){
@@ -31,5 +34,29 @@ Route::group(['prefix' => 'assessor'], function() {
 
 		Route::get('/dashboard',[AssessorController::class, 'showAssessorDashboard'])->name('assessor.dashboard');
 		Route::post('/logout',[AssessorController::class, 'logoutAssessor'])->name('assessor.logout');
+		Route::get('/setting-assessor', [AssessorController::class, 'showSettingsAssessor'])->name('setting.assessor');
+
+		Route::post('/assessor/profile-update', [AssessorController::class, 'assessorProfileUpdate'])->name('assessor.profile.update');
+		Route::post('/assessor/education-update', [AssessorController::class, 'updateAssessorEducationInfo'])->name('assessor.education.update');
+		Route::post('/assessor/work-update', [AssessorController::class, 'updateAssessorWorkExperienceInfo'])->name('assessor.workexprience.update');
+		Route::post('/assessor/skills-update', [AssessorController::class, 'updateAssessorSkillsInfo'])->name('assessor.skills.update');
+		Route::post('/assessor/additional-info-update', [AssessorController::class, 'updateAssessorAdditionalInfo'])->name('assessor.additional.update');
+		Route::delete('assessor/delete-document/{type}', [AssessorController::class, 'deleteAssessorDocument'])->name('assessor.additional.delete');
+
+		Route::delete('/delete', [AssessorController::class, 'deleteAccount'])->name('assessor.destroy');
+
+		// Reviews
+		Route::get('/reviews', [AssessorController::class, 'assessorReviews'])->name('assessor.reviews');
+		Route::delete('/delete-assessor-review/{id}', [AssessorController::class, 'deleteAssessorReview'])->name('assessor.review.delete');
+
+		// manage-booking-slots-assessor
+		Route::get('manage-bookings', [AssessorController::class, 'manageBooking'])->name('assessor.manage-bookings');
+		Route::get('create-bookings', [AssessorController::class, 'createBooking'])->name('assessor.create-bookings');
+		Route::post('submit-bookings', [AssessorController::class, 'submitBooking'])->name('assessor.submit-bookings');
+
+		Route::post('/dashboard-action',[AssessorController::class, 'dashboardAction'])->name('assessor.dashboard-action');
+		Route::post('update-slot-status', [AssessorController::class, 'updateStatus'])->name('assessor.update-slot-status');
+		Route::post('/assessor/update-slot-time', [AssessorController::class, 'updateSlotTime'])->name('assessor.update-slot-time');
+		Route::post('/assessor/delete-slot', [AssessorController::class, 'deleteSlot'])->name('assessor.delete-slot');
 	});
 });

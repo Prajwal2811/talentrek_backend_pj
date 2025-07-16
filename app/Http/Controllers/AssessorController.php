@@ -5,9 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Coach;
+use App\Models\Mentors;
+use App\Models\Trainers;
+use App\Models\Jobseekers;
+use App\Models\Recruiters;
+use App\Models\TrainingExperience;
+use App\Models\EducationDetails;
+use App\Models\WorkExperience;
+use App\Models\AdditionalInfo;
+use App\Models\Review;
+use App\Models\BookingSlotUnavailableDate;
+use App\Models\BookingSession;
+use App\Models\TrainingCategory;
+use App\Models\BookingSlot;
 use App\Models\Assessors;
+use Carbon\Carbon;
 use DB;
 use Auth;
+
 
 class AssessorController extends Controller
 {
@@ -20,7 +36,8 @@ class AssessorController extends Controller
     }
     public function showRegistrationForm()
     {
-    return view('site.assessor.registration');
+    $categories = TrainingCategory::all();
+    return view('site.assessor.registration', compact('categories'));
     }
     public function showForgotPasswordForm()
     {
@@ -38,15 +55,15 @@ class AssessorController extends Controller
     public function postRegistration(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email|unique:assessors,company_email',
-            'phone_number' => 'required|unique:assessors,company_phone_number',
+            'email' => 'required|email|unique:assessors,email',
+            'phone_number' => 'required|unique:assessors,phone_number',
             'password' => 'required|min:6|same:confirm_password',
             'confirm_password' => 'required|min:6',
         ]);
 
         $assessors = Assessors::create([
-            'company_email' => $request->email,
-            'company_phone_number' => $request->phone_number,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
             'pass' => $request->password,
         ]);
@@ -66,7 +83,7 @@ class AssessorController extends Controller
         $request->validate([
             'contact' => ['required', function ($attribute, $value, $fail) {
                 $isEmail = filter_var($value, FILTER_VALIDATE_EMAIL);
-                $column = $isEmail ? 'company_email' : 'company_phone_number';
+                $column = $isEmail ? 'email' : 'phone_number';
 
                 $exists = DB::table('assessors')->where($column, $value)->exists();
 
@@ -79,7 +96,7 @@ class AssessorController extends Controller
         $otp = rand(100000, 999999);
         $contact = $request->contact;
         $isEmail = filter_var($contact, FILTER_VALIDATE_EMAIL);
-        $contactMethod = $isEmail ? 'company_email' : 'company_phone_number';
+        $contactMethod = $isEmail ? 'email' : 'phone_number';
 
         // Save OTP in database
         DB::table('assessors')->where($contactMethod, $contact)->update([
@@ -106,6 +123,36 @@ class AssessorController extends Controller
         return redirect()->route('assessor.verify-otp')->with('success', 'OTP sent!');
     }
 
+    public function resendOtp(Request $request)
+    {
+        $contact = session('otp_value');
+        $contactMethod = session('otp_method');
+
+        if (!$contact || !$contactMethod) {
+            return response()->json(['message' => 'Session expired. Please try again.'], 400);
+        }
+
+        $otp = rand(100000, 999999);
+
+        // Save new OTP in database
+        DB::table('assessors')->where($contactMethod, $contact)->update([
+            'otp' => $otp,
+            'updated_at' => now()
+        ]);
+
+        // === OTP sending is disabled for now ===
+        if ($contactMethod === 'email') {
+            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
+            //     $message->to($contact)->subject('Your OTP has been resent – Talentrek');
+            // });
+        } else {
+            // SmsService::send($contact, "Your OTP is: $otp");
+        }
+
+        return response()->json(['message' => 'OTP resent successfully.']);
+    }
+
+
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -115,7 +162,7 @@ class AssessorController extends Controller
 
         $contact = $request->contact;
         $isEmail = filter_var($contact, FILTER_VALIDATE_EMAIL);
-        $column = $isEmail ? 'company_email' : 'company_phone_number';
+        $column = $isEmail ? 'email' : 'phone_number';
 
         $assessors = DB::table('assessors')
             ->where($column, $contact)
@@ -178,7 +225,7 @@ class AssessorController extends Controller
             'password'  => 'required'
         ]);
 
-        $assessor = Assessors::where('company_email', $request->email)->first();
+        $assessor = Assessors::where('email', $request->email)->first();
 
         if (!$assessor) {
             // Email does not exist
@@ -193,7 +240,7 @@ class AssessorController extends Controller
         }
 
         // Now attempt login only if status is active
-        if (Auth::guard('assessor')->attempt(['company_email' => $request->email, 'password' => $request->password])) {
+        if (Auth::guard('assessor')->attempt(['email' => $request->email, 'password' => $request->password])) {
             // return view('site.trainer.trainer-dashboard');
             return redirect()->route('assessor.dashboard');
         } else {
@@ -215,5 +262,645 @@ class AssessorController extends Controller
         $request->session()->regenerateToken(); 
 
         return redirect()->route('assessor.login')->with('success', 'Logged out successfully');
+    }
+
+    public function storeAssessorInformation(Request $request)
+    {
+        $assessorId = session('assessor_id');
+
+        if (!$assessorId) {
+            return redirect()->route('assessor.signup')->with('error', 'Session expired. Please sign up again.');
+        }
+
+        $assessor = Assessors::find($assessorId);
+
+        if (!$assessor) {
+            return redirect()->route('assessor.signup')->with('error', 'Trainer not found.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:assessors,email,' . $assessor->id,
+            'phone_number' => 'required|unique:assessors,phone_number,' . $assessor->id,
+            'dob' => 'required|date',
+            'city' => 'required|string|max:255',
+            'national_id' => [
+                'required',
+                'min:10',
+                function ($attribute, $value, $fail) use ($assessor) {
+                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                    $existsInJobseekers = Jobseekers::where('national_id', $value)->exists();
+                    $existsInMentors = Mentors::where('national_id', $value)->exists();
+                    $existsInCoach = Coach::where('national_id', $value)->exists();
+                    $existsInAssessor = Assessors::where('national_id', $value)
+                        ->where('id', '!=', $assessor->id)
+                        ->exists();
+
+                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers || $existsInMentors || $existsInCoach || $existsInAssessor) {
+                        $fail('The national ID has already been taken.');
+                    }
+                },
+            ],
+
+            'high_education.*' => 'required|string',
+            'field_of_study.*' => 'nullable|string',
+            'institution.*' => 'required|string',
+            'graduate_year.*' => 'required|string',
+
+            'job_role.*' => 'required|string',
+            'organization.*' => 'required|string',
+            'starts_from.*' => 'required|date',
+            'end_to.*' => 'required|date',
+
+            'training_skills' => 'required|string',
+            'area_of_interest' => 'required|string',
+            'job_category' => 'required|string',
+            'website_link' => 'nullable|url',
+            'portfolio_link' => 'nullable|url',
+
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+        ], [
+            // ✅ Custom messages
+            'name.required' => 'Please enter your full name.',
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already taken.',
+            'phone_number.required' => 'Please enter your phone number.',
+            'phone_number.unique' => 'This phone number is already taken.',
+            'dob.required' => 'Please enter your date of birth.',
+            'city.required' => 'Please enter your city.',
+            'national_id.required' => 'Please enter your national ID.',
+            'national_id.min' => 'National ID must be at least 10 characters.',
+
+            'high_education.*.required' => 'Please enter your highest education.',
+            'institution.*.required' => 'Please enter the institution name.',
+            'graduate_year.*.required' => 'Please enter your graduation year.',
+            'job_role.*.required' => 'Please enter your job role.',
+            'organization.*.required' => 'Please enter the organization name.',
+            'starts_from.*.required' => 'Please enter the start date.',
+            'end_to.*.required' => 'Please enter the end date.',
+
+            'training_skills.required' => 'Please enter your training skills.',
+            'area_of_interest.required' => 'Please enter your area of interest.',
+            'job_category.required' => 'Please select your job category.',
+            'website_link.required' => 'Please enter your website link.',
+            'website_link.url' => 'Please enter a valid website URL.',
+            'portfolio_link.required' => 'Please enter your portfolio link.',
+            'portfolio_link.url' => 'Please enter a valid portfolio URL.',
+
+            'resume.required' => 'Please upload your resume.',
+            'resume.mimes' => 'Resume must be a file of type: pdf, doc, docx.',
+            'profile_picture.required' => 'Please upload your profile picture.',
+            'profile_picture.image' => 'Profile picture must be an image.',
+            'training_certificate.required' => 'Please upload your training certificate.',
+            'training_certificate.mimes' => 'Training certificate must be a file of type: pdf, doc, docx.',
+        ]);
+
+
+        DB::beginTransaction();
+
+        // Update assessor profile
+        $assessor->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone_number'],
+            'date_of_birth' => $validated['dob'],
+            'city' => $validated['city'],
+            'national_id' => $validated['national_id'],
+        ]);
+
+        // Save education
+        foreach ($request->high_education as $index => $education) {
+            EducationDetails::create([
+                'user_id' => $assessor->id,
+                'user_type' => 'assessor',
+                'high_education' => $education,
+                'field_of_study' => $request->field_of_study[$index] ?? null,
+                'institution' => $request->institution[$index],
+                'graduate_year' => $request->graduate_year[$index],
+            ]);
+        }
+
+   
+        // Save work experiences
+        if ($request->has('job_role')) {
+            foreach ($request->job_role as $index => $role) {
+                $isCurrentlyWorking = $request->input("currently_working.$index") === 'on';
+
+                $startDate = $request->starts_from[$index] ?? null;
+                $endDate = $isCurrentlyWorking 
+                    ? 'work here'
+                    : ($request->end_to[$index] ?? null);
+
+                WorkExperience::create([
+                    'user_id'       => $assessor->id,
+                    'user_type'     => 'assessor',
+                    'job_role'      => $role,
+                    'organization'  => $request->organization[$index] ?? null,
+                    'starts_from'   => $startDate,
+                    'end_to'        => $endDate,
+                ]);
+            }
+        }
+
+        // Save training experience
+        TrainingExperience::create([
+            'user_id' => $assessor->id,
+            'user_type' => 'assessor',
+            'training_skills' => $request->training_skills,
+            'area_of_interest' => $request->area_of_interest,
+            'job_category' => $request->job_category,
+            'website_link' => $request->website_link,
+            'portfolio_link' => $request->portfolio_link,
+        ]);
+
+        // File uploads
+        $uploadTypes = [
+            'resume' => 'assessor_resume',
+            'profile_picture' => 'assessor_profile_picture',
+            'training_certificate' => 'assessor_training_certificate',
+        ];
+
+        foreach ($uploadTypes as $field => $docType) {
+            if ($request->hasFile($field)) {
+                $existing = AdditionalInfo::where([
+                    ['user_id', $assessor->id],
+                    ['user_type', 'assessor'],
+                    ['doc_type', $docType],
+                ])->first();
+
+                if (!$existing) {
+                    $originalName = $request->file($field)->getClientOriginalName();
+                    $extension = $request->file($field)->getClientOriginalExtension();
+                    $filename = $docType . '_' . time() . '.' . $extension;
+                    $request->file($field)->move('uploads/', $filename);
+
+                    AdditionalInfo::create([
+                        'user_id' => $assessor->id,
+                        'user_type' => 'assessor',
+                        'doc_type' => $docType,
+                        'document_name' => $originalName,
+                        'document_path' => asset('uploads/' . $filename),
+                    ]);
+                }
+            }
+        }
+
+        DB::commit();
+
+        session()->forget('assessor_id');
+        return redirect()->route('assessor.login')->with('success_popup', true);
+    }
+
+    public function showSettingsAssessor(){
+        $assessor = Auth::guard('assessor')->user();
+        $assessorId = $assessor->id;
+
+        // assessor with training experience
+        $assessorDetails = DB::table('assessors')
+            ->leftJoin('training_experience', function ($join) {
+                $join->on('training_experience.user_id', '=', 'assessors.id')
+                    ->where('training_experience.user_type', 'assessor');
+            })
+            ->where('assessors.id', $assessorId)
+            ->select(
+                'assessors.*',
+                'training_experience.training_experience',
+                'training_experience.training_skills',
+                'training_experience.area_of_interest',
+                'training_experience.job_category',
+                'training_experience.website_link',
+                'training_experience.portfolio_link'
+            )
+            ->first();
+        // dd( $assessorDetails);exit;        
+        $educationDetails = DB::table('education_details')
+            ->where([
+                ['user_id', '=', $assessorId],
+                ['user_type', '=', 'assessor']
+            ])
+            ->get();
+
+        $workExperiences = DB::table('work_experience')
+            ->where([
+                ['user_id', '=', $assessorId],
+                ['user_type', '=', 'assessor']
+            ])
+            ->get();
+
+        $categories = TrainingCategory::all();    
+
+        return view('site.assessor.settings-assesor', compact(
+            'assessor',
+            'assessorDetails',
+            'educationDetails',
+            'workExperiences',
+            'categories'
+        ));
+        
+    }
+
+    public function assessorProfileUpdate(Request $request)
+    {
+        $assessor = auth()->guard('assessor')->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:assessors,email,' . $assessor->id,
+            'phone' => 'required|string|max:15',
+            'dob' => 'nullable|date',
+            'national_id' => 'nullable|string|max:15',
+            'location' => 'nullable|string|max:255',
+            'about_assessor' => 'nullable|string',
+        ]);
+
+        $assessor->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone'],
+            'date_of_birth' => $validated['dob'] ?? null,
+            'national_id' => $validated['national_id'] ?? null,
+            'city' => $validated['location'] ?? null,
+            'about_assessor' => $validated['about_assessor'] ?? null,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile updated successfully!'
+        ]);
+    }
+
+
+
+    public function updateAssessorEducationInfo(Request $request)
+    {
+        $user = auth()->user();
+        $userId = $user->id;
+
+        $validated = $request->validate([
+            'high_education.*' => 'required|string|max:255',
+            'field_of_study.*' => 'required|string|max:255',
+            'institution.*' => 'required|string|max:255',
+            'graduate_year.*' => 'required|string|max:255',
+        ]);
+
+        $incomingIds = $request->input('education_id', []);
+        $existingIds = EducationDetails::where('user_id', $userId)
+            ->where('user_type', 'assessor')
+            ->pluck('id')
+            ->toArray();
+
+        $toDelete = array_diff($existingIds, $incomingIds);
+        EducationDetails::whereIn('id', $toDelete)->delete();
+
+        foreach ($request->input('high_education', []) as $i => $education) {
+            $data = [
+                'user_id' => $userId,
+                'user_type' => 'assessor',
+                'high_education' => $request->high_education[$i],
+                'field_of_study' => $request->field_of_study[$i] ?? null,
+                'institution' => $request->institution[$i] ?? null,
+                'graduate_year' => $request->graduate_year[$i] ?? null,
+            ];
+
+            if (!empty($request->education_id[$i])) {
+                EducationDetails::where('id', $request->education_id[$i])->update($data);
+            } else {
+                EducationDetails::create($data);
+            }
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Education details updated successfully!']);
+    }
+
+    public function updateAssessorWorkExperienceInfo(Request $request)
+    {
+        $user_id = auth()->guard('assessor')->id(); // Use assessor guard
+
+        $validated = $request->validate([
+            'job_role.*' => 'required|string|max:255',
+            'organization.*' => 'required|string|max:255',
+            'starts_from.*' => 'required|date',
+            'end_to.*' => 'nullable|date',
+        ]);
+
+        $incomingIds = $request->input('work_id', []);
+        $existingIds = WorkExperience::where('user_id', $user_id)
+            ->where('user_type', 'assessor')
+            ->pluck('id')
+            ->toArray();
+
+        // Delete removed work experiences
+        $toDelete = array_diff($existingIds, $incomingIds);
+        WorkExperience::whereIn('id', $toDelete)->delete();
+
+        $currentlyWorkingIndexes = $request->has('currently_working') ? array_keys($request->currently_working) : [];
+
+        foreach ($request->job_role as $i => $role) {
+            $isCurrent = in_array($i, $currentlyWorkingIndexes);
+            $start = $request->starts_from[$i] ?? null;
+            $end = $isCurrent ? 'Work here' : ($request->end_to[$i] ?? null);
+
+            if (!$isCurrent && $start && $end && $end < $start) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => ["end_to.$i" => ["End date must be after or equal to start date."]]
+                ], 422);
+            }
+
+            $data = [
+                'user_id' => $user_id,
+                'user_type' => 'assessor',
+                'job_role' => $role,
+                'organization' => $request->organization[$i],
+                'starts_from' => $start,
+                'end_to' => $end,
+            ];
+
+            if (!empty($request->work_id[$i])) {
+                WorkExperience::where('id', $request->work_id[$i])->update($data);
+            } else {
+                WorkExperience::create($data);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Work experience saved successfully!',
+        ]);
+    }
+
+
+
+
+    public function updateAssessorSkillsInfo(Request $request)
+    {
+        $user_id = auth()->id();
+
+        $validated = $request->validate([
+            'training_skills' => 'required|string',
+            'area_of_interest' => 'required|string',
+            'job_category' => 'required|string',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
+        ]);
+
+        $skills = TrainingExperience::where('user_id', $user_id)
+            ->where('user_type', 'assessor')
+            ->first();
+
+        if ($skills) {
+            $skills->update($validated);
+        } else {
+            TrainingExperience::create([
+                'user_id' => $user_id,
+                'user_type' => 'assessor',
+                'training_skills' => $validated['training_skills'],
+                'area_of_interest' => $validated['area_of_interest'],
+                'job_category' => $validated['job_category'],
+                'website_link' => $validated['website_link'],
+                'portfolio_link' => $validated['portfolio_link'],
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Assessor skills updated successfully!',
+        ]);
+    }
+
+
+    public function updateAssessorAdditionalInfo(Request $request)
+    {
+        $userId = auth()->id();
+
+        $validated = $request->validate([
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        $documentTypes = [
+            'resume' => 'assessor_resume',
+            'profile' => 'assessor_profile_picture',
+            'training_certificate' => 'assessor_training_certificate'
+        ];
+
+        foreach ($documentTypes as $field => $docType) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+                $fileName = $docType . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads'), $fileName);
+                $path = asset('uploads/' . $fileName);
+
+                AdditionalInfo::updateOrCreate(
+                    ['user_id' => $userId, 'user_type' => 'assessor', 'doc_type' => $docType],
+                    ['document_path' => $path, 'document_name' => $fileName]
+                );
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Assessor documents updated successfully!'
+        ]);
+    }
+
+
+    public function deleteAssessorDocument($type)
+    {
+        $userId = auth()->id();
+
+        $documentTypes = [
+            'resume' => 'assessor_resume',
+            'profile' => 'assessor_profile_picture',
+            'training_certificate' => 'assessor_training_certificate'
+        ];
+
+        if (!isset($documentTypes[$type])) {
+            return response()->json(['message' => 'Invalid document type'], 400);
+        }
+
+        $deleted = AdditionalInfo::where([
+            'user_id' => $userId,
+            'user_type' => 'assessor',
+            'doc_type' => $documentTypes[$type]
+        ])->delete();
+
+        return response()->json([
+            'message' => $deleted ? 'File deleted successfully' : 'File not found'
+        ]);
+    }
+
+     public function deleteAccount()
+     {
+          $assessorId = auth()->id();
+          Assessors::where('id', $assessorId)->delete();
+          auth()->logout();
+
+          return redirect()->route('assessor.login')->with('success', 'Your account has been deleted successfully.');
+     }
+
+     public function assessorReviews()
+    {
+        $reviews = DB::table('reviews')
+            ->leftJoin('jobseekers', 'jobseekers.id', '=', 'reviews.jobseeker_id')
+            // ->leftJoin('courses', 'courses.id', '=', 'reviews.course_id')
+            ->where('reviews.user_type', 'assessor')
+            ->select(
+                'reviews.id',
+                'reviews.reviews',
+                'reviews.ratings',
+                'reviews.created_at',
+                'jobseekers.name as jobseeker_name',
+                // 'courses.title as course_title'
+            )
+            ->get();
+
+        return view('site.assessor.reviews', compact('reviews'));
+    }
+
+    public function deleteAssessorReview($id)
+    {
+        DB::table('reviews')
+            ->where('id', $id)
+            ->where('user_type', 'assessor')
+            ->delete();
+
+        return redirect()->route('assessor.reviews')->with('success', 'Assessor review deleted successfully.');
+    }
+
+    // Controller method for initial view
+    public function manageBooking()
+    {
+        $assessor = auth()->user();
+
+        // Load all slots with their unavailable dates
+        $allSlots = BookingSlot::with('unavailableDates')
+            ->where('user_type', 'assessor')
+            ->where('user_id', $assessor->id)
+            ->get();
+
+        $onlineSlots = $allSlots->where('slot_mode', 'online')->values();
+        $offlineSlots = $allSlots->where('slot_mode', 'offline')->values();
+
+        $unavailableDatesMap = [];
+        foreach ($allSlots as $slot) {
+            foreach ($slot->unavailableDates as $date) {
+                $unavailableDatesMap[$slot->id][] = $date->unavailable_date;
+            }
+        }
+
+        return view('site.assessor.manage-booking', [
+            'onlineSlots' => $onlineSlots,
+            'offlineSlots' => $offlineSlots,
+            'unavailableDatesMap' => $unavailableDatesMap,
+        ]);
+    }
+
+    public function createBooking(){
+        return view('site.assessor.create-booking'); 
+    }
+
+    public function submitBooking(Request $request)
+    {
+        $request->validate([
+            'slots' => 'required|array|min:1',
+            'slots.*' => 'string',
+        ]);
+
+        foreach ($request->slots as $slot) {
+            // Example slot: "online | 01:00 am - 02:00 am"
+            [$mode, $range] = explode(' | ', $slot);
+            [$start, $end] = explode(' - ', $range);
+
+            BookingSlot::create([
+                'user_type' => 'assessor',
+                'user_id' => auth()->id(),
+                'slot_mode' => $mode,
+                'start_time' => Carbon::createFromFormat('h:i a', $start)->format('H:i:s'),
+                'end_time' => Carbon::createFromFormat('h:i a', $end)->format('H:i:s'),
+                'is_available' => true,
+            ]);
+        }
+
+        return redirect()->route('assessor.manage-bookings')->with('success', 'Booking slots saved successfully.');
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+        $slot = BookingSlot::find($request->slot_id);
+
+        if (!$slot) {
+            return response()->json(['status' => 'error', 'message' => 'Slot not found.'], 404);
+        }
+
+        // Update is_available field in BookingSlot (optional: you can remove this if availability is fully date-based)
+        $slot->is_available = $request->is_available;
+        $slot->save();
+
+        if ($request->is_available == 0) {
+            // Mark this specific date as unavailable
+            BookingSlotUnavailableDate::firstOrCreate([
+                'booking_slot_id' => $slot->id,
+                'unavailable_date' => $date,
+            ]);
+        } else {
+            // Remove unavailable entry for that date
+            BookingSlotUnavailableDate::where('booking_slot_id', $slot->id)
+                ->where('unavailable_date', $date)
+                ->delete();
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Slot status updated.']);
+    }
+
+    public function updateSlotTime(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:booking_slots,id',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+        ]);
+
+        // Convert to 24-hour format
+        $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
+        $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+
+        $slot = BookingSlot::findOrFail($request->id);
+        
+        $slot->update([
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Slot time updated successfully.',
+            'slot' => $slot,
+        ]);
+    }
+    public function deleteSlot(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:booking_slots,id',
+        ]);
+
+        $slot = BookingSlot::findOrFail($request->id);
+        
+        // Optional: Ensure current assessor owns this slot
+        if ($slot->user_id !== auth()->id()) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        // Delete the slot and its related unavailable dates
+        $slot->unavailableDates()->delete(); // If using relation
+        $slot->delete();
+
+        return response()->json(['status' => 'success']);
     }
 }

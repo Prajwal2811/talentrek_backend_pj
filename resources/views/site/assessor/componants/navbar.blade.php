@@ -47,3 +47,8 @@
                     </div>
                     </div>
                 </nav>
+                   <!-- Feather Icons -->
+        <script>
+            feather.replace()
+        </script>
+        

@@ -1,6 +1,6 @@
 <?php
 
-$mentor = Auth()->user();
+$coach = Auth()->user();
 //  'trainerSkills',
 // 'educationDetails',
 // 'workExperiences'
@@ -26,10 +26,10 @@ $mentor = Auth()->user();
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
-            @include('site.mentor.componants.sidebar')
+            @include('site.coach.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                @include('site.mentor.componants.navbar')
+                @include('site.coach.componants.navbar')
 
            <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
                     <h2 class="text-2xl font-semibold mb-6">Settings</h2>
@@ -480,8 +480,8 @@ $mentor = Auth()->user();
                                         @php
                                             $user = auth()->user();
                                             $userId = $user->id;
-                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'mentor')
-                                            ->where('doc_type', 'mentor_profile_picture')
+                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'coach')
+                                            ->where('doc_type', 'coach_profile_picture')
                                             ->first();
                                             
                                         @endphp
@@ -546,24 +546,24 @@ $mentor = Auth()->user();
                                        <!-- Personal Information Tab -->
                                         <div x-show="activeSubTab === 'personal'" x-transition>
                                             <!-- Success Message -->
-                                            <div id="mentor-info-success" class="alert alert-success text-center" style="display: none;">
+                                            <div id="coach-info-success" class="alert alert-success text-center" style="display: none;">
                                                 <strong>Success!</strong> <span class="message-text"></span>
                                             </div>
 
-                                            <!-- Mentor Info Form -->
-                                            <form id="mentor-info-form" action="{{ route('mentor.profile.update') }}" method="POST">
+                                            <!-- coach Info Form -->
+                                            <form id="coach-info-form" action="{{ route('coach.profile.update') }}" method="POST">
                                                 @csrf
                                                 <div class="grid grid-cols-2 gap-6 mt-3">
                                                     <!-- Name -->
                                                     <div>
                                                         <label class="block mb-1 font-medium">Full Name</label>
-                                                        <input type="text" name="name" value="{{ $mentor->name }}" class="w-full border rounded px-3 py-2" />
+                                                        <input type="text" name="name" value="{{ $coach->name }}" class="w-full border rounded px-3 py-2" />
                                                     </div>
 
                                                     <!-- Email -->
                                                     <div>
                                                         <label class="block mb-1 font-medium">Email</label>
-                                                        <input type="email" name="email" value="{{ $mentor->email }}" class="w-full border rounded px-3 py-2" />
+                                                        <input type="email" name="email" value="{{ $coach->email }}" class="w-full border rounded px-3 py-2" />
                                                     </div>
                                                 </div>
 
@@ -571,7 +571,7 @@ $mentor = Auth()->user();
                                                     <!-- Phone (FIXED) -->
                                                     <div>
                                                         <label class="block mb-1 font-medium">Phone Number</label>
-                                                        <input type="text" name="phone" value="{{ $mentor->phone_number }}" class="w-full border rounded px-3 py-2" />
+                                                        <input type="text" name="phone" value="{{ $coach->phone_number }}" class="w-full border rounded px-3 py-2" />
                                                     </div>
 
                                                     <!-- Date of Birth -->
@@ -580,7 +580,7 @@ $mentor = Auth()->user();
                                                         <input 
                                                             type="date" 
                                                             name="dob" 
-                                                            value="{{ old('dob', \Carbon\Carbon::parse($mentor->date_of_birth)->format('Y-m-d')) }}" 
+                                                            value="{{ old('dob', \Carbon\Carbon::parse($coach->date_of_birth)->format('Y-m-d')) }}" 
                                                             class="w-full border rounded px-3 py-2" 
                                                         />
 
@@ -591,7 +591,7 @@ $mentor = Auth()->user();
                                                 <div class="mt-3">
                                                     <label class="block font-medium mb-1">National ID Number</label>
                                                     <input type="text" name="national_id" maxlength="15"
-                                                        value="{{ $mentor->national_id }}"
+                                                        value="{{ $coach->national_id }}"
                                                         class="w-full border rounded px-3 py-2"
                                                         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" />
                                                 </div>
@@ -599,19 +599,19 @@ $mentor = Auth()->user();
                                                 <!-- City -->
                                                 <div class="mt-3">
                                                     <label class="block font-medium mb-1">City</label>
-                                                    <input type="text" name="location" value="{{ $mentor->city }}" class="w-full border rounded px-3 py-2" />
+                                                    <input type="text" name="location" value="{{ $coach->city }}" class="w-full border rounded px-3 py-2" />
                                                 </div>
 
                                                 <!-- About Coach -->
                                                 <div class="mt-3">
-                                                    <label class="block font-medium mb-1">About Mentor</label>
-                                                    <textarea name="about_mentor" class="w-full border rounded px-3 py-2 h-24">{{ $mentor->about_mentor }}</textarea>
+                                                    <label class="block font-medium mb-1">About coach</label>
+                                                    <textarea name="about_coach" class="w-full border rounded px-3 py-2 h-24">{{ $coach->about_coach }}</textarea>
                                                 </div>
 
                                                 <!-- Buttons -->
                                                 <div class="mt-6 flex justify-end gap-4">
                                                     <button @click.prevent="activeSubTab = 'education'" class="border px-6 py-2 rounded hover:bg-gray-100">Next</button>
-                                                    <button type="button" id="save-mentor-info" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Save</button>
+                                                    <button type="button" id="save-coach-info" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Save</button>
                                                 </div>
                                             </form>
 
@@ -620,10 +620,10 @@ $mentor = Auth()->user();
 
                                         <!-- AJAX Submission Script -->
                                         <script>
-                                        document.getElementById('save-mentor-info').addEventListener('click', function () {
-                                            const form = document.getElementById('mentor-info-form');
+                                        document.getElementById('save-coach-info').addEventListener('click', function () {
+                                            const form = document.getElementById('coach-info-form');
                                             const formData = new FormData(form);
-                                            const successBox = document.getElementById('mentor-info-success');
+                                            const successBox = document.getElementById('coach-info-success');
                                             const successText = successBox.querySelector('.message-text');
 
                                             fetch(form.action, {
@@ -671,7 +671,7 @@ $mentor = Auth()->user();
                                             </div>
 
                                             <!-- Education Form -->
-                                            <form id="education-info-form" method="POST" action="{{ route('mentor.education.update') }}" class="space-y-6">
+                                            <form id="education-info-form" method="POST" action="{{ route('coach.education.update') }}" class="space-y-6">
                                                 @csrf
                                                 <div id="education-container" class="space-y-6">
                                                     @foreach($educationDetails as $education)
@@ -825,7 +825,7 @@ $mentor = Auth()->user();
                                                 <strong>Success!</strong> <span class="message-text"></span>
                                             </div>
 
-                                            <form id="work-info-form" method="POST" action="{{ route('mentor.workexprience.update') }}" class="space-y-6">
+                                            <form id="work-info-form" method="POST" action="{{ route('coach.workexprience.update') }}" class="space-y-6">
                                                 @csrf
 
                                                 <div id="work-container" class="space-y-6">
@@ -1017,7 +1017,7 @@ $mentor = Auth()->user();
                                             </div>
 
                                             <!-- Skills & Training Form -->
-                                            <form id="trainer-skills-info-form" method="POST" action="{{ route('mentor.skills.update') }}">
+                                            <form id="trainer-skills-info-form" method="POST" action="{{ route('coach.skills.update') }}">
                                                 @csrf
                                                 <div class="space-y-4">
                                                     <!-- Skills -->
@@ -1025,7 +1025,7 @@ $mentor = Auth()->user();
                                                         <label class="block text-sm font-medium mb-1">Skills</label>
                                                         <input type="text" name="training_skills" placeholder="E.g., JavaScript, UI/UX, Communication"
                                                             class="w-full border rounded px-3 py-2"
-                                                            value="{{ old('training_skills', $mentorDetails->training_skills ?? '') }}" />
+                                                            value="{{ old('training_skills', $coachDetails->training_skills ?? '') }}" />
                                                         @error('training_skills')
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @enderror
@@ -1038,7 +1038,7 @@ $mentor = Auth()->user();
                                                             <option value="">-- Select Area of Interest --</option>
                                                             @foreach($categories as $category)
                                                                 <option value="{{ $category->category }}"
-                                                                    {{ old('area_of_interest', $mentorDetails->area_of_interest ?? '') == $category->category ? 'selected' : '' }}>
+                                                                    {{ old('area_of_interest', $coachDetails->area_of_interest ?? '') == $category->category ? 'selected' : '' }}>
                                                                     {{ $category->category }}
                                                                 </option>
                                                             @endforeach
@@ -1053,7 +1053,7 @@ $mentor = Auth()->user();
                                                         <label class="block mb-1 text-sm font-medium">Job Category</label>
                                                         <input type="text" name="job_category" class="w-full border rounded-md p-2"
                                                             placeholder="e.g. Communication, Leadership, Python, Cloud Computing"
-                                                            value="{{ old('job_category', $mentorDetails->job_category ?? '') }}" />
+                                                            value="{{ old('job_category', $coachDetails->job_category ?? '') }}" />
                                                         @error('job_category')
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @enderror
@@ -1064,7 +1064,7 @@ $mentor = Auth()->user();
                                                         <label class="block text-sm font-medium mb-1">Website Link</label>
                                                         <input type="url" name="website_link" placeholder="https://example.com"
                                                             class="w-full border rounded px-3 py-2"
-                                                            value="{{ old('website_link', $mentorDetails->website_link ?? '') }}" />
+                                                            value="{{ old('website_link', $coachDetails->website_link ?? '') }}" />
                                                         @error('website_link')
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @enderror
@@ -1075,7 +1075,7 @@ $mentor = Auth()->user();
                                                         <label class="block text-sm font-medium mb-1">Portfolio Link</label>
                                                         <input type="url" name="portfolio_link" placeholder="https://portfolio.com"
                                                             class="w-full border rounded px-3 py-2"
-                                                            value="{{ old('portfolio_link', $mentorDetails->portfolio_link ?? '') }}" />
+                                                            value="{{ old('portfolio_link', $coachDetails->portfolio_link ?? '') }}" />
                                                         @error('portfolio_link')
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @enderror
@@ -1154,20 +1154,20 @@ $mentor = Auth()->user();
 
                                                 $resume = \App\Models\AdditionalInfo::where([
                                                     'user_id' => $userId,
-                                                    'user_type' => 'mentor',
-                                                    'doc_type' => 'mentor_resume'
+                                                    'user_type' => 'coach',
+                                                    'doc_type' => 'coach_resume'
                                                 ])->first();
 
                                                 $profile = \App\Models\AdditionalInfo::where([
                                                     'user_id' => $userId,
-                                                    'user_type' => 'mentor',
-                                                    'doc_type' => 'mentor_profile_picture'
+                                                    'user_type' => 'coach',
+                                                    'doc_type' => 'coach_profile_picture'
                                                 ])->first();
 
                                                 $certificate = \App\Models\AdditionalInfo::where([
                                                     'user_id' => $userId,
-                                                    'user_type' => 'mentor',
-                                                    'doc_type' => 'mentor_training_certificate'
+                                                    'user_type' => 'coach',
+                                                    'doc_type' => 'coach_training_certificate'
                                                 ])->first();
                                             @endphp
 
@@ -1178,7 +1178,7 @@ $mentor = Auth()->user();
                                             </div>
 
                                             <!-- Trainer Additional Info Form -->
-                                            <form id="trainer-additional-info-form" method="POST" action="{{ route('mentor.additional.update') }}" enctype="multipart/form-data">
+                                            <form id="trainer-additional-info-form" method="POST" action="{{ route('coach.additional.update') }}" enctype="multipart/form-data">
                                                 @csrf
                                                 <div x-show="activeSubTab === 'additional'" x-cloak class="space-y-4 text-sm">
 
@@ -1308,7 +1308,7 @@ $mentor = Auth()->user();
                                             document.getElementById('trainerConfirmDeleteBtn').addEventListener('click', function () {
                                                 if (!trainerSelectedFileType) return;
 
-                                                fetch(`{{ route('mentor.additional.delete', ':type') }}`.replace(':type', trainerSelectedFileType), {
+                                                fetch(`{{ route('coach.additional.delete', ':type') }}`.replace(':type', trainerSelectedFileType), {
                                                     method: 'DELETE',
                                                     headers: {
                                                         'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
@@ -1398,7 +1398,7 @@ $mentor = Auth()->user();
                                     <p>This action is irreversible. Are you sure you want to delete your account?</p>
                                     <!-- <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Account</button> -->
                                     <form id="
-                                    " action="{{ route('mentor.destroy') }}" method="POST">
+                                    " action="{{ route('coach.destroy') }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" id="deleteAccountBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
