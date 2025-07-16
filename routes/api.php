@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\JobseekerController;
+use App\Http\Controllers\API\TrainerController;
 
 
 //Junaid APi Controllers in Jobseeker folder
@@ -12,6 +13,10 @@ use App\Http\Controllers\API\Jobseeker\ExplorerController;
 use App\Http\Controllers\API\Jobseeker\AppHomeController;
 use App\Http\Controllers\API\Jobseeker\MyLearningController;
 use App\Http\Controllers\API\Jobseeker\SeekerProfileController;
+
+use App\Http\Controllers\API\Training\TrainingController;
+use App\Http\Controllers\API\Training\TrainerProfileController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -77,4 +82,32 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::post('/updateWorkExperienceDetails', [SeekerProfileController::class, 'updateWorkExperienceInfoDetails']);
     Route::post('/updateSkillsDetails', [SeekerProfileController::class, 'updateSkillsInfoDetails']);
     Route::post('/updateAdditionalDetails', [SeekerProfileController::class, 'updateAdditionalInfoDetails']);
+});
+
+Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
+    Route::post('/sign-in-trainer', [TrainerController::class, 'signIn']);
+
+    Route::post('/sign-up-trainer', [TrainerController::class, 'signUp']);
+    Route::post('/registration-trainer', [TrainerController::class, 'registration']);
+    Route::post('/forget-password-trainer', [TrainerController::class, 'forgetPassword']);
+    Route::post('/verify-otp-trainer', [TrainerController::class, 'verifyOtpTrainer']);
+    Route::post('/reset-password-trainer', [TrainerController::class, 'resetPassword']);
+    
+    Route::post('/recordedCoursesAdd', [TrainingController::class, 'saveTrainingRecordedData']);
+    Route::post('/onlineOfflineCoursesAdd', [TrainingController::class, 'saveTrainingOnlineData']);
+    Route::post('/assessmentSave', [TrainingController::class, 'assessmentStore']);
+    Route::get('/trainingList/{trainerId}', [TrainingController::class, 'trainingAllList']);
+    Route::get('/recordedTrainingList/{trainerId}', [TrainingController::class, 'recordedTrainingAllList']);
+    Route::get('/assessmentList/{trainerId}', [TrainingController::class, 'assessmentLists']);
+    Route::post('/assignCourse', [TrainingController::class, 'assignTrainingMaterialToCourse']);
+    Route::get('/batchList/{trainerId}', [TrainingController::class, 'trainingBatchList']);
+    Route::get('/deleteAdditionalFile/{type}/{trainerId}', [TrainingController::class, 'deleteAdditionalFile']);
+    
+    Route::get('/trainerProfile/{trainerId}', [TrainerProfileController::class, 'trainersProfileById']);
+    Route::post('/updatePersonalDetails', [TrainerProfileController::class, 'updatePersonalInfoDetails']);
+    Route::post('/updateEducationDetails', [TrainerProfileController::class, 'updateEducationInfoDetails']);
+    Route::post('/updateWorkExperienceDetails', [TrainerProfileController::class, 'updateWorkExperienceInfoDetails']);
+    Route::post('/updateSkillsDetails', [TrainerProfileController::class, 'updateSkillsInfoDetails']);
+    Route::post('/updateAdditionalDetails', [TrainerProfileController::class, 'updateAdditionalInfoDetails']);
+    
 });
