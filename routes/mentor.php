@@ -71,8 +71,8 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::post('/mentor/additional-info-update', [MentorController::class, 'updateMentorAdditionalInfo'])->name('mentor.additional.update');
 		Route::delete('mentor/delete-document/{type}', [MentorController::class, 'deleteMentorDocument'])->name('mentor.additional.delete');
 
-
-			
+		
+		
 
 		Route::delete('/delete', [MentorController::class, 'deleteAccount'])->name('mentor.destroy');
 		// Route::get('/trainer-settings', [MentorController::class, 'getTrainerAllDetails'])->name('trainer.settings');

@@ -9,6 +9,8 @@ class BookingSlot extends Model
 {
     use HasFactory;
 
+    protected $table = 'booking_slots';
+
     protected $fillable = [
         'user_type',
         'user_id',
@@ -27,6 +29,11 @@ class BookingSlot extends Model
     public function unavailableDates()
     {
         return $this->hasMany(BookingSlotUnavailableDate::class, 'booking_slot_id');
+    }
+
+    public function bookingSession()
+    {
+        return $this->hasMany(BookingSession::class, 'booking_slot_id');
     }
 
 }

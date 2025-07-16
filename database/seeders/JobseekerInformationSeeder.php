@@ -9,6 +9,7 @@ use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class JobseekerInformationSeeder extends Seeder
 {
@@ -21,6 +22,7 @@ class JobseekerInformationSeeder extends Seeder
         $genders = ['Male', 'Female', 'Male', 'Female', 'Male'];
 
         foreach (range(0, 4) as $i) {
+            $password = 'Password@' . ($i + 1); 
             $jobseeker = Jobseekers::create([
                 'name' => $names[$i],
                 'email' => $emails[$i],
@@ -29,6 +31,8 @@ class JobseekerInformationSeeder extends Seeder
                 'city' => $cities[$i],
                 'address' => 'Address for ' . $names[$i],
                 'gender' => $genders[$i],
+                'password' => Hash::make($password), // hashed password
+                'pass' => $password, // hashed password
             ]);
 
             // Education Details

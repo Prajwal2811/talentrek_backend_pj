@@ -386,23 +386,25 @@ class RecruiterController extends Controller
                               ->toArray();
           
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-               ->where('status', 'active')
-               ->where('admin_status', 'approved','superadmin_approved')
-               ->whereNotIn('id', $shortlistedIds)
-               ->get();
-          
-          // $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-          //      ->where('status', 'active')
-          //      ->where('admin_status', 'approved','superadmin_approved')
-          //      ->whereIn('id', $shortlistedIds)
-          //      ->get();
+                    ->where('status', 'active')
+                    ->whereIn('admin_status', ['approved', 'superadmin_approved'])
+                    ->whereNotIn('id', $shortlistedIds)
+                    ->get();
 
-          $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-               ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
-               ->where('shortlist.recruiter_id', $recruiterId)
-               ->where('jobseekers.status', 'active')
-               ->select('jobseekers.*', 'shortlist.admin_status as shortlist_admin_status','shortlist.interview_request',)
-               ->get();
+
+         $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+                                   ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+                                   ->where('shortlist.recruiter_id', $recruiterId)
+                                   ->where('jobseekers.status', 'active')
+                                   ->select(
+                                        'jobseekers.*',
+                                        'shortlist.admin_status as shortlist_admin_status',
+                                        'shortlist.interview_request'
+                                   )
+                                   ->get();
+
+//     echo "<pre>";
+//     print_r($shortlisted_jobseekers);die;
 
           return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }

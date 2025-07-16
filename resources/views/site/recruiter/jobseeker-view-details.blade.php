@@ -87,7 +87,7 @@
                             </div>
                             
                         </div>
-                        <button class="border border-blue-600 text-blue-600 text-sm px-4 py-1.5 rounded hover:bg-blue-50 transition">
+                        <button class="border border-blue-600 text-blue-600 text-sm px-4 py-1.5 rounded hover:bg-blue-50 transition" >
                             Request interview
                         </button>
                         </div>

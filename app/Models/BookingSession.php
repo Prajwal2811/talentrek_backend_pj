@@ -25,6 +25,11 @@ class BookingSession extends Model
         'slot_date_after_postpone',
         'slot_time_after_postpone',
         'cancellation_reason',
+        'zoom_start_url',
+        'zoom_join_url',
+        'zoom_access_token',
+        'zoom_refresh_token',
+        'zoom_token_expires_at',
     ];
 
     // Relationships
@@ -33,13 +38,19 @@ class BookingSession extends Model
         return $this->belongsTo(Jobseekers::class);
     }
 
-    public function bookingSlot()
-    {
-        return $this->belongsTo(BookingSlot::class);
-    }
+    // public function bookingSlot()
+    // {
+    //     return $this->belongsTo(BookingSlot::class);
+    // }
 
     public function user()
     {
         return $this->morphTo(__FUNCTION__, 'user_type', 'user_id');
     }
+
+    public function bookingSlot()
+    {
+        return $this->belongsTo(BookingSlot::class, 'booking_slot_id');
+    }
+    
 }

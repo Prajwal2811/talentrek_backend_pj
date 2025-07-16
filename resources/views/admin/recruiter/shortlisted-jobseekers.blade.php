@@ -88,7 +88,7 @@
                                                                         Final Decision
                                                                     </button>
                                                                 @elseif($superadminStatusOnly === 'approved')
-                                                                    <span class="badge bg-success">Superadmin Approved</span>
+                                                                    <span class="badge bg-success text-light">Superadmin Approved</span>
                                                                 @elseif($superadminStatusOnly === 'rejected')
                                                                     <span class="badge bg-danger text-light">Superadmin Rejected</span>
                                                                 @elseif($adminStatusOnly === 'rejected')
@@ -117,7 +117,7 @@
                                                                     </div>
                                                                     <div class="modal-body">
                                                                         <label>Status</label>
-                                                                        <select name="status" class="form-select status-select" data-target="#adminReason{{ $shortlistJobseeker->id }}">
+                                                                        <select name="status" class="form-select status-select form-control" data-target="#adminReason{{ $shortlistJobseeker->id }}">
                                                                             <option selected disabled>Select status</option>
                                                                             <option value="approved">Approve</option>
                                                                             <option value="rejected">Reject</option>
@@ -152,7 +152,7 @@
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <label>Status</label>
-                                                                    <select name="status" class="form-select status-select" data-target="#superadminReason{{ $shortlistJobseeker->id }}">
+                                                                    <select name="status" class="form-select status-select form-control" data-target="#superadminReason{{ $shortlistJobseeker->id }}">
                                                                         <option selected disabled>Select status</option>
                                                                         <option value="approved">Final Approve</option>
                                                                         <option value="rejected">Final Reject</option>

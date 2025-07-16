@@ -16,7 +16,7 @@
                             <!-- Left Column -->
                             <div class="col-xl-10 col-md-10 col-sm-12">
                                 <h1>Hi, {{  Auth()->user()->name }}!</h1>
-                                <span>JustDo Jobseeker's Profile</span>
+                                <span>JustDo Mentor's Profile</span>
                             </div>
                         </div>
                     </div>
@@ -428,8 +428,12 @@
                                     <h2>Booking Slots Details</h2>
                                 </div>
                                 @php
-                                    $bookingSlots = App\Models\BookingSlot::where('user_id', $mentor->id)->where('user_type', 'mentor')->get();
+                                    $bookingSlots = \App\Models\BookingSlot::with('unavailableDates')
+                                                ->where('user_id', $mentor->id)
+                                                ->where('user_type', 'mentor')
+                                                ->get();
                                 @endphp
+
                                 <div class="body">
                                     <div class="col-lg-12">
                                         <div class="card-body">
@@ -458,24 +462,19 @@
                                                                     <td>{{ \Carbon\Carbon::parse($slot->start_time)->format('h:i A') }}</td>
                                                                     <td>{{ \Carbon\Carbon::parse($slot->end_time)->format('h:i A') }}</td>
                                                                     <td>
-                                                                        @php
-                                                                            $unavailableDates = is_array($slot->unavailable_dates)
-                                                                                ? $slot->unavailable_dates
-                                                                                : json_decode($slot->unavailable_dates, true);
-                                                                        @endphp
-                                                                        @if (!empty($unavailableDates))
+                                                                        @if($slot->unavailableDates->isNotEmpty())
                                                                             <ul class="list-disc list-inside">
-                                                                                @foreach($unavailableDates as $date)
+                                                                                @foreach($slot->unavailableDates as $date)
                                                                                     <li class="text-red-600 font-semibold">
-                                                                                        {{ \Carbon\Carbon::parse($date)->format('jS M Y') }}
+                                                                                        {{ \Carbon\Carbon::parse($date->unavailable_date)->format('jS M Y') }}
                                                                                     </li>
                                                                                 @endforeach
                                                                             </ul>
                                                                         @else
                                                                             <span class="text-gray-500">None</span>
                                                                         @endif
-
                                                                     </td>
+
                                                                 </tr>
                                                             @endforeach
                                                         @endif

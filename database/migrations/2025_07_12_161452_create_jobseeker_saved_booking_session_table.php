@@ -30,6 +30,13 @@ return new class extends Migration
             $table->text('cancellation_reason')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamp('rescheduled_at')->nullable();
+
+            // Zoom integration fields
+            $table->string('zoom_meeting_id')->nullable();
+            $table->text('zoom_join_url')->nullable();
+            $table->text('zoom_start_url')->nullable();
+
+
             $table->timestamps();
 
             // Optional: Add foreign keys if tables exist
@@ -43,8 +50,14 @@ return new class extends Migration
      *
      * @return void
      */
+
     public function down()
     {
-        Schema::dropIfExists('jobseeker_saved_booking_session');
+        Schema::table('jobseeker_saved_booking_session', function (Blueprint $table) {
+            $table->dropColumn(['zoom_meeting_id', 'zoom_join_url', 'zoom_start_url']);
+        });
     }
+
+
+    
 };

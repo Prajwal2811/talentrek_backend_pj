@@ -185,7 +185,7 @@
                                                 <td>{{ \Carbon\Carbon::parse($mentor->created_at)->format('d/m/Y') }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.mentor.view', $mentor->id) }}" class="btn btn-sm btn-primary">View Profile</a>
-                                                    <a href="{{ route('admin.mentor.booking-session', $mentor->id) }}"  class="btn btn-sm btn-secondary text-light">Booking Sessions</a>
+                                                    <a href="{{ route('admin.mentor.booking-session', $mentor->id) }}"  class="btn btn-sm btn-success text-light">Session History</a>
                                                 </td>
                                             </tr>
                                             @endforeach

@@ -38,6 +38,14 @@ return new class extends Migration
             $table->string('google_id')->nullable()->unique();
             $table->string('avatar')->nullable();
             $table->string('isSubscribtionBuy')->default('no');
+
+
+            
+            $table->text('zoom_access_token')->nullable();
+            $table->text('zoom_refresh_token')->nullable();
+            $table->timestamp('zoom_token_expires_at')->nullable();
+
+            
             $table->timestamps();
         });
 

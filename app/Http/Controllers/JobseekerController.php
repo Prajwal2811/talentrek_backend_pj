@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;   
 use DB;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 class JobseekerController extends Controller
 {
@@ -1102,41 +1104,142 @@ class JobseekerController extends Controller
 
 
     public function submitMentorshipBooking(Request $request)
-    {
-        // Check if jobseeker is logged in
-        if (!auth('jobseeker')->check()) {
-            return redirect()->back()->with('error', 'Please log in to book a mentorship session.');
-        }
-
-        $request->validate([
-            'mentor_id' => 'required|exists:mentors,id',
-            'mode' => 'required|in:online,offline',
-            'date' => 'required|date',
-            'slot_id' => 'required|exists:booking_slots,id',
-        ]);
-
-        $jobseekerId = auth('jobseeker')->id();
-
-        // Save the booking
-        BookingSession::create([
-            'jobseeker_id' => $jobseekerId,
-            'user_type' => 'mentor',
-            'user_id' => $request->mentor_id,
-            'booking_slot_id' => $request->slot_id,
-            'slot_date' => $request->date,
-            'slot_mode' => $request->mode,
-            'slot_time' => $request->slot_time,
-            'status' => 'pending',
-        ]);
-
-        return redirect()->route('mentorship-booking-success')->with('success', 'Session booked successfully.');
+{
+    if (!auth('jobseeker')->check()) {
+        return redirect()->back()->with('error', 'Please log in to book a mentorship session.');
     }
 
+    $request->validate([
+        'mentor_id' => 'required|exists:mentors,id',
+        'mode' => 'required|in:online,offline',
+        'date' => 'required|date',
+        'slot_id' => 'required|exists:booking_slots,id',
+        'slot_time' => ['required', 'regex:/^\d{2}:\d{2}:\d{2}( - \d{2}:\d{2}:\d{2})?$/'],
+    ]);
+
+    $jobseeker = auth('jobseeker')->user();
+
+    // If online mode but no Zoom token, redirect to Zoom authorization
+    if ($request->mode === 'online' && !$jobseeker->zoom_access_token) {
+        // Store booking data temporarily in session to use after Zoom auth
+        session([
+            'pending_booking' => $request->only(['mentor_id', 'mode', 'date', 'slot_id', 'slot_time'])
+        ]);
+        return redirect()->route('zoom.redirect');
+    }
+
+    $zoomStartUrl = null;
+    $zoomJoinUrl = null;
+
+    if ($request->mode === 'online') {
+        $zoomAccessToken = $jobseeker->zoom_access_token;
+        $startTime = explode(' - ', $request->slot_time)[0] ?? $request->slot_time;
+
+        try {
+            $startDateTime = Carbon::parse($request->date . ' ' . $startTime)->toIso8601String();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Invalid time format.');
+        }
+
+        $response = Http::withToken($zoomAccessToken)->post('https://api.zoom.us/v2/users/me/meetings', [
+            'topic' => 'Mentorship Session with Jobseeker #' . $jobseeker->id,
+            'type' => 2,
+            'start_time' => $startDateTime,
+            'duration' => 30,
+            'timezone' => 'Asia/Kolkata',
+            'settings' => [
+                'join_before_host' => true,
+                'waiting_room' => false,
+            ],
+        ]);
+
+        if ($response->successful()) {
+            $zoomData = $response->json();
+            $zoomStartUrl = $zoomData['start_url'];
+            $zoomJoinUrl = $zoomData['join_url'];
+        } else {
+            \Log::error('Zoom meeting creation failed:', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            return redirect()->back()->with('error', 'Could not create Zoom meeting. Try again later.');
+        }
+    }
+
+    // Save booking
+    BookingSession::create([
+        'jobseeker_id' => $jobseeker->id,
+        'user_type' => 'mentor',
+        'user_id' => $request->mentor_id,
+        'booking_slot_id' => $request->slot_id,
+        'slot_date' => $request->date,
+        'slot_mode' => $request->mode,
+        'slot_time' => $request->slot_time,
+        'status' => 'pending',
+        'zoom_start_url' => $zoomStartUrl,
+        'zoom_join_url' => $zoomJoinUrl,
+    ]);
+
+    return redirect()->back()->with('success', 'Session booked successfully.');
+}
+public function handleZoomCallback(Request $request)
+{
+    $response = Http::withHeaders([
+        'Authorization' => 'Basic ' . base64_encode(config('services.zoom.client_id') . ':' . config('services.zoom.client_secret')),
+    ])->asForm()->post('https://zoom.us/oauth/token', [
+        'grant_type' => 'authorization_code',
+        'code' => $request->code,
+        'redirect_uri' => config('services.zoom.redirect_uri'),
+    ]);
+
+    $data = $response->json();
+
+    if (!isset($data['access_token'])) {
+        \Log::error('Zoom token exchange failed:', $data);
+        return redirect()->back()->with('error', 'Zoom authentication failed.');
+    }
+
+    $jobseeker = auth('jobseeker')->user();
+
+    if (!$jobseeker) {
+        return redirect()->route('login')->with('error', 'Login required to connect Zoom.');
+    }
+
+    // Save Zoom tokens
+    $jobseeker->update([
+        'zoom_access_token' => $data['access_token'],
+        'zoom_refresh_token' => $data['refresh_token'],
+        'zoom_token_expires_at' => now()->addSeconds($data['expires_in']),
+    ]);
+
+    // ✅ Resume booking process
+    if (session()->has('pending_booking')) {
+        $bookingData = session()->pull('pending_booking');
+        return redirect()->back()->with('pending_booking', $bookingData);
+    }
+
+    return redirect()->back()->with('success', 'Zoom connected successfully.');
+}
+public function completeZoomBooking(Request $request)
+{
+    $bookingData = session('pending_booking');
+    if (!$bookingData) {
+        return redirect()->back()->with('error', 'No booking data found.');
+    }
+
+    // Merge booking data into request and call submitMentorshipBooking again
+    return $this->submitMentorshipBooking(new Request($bookingData));
+}
 
 
+public function redirectToZoom()
+{
+    $authorizeUrl = 'https://zoom.us/oauth/authorize?response_type=code';
+    $authorizeUrl .= '&client_id=' . config('services.zoom.client_id');
+    $authorizeUrl .= '&redirect_uri=' . urlencode(config('services.zoom.redirect_uri'));
 
-
-
+    return redirect($authorizeUrl);
+}
 
     public function getAvailableSlots(Request $request)
     {
@@ -1434,4 +1537,5 @@ class JobseekerController extends Controller
             'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews'
         ));
     }
+    
 }

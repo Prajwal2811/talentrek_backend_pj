@@ -62,6 +62,10 @@ Route::group(['prefix' => 'jobseeker'], function() {
 	Route::get('/get-available-slots', [JobseekerController::class, 'getAvailableSlots'])->name('get-available-slots');
 	Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
 
+	Route::get('/jobseeker/mentorship-booking-success', function () {
+		return view('jobseeker.booking-success');
+	})->name('mentorship-booking-success');
+
 
 	Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
 
@@ -69,6 +73,13 @@ Route::group(['prefix' => 'jobseeker'], function() {
 	Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 
 
+	// Zoom OAuth routes
+	// Route::get('/zoom/authorize', [JobseekerController::class, 'redirectToZoom'])->name('redirectToZoom');
+	// Route::get('/zoom/callback', [JobseekerController::class, 'handleZoomCallback']);
+	Route::get('/zoom/authorize', [JobseekerController::class, 'redirectToZoom'])->name('zoom.redirect');
+	Route::get('/zoom/callback', [JobseekerController::class, 'handleZoomCallback'])->name('zoom.callback');
+
+	// Route::get('/zoom/create-meeting', [JobseekerController::class, 'createMeeting']);
 
 
 });
