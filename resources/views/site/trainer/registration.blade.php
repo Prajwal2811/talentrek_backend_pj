@@ -74,14 +74,14 @@
                                     <!-- Step 1: Personal Info -->
                                     <div id="step-1" class="">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Full name</label>
+                                            <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="name" class="w-full border rounded-md p-2" placeholder="Enter full name" value="{{old('name')}}"/>
                                             @error('name')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Email</label>
+                                            <label class="block mb-1 text-sm font-medium">Email <span style="color: red; font-size: 17px;">*</span></label>
                                             <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{old('email', $email)}}" readonly/>
                                             @error('email')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -90,7 +90,7 @@
                                         
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium">Phone number</label>
+                                                <label class="block mb-1 text-sm font-medium">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2"><option>+91</option></select>
                                                 <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number', $phone)}}" readonly/>
@@ -101,7 +101,7 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Date of birth</label>
+                                            <label class="block mb-1 text-sm font-medium">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="date" name="dob" class="w-full border rounded-md p-2" value="{{old('dob')}}"/>
                                             @error('dob')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -110,7 +110,7 @@
                                         </div>
                                         <div class="grid grid-cols-2 gap-6 mt-3">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <span class="text-xs text-blue-600">
                                                     National ID should start with 1 for male and 2 for female.
                                                 </span>
@@ -130,7 +130,7 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Location</label>
+                                            <label class="block mb-1 text-sm font-medium">Location <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="city" class="w-full border rounded-md p-2" placeholder="City or State" value="{{old('city')}}"/>
                                             @error('city')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -152,7 +152,7 @@
                                             @foreach($educationData as $i => $value)
                                             <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative bg-gray-100">
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select highest qualification</option>
                                                         @foreach(['high_school', 'diploma', 'bachelor', 'master', 'phd'] as $option)
@@ -165,7 +165,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select field of study</option>
                                                         @foreach(['engineering', 'science', 'commerce', 'arts', 'medicine', 'law', 'education', 'management', 'other'] as $field)
@@ -178,7 +178,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i") }}" placeholder="Enter Institution name">
                                                     @error("institution.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -186,7 +186,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select year of passing</option>
                                                         @for($year = now()->year; $year >= 2000; $year--)
@@ -226,7 +226,7 @@
                                             @foreach($workData as $i => $val)
                                             <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative bg-gray-100">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium">Job title</label>
+                                                    <label class="block mb-1 text-sm font-medium">Job title <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="job_role[]" value="{{ old("job_role.$i") }}" class="w-full border rounded-md p-2" placeholder="e.g. Software Engineer">
                                                     @error("job_role.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -234,7 +234,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium">Organization</label>
+                                                    <label class="block mb-1 text-sm font-medium">Organization <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="organization[]" value="{{ old("organization.$i") }}" class="w-full border rounded-md p-2" placeholder="Enter Organization">
                                                     @error("organization.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -242,7 +242,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium">Started from</label>
+                                                    <label class="block mb-1 text-sm font-medium">Started from <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="date" name="starts_from[]" value="{{ old("starts_from.$i") }}" class="w-full border rounded-md p-2">
                                                     @error("starts_from.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -250,7 +250,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium">To</label>
+                                                    <label class="block mb-1 text-sm font-medium">To <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="date" name="end_to[]" value="{{ old("end_to.$i") }}" class="w-full border rounded-md p-2">
                                                     @error("end_to.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -279,21 +279,21 @@
                                     <div id="step-4" class="hidden">
                                     
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Training Experience</label>
+                                            <label class="block mb-1 text-sm font-medium">Training Experience <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="training_experience" class="w-full border rounded-md p-2" placeholder="e.g. 2 years in corporate training, 1 year teaching Python" value="{{old('training_experience')}}"/>
                                             @error('training_experience')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Training Skills</label>
+                                            <label class="block mb-1 text-sm font-medium">Training Skills <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="training_skills" class="w-full border rounded-md p-2" placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{old('training_skills')}}"/>
                                             @error('training_skills')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Website Link</label>
+                                            <label class="block mb-1 text-sm font-medium">Website Link <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="url" name="website_link" class="w-full border rounded-md p-2" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
                                             @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -323,7 +323,7 @@
                                    
                                         <!-- Upload Resume -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload resume</label>
+                                            <label class="block text-sm font-medium mb-1">Upload resume <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex gap-2 items-center">
                                                 <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm" />
                                             </div>
@@ -334,7 +334,7 @@
 
                                         <!-- Upload Profile Picture -->
                                         <div>
-                                        <label class="block text-sm font-medium mb-1">Upload profile picture</label>
+                                        <label class="block text-sm font-medium mb-1">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm" />
                                         </div>
@@ -344,7 +344,7 @@
                                         </div>
 
                                         <div>
-                                        <label class="block text-sm font-medium mb-1">Upload training certificate</label>
+                                        <label class="block text-sm font-medium mb-1">Upload training certificate <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm" />
                                         </div>

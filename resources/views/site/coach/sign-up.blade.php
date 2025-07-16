@@ -33,7 +33,7 @@
                                         @csrf 
                                         <div>
                                             <label class="block text-sm mb-1">Email</label>
-                                            <input type="email" name="email" placeholder="Email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" >
+                                            <input type="email" name="email" placeholder="Email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('email') }}">
                                             @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -41,7 +41,7 @@
 
                                         <div>
                                             <label class="block text-sm mb-1">Mobile Number</label>
-                                            <input type="text" name="phone_number" placeholder="Mobile Number" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" >
+                                            <input type="text" name="phone_number" placeholder="Mobile Number" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('phone_number') }}">
                                             @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -59,7 +59,11 @@
                                                     class="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
                                                     <i data-feather="eye" id="eye-icon" class="w-5 h-5"></i>
                                                 </button>
+                                                @error('password')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
+
                                         </div>
 
                                         <!-- Confirm Password Field -->
@@ -74,6 +78,9 @@
                                                     class="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
                                                     <i data-feather="eye" id="eye-icon-confirm" class="w-5 h-5"></i>
                                                 </button>
+                                                @error('confirm_password')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
                                         </div>
 

@@ -565,7 +565,29 @@ class RecruiterController extends Controller
                          }
                     },
                ],
+          ],
+           [
+               // Custom messages for Company fields
+               'company_name.required' => 'The company name is required.',
+               'company_phone_number.required' => 'The company phone number is required.',
+               'company_phone_number.digits' => 'The phone number must be exactly 10 digits.',
+               'business_email.required' => 'The business email is required.',
+               'business_email.email' => 'The business email must be a valid email address.',
+               'business_email.unique' => 'The business email has already been taken.',
+               'industry_type.required' => 'The industry type is required.',
+               'establishment_date.required' => 'The establishment date is required.',
+               'establishment_date.date_format' => 'The establishment date must be in DD-MM-YYYY format.',
+               'company_website.url' => 'The company website must be a valid URL.',
+
+               // Custom messages for Recruiter fields
+               'name.required' => 'The recruiter name is required.',
+               'email.required' => 'The recruiter email is required.',
+               'email.email' => 'The recruiter email must be a valid email address.',
+               'email.unique' => 'The recruiter email has already been taken.',
+               'national_id.required' => 'The national ID is required.',
+               'national_id.min' => 'The national ID must be at least 10 characters long.',
           ]);
+ 
 
           // Update company
           $company->update([
@@ -598,7 +620,18 @@ class RecruiterController extends Controller
           $validated = $request->validate([
                'company_profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
                'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+               ], [
+               // Custom messages for company_profile
+               'company_profile.file' => 'The company profile must be a valid file.',
+               'company_profile.mimes' => 'The company profile must be a file of type: jpg, jpeg, png.',
+               'company_profile.max' => 'The company profile must not be greater than 2MB.',
+
+               // Custom messages for register_document
+               'register_document.file' => 'The registration document must be a valid file.',
+               'register_document.mimes' => 'The registration document must be a file of type: pdf, doc, docx.',
+               'register_document.max' => 'The registration document must not be greater than 2MB.',
           ]);
+
 
           foreach (['company_profile', 'register_document'] as $type) {
                if ($request->hasFile($type)) {

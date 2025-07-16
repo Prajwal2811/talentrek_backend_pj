@@ -15,18 +15,23 @@ return new class extends Migration
     {
         Schema::create('assessors', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name')->nullable();
-            $table->string('company_email')->unique();
+            $table->string('name')->nullable();                
+            $table->string('email')->unique();               
+            $table->string('phone_code')->nullable();         
+            $table->string('phone_number')->nullable();       
+            $table->date('date_of_birth')->nullable();       
+            $table->string('city')->nullable();               
+            $table->string('password')->nullable();        
+            $table->string('pass')->nullable();          
+            $table->string('otp')->nullable();                
             $table->string('national_id')->unique()->nullable();
-            $table->string('phone_code')->nullable();              // e.g., +91
-            $table->string('company_phone_number')->nullable();    // e.g., 9876543210
-            $table->date('company_instablishment_date')->nullable(); // e.g., 2005-06-15
-            $table->string('industry_type')->nullable();           // e.g., Education, IT
-            $table->string('company_website')->nullable();  
+            $table->string('status')->default('active');          
+            $table->string('admin_status')->nullable();  
+            $table->text('about_assessor')->nullable();       
             $table->string('isSubscribtionBuy')->default('no'); 
-            $table->text('about_assessor')->nullable();
             $table->timestamps();
         });
+
     }
 
     /**

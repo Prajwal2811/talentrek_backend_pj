@@ -384,7 +384,7 @@ $skills = $user->skills->first();
                                 
                                     <div x-show="profileTab === 'personal'" x-cloak class="space-y-4">
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Name</label>
+                                            <label class="block text-sm font-medium mb-1">Name <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="name" placeholder="Name" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->name ?? '' }}" />
                                             @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -393,14 +393,14 @@ $skills = $user->skills->first();
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Email address</label>
+                                                <label class="block text-sm font-medium mb-1">Email address <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input type="email" name="email" placeholder="Email address"  class="w-full border rounded px-3 py-2"  value="{{ Auth()->user()->email ?? '' }}"/>
                                                 @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Gender</label>
+                                                <label class="block text-sm font-medium mb-1">Gender <span style="color: red; font-size: 17px;">*</span></label>
                                                 <select class="w-full border rounded px-3 py-2" name="gender" id = "gender">
                                                     <option>{{Auth()->user()->gender}}</option>
                                                     <option selected>Male</option>
@@ -414,14 +414,14 @@ $skills = $user->skills->first();
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Phone number</label>
+                                                <label class="block text-sm font-medium mb-1">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input type="tel" placeholder="Phone number" name="phone_number" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->phone_number ?? '' }}"/>
                                                 @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Date of Birth</label>
+                                                <label class="block text-sm font-medium mb-1">Date of Birth <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input 
                                                     name="dob" 
                                                     id="dob" 
@@ -435,7 +435,7 @@ $skills = $user->skills->first();
                                         </div>
                                         
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                            <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                             <span class="text-xs text-blue-600">
                                                 National ID should start with 1 for male and 2 for female.
                                             </span>
@@ -455,7 +455,7 @@ $skills = $user->skills->first();
                                         </div>
                                         
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Address</label>
+                                            <label class="block text-sm font-medium mb-1">Address <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" placeholder="Enter address" name="address"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->address ?? '' }}"/>
                                             @error('address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -463,7 +463,7 @@ $skills = $user->skills->first();
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">City</label>
+                                            <label class="block text-sm font-medium mb-1">City <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="city" placeholder="Enter city" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->city ?? '' }}"/>
                                             @error('city')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -564,7 +564,7 @@ $skills = $user->skills->first();
 
                                                     <!-- Highest Qualification -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification <span style="color: red; font-size: 17px;">*</span></label>
                                                         <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
                                                             <option value="">Select highest qualification</option>
                                                             @foreach(['high_school'=>'High School','diploma'=>'Diploma','bachelor'=>"Bachelor's Degree",'master'=>"Master's Degree",'phd'=>'Ph.D.'] as $val => $label)
@@ -575,7 +575,7 @@ $skills = $user->skills->first();
 
                                                     <!-- Field of Study -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Field of study</label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Field of study <span style="color: red; font-size: 17px;">*</span></label>
                                                         <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
                                                             <option value="">Select field of study</option>
                                                             @foreach(['engineering','science','commerce','arts','medicine','law','education','management','other'] as $val)
@@ -586,13 +586,13 @@ $skills = $user->skills->first();
 
                                                     <!-- Institution -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Institution name</label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Institution name <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i", $data->institution ?? '') }}" placeholder="Enter institution name" />
                                                     </div>
 
                                                     <!-- Graduation Year -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year</label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year <span style="color: red; font-size: 17px;">*</span></label>
                                                         <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
                                                             <option value="">Select year of passing</option>
                                                             @foreach(range(date('Y'), 2010) as $year)
@@ -736,21 +736,21 @@ $skills = $user->skills->first();
 
                                                     <!-- Job Role -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Job Role</label>
+                                                        <label class="block text-sm font-medium mb-1">Job Role <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="job_role[]" class="w-full border rounded px-3 py-2"
                                                             value="{{ old("job_role.$i", $data->job_role ?? '') }}" placeholder="Enter Job Role" />
                                                     </div>
 
                                                     <!-- Organization -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Organization</label>
+                                                        <label class="block text-sm font-medium mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="organization[]" class="w-full border rounded px-3 py-2"
                                                             value="{{ old("organization.$i", $data->organization ?? '') }}" placeholder="Enter Organization" />
                                                     </div>
 
                                                     <!-- Started From -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Started From</label>
+                                                        <label class="block text-sm font-medium mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input readonly name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
                                                             value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" />
                                                     </div>
@@ -761,7 +761,7 @@ $skills = $user->skills->first();
                                                         (isset($data->end_to) && $data->end_to === 'work here');
                                                     @endphp
                                                     <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
-                                                        <label class="block text-sm font-medium mb-1">To</label>
+                                                        <label class="block text-sm font-medium mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input readonly name="end_to[]" class="datepicker-end w-full border rounded px-3 py-2"
                                                             x-bind:disabled="working"
                                                             :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
@@ -887,7 +887,7 @@ $skills = $user->skills->first();
 
                                         <!-- Skills -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Skills</label>
+                                            <label class="block text-sm font-medium mb-1">Skills <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="skills" placeholder="E.g., JavaScript, Excel, Marketing"
                                                 class="w-full border rounded px-3 py-2"
                                                 value="{{ old('skills', $skills->skills ?? '') }}" />
@@ -895,7 +895,7 @@ $skills = $user->skills->first();
 
                                         <!-- Area of Interests -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Area of Interests</label>
+                                            <label class="block text-sm font-medium mb-1">Area of Interests <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="interest" placeholder="E.g., Data Science, Graphic Design"
                                                 class="w-full border rounded px-3 py-2"
                                                 value="{{ old('interest', $skills->interest ?? '') }}" />
@@ -903,7 +903,7 @@ $skills = $user->skills->first();
 
                                         <!-- Job Categories -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Job Categories</label>
+                                            <label class="block text-sm font-medium mb-1">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                             <select class="w-full border rounded px-3 py-2" name="job_category">
                                                 <option value="">Select Job Category</option>
                                                 @foreach([
@@ -1018,7 +1018,7 @@ $skills = $user->skills->first();
                                         
                                         <!-- Resume Upload -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload Resume</label>
+                                            <label class="block text-sm font-medium mb-1">Upload Resume <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex flex-col gap-2">
                                                 @if($resume)
                                                     <div class="flex items-center gap-4">
@@ -1040,7 +1040,7 @@ $skills = $user->skills->first();
                                         <!-- Profile Upload -->
                                         <!-- Upload Field -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload Profile</label>
+                                            <label class="block text-sm font-medium mb-1">Upload Profile <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex flex-col gap-2">
                                                 @if($profile)
                                                     <div class="flex items-center gap-4">

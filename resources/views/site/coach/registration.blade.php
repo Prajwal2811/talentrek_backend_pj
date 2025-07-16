@@ -17,16 +17,13 @@
     </div>
 
 	@include('site.componants.navbar')
-     
-        
-        <div class="page-content">
+            <div class="page-content">
                 <div class="section-full site-bg-white">
                     <div class="container-fluid mt-3">
                         <div class="row">
                             <div class="col-xl-12 col-lg-12 col-md-12">
                                 <!-- <div class="container d-flex justify-content-center align-items-center min-vh-100"> -->
                                 <div class="max-w-4xl mx-auto p-8 mt-5">
-
                                     <!-- Stepper -->
                                     <div class="flex items-center justify-between mb-10">
                                     <!-- Step Buttons -->
@@ -150,7 +147,7 @@
 
                                         <div id="education-container" class="col-span-2 grid grid-cols-2 gap-4">
                                             @foreach($educationData as $i => $value)
-                                            <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative bg-gray-100">
+                                            <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"">
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
                                                     <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
@@ -218,48 +215,127 @@
 
                                     <!-- Step 3: Work Experience -->
                                     <div id="step-3" class="hidden">
-                                        @php
-                                            $workData = old('job_role') ?? [null];
+                                       @php
+                                        $workCount = count(old('job_role', [null]));
                                         @endphp
 
                                         <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                            @foreach($workData as $i => $val)
-                                            <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative bg-gray-100">
-                                                <div>
-                                                    <label class="block mb-1 text-sm font-medium">Job title</label>
-                                                    <input type="text" name="job_role[]" value="{{ old("job_role.$i") }}" class="w-full border rounded-md p-2" placeholder="e.g. Software Engineer">
-                                                    @error("job_role.$i")
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
+                                            @for ($i = 0; $i < $workCount; $i++)
+                                                @php
+                                                    $isWorking = old("currently_working.$i") == 'on';
+                                                @endphp
+                                                <div
+                                                    class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
+                                                    x-data="{
+                                                        working: {{ $isWorking ? 'true' : 'false' }},
+                                                        index: {{ $i }},
+                                                        init() {
+                                                            this.$watch('working', value => {
+                                                                const entries = document.querySelectorAll('.work-entry');
+                                                                entries.forEach((entry, idx) => {
+                                                                    const checkbox = entry.querySelector('.currently-working-checkbox');
+                                                                    const endInput = entry.querySelector('.datepicker-end');
 
-                                                <div>
-                                                    <label class="block mb-1 text-sm font-medium">Organization</label>
-                                                    <input type="text" name="organization[]" value="{{ old("organization.$i") }}" class="w-full border rounded-md p-2" placeholder="Enter Organization">
-                                                    @error("organization.$i")
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
+                                                                    if (value) {
+                                                                        // If this checkbox is checked, disable all others
+                                                                        if (idx !== this.index) {
+                                                                            checkbox.disabled = true;
+                                                                            checkbox.checked = false;
+                                                                            if (entry.__x) entry.__x.$data.working = false;
+                                                                        } else {
+                                                                            endInput.value = '';
+                                                                            endInput.readOnly = true;
+                                                                            endInput.disabled = true;
+                                                                        }
+                                                                    } else {
+                                                                        // Enable all checkboxes and date inputs
+                                                                        checkbox.disabled = false;
+                                                                        endInput.readOnly = false;
+                                                                        endInput.disabled = false;
+                                                                    }
+                                                                });
+                                                            });
+                                                        }
+                                                    }"
+                                                    x-init="init()"
+                                                >
 
-                                                <div>
-                                                    <label class="block mb-1 text-sm font-medium">Started from</label>
-                                                    <input type="date" name="starts_from[]" value="{{ old("starts_from.$i") }}" class="w-full border rounded-md p-2">
-                                                    @error("starts_from.$i")
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
+                                                    {{-- Job Role --}}
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
+                                                            placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
+                                                        @error("job_role.$i")
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
-                                                <div>
-                                                    <label class="block mb-1 text-sm font-medium">To</label>
-                                                    <input type="date" name="end_to[]" value="{{ old("end_to.$i") }}" class="w-full border rounded-md p-2">
-                                                    @error("end_to.$i")
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
+                                                    {{-- Organization --}}
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="organization[]" class="w-full border rounded-md p-2"
+                                                            placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
+                                                        @error("organization.$i")
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
-                                                <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg" style="{{ $i == 0 ? 'display:none;' : 'display:block;' }}">×</button>
-                                            </div>
-                                            @endforeach
+                                                    {{-- Start Date --}}
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Started From <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
+                                                        <input 
+                                                            type="date" 
+                                                            name="starts_from[]" 
+                                                            class="w-full border rounded-md p-2" 
+                                                            value="{{ old('starts_from.' . $i) }}" 
+                                                        />
+                                                        @error("starts_from.$i")
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                    <!-- Alpine.js CDN -->
+                                                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+                                                    {{-- End Date & Checkbox --}}
+                                                    <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }}, endDate: '{{ old("end_to.$i") }}' }">
+                                                        <!-- Label -->
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            To <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
+
+                                                        <!-- Date Input -->
+                                                        <input type="date"
+                                                            name="end_to[]"
+                                                            class="w-full border rounded-md p-2 datepicker-end"
+                                                            x-bind:disabled="working"
+                                                            x-bind:readonly="working"
+                                                            x-bind:value="working ? '' : endDate"
+                                                            x-on:change="endDate = $event.target.value">
+
+                                                        <!-- Error Message -->
+                                                        @error("end_to.$i")
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+
+                                                        <!-- Checkbox -->
+                                                        <label class="inline-flex items-center mt-2 space-x-2">
+                                                            <input type="checkbox"
+                                                                name="currently_working[{{ $i }}]"
+                                                                class="currently-working-checkbox"
+                                                                x-model="working">
+                                                            <span>I currently work here</span>
+                                                        </label>
+                                                    </div>
+
+
+                                                    {{-- Remove Button --}}
+                                                    <button type="button"
+                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                        style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                </div>
+                                            @endfor
                                         </div>
 
                                        
@@ -272,7 +348,8 @@
                                             <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                         </div>
                                     </div>
-
+                                    
+                               
 
 
                                     <!-- Step 4: Skills -->
@@ -284,6 +361,31 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Area Of Interest</label>
+                                            <select name="area_of_interest" class="w-full border rounded-md p-2">
+                                                <option value="">-- Select Area of Interest --</option>
+                                                @foreach($categories as $category)
+                                                    <option value="{{ $category->category }}" {{ old('area_of_interest') == $category->category ? 'selected' : '' }}>
+                                                        {{ $category->category }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('area_of_interest')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">Job Category</label>
+                                            <input type="text" name="job_category" class="w-full border rounded-md p-2"
+                                                placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{ old('job_category') }}" />
+                                            @error('job_category')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Website Link</label>
                                             <input type="url" name="website_link" class="w-full border rounded-md p-2" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
@@ -496,6 +598,58 @@
         });
     });
 </script>          
+<script>
+    $(document).ready(function () {
+        // Initialize single DOB datepicker
+        $('#dob').datepicker({
+            format: 'yyyy-mm-dd',
+            endDate: new Date(),
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        // Function to initialize all start/end datepickers
+        function initializeDatePickers() {
+            $('.datepicker-start, .datepicker-end').each(function () {
+                // Destroy any previously attached datepicker instance
+                $(this).datepicker('destroy').datepicker({
+                    format: 'yyyy-mm-dd',
+                    endDate: new Date(),
+                    autoclose: true,
+                    todayHighlight: true
+                });
+            });
+        }
+
+        // Initial run
+        initializeDatePickers();
+
+        // On dynamically adding work sections
+        $('#add-work').on('click', function () {
+            // Delay to ensure DOM is updated before initializing
+            setTimeout(() => {
+                initializeDatePickers();
+            }, 100);
+        });
+    });
+
+    // Alpine.js integration
+    document.addEventListener('alpine:init', () => {
+        Alpine.effect(() => {
+            setTimeout(() => {
+                // Initialize all active datepickers Alpine might have added
+                $('.datepicker-start, .datepicker-end').each(function () {
+                    $(this).datepicker('destroy').datepicker({
+                        format: 'yyyy-mm-dd',
+                        endDate: new Date(),
+                        autoclose: true,
+                        todayHighlight: true
+                    });
+                });
+            }, 100);
+        });
+    });
+</script>
 
 
 <script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
