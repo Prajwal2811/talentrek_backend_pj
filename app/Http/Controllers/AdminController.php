@@ -224,6 +224,36 @@ class AdminController extends Controller
         // $coachSessionCount = Bookings::where('type', 'coach')->count();
         // $assessorSessionCount = Bookings::where('type', 'assessor')->count();
 
+
+        $roleCounts = [
+            'Jobseeker' => Jobseekers::count(),
+            'Recruiter' => Recruiters::count(),
+            'Trainer' => Trainers::count(),
+            // 'Expat' => Expats::count(),
+            // 'Coach' => Coach::count(),
+            'Mentor' => Mentors::count(),
+            // 'Assessor' => Assessor::count(),
+        ];
+
+        $months = collect(range(1, 12)); // All 12 months
+
+        $currentYear = now()->year;
+
+        $jobseekerData = $months->map(fn($month) =>
+            Jobseekers::whereMonth('created_at', $month)->whereYear('created_at', $currentYear)->count()
+        );
+
+        $recruiterData = $months->map(fn($month) =>
+            Recruiters::whereMonth('created_at', $month)->whereYear('created_at', $currentYear)->count()
+        );
+
+        $trainerData = $months->map(fn($month) =>
+            Trainers::whereMonth('created_at', $month)->whereYear('created_at', $currentYear)->count()
+        );
+
+
+
+        
         return view('admin.dashboard', [
             'jobseekerCount'        => $jobseekerCount,
             'recruiterCount'        => $recruiterCount,
@@ -236,6 +266,10 @@ class AdminController extends Controller
             // 'mentorSessionCount'    => $mentorSessionCount,
             // 'coachSessionCount'     => $coachSessionCount,
             // 'assessorSessionCount'  => $assessorSessionCount,
+            'roleCounts'            => $roleCounts,
+            'jobseekerData' => $jobseekerData,
+            'recruiterData' => $recruiterData,
+            'trainerData' => $trainerData,
         ]);
     }
 

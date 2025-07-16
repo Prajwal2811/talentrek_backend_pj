@@ -96,45 +96,78 @@
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
                 <script>
-                    // Pie Chart: Role Distribution
-                    new Chart(document.getElementById('rolePieChart'), {
-                        type: 'pie',
-                        data: {
-                            labels: ['Jobseeker', 'Recruiter', 'Trainer', 'Expat', 'Coach', 'Mentor', 'Assessor'],
-                            datasets: [{
-                                data: [1250, 320, 150, 90, 70, 85, 45],
-                                backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f97316', '#f43f5e', '#facc15', '#14b8a6']
-                            }]
-                        }
-                    });
+                        // Role Pie Chart
+                        const roleLabels = {!! json_encode(array_keys($roleCounts)) !!};
+                        const roleData = {!! json_encode(array_values($roleCounts)) !!};
 
-                    // Bar Chart: Monthly Registrations by Role
-                    new Chart(document.getElementById('registrationBarChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                            datasets: [
-                                {
-                                    label: 'Jobseekers',
-                                    data: [200, 220, 250, 300, 320, 310],
-                                    backgroundColor: '#3b82f6'
-                                },
-                                {
-                                    label: 'Recruiters',
-                                    data: [50, 60, 55, 65, 70, 68],
-                                    backgroundColor: '#10b981'
-                                },
-                                {
-                                    label: 'Trainers',
-                                    data: [20, 25, 30, 28, 32, 35],
-                                    backgroundColor: '#8b5cf6'
+                        new Chart(document.getElementById('rolePieChart'), {
+                            type: 'pie',
+                            data: {
+                                labels: roleLabels,
+                                datasets: [{
+                                    data: roleData,
+                                    backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f97316', '#f43f5e', '#facc15', '#14b8a6']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom'
+                                    }
                                 }
-                            ]
-                        },
-                        options: {
-                            responsive: true
-                        }
-                    });
+                            }
+                        });
+
+
+                        // Registration Bar Chart
+                        const monthLabels = [
+                            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                        ];
+
+                        const registrationBarChart = new Chart(document.getElementById('registrationBarChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: monthLabels,
+                                datasets: [
+                                    {
+                                        label: 'Jobseekers',
+                                        data: {!! json_encode($jobseekerData) !!},
+                                        backgroundColor: '#3b82f6'
+                                    },
+                                    {
+                                        label: 'Recruiters',
+                                        data: {!! json_encode($recruiterData) !!},
+                                        backgroundColor: '#10b981'
+                                    },
+                                    {
+                                        label: 'Trainers',
+                                        data: {!! json_encode($trainerData) !!},
+                                        backgroundColor: '#8b5cf6'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { position: 'top' },
+                                    title: {
+                                        display: true,
+                                        text: 'Monthly Registrations by Role ({{ now()->year }})'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Number of Registrations'
+                                        }
+                                    }
+                                }
+                            }
+                        });
 
                     // Bar Chart: Session Bookings by Role
                     new Chart(document.getElementById('bookingBarChart'), {
