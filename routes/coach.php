@@ -30,5 +30,30 @@ Route::group(['prefix' => 'coach'], function() {
 
 		Route::get('/dashboard',[CoachController::class, 'showCoachDashboard'])->name('coach.dashboard');
 		Route::post('/logout',[CoachController::class, 'logoutCoach'])->name('coach.logout');
+
+		Route::get('/setting-coach', [CoachController::class, 'showSettingscoach'])->name('setting.coach');
+
+		Route::post('/coach/profile-update', [CoachController::class, 'coachProfileUpdate'])->name('coach.profile.update');
+		Route::post('/coach/education-update', [CoachController::class, 'updateCoachEducationInfo'])->name('coach.education.update');
+		Route::post('/coach/work-update', [CoachController::class, 'updateCoachWorkExperienceInfo'])->name('coach.workexprience.update');
+		Route::post('/coach/skills-update', [CoachController::class, 'updateCoachSkillsInfo'])->name('coach.skills.update');
+		Route::post('/coach/additional-info-update', [CoachController::class, 'updateCoachAdditionalInfo'])->name('coach.additional.update');
+		Route::delete('coach/delete-document/{type}', [CoachController::class, 'deleteCoachDocument'])->name('coach.additional.delete');
+		Route::delete('/delete', [CoachController::class, 'deleteAccount'])->name('coach.destroy');
+
+		// Reviews
+		Route::get('/reviews', [CoachController::class, 'coachReviews'])->name('coach.reviews');
+		Route::delete('/delete-coach-review/{id}', [CoachController::class, 'deleteCoachReview'])->name('coach.review.delete');
+
+		// manage-booking-slots-coach
+		Route::get('manage-bookings', [CoachController::class, 'manageBooking'])->name('coach.manage-bookings');
+		Route::get('create-bookings', [CoachController::class, 'createBooking'])->name('coach.create-bookings');
+		Route::post('submit-bookings', [CoachController::class, 'submitBooking'])->name('coach.submit-bookings');
+
+		Route::post('/dashboard-action',[CoachController::class, 'dashboardAction'])->name('coach.dashboard-action');
+		Route::post('update-slot-status', [CoachController::class, 'updateStatus'])->name('coach.update-slot-status');
+		Route::post('/coach/update-slot-time', [CoachController::class, 'updateSlotTime'])->name('coach.update-slot-time');
+		Route::post('/coach/delete-slot', [CoachController::class, 'deleteSlot'])->name('coach.delete-slot');
+
 	});
 });

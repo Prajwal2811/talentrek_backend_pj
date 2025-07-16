@@ -667,7 +667,36 @@ class JobseekerController extends Controller
                     }
                 },
             ],
+        ], [
+            'name.required' => 'The name field is required.',
+            'name.string' => 'The name must be a valid string.',
+            'name.max' => 'The name must not exceed 255 characters.',
+
+            'email.required' => 'The email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email address is already in use.',
+
+            'gender.required' => 'Please select a gender.',
+            'gender.in' => 'Gender must be Male, Female, or Other.',
+
+            'phone_number.required' => 'The phone number is required.',
+            'phone_number.digits' => 'The phone number must be exactly 10 digits.',
+
+            'dob.required' => 'The date of birth is required.',
+            'dob.date' => 'Please enter a valid date of birth.',
+
+            'city.required' => 'The city field is required.',
+            'city.string' => 'The city must be a valid string.',
+            'city.max' => 'The city must not exceed 255 characters.',
+
+            'address.required' => 'The address field is required.',
+            'address.string' => 'The address must be a valid string.',
+            'address.max' => 'The address must not exceed 500 characters.',
+
+            'national_id.required' => 'The national ID is required.',
+            'national_id.min' => 'The national ID must be at least 10 characters.',
         ]);
+
 
         $user->update([
             'name' => $validated['name'],
@@ -695,7 +724,24 @@ class JobseekerController extends Controller
             'field_of_study.*' => 'required|string|max:255',
             'institution.*' => 'required|string|max:255',
             'graduate_year.*' => 'required|string|max:255', 
+        ], [
+            'high_education.*.required' => 'The highest education field is required.',
+            'high_education.*.string'   => 'The highest education must be a valid string.',
+            'high_education.*.max'      => 'The highest education must not exceed 255 characters.',
+
+            'field_of_study.*.required' => 'The field of study is required.',
+            'field_of_study.*.string'   => 'The field of study must be a valid string.',
+            'field_of_study.*.max'      => 'The field of study must not exceed 255 characters.',
+
+            'institution.*.required'    => 'The institution name is required.',
+            'institution.*.string'      => 'The institution must be a valid string.',
+            'institution.*.max'         => 'The institution must not exceed 255 characters.',
+
+            'graduate_year.*.required'  => 'The graduation year is required.',
+            'graduate_year.*.string'    => 'The graduation year must be a valid string.',
+            'graduate_year.*.max'       => 'The graduation year must not exceed 255 characters.',
         ]);
+
 
         $incomingIds = $request->input('education_id', []);
 
@@ -740,9 +786,40 @@ class JobseekerController extends Controller
             'job_role.*' => 'required|string|max:255',
             'organization.*' => 'required|string|max:255',
             'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
+            'end_to.*' => 'required|date',
             'currently_working' => 'array',
+        ], [
+            // Job Role
+            'job_role.*.required' => 'Please enter your job role.',
+            'job_role.*.string' => 'Job role should be a valid text.',
+            'job_role.*.max' => 'Job role can’t be more than 255 characters.',
+
+            // Organization
+            'organization.*.required' => 'Please provide the organization name.',
+            'organization.*.string' => 'Organization name must be a valid string.',
+            'organization.*.max' => 'Organization name can’t exceed 255 characters.',
+
+            // Start Date
+            'starts_from.*.required' => 'Start date is required for each experience.',
+            'starts_from.*.date' => 'Start date must be a valid date format.',
+
+            // End Date
+            'end_to.*.required' => 'Please provide the end date.',
+            'end_to.*.date' => 'End date must be a valid date format.',
+
+            // Currently Working
+            'currently_working.array' => 'Currently working selection must be in a valid format.',
         ]);
+
+        // Manual check for end date >= start date
+        foreach ($request->end_to as $index => $end) {
+            if (isset($request->starts_from[$index]) && $end < $request->starts_from[$index]) {
+                return back()->withErrors([
+                    "end_to.$index" => "End date should not be earlier than the start date."
+                ])->withInput();
+            }
+        }
+
 
         $workIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
@@ -784,12 +861,32 @@ class JobseekerController extends Controller
         $user_id = $user->id;
 
         $validated = $request->validate([
-            'skills' => 'nullable|string',
-            'interest' => 'nullable|string',
-            'job_category' => 'nullable|string|max:255',
+            'skills' => 'required|string',
+            'interest' => 'required|string',
+            'job_category' => 'required|string|max:255',
             'website_link' => 'nullable|url',
             'portfolio_link' => 'nullable|url',
+        ], [
+            // Skills
+            'skills.required' => 'Please enter your skills.',
+            'skills.string' => 'Skills must be in text format.',
+
+            // Interest
+            'interest.required' => 'Please mention your area of interest.',
+            'interest.string' => 'Interest must be a valid string.',
+
+            // Job Category
+            'job_category.required' => 'Please select a job category.',
+            'job_category.string' => 'Job category should be text.',
+            'job_category.max' => 'Job category must not exceed 255 characters.',
+
+            // Website Link
+            'website_link.url' => 'Please enter a valid website URL (e.g., https://example.com).',
+
+            // Portfolio Link
+            'portfolio_link.url' => 'Please enter a valid portfolio URL (e.g., https://portfolio.com).',
         ]);
+
 
         $skills = Skills::where('jobseeker_id', $user_id)->first();
 
@@ -820,9 +917,22 @@ class JobseekerController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'profile' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            // Resume Messages
+            'resume.required' => 'Please upload your resume.',
+            'resume.file' => 'The resume must be a valid file.',
+            'resume.mimes' => 'The resume must be a file of type: PDF, DOC, or DOCX.',
+            'resume.max' => 'The resume must not be larger than 2MB.',
+
+            // Profile Messages
+            'profile.required' => 'Please upload your profile image or document.',
+            'profile.file' => 'The profile must be a valid file.',
+            'profile.mimes' => 'The profile must be a file of type: JPG, JPEG, PNG, or PDF.',
+            'profile.max' => 'The profile file must not exceed 2MB.',
         ]);
+
 
         foreach (['resume', 'profile'] as $type) {
             if ($request->hasFile($type)) {

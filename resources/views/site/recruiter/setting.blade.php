@@ -445,25 +445,25 @@
 
                                                 <!-- Company Info -->
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company name</label>
+                                                    <label class="block mb-1 font-medium">Company name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="company_name" value="{{ $companyDetails->company_name }}" class="w-full border rounded px-3 py-2" />
                                                     @error("company_name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company email</label>
+                                                    <label class="block mb-1 font-medium">Company email <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="email" name="business_email" value="{{ $companyDetails->business_email }}" class="w-full border rounded px-3 py-2" />
                                                     @error("business_email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Phone number</label>
+                                                    <label class="block mb-1 font-medium">Company Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="company_phone_number" value="{{ $companyDetails->company_phone_number }}" class="w-full border rounded px-3 py-2" />
                                                     @error("company_phone_number") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Industry type</label>
+                                                    <label class="block mb-1 font-medium">Industry type <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select class="w-full border rounded px-3 py-2" name="industry_type">
                                                         <option value="">Select Industry</option>
                                                         <option value="Information technology" {{ old('industry_type', $companyDetails->industry_type) == 'Information technology' ? 'selected' : '' }}>Information technology</option>
@@ -474,13 +474,13 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company establishment date</label>
+                                                    <label class="block mb-1 font-medium">Company establishment date <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input id="establishment_date" name="establishment_date" value="{{ \Carbon\Carbon::parse($companyDetails->updated_at)->format('d-m-Y') }}" class="w-full border rounded px-3 py-2 form-control" />
                                                     @error("establishment_date") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company website</label>
+                                                    <label class="block mb-1 font-medium">Company website <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="company_website" value="{{ $companyDetails->company_website }}" class="w-full border rounded px-3 py-2" />
                                                     @error("company_website") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
@@ -491,19 +491,19 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Recruiter Name</label>
+                                                    <label class="block mb-1 font-medium">Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
                                                     @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Recruiter Email</label>
+                                                    <label class="block mb-1 font-medium">Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
                                                     @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div class="">
-                                                    <label class="block mb-1 font-medium">National ID Number</label>
+                                                    <label class="block mb-1 font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
                                                     @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
@@ -584,7 +584,7 @@
 
                                                 <!-- Company Profile Picture -->
                                                 <div>
-                                                    <label class="block font-medium mb-1">Company Profile Picture</label>
+                                                    <label class="block font-medium mb-1">Company Profile Picture <span style="color: red; font-size: 17px;">*</span></label>
                                                     @if($companyProfile)
                                                         <div class="flex items-center gap-4">
                                                             <a href="{{ asset($companyProfile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">📄 View Image</a>
@@ -596,7 +596,7 @@
 
                                                 <!-- Registration Document -->
                                                 <div>
-                                                    <label class="block font-medium mb-1">Registration Document</label>
+                                                    <label class="block font-medium mb-1">Registration Document <span style="color: red; font-size: 17px;">*</span></label>
                                                     @if($registrationDoc)
                                                         <div class="flex items-center gap-4">
                                                             <a href="{{ asset($registrationDoc->document_path) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700">📄 View Document</a>
