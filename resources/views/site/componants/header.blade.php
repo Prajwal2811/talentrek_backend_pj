@@ -27,6 +27,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/datepicker.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/flaticon.css') }}"> 
     <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/swiper-bundle.min.css') }}">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- <link rel="stylesheet" type="text/css" href="{{ asset('asset/css/style.css') }}"> -->
     <script src="https://unpkg.com/feather-icons"></script>

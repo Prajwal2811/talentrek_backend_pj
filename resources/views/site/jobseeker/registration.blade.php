@@ -90,7 +90,7 @@
                                 <div id="step-1" class="">
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Full name</label>
+                                        <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="name" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Enter full name" value="{{ old('name') }}" />
                                         @error('name')
@@ -99,7 +99,7 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Email</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Email <span style="color: red; font-size: 17px;">*</span></label>
                                             <input placeholder="Enter email" name="email" type="email"
                                                 class="w-full border rounded-md p-2 mt-1" value="{{ old('email', $email) }}"
                                                 readonly />
@@ -108,23 +108,23 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Gender</label>
-                                            <select name="gender" class="w-full border rounded-md p-2 mt-1">
+                                            <label class="block mb-1 text-sm font-medium mt-3">Gender <span style="color: red; font-size: 17px;">*</span></label>
+                                            <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
                                                 <option value="">Select gender</option>
                                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male
                                                 </option>
                                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>
                                                     Female</option>
                                             </select>
-
-                                        </div>
                                         @error('gender')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
+                                        </div>
+                                        
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2 mt-1">
                                                     <option>+91</option>
@@ -138,16 +138,38 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
                                             <input name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
-                                                value="{{ old('dob') }}" readonly/>
+                                                value="{{ old('dob') }}"/>
                                             @error('dob')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                     </div>
+                                    <div class="grid grid-cols-2 gap-6 mt-3">
+                                        <div class="col-span-2">
+                                            <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                            <span class="text-xs text-blue-600">
+                                                National ID should start with 1 for male and 2 for female.
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                name="national_id" 
+                                                id="national_id" 
+                                                class="w-full border rounded-md p-2 mt-1" 
+                                                placeholder="Enter national id number" 
+                                                value="{{ old('national_id') }}" 
+                                                maxlength="15"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                            />
+                                            @error('national_id')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Location</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Location <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="City or State" value="{{ old('city') }}" />
                                         @error('city')
@@ -155,7 +177,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Address</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Address <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Street, Area, ZIP" value="{{ old('address') }}" />
                                         @error('address')
@@ -185,7 +207,7 @@
                                                 {{-- Highest Qualification --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Highest
-                                                        qualification</label>
+                                                        qualification <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="high_education[]"
                                                         class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select highest qualification</option>
@@ -204,7 +226,7 @@
                                                 {{-- Field of Study --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Field of
-                                                        study</label>
+                                                        study <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="field_of_study[]"
                                                         class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select field of study</option>
@@ -227,7 +249,7 @@
                                                 {{-- Institution Name --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Institution
-                                                        name</label>
+                                                        name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input name="institution[]" type="text"
                                                         class="w-full border border-gray-300 rounded-md p-2"
                                                         value="{{ old("institution.$i") }}"
@@ -240,7 +262,7 @@
                                                 {{-- Graduation Year --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Graduation
-                                                        year</label>
+                                                        year <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="graduate_year[]"
                                                         class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select year of passing</option>
@@ -289,17 +311,50 @@
 
                                     <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
                                         @for ($i = 0; $i < $workCount; $i++)
+                                            @php
+                                                $isWorking = old("currently_working.$i") == 'on';
+                                            @endphp
                                             <div
-                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
+                                                x-data="{
+                                                    working: {{ $isWorking ? 'true' : 'false' }},
+                                                    index: {{ $i }},
+                                                    init() {
+                                                        this.$watch('working', value => {
+                                                            const entries = document.querySelectorAll('.work-entry');
+                                                            entries.forEach((entry, idx) => {
+                                                                const checkbox = entry.querySelector('.currently-working-checkbox');
+                                                                const endInput = entry.querySelector('.datepicker-end');
+
+                                                                if (value) {
+                                                                    // If this checkbox is checked, disable all others
+                                                                    if (idx !== this.index) {
+                                                                        checkbox.disabled = true;
+                                                                        checkbox.checked = false;
+                                                                        if (entry.__x) entry.__x.$data.working = false;
+                                                                    } else {
+                                                                        endInput.value = '';
+                                                                        endInput.readOnly = true;
+                                                                        endInput.disabled = true;
+                                                                    }
+                                                                } else {
+                                                                    // Enable all checkboxes and date inputs
+                                                                    checkbox.disabled = false;
+                                                                    endInput.readOnly = false;
+                                                                    endInput.disabled = false;
+                                                                }
+                                                            });
+                                                        });
+                                                    }
+                                                }"
+                                                x-init="init()"
+                                            >
 
                                                 {{-- Job Role --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job
-                                                        Title</label>
-                                                    <input type="text" name="job_role[]"
-                                                        class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. Software Engineer"
-                                                        value="{{ old("job_role.$i") }}" />
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
                                                     @error("job_role.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -307,11 +362,9 @@
 
                                                 {{-- Organization --}}
                                                 <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
-                                                    <input type="text" name="organization[]"
-                                                        class="w-full border rounded-md p-2" placeholder="e.g. ABC Corp"
-                                                        value="{{ old("organization.$i") }}" />
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
                                                     @error("organization.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -319,67 +372,79 @@
 
                                                 {{-- Start Date --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started
-                                                        From</label>
-                                                    <input  name="starts_from[]"
-                                                        class="datepicker-start w-full border rounded-md p-2"
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
                                                         value="{{ old("starts_from.$i") }}" readonly />
                                                     @error("starts_from.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                {{-- End Date --}}
-                                                @php
-                                                    $isWorking = old("currently_working.$i") == 'on';
-                                                @endphp
-
-                                                <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
-
-                                                    <input 
-                                                        type="text" 
-                                                        name="end_to[]" 
-                                                        class="w-full border rounded-md p-2 datepicker-end" 
-                                                        :disabled="working"
-                                                        :readonly="working"
-                                                        :value="working ? '' : '{{ old("end_to.$i") }}'"
-                                                    />
-
+                                                {{-- End Date & Checkbox --}}
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
+                                                        :disabled="working" :readonly="working"
+                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" />
                                                     @error("end_to.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
 
                                                     <label class="inline-flex items-center mt-2 space-x-2">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            name="currently_working[{{ $i }}]" 
-                                                            x-model="working"
-                                                            {{ $isWorking ? 'checked' : '' }}
-                                                        >
+                                                        <input type="checkbox" class="currently-working-checkbox"
+                                                            name="currently_working[{{ $i }}]" x-model="working"
+                                                            {{ $isWorking ? 'checked' : '' }}>
                                                         <span>I currently work here</span>
                                                     </label>
                                                 </div>
-
-
-
-
-
-
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
                                                     class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
                                                     style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
-
                                             </div>
                                         @endfor
                                     </div>
 
                                     <div class="col-span-2">
-                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work
-                                            experience +</button>
+                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
                                     </div>
+
+                                    <script>
+                                        const workContainer = document.getElementById('work-container');
+                                        const addWorkBtn = document.getElementById('add-work');
+
+                                        addWorkBtn.addEventListener('click', () => {
+                                            const firstEntry = workContainer.querySelector('.work-entry');
+                                            const clone = firstEntry.cloneNode(true);
+
+                                            // Clear inputs and errors
+                                            clone.querySelectorAll('input').forEach(input => {
+                                                if (input.type === 'checkbox') {
+                                                    input.checked = false;
+                                                    input.disabled = false;
+                                                } else {
+                                                    input.value = '';
+                                                    input.readOnly = false;
+                                                    input.disabled = false;
+                                                }
+                                            });
+
+                                            clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+                                            clone.querySelector('.remove-work').style.display = 'block';
+
+                                            workContainer.appendChild(clone);
+                                            Alpine.initTree(clone);
+                                        });
+
+                                        workContainer.addEventListener('click', (e) => {
+                                            if (e.target.classList.contains('remove-work')) {
+                                                const entry = e.target.closest('.work-entry');
+                                                entry.remove();
+                                            }
+                                        });
+                                    </script>
+
 
                                     <div class="col-span-2 flex justify-between">
                                         <button type="button" onclick="showStep(2)"
@@ -395,7 +460,7 @@
                                 <div id="step-4" class="hidden">
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Skills</label>
+                                        <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="skills" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. AWS Certified, Python, Project Management"
                                             value="{{ old('skills') }}" />
@@ -404,7 +469,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Area of Interests</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Area of Interests <span style="color: red; font-size: 17px;">*</span></label>
                                         <select class="w-full border rounded-md p-2 mt-1" name="interest">
                                             <option value="" disabled {{ old('interest') ? '' : 'selected' }}>Select an
                                                 area</option>
@@ -421,7 +486,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Job Categories</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. Software Engineer, Data Analyst"
                                             value="{{ old('job_category') }}" />
@@ -430,7 +495,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link </label>
                                         <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
                                             value="{{ old('website_link') }}" />
@@ -476,18 +541,53 @@
                                     </div>
                                     <!-- Upload Resume -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 mt-3">Upload resume</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">
+                                            Upload resume <span style="color: red;">*</span>
+                                        </label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" class="border rounded-md p-2 w-full text-sm"  name="resume" accept=".pdf,.doc,.docx,.txt" />
+                                            <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt"
+                                                class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-                                            @error('resume')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+
+                                        {{-- Show old selected file name here --}}
+                                        @if(session('old_resume_name'))
+                                            <p class="text-green-600 text-sm mt-1">
+                                                Previously selected: {{ session('old_resume_name') }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Show validation error --}}
+                                        @error('resume')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
+                                    <script>
+                                        const resumeInput = document.getElementById('resumeFile');
+                                        const resumeFilenameDisplay = document.getElementById('resumeFilename');
+
+                                        // Show filename when user selects a file
+                                        resumeInput.addEventListener('change', function () {
+                                            if (this.files.length > 0) {
+                                                const fileName = this.files[0].name;
+                                                resumeFilenameDisplay.textContent = "Selected: " + fileName;
+                                                sessionStorage.setItem('resumeFileName', fileName); // store temporarily
+                                            }
+                                        });
+
+                                        // On page load, restore filename if available
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const savedFileName = sessionStorage.getItem('resumeFileName');
+                                            if (savedFileName) {
+                                                resumeFilenameDisplay.textContent = "Previously selected: " + savedFileName;
+                                            }
+                                        });
+                                    </script>
+
+
 
                                     <!-- Upload Profile Picture -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
                                             <input type="file" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />
@@ -580,29 +680,7 @@
                 }
             });
         </script>
-        <script>
-            // Function to handle work exprience add/remove
-            const workContainer = document.getElementById('work-container');
-            const addWorkBtn = document.getElementById('add-work');
-
-            addWorkBtn.addEventListener('click', () => {
-                const firstEntry = workContainer.querySelector('.work-entry');
-                const clone = firstEntry.cloneNode(true);
-
-                clone.querySelectorAll('input').forEach(input => input.value = '');
-                clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-                clone.querySelector('.remove-work').style.display = 'block';
-
-                workContainer.appendChild(clone);
-            });
-
-            workContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-work')) {
-                    const entry = e.target.closest('.work-entry');
-                    entry.remove();
-                }
-            });
-        </script>
+        
         <script>
             function showStep(step) {
                 for (let i = 1; i <= 5; i++) {
@@ -682,6 +760,34 @@
                 });
             });
         </script>
+        <!-- Natioanl id and gender logic code -->
+        <script>
+            $(document).ready(function () {
+                function validateNationalIdInput() {
+                    const gender = $('#gender').val();
+                    const value = $('#national_id').val();
 
+                    if (gender === 'Male') {
+                        if (value && !value.startsWith('1')) {
+                            $('#national_id').val('');
+                        }
+                    } else if (gender === 'Female') {
+                        if (value && !value.startsWith('2')) {
+                            $('#national_id').val('');
+                        }
+                    }
+                }
 
+                $('#gender').on('change', function () {
+                    const selectedGender = $(this).val();
 
+                    // Clear National ID field when gender is changed
+                    $('#national_id').val('');
+
+                    // Attach input event for validation
+                    $('#national_id').off('input').on('input', function () {
+                        validateNationalIdInput();
+                    });
+                });
+            });
+        </script>

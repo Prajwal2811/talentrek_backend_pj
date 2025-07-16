@@ -18,30 +18,30 @@
     </style>
 @include('site.componants.navbar')
 
-  <div class="page-content">
-            <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset/images/banner/Mentorship.png') }}');">
-                <div class="absolute inset-0 bg-white bg-opacity-10"></div>
-                <div class="relative z-10 container mx-auto px-4">
-                    <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Mentorship</h2>
-                    </div>
+    <div class="page-content">
+        <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset/images/banner/Mentorship.png') }}');">
+            <div class="absolute inset-0 bg-white bg-opacity-10"></div>
+            <div class="relative z-10 container mx-auto px-4">
+                <div class="space-y-2">
+                    <h2 class="text-5xl font-bold text-white ml-[10%]">Mentorship</h2>
                 </div>
             </div>
         </div>
+    </div>
 
 
-            <script>
-                function toggleSection(id, iconId) {
-                    const section = document.getElementById(id);
-                    const icon = document.getElementById(iconId);
-                    section.classList.toggle('hidden');
-                    if (icon.classList.contains('rotate-180')) {
-                        icon.classList.remove('rotate-180');
-                    } else {
-                        icon.classList.add('rotate-180');
-                    }
-                }
-            </script>
+    <script>
+        function toggleSection(id, iconId) {
+            const section = document.getElementById(id);
+            const icon = document.getElementById(iconId);
+            section.classList.toggle('hidden');
+            if (icon.classList.contains('rotate-180')) {
+                icon.classList.remove('rotate-180');
+            } else {
+                icon.classList.add('rotate-180');
+            }
+        }
+    </script>
 
           <main class="w-11/12 mx-auto py-8">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -73,161 +73,130 @@
                     </div>
                     </div>
 
+                    @include('admin.errors')
                     <section class="max-w-7xl mx-auto p-4">
-                    <!-- Mentorship mode -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block font-semibold mb-2">Mentorship mode</label>
-                            <label class="block text-sm text-gray-700 mb-1">Date</label>
-                            <select class="w-full border rounded px-4 py-2">
-                            <option>Online/offline</option>
-                            <option>Online</option>
-                            <option>Offline</option>
-                            </select>
-                        </div>
+                        <form method="POST" action="{{ route('mentorship-booking-submit') }}">
+                            @csrf
+                            <!-- Mentorship mode & Date -->
+                            <div class="grid grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <input type="hidden" name="mentor_id" id="mentorName" value="{{ $mentorDetails->mentor_id }}" class="w-full border rounded px-4 py-2 mb-4" readonly />
+                                    <input type="hidden" name="jobseeker_id" value="{{ optional(auth('jobseeker')->user())->id }}" class="w-full border rounded px-4 py-2 mb-4" readonly />
 
-                        <div>
-                            <label class="block font-semibold mb-2">Select the Date</label>
-                            <label class="block text-sm text-gray-700 mb-1">Date</label>
-                            <input type="date" value="2025-04-15" class="w-full border rounded px-4 py-2" />
-                        </div>
-                    </div>
+                                    <label class="block font-semibold mb-2">Mentorship mode</label>
+                                    <select id="modeSelect" name="mode" class="w-full border rounded px-4 py-2" required>
+                                        <option value="">Online/Offline</option>
+                                        <option value="online">Online</option>
+                                        <option value="offline">Offline</option>
+                                    </select>
+                                </div>
 
+                                <div>
+                                    <label class="block font-semibold mb-2">Select the Date</label>
+                                    <input type="date" id="dateInput" name="date" class="w-full border rounded px-4 py-2" required />
+                                </div>
+                            </div>
 
-                    <!-- Select the Time -->
-                 <div class="mb-4">
-                    <label class="block font-semibold mb-4">Select the Time</label>
-                    <div class="grid grid-cols-4 gap-4 text-center text-sm">
-                        <!-- Time Slot -->
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-gray-900 focus:outline-none"
-                        data-available="true"
-                        onclick="selectTimeSlot(this)"
-                        >
-                        <p class="font-medium">09:00 am</p>
-                        <p class="text-xs text-gray-500">Available</p>
-                        </button>
+                            <!-- Time Slot Section -->
+                            <div class="mb-4">
+                                <label class="block font-semibold mb-4">Select the Time</label>
+                                <div id="slotContainer" class="grid grid-cols-4 gap-4 text-center text-sm">
+                                    <!-- Slots will be dynamically loaded here -->
+                                </div>
+                                <input type="hidden" name="slot_id" id="selectedSlotId" required />
+                            </div>
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-red-600 border-red-500 cursor-not-allowed"
-                        disabled
-                        >
-                        <p class="font-medium">10:15 am</p>
-                        <p class="text-xs">Unavailable</p>
-                        </button>
+                            <!-- Book Session Button -->
+                            <div class="mt-6">
+                                <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded font-semibold">
+                                    Book Session
+                                </button>
+                            </div>
+                        </form>
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-gray-900 focus:outline-none"
-                        data-available="true"
-                        onclick="selectTimeSlot(this)"
-                        >
-                        <p class="font-medium">11:10 am</p>
-                        <p class="text-xs text-gray-500">Available</p>
-                        </button>
+                        <!-- Script -->
+                        <script>
+                            document.getElementById('modeSelect').addEventListener('change', fetchSlots);
+                            document.getElementById('dateInput').addEventListener('change', fetchSlots);
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-gray-900 focus:outline-none"
-                        data-available="true"
-                        onclick="selectTimeSlot(this)"
-                        >
-                        <p class="font-medium">01:10 pm</p>
-                        <p class="text-xs text-gray-500">Available</p>
-                        </button>
+                            function fetchSlots() {
+                                const mode = document.getElementById('modeSelect').value;
+                                const date = document.getElementById('dateInput').value;
+                                const mentorId = document.getElementById('mentorName').value;
+                                const container = document.getElementById('slotContainer');
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-gray-900 focus:outline-none"
-                        data-available="true"
-                        onclick="selectTimeSlot(this)"
-                        >
-                        <p class="font-medium">02:00 pm</p>
-                        <p class="text-xs text-gray-500">Available</p>
-                        </button>
+                                if (!mode || !date || !mentorId) {
+                                    container.innerHTML = '';
+                                    return;
+                                }
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-red-600 border-red-500 cursor-not-allowed"
-                        disabled
-                        >
-                        <p class="font-medium">02:45 pm</p>
-                        <p class="text-xs">Unavailable</p>
-                        </button>
+                                const url = `{{ route('get-available-slots') }}?mode=${mode}&date=${date}&mentor_id=${mentorId}`;
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-gray-900 focus:outline-none"
-                        data-available="true"
-                        onclick="selectTimeSlot(this)"
-                        >
-                        <p class="font-medium">03:30 pm</p>
-                        <p class="text-xs text-gray-500">Available</p>
-                        </button>
+                                fetch(url)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        container.innerHTML = '';
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-gray-900 focus:outline-none"
-                        data-available="true"
-                        onclick="selectTimeSlot(this)"
-                        >
-                        <p class="font-medium">04:15 pm</p>
-                        <p class="text-xs text-gray-500">Available</p>
-                        </button>
+                                        if (data.length === 0) {
+                                            container.innerHTML = `<p class="col-span-4 text-center text-gray-500">No slots available</p>`;
+                                            return;
+                                        }
 
-                        <button
-                        type="button"
-                        class="border rounded py-2 px-3 text-red-600 border-red-500 cursor-not-allowed"
-                        disabled
-                        >
-                        <p class="font-medium">05:00 pm</p>
-                        <p class="text-xs">Unavailable</p>
-                        </button>
+                                        data.forEach(slot => {
+                                            const isUnavailable = slot.is_unavailable;
 
+                                            const btn = document.createElement('button');
+                                            btn.type = 'button';
+                                            btn.className = `border rounded py-2 px-3 w-full ${
+                                                isUnavailable
+                                                    ? 'text-red-600 border-red-500 cursor-not-allowed bg-red-50'
+                                                    : 'text-gray-900 hover:bg-blue-100'
+                                            }`;
 
-                        <!-- Add more slots similarly -->
-                    </div>
-                    </div>
+                                            btn.disabled = isUnavailable;
 
-                    <script>
-                    function selectTimeSlot(selectedButton) {
-                        // Deselect all selectable buttons
-                        document.querySelectorAll(
-                        '.grid button[data-available="true"]'
-                        ).forEach((btn) => {
-                        btn.classList.remove('bg-blue-500', 'text-white');
-                        btn.classList.add('text-gray-900');
-                        });
+                                            btn.innerHTML = `
+                                                <p class="font-medium">${slot.start_time} - ${slot.end_time}</p>
+                                                <p class="text-xs ${isUnavailable ? 'text-red-600' : 'text-green-600'}">
+                                                    ${isUnavailable ? 'Unavailable' : 'Available'}
+                                                </p>
+                                                <input type="hidden" name="slot_time" value="${slot.start_time} - ${slot.end_time}" required />
+                                            `;
 
-                        // Select clicked button
-                        selectedButton.classList.add('bg-blue-500', 'text-white');
-                        selectedButton.classList.remove('text-gray-900');
-                    }
-                    </script>
+                                            if (!isUnavailable) {
+                                                btn.setAttribute('data-available', 'true');
+                                                btn.setAttribute('data-slot-id', slot.id); // Assuming slot.id exists
+                                                btn.onclick = function () {
+                                                    selectTimeSlot(this);
+                                                };
+                                            }
 
+                                            container.appendChild(btn);
+                                        });
+                                    })
+                                    .catch(error => {
+                                        console.error('Failed to fetch slots:', error);
+                                        container.innerHTML = `<p class="col-span-4 text-center text-red-600">Error loading slots</p>`;
+                                    });
+                            }
 
-                    <!-- Book Session Button -->
-                    <div class="mt-6">
-                        <a href="{{ route('mentorship-booking-success')}}">
-                            <button class="bg-blue-700 text-white px-6 py-2 rounded font-semibold">
-                                Book Session
-                            </button>
-                        </a>
-                        
-                    </div>
+                            function selectTimeSlot(selectedButton) {
+                                document.querySelectorAll('#slotContainer button[data-available="true"]').forEach(btn => {
+                                    btn.classList.remove('bg-blue-500', 'text-white');
+                                    btn.classList.add('text-gray-900');
+                                });
+
+                                selectedButton.classList.add('bg-blue-500', 'text-white');
+                                selectedButton.classList.remove('text-gray-900');
+
+                                const slotId = selectedButton.getAttribute('data-slot-id');
+                                document.getElementById('selectedSlotId').value = slotId;
+                            }
+                        </script>
                     </section>
-
-                
-
-
-               
               </div>
-
             </div>
           </main>
-
           <script>
             document.addEventListener('DOMContentLoaded', () => {
               const tabs = document.querySelectorAll('.tab-link');

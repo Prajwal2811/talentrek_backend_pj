@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; 
 
-class Coach extends Model
+class Coach extends Authenticatable
 {
     use HasFactory;
 
@@ -22,6 +23,14 @@ class Coach extends Model
         'phone_number',
         'date_of_birth',
         'city',
+        'password',
+        'pass',
+        'otp',
+        'national_id',
+        'status',
+        'admin_status',
+        'about_coach',
+        'isSubscribtionBuy', // Added to match migration
     ];
 
     /**

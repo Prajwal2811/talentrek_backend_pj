@@ -25,6 +25,137 @@ $skills = $user->skills->first();
     </div>
 
     @include('site.componants.navbar')	
+
+    @if($user->isSubscribtionBuy  === 'no')
+        <!-- Modal -->
+        <div id="subscriptionModal"
+            class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 {{ $user->isSubscribtionBuy === 'no' ? '' : 'hidden' }}">
+            
+            <div class="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative">
+                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Silver Plan -->
+                    <div class="border rounded-lg p-4 shadow-sm text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                            <h4 class="font-semibold">Silver</h4>
+                            <p class="font-bold text-lg mt-1">AED 49</p>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
+                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
+                        </ul>
+                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
+                            Buy subscription
+                        </button>
+
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                            <h4 class="font-semibold">Silver</h4>
+                            <p class="font-bold text-lg mt-1">AED 49</p>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
+                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
+                        </ul>
+                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
+                            Buy subscription
+                        </button>
+
+                    </div><div class="border rounded-lg p-4 shadow-sm text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                            <h4 class="font-semibold">Silver</h4>
+                            <p class="font-bold text-lg mt-1">AED 49</p>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
+                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
+                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
+                        </ul>
+                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
+                            Buy subscription
+                        </button>
+
+                    </div>
+
+                    
+
+                    <!-- Gold Plan -->
+                    <!-- ... other plans same as above ... -->
+
+                </div>
+            </div>
+        </div>
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex items-center justify-center">
+            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+
+                <form action="{{ route('jobseeker.subscription.payment') }}" method="POST">
+                    @csrf
+
+                    <!-- Card Number -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                        <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="1234 5678 9012 3456">
+                    </div>
+
+                    <!-- Expiry & CVV -->
+                    <div class="mb-4 flex space-x-2">
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="MM/YY">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="123">
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                        Pay Now
+                    </button>
+                </form>
+
+                <!-- Close Button -->
+                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                    ×
+                </button>
+            </div>
+        </div>
+
+
+        <script>
+            function openPaymentModal() {
+                document.getElementById('paymentModal').classList.remove('hidden');
+            }
+
+            function closePaymentModal() {
+                document.getElementById('paymentModal').classList.add('hidden');
+            }
+
+            // Attach event listener to all Buy Subscription buttons
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                    button.addEventListener('click', openPaymentModal);
+                });
+            });
+        </script>
+
+
+    @else
         <div class="page-content">
             <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset//images/banner/service page banner.png') }}');">
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
@@ -44,9 +175,9 @@ $skills = $user->skills->first();
                         <div class="flex justify-between items-start">
                         <div class="flex gap-4">
                         @php
-                            use App\Models\AdditionalInfo;
+                            
                             $userId = auth()->id();
-                            $profile = AdditionalInfo::where('user_id', $userId)
+                            $profile = App\Models\AdditionalInfo::where('user_id', $userId)
                                         ->where('doc_type', 'profile_picture')
                                         ->first();
                         @endphp
@@ -270,7 +401,7 @@ $skills = $user->skills->first();
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Gender</label>
-                                                <select class="w-full border rounded px-3 py-2" name="gender">
+                                                <select class="w-full border rounded px-3 py-2" name="gender" id = "gender">
                                                     <option>{{Auth()->user()->gender}}</option>
                                                     <option selected>Male</option>
                                                     <option>Female</option>
@@ -301,9 +432,28 @@ $skills = $user->skills->first();
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
-
                                         </div>
-
+                                        
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                            <span class="text-xs text-blue-600">
+                                                National ID should start with 1 for male and 2 for female.
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                name="national_id" 
+                                                id="national_id" 
+                                                class="w-full border rounded-md p-2 mt-1" 
+                                                placeholder="Enter national id number" 
+                                                value="{{ Auth()->user()->national_id ?? '' }}"
+                                                maxlength="15"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                            />
+                                            @error('national_id')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Address</label>
                                             <input type="text" placeholder="Enter address" name="address"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->address ?? '' }}"/>
@@ -608,13 +758,13 @@ $skills = $user->skills->first();
                                                     <!-- End To & Checkbox -->
                                                     @php
                                                         $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-                                                        (isset($data->end_to) && $data->end_to === 'Work here');
+                                                        (isset($data->end_to) && $data->end_to === 'work here');
                                                     @endphp
                                                     <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
                                                         <label class="block text-sm font-medium mb-1">To</label>
                                                         <input readonly name="end_to[]" class="datepicker-end w-full border rounded px-3 py-2"
                                                             x-bind:disabled="working"
-                                                            :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'Work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
+                                                            :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
 
                                                         <label class="inline-flex items-center space-x-2 mt-2">
                                                             <input type="checkbox" name="currently_working[]" value="{{ $i }}"
@@ -852,8 +1002,8 @@ $skills = $user->skills->first();
 
                                 @php
                                     $userId = auth()->id();
-                                    $resume = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'resume')->first();
-                                    $profile = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'profile_picture')->first();
+                                    $resume = App\Models\AdditionalInfo::where('user_id', $userId)->where('doc_type', 'resume')->first();
+                                    $profile = App\Models\AdditionalInfo::where('user_id', $userId)->where('doc_type', 'profile_picture')->first();
                                 @endphp
 
                                 <!-- Success Message -->
@@ -1541,7 +1691,7 @@ $skills = $user->skills->first();
                     </div>
 
                     <!-- Modal -->
-                    <div x-show="showModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <!-- <div x-show="showModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div class="bg-white w-full max-w-3xl rounded shadow-lg overflow-hidden">
                             <div class="flex justify-between items-center px-4 py-2 border-b">
                                 <h3 class="text-lg font-semibold">Certificate Document</h3>
@@ -1552,7 +1702,6 @@ $skills = $user->skills->first();
                                     <img :src="selectedCertificate" alt="Certificate" class="max-h-[500px] w-auto object-contain" />
                                 </template>
                                 
-                                <!-- Download Button -->
                                 <template x-if="selectedCertificate">
                                     <a 
                                         :href="selectedCertificate" 
@@ -1560,7 +1709,6 @@ $skills = $user->skills->first();
                                         class="mt-4 p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center justify-center"
                                         aria-label="Download Certificate"
                                     >
-                                        <!-- Download SVG Icon -->
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
                                         </svg>
@@ -1568,7 +1716,7 @@ $skills = $user->skills->first();
                                 </template>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <!-- Settings Tab -->
@@ -1583,6 +1731,9 @@ $skills = $user->skills->first();
             </div>
             </div>
         </main>
+
+    @endif
+
 
 </div>
 
@@ -1636,7 +1787,7 @@ $skills = $user->skills->first();
 </script>
 
 
-<script>
+<!-- <script>
     let workIndex = document.querySelectorAll('.work-entry').length;
 
     const workContainer = document.getElementById('work-container');
@@ -1693,7 +1844,7 @@ $skills = $user->skills->first();
             entry.remove();
         }
     });
-</script>
+</script> -->
 <script>
 $(document).ready(function () {
     $('#dob').datepicker({
@@ -1719,6 +1870,46 @@ $(document).ready(function () {
     });
 });
 
+</script>
+
+<!-- Natioanl id and gender logic code -->
+<script>
+    $(document).ready(function () {
+        function validateNationalIdInput() {
+            const gender = $('#gender').val();
+            const value = $('#national_id').val();
+
+            if (gender === 'Male') {
+                if (value && !value.startsWith('1')) {
+                    $('#national_id').val('');
+                }
+            } else if (gender === 'Female') {
+                if (value && !value.startsWith('2')) {
+                    $('#national_id').val('');
+                }
+            }
+        }
+
+        // Always attach input validation
+        $('#national_id').on('input', function () {
+            validateNationalIdInput();
+        });
+
+        // Initial call if gender already selected
+        if ($('#gender').val()) {
+            validateNationalIdInput();
+        }
+
+        // On gender change, reset national ID and validate new input
+        $('#gender').on('change', function () {
+            $('#national_id').val('');
+
+            // Re-attach input validation
+            $('#national_id').off('input').on('input', function () {
+                validateNationalIdInput();
+            });
+        });
+    });
 </script>
 
 

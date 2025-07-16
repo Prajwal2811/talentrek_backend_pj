@@ -40,6 +40,8 @@ Route::group(['prefix' => 'recruiter'], function() {
 
 		Route::post('/profile/update',[RecruiterController::class, 'updateCompanyProfile'])->name('recruiter.company.profile.update');
 		Route::post('/profile/document/update',[RecruiterController::class, 'updateCompanyDocument'])->name('recruiter.company.document.update');
+		Route::delete('/profile/documents/delete/{type}', [RecruiterController::class, 'deleteCompanyDocument'])->name('recruiter.company.document.delete');
+		
 		Route::delete('/delete', [RecruiterController::class, 'deleteAccount'])->name('recruiter.destroy');
 
 

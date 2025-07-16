@@ -21,6 +21,7 @@ return new class extends Migration
             // Training details
             $table->string('training_type')->nullable();                 // Online, Offline, Hybrid
             $table->string('training_title')->nullable();
+            $table->string('training_level')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
 

@@ -233,7 +233,7 @@
                                             <div class="ml-4 flex space-x-2">
                                                 @php
                                                     $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'approved';
-                                                    $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? NULL) === 'yes';
+                                                    $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? '') === 'yes';
                                                     $jobseekerId = $shortlisted_jobseeker->id;
                                                 @endphp
 
@@ -256,25 +256,16 @@
                                                     id="interview-btn-{{ $jobseekerId }}"
                                                     onclick="confirmInterviewRequest({{ $jobseekerId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
                                                     class="text-white text-xs px-2 py-1 rounded
-                                                    {{ $isApproved ? ($interviewRequested ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-500 hover:bg-purple-600') : 'bg-gray-600 cursor-not-allowed' }}"
-                                                    @if($interviewRequested || !$isApproved) disabled @endif
+                                                        {{ $isApproved 
+                                                            ? ($interviewRequested 
+                                                                ? 'bg-gray-400 cursor-not-allowed' 
+                                                                : 'bg-purple-500 hover:bg-purple-600') 
+                                                            : 'bg-gray-600 cursor-not-allowed' }}"
+                                                    {{ ($interviewRequested || !$isApproved) ? 'disabled' : '' }}
                                                 >
                                                     {{ $interviewRequested ? 'Interview Requested' : 'Interview Request' }}
                                                 </button>
-
                                             </div>
-
-
-
-
-
-
-
-
-
-
-
-
                                         </div>
                                     @endforeach
                                     <!-- Pagination Controls -->
@@ -291,7 +282,31 @@
                 </main>
                 <!-- SweetAlert2 CDN -->
                 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                <style>
+                    .swal2-popup-sm {
+                        font-size: 15px;
+                        border-radius: 10px;
+                        padding: 1.2em;
+                    }
 
+                    .swal2-title-sm {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                    }
+
+                    .swal2-text-sm {
+                        font-size: 15px;
+                        color: #333;
+                    }
+
+                    .swal2-confirm-sm,
+                    .swal2-cancel-sm {
+                        font-size: 14px !important;
+                        padding: 8px 20px !important;
+                        border-radius: 6px !important;
+                    }
+                </style>
                 <script>
                     function confirmInterviewRequest(jobseekerId, isApproved, interviewRequested) {
                         if (!isApproved || interviewRequested) return;
@@ -300,11 +315,20 @@
                             title: 'Are you sure?',
                             text: "Do you want to send interview request?",
                             icon: 'question',
+                            width: '400px',
+                            padding: '1.2em',
                             showCancelButton: true,
                             confirmButtonColor: '#4CAF50',
                             cancelButtonColor: '#d33',
                             confirmButtonText: 'Yes, send it!',
-                            cancelButtonText: 'Cancel'
+                            cancelButtonText: 'Cancel',
+                            customClass: {
+                                popup: 'swal2-popup-sm',
+                                title: 'swal2-title-sm',
+                                htmlContainer: 'swal2-text-sm',
+                                confirmButton: 'swal2-confirm-sm',
+                                cancelButton: 'swal2-cancel-sm'
+                            }
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 sendInterviewRequest(jobseekerId);
@@ -314,6 +338,8 @@
 
                     function sendInterviewRequest(jobseekerId) {
                         const btn = document.getElementById('interview-btn-' + jobseekerId);
+
+                        // Optimistically disable button
                         btn.disabled = true;
                         btn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
                         btn.classList.add('bg-gray-400', 'cursor-not-allowed');
@@ -330,30 +356,49 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                Swal.fire(
-                                    'Success!',
-                                    'Interview request sent successfully.',
-                                    'success'
-                                );
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Interview request sent successfully.',
+                                    icon: 'success',
+                                    width: '400px',
+                                    customClass: {
+                                        popup: 'swal2-popup-sm',
+                                        title: 'swal2-title-sm',
+                                        htmlContainer: 'swal2-text-sm',
+                                        confirmButton: 'swal2-confirm-sm'
+                                    }
+                                });
                             } else {
-                                Swal.fire(
-                                    'Error!',
-                                    data.message || 'Something went wrong.',
-                                    'error'
-                                );
+                                handleRequestFailure(btn, data.message || 'Something went wrong.');
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            Swal.fire('Error!', 'Failed to send request.', 'error');
+                            handleRequestFailure(btn, 'Failed to send request.');
                         });
                     }
-                    </script>
 
+                    function handleRequestFailure(btn, errorMessage) {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: errorMessage,
+                            icon: 'error',
+                            width: '400px',
+                            customClass: {
+                                popup: 'swal2-popup-sm',
+                                title: 'swal2-title-sm',
+                                htmlContainer: 'swal2-text-sm',
+                                confirmButton: 'swal2-confirm-sm'
+                            }
+                        });
 
-
-
-              
+                        // Re-enable button if request failed
+                        btn.disabled = false;
+                        btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                        btn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+                        btn.innerText = 'Interview Request';
+                    }
+                </script>
 
 
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Jobseekers;
+use App\Models\Recruiters;
 use App\Models\Trainers;
 use App\Models\TrainingExperience;
 use App\Models\EducationDetails;
@@ -155,7 +157,7 @@ class TrainerController extends Controller
         $trainerId = session('verified_recruiter');
        
         if (!$trainerId) {
-            return redirect()->route('recruiter.forget.password')->withErrors(['session' => 'Session expired. Please try again.']);
+            return redirect()->route('trainer.forget.password')->withErrors(['session' => 'Session expired. Please try again.']);
         }
 
         $updated = DB::table('trainers')->where('id', $trainerId)->update([
@@ -206,6 +208,22 @@ class TrainerController extends Controller
                 'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
                 'dob' => 'required|date',
                 'city' => 'required|string|max:255',
+                'national_id' => [
+                'required',
+                'min:10', // Minimum 10 digits
+                function ($attribute, $value, $fail) use ($jobseeker) {
+                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                    $existsInJobseekers = Jobseekers::where('national_id', $value)
+                        ->where('id', '!=', $jobseeker->id)
+                        ->exists();
+
+                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                        $fail('The national ID has already been taken.');
+                    }
+                },
+            ],
+
 
                 'high_education.*' => 'required|string',
                 'field_of_study.*' => 'nullable|string',
@@ -236,6 +254,7 @@ class TrainerController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'date_of_birth' => $validated['dob'],
                 'city' => $validated['city'],
+                'national_id' => $validated['national_id'],
             ]);
 
             // Save education
@@ -494,6 +513,7 @@ class TrainerController extends Controller
             'training_sub_title' => 'required|string|max:255',
             'training_descriptions' => 'nullable|string',
             'training_category' => 'required|string', // radio button returns single value
+            'training_level' => 'required|string', // radio button returns single value
             'training_price' => 'required|numeric',
             'training_offer_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -523,6 +543,7 @@ class TrainerController extends Controller
             'training_sub_title'     => $request->training_sub_title,
             'training_descriptions'  => $request->training_descriptions,
             'training_category'      => $request->training_category,
+            'training_level'         => $request->training_level,
             'training_price'         => $request->training_price,
             'training_offer_price'   => $request->training_offer_price,
             'thumbnail_file_path'    => $thumbnailFilePath,
@@ -575,8 +596,9 @@ class TrainerController extends Controller
             'training_objective'     => 'nullable|string',
             'training_descriptions'  => 'nullable|string',
             'training_category'      => 'required|string',
+            'training_level'         => 'required|string',
             'training_price'         => 'required|numeric',
-            'training_offer_price'         => 'required|numeric',
+            'training_offer_price'   => 'required|numeric',
             'thumbnail'              => 'nullable|image|max:2048',
 
             'content_sections.*.batch_no'   => 'required|string|max:255',
@@ -602,6 +624,7 @@ class TrainerController extends Controller
             'training_sub_title'     => $request->training_sub_title,
             'training_objective'     => $request->training_objective,
             'training_descriptions'  => $request->training_descriptions,
+            'training_level'         => $request->training_level,
             'training_price'         => $request->training_price,
             'training_offer_price'   => $request->training_offer_price,
             'training_type'          => 'online',
@@ -672,6 +695,102 @@ class TrainerController extends Controller
     }
 
     
+    // public function updateRecordedTraining(Request $request, $id)
+    // {
+    //     $data = $request->validate([
+    //         'training_title' => 'required',
+    //         'training_sub_title' => 'required',
+    //         'training_descriptions' => 'nullable',
+    //         'training_category' => 'required',
+    //         'training_level' => 'required',
+    //         'training_price' => 'required|numeric',
+    //         'training_offer_price' => 'required|numeric',
+    //         'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
+    //         'content_sections' => 'nullable|array',
+    //         'content_sections.*.document_id' => 'nullable|exists:training_materials_documents,id',
+    //         'content_sections.*.title' => 'required_with:content_sections',
+    //         'content_sections.*.description' => 'required_with:content_sections',
+    //         'content_sections.*.file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+    //     ]);
+
+    //     $training = TrainingMaterial::findOrFail($id);
+    //     $training->training_title = $data['training_title'];
+    //     $training->training_sub_title = $data['training_sub_title'];
+    //     $training->training_descriptions = $data['training_descriptions'];
+    //     $training->training_category = $data['training_category'];
+    //     $training->training_level = $data['training_level'];
+    //     $training->training_price = $data['training_price'];
+    //     $training->training_offer_price = $data['training_offer_price'];
+
+    //     if ($request->hasFile('thumbnail')) {
+    //         $file = $request->file('thumbnail');
+    //         $name = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+    //         $file->move(public_path('uploads'), $name);
+    //         $training->thumbnail_file_name = $name;
+    //         $training->thumbnail_file_path = asset('uploads/' . $name);
+    //     }
+
+    //     $training->save();
+
+    //     // ✅ Update content sections safely
+    //     if (!empty($data['content_sections']) && is_array($data['content_sections'])) {
+    //         $existingIds = TrainingMaterialsDocument::where('training_material_id', $id)->pluck('id')->toArray();
+    //         $requestIds = [];
+
+    //         foreach ($data['content_sections'] as $section) {
+    //             if (!empty($section['document_id'])) {
+    //                 // Update existing document
+    //                 $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
+    //                     ->where('training_material_id', $training->id)
+    //                     ->first();
+
+    //                 if ($doc) {
+    //                     $doc->training_title = $section['title'];
+    //                     $doc->description = $section['description'];
+
+    //                     if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+    //                         $file = $section['file'];
+    //                         $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+    //                         $path = $file->storeAs('uploads', $name, 'public');
+    //                         $doc->file_name = $name;
+    //                         $doc->file_path = asset('storage/' . $path);
+    //                     }
+
+    //                     $doc->save();
+    //                     $requestIds[] = $doc->id;
+    //                 }
+    //             } else {
+    //                 // Add new document
+    //                 $doc = new TrainingMaterialsDocument();
+    //                 $doc->training_material_id = $training->id;
+    //                 $doc->trainer_id = auth()->id();
+    //                 $doc->training_title = $section['title'];
+    //                 $doc->description = $section['description'];
+
+    //                 if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+    //                     $file = $section['file'];
+    //                     $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+    //                     $path = $file->storeAs('uploads', $name, 'public');
+    //                     $doc->file_name = $name;
+    //                     $doc->file_path = asset('storage/' . $path);
+    //                 }
+
+    //                 $doc->save();
+    //                 $requestIds[] = $doc->id;
+    //             }
+    //         }
+
+    //         // ✅ Delete documents that were removed from the form
+    //         $toDelete = array_diff($existingIds, $requestIds);
+    //         if (!empty($toDelete)) {
+    //             TrainingMaterialsDocument::whereIn('id', $toDelete)->delete();
+    //         }
+    //     }
+
+    //     return redirect()->route('training.list')->with('success', 'Recorded Training course updated successfully!');
+    // }
+
     public function updateRecordedTraining(Request $request, $id)
     {
         $data = $request->validate([
@@ -679,6 +798,7 @@ class TrainerController extends Controller
             'training_sub_title' => 'required',
             'training_descriptions' => 'nullable',
             'training_category' => 'required',
+            'training_level' => 'required',
             'training_price' => 'required|numeric',
             'training_offer_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -687,7 +807,8 @@ class TrainerController extends Controller
             'content_sections.*.document_id' => 'nullable|exists:training_materials_documents,id',
             'content_sections.*.title' => 'required_with:content_sections',
             'content_sections.*.description' => 'required_with:content_sections',
-            'content_sections.*.file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'content_sections.*.file' => 'nullable|file|mimes:pdf,doc,docx,mp4,mov,avi|max:51200', // 50MB
+
         ]);
 
         $training = TrainingMaterial::findOrFail($id);
@@ -695,6 +816,7 @@ class TrainerController extends Controller
         $training->training_sub_title = $data['training_sub_title'];
         $training->training_descriptions = $data['training_descriptions'];
         $training->training_category = $data['training_category'];
+        $training->training_level = $data['training_level'];
         $training->training_price = $data['training_price'];
         $training->training_offer_price = $data['training_offer_price'];
 
@@ -713,35 +835,39 @@ class TrainerController extends Controller
             $requestIds = [];
 
             foreach ($data['content_sections'] as $section) {
-                
-            if (!empty($section['document_id'])) {
-                $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
-                    ->where('training_material_id', $training->id)
-                    ->first();
+                if (!empty($section['document_id'])) {
+                 
+                    $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
+                        ->where('training_material_id', $training->id)
+                        ->first();
 
-                if ($doc) {
-                    $doc->training_title = $section['title'];
-                    $doc->description = $section['description'];
+                    if ($doc) {
+                        $doc->training_title = $section['title'];
+                        $doc->description = $section['description'];
 
-                    if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
-                        $file = $section['file'];
-                        $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
-                        $path = $file->storeAs('uploads', $name, 'public');
-                        $doc->file_name = $name;
-                        $doc->file_path = asset('storage/' . $path);
+                        if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+                            $file = $section['file'];
+                            $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+                            $path = $file->storeAs('uploads', $name, 'public');
+                            $doc->file_name = $name;
+                            $doc->file_path = asset('storage/' . $path);
+                        } elseif (!empty($section['existing_file_name']) && !empty($section['existing_file_path'])) {
+                    
+                            $doc->file_name = $section['existing_file_name'];
+                            $doc->file_path = $section['existing_file_path'];
+                        }
+
+                        $doc->save();
+                        $requestIds[] = $doc->id;
                     }
-
-                    $doc->save();
-                    $requestIds[] = $doc->id;
-                }
-            } else {
+                } else {
                     $doc = new TrainingMaterialsDocument();
                     $doc->training_material_id = $training->id;
                     $doc->trainer_id = auth()->id();
                     $doc->training_title = $section['title'];
                     $doc->description = $section['description'];
 
-                    if (!empty($section['file'])) {
+                    if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
                         $file = $section['file'];
                         $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
                         $path = $file->storeAs('uploads', $name, 'public');
@@ -762,6 +888,7 @@ class TrainerController extends Controller
 
         return redirect()->route('training.list')->with('success', 'Recorded Training course updated successfully!');
     }
+
 
 
     public function editOnlineTraining($id)
@@ -792,6 +919,7 @@ class TrainerController extends Controller
             'training_objective' => 'nullable|string',
             'training_descriptions' => 'nullable|string',
             'training_category' => 'required|string',
+            'training_level' => 'required|string',
             'training_price' => 'required|numeric',
             'training_offer_price' => 'required|numeric',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -814,6 +942,7 @@ class TrainerController extends Controller
         $training->training_sub_title = $request->training_sub_title;
         $training->training_objective = $request->training_objective;
         $training->training_descriptions = $request->training_descriptions;
+        $training->training_level = $request->training_level;
         $training->session_type = $request->training_category;
         $training->training_price = $request->training_price;
         $training->training_offer_price = $request->training_offer_price;
@@ -910,6 +1039,24 @@ class TrainerController extends Controller
             'phone' => 'required|digits:10',
             'dob' => 'required|date',
             'location' => 'required|string|max:255',
+            'national_id' => [
+                'required',
+                'min:10',
+                function ($attribute, $value, $fail) use ($user) {
+                    if ($value != $user->national_id) {
+                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                        $existsInJobseekers = Jobseekers::where('national_id', $value)
+                            ->where('id', '!=', $user->id)
+                            ->exists();
+
+                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                            $fail('The national ID has already been taken.');
+                        }
+                    }
+                },
+            ],
+
         ]);
 
         $user->update([
@@ -918,6 +1065,7 @@ class TrainerController extends Controller
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'],
             'city' => $validated['location'],
+            'national_id' => $validated['national_id'],
         ]);
 
         return response()->json([
@@ -1135,6 +1283,6 @@ class TrainerController extends Controller
         ], 404);
     }
 
-
+   
 
 }
