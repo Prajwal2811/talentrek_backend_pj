@@ -80,11 +80,12 @@
                                 >Log out</a> -->
                                 </li>
                                 <li>
-                                <a
-                                    href="#"
-                                    @click.prevent="activeSection = 'delete'"
-                                    :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'"
-                                >Delete account</a>
+                                    <a
+                                        href="#"
+                                        @click.prevent="activeSection = 'delete'; activeSubTab = 'delete'"
+                                        :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'"
+                                    >Delete account</a>
+
                                 </li>
                             </ul>
                         </aside>
@@ -212,108 +213,108 @@
                                 </div>
 
 
-                                   <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
+                                <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
 
-                                <!-- Scrollable notification list -->
-                                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                    <!-- Notification Items -->
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
+                                    <!-- Scrollable notification list -->
+                                    <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                        <!-- Notification Items -->
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Approved your request</p>
-                                        <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Approved your request</p>
+                                            <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> New comment on your post</p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> New comment on your post</p>
+                                            <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
-                                        <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
+                                            <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
+                                            <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                        </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                        <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
+                                            <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                        </div>
+                                        </div>
                                     </div>
-                                    </div>
-                                </div>
                                 </div>
                                 
 
@@ -1017,11 +1018,6 @@
                                                 });
                                             });
                                         </script>
-    
-
-
-
-
                                         
                                         <!-- Skills & Training Tab -->
                                         <div x-show="activeSubTab === 'skills'" x-transition>
@@ -1326,59 +1322,58 @@
 
 
                                 <!-- Privacy Policy Section -->
-                              <div x-show="activeSection === 'privacy'" x-transition>
-                                <h3 class="text-xl font-semibold mb-4">Privacy Policy</h3>
-                                
-                                <p class="mb-4">At XYZ Infotech, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your personal information.</p>
+                                <div x-show="activeSection === 'privacy'" x-transition>
+                                    <h3 class="text-xl font-semibold mb-4">Privacy Policy</h3>
+                                    
+                                    <p class="mb-4">At XYZ Infotech, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your personal information.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">1. Information We Collect</h4>
-                                <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
-                                    <li>Personal information such as name, email address, phone number, and address.</li>
-                                    <li>Usage data including pages visited, time spent, and actions taken on our platform.</li>
-                                    <li>Device and browser information for improving user experience.</li>
-                                </ul>
+                                    <h4 class="text-lg font-semibold mb-2">1. Information We Collect</h4>
+                                    <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
+                                        <li>Personal information such as name, email address, phone number, and address.</li>
+                                        <li>Usage data including pages visited, time spent, and actions taken on our platform.</li>
+                                        <li>Device and browser information for improving user experience.</li>
+                                    </ul>
 
-                                <h4 class="text-lg font-semibold mb-2">2. How We Use Your Information</h4>
-                                <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
-                                    <li>To provide and maintain our services.</li>
-                                    <li>To improve customer support and experience.</li>
-                                    <li>To send transactional and promotional communications.</li>
-                                    <li>To comply with legal obligations.</li>
-                                </ul>
+                                    <h4 class="text-lg font-semibold mb-2">2. How We Use Your Information</h4>
+                                    <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
+                                        <li>To provide and maintain our services.</li>
+                                        <li>To improve customer support and experience.</li>
+                                        <li>To send transactional and promotional communications.</li>
+                                        <li>To comply with legal obligations.</li>
+                                    </ul>
 
-                                <h4 class="text-lg font-semibold mb-2">3. Data Security</h4>
-                                <p class="mb-4 text-sm text-gray-700">We implement a variety of security measures to maintain the safety of your personal information. However, no method of transmission over the Internet is 100% secure.</p>
+                                    <h4 class="text-lg font-semibold mb-2">3. Data Security</h4>
+                                    <p class="mb-4 text-sm text-gray-700">We implement a variety of security measures to maintain the safety of your personal information. However, no method of transmission over the Internet is 100% secure.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">4. Third-Party Services</h4>
-                                <p class="mb-4 text-sm text-gray-700">We may use third-party services (e.g., analytics providers, payment gateways) that collect, monitor, and analyze data. These services have their own privacy policies.</p>
+                                    <h4 class="text-lg font-semibold mb-2">4. Third-Party Services</h4>
+                                    <p class="mb-4 text-sm text-gray-700">We may use third-party services (e.g., analytics providers, payment gateways) that collect, monitor, and analyze data. These services have their own privacy policies.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">5. Your Rights</h4>
-                                <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
-                                    <li>Access and update your personal information.</li>
-                                    <li>Request deletion of your data.</li>
-                                    <li>Opt out of marketing communications.</li>
-                                </ul>
+                                    <h4 class="text-lg font-semibold mb-2">5. Your Rights</h4>
+                                    <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
+                                        <li>Access and update your personal information.</li>
+                                        <li>Request deletion of your data.</li>
+                                        <li>Opt out of marketing communications.</li>
+                                    </ul>
 
-                                <h4 class="text-lg font-semibold mb-2">6. Changes to This Policy</h4>
-                                <p class="mb-4 text-sm text-gray-700">We may update this Privacy Policy periodically. We will notify you of any significant changes via email or on our platform.</p>
+                                    <h4 class="text-lg font-semibold mb-2">6. Changes to This Policy</h4>
+                                    <p class="mb-4 text-sm text-gray-700">We may update this Privacy Policy periodically. We will notify you of any significant changes via email or on our platform.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">7. Contact Us</h4>
-                                <p class="text-sm text-gray-700">If you have any questions or concerns about this policy, please contact us at <a href="mailto:support@xyzinfotech.com" class="text-blue-600 underline">support@xyzinfotech.com</a>.</p>
+                                    <h4 class="text-lg font-semibold mb-2">7. Contact Us</h4>
+                                    <p class="text-sm text-gray-700">If you have any questions or concerns about this policy, please contact us at <a href="mailto:support@xyzinfotech.com" class="text-blue-600 underline">support@xyzinfotech.com</a>.</p>
                                 </div>
 
 
                                 <!-- Log Out Section -->
                                 <div x-show="activeSection === 'logout'" x-transition>
-                                <h3 class="text-xl font-semibold mb-4">Log Out</h3>
-                                <p>Are you sure you want to log out?</p>
-                                <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Log Out</button>
+                                    <h3 class="text-xl font-semibold mb-4">Log Out</h3>
+                                    <p>Are you sure you want to log out?</p>
+                                    <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Log Out</button>
                                 </div>
 
                                 <!-- Delete Account Section -->
-                                <div x-show="activeSection === 'delete'" x-transition>
+                                <div x-show="activeSection === 'delete'" x-transition class="bg-white p-6">
                                     <h3 class="text-xl font-semibold mb-4 text-red-600">Delete Account</h3>
                                     <p>This action is irreversible. Are you sure you want to delete your account?</p>
-                                    <!-- <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Account</button> -->
                                     <form id="deleteAccountForm" action="{{ route('trainer.destroy') }}" method="POST">
                                         @csrf
                                         @method('DELETE')
@@ -1390,8 +1385,8 @@
                                             Delete Account
                                         </button>
                                     </form>
-
                                 </div>
+
                             </div>
                         </section>
                     </div>

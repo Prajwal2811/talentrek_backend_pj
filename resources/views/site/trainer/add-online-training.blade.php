@@ -20,7 +20,7 @@
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
 
-            <main class="p-6 ">
+            <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"">
                 <h2 class="text-xl font-semibold mb-6">Online/Offline course</h2>
                 <form action="{{ route('trainer.training.online.save.data') }}" method="POST" enctype="multipart/form-data">
                         @csrf
@@ -86,6 +86,9 @@
                                     <input type="radio" name="training_category" value="Classroom" class="mr-2" /> Classroom
                                 </label>
                             </div>
+                            @error('training_category')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
 
@@ -146,15 +149,33 @@
                                     <label class="block mb-1 font-medium">End Timing</label>
                                     <input type="time" x-model="endTime" class="border p-2 rounded w-full" />
                                 </div>
-                                <div class="md:col-span-1">
-                                    <label class="block mb-1 font-medium">Duration</label>
-                                    <select x-model="duration" class="border p-2 rounded w-full">
-                                        <option value="">Select duration</option>
-                                        <template x-for="i in 30" :key="i">
-                                            <option :value="`${i} days`" x-text="`${i} days`"></option>
-                                        </template>
-                                    </select>
+
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Type Selection -->
+                                    <div>
+                                        <label class="block mb-1 font-medium">Select Type</label>
+                                        <select x-model="durationType" class="border p-2 rounded w-full">
+                                            <option value="day">Days</option>
+                                            <option value="month">Months</option>
+                                            <option value="year">Years</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Duration Options Based on Type -->
+                                    <div>
+                                        <label class="block mb-1 font-medium">Duration</label>
+                                        <select x-model="duration" class="border p-2 rounded w-full">
+                                            <option value="">Select duration</option>
+                                            <template x-for="option in getOptions()" :key="option">
+                                                <option :value="option" x-text="option"></option>
+                                            </template>
+                                        </select>
+                                    </div>
                                 </div>
+
+
+
                             </div>
 
                             <!-- Action Buttons -->
@@ -237,15 +258,28 @@
             <script>
                 function batchManager() {
                     return {
+                        // Form fields
                         batchNo: '',
                         batchDate: '',
                         startTime: '',
                         endTime: '',
+                        durationType: 'day',
                         duration: '',
+
+                        // List of batches
                         batches: [],
                         isEditing: false,
                         editIndex: null,
 
+                        // Duration dropdown options
+                        getOptions() {
+                            if (this.durationType === 'day') return Array.from({ length: 30 }, (_, i) => `${i + 1} days`);
+                            if (this.durationType === 'month') return Array.from({ length: 12 }, (_, i) => `${i + 1} months`);
+                            if (this.durationType === 'year') return Array.from({ length: 5 }, (_, i) => `${i + 1} years`);
+                            return [];
+                        },
+
+                        // Add new batch
                         addBatch() {
                             if (this.batchNo && this.batchDate && this.startTime && this.endTime && this.duration) {
                                 this.batches.push({
@@ -261,17 +295,38 @@
                             }
                         },
 
+                        // Edit existing batch
                         editBatch(index) {
                             const batch = this.batches[index];
                             this.batchNo = batch.batchNo;
                             this.batchDate = batch.batchDate;
                             this.startTime = batch.startTime;
                             this.endTime = batch.endTime;
-                            this.duration = batch.duration;
+
+                            // Parse duration and set durationType
+                            const parts = batch.duration.split(' ');
+                            const unit = parts[1]?.toLowerCase();
+
+                            if (unit?.startsWith('day')) {
+                                this.durationType = 'day';
+                            } else if (unit?.startsWith('month')) {
+                                this.durationType = 'month';
+                            } else if (unit?.startsWith('year')) {
+                                this.durationType = 'year';
+                            } else {
+                                this.durationType = 'day';
+                            }
+
+                            // Wait for options to be available before setting duration
+                            this.$nextTick(() => {
+                                this.duration = batch.duration;
+                            });
+
                             this.editIndex = index;
                             this.isEditing = true;
                         },
 
+                        // Update batch
                         updateBatch() {
                             if (this.editIndex !== null) {
                                 this.batches[this.editIndex] = {
@@ -285,6 +340,7 @@
                             }
                         },
 
+                        // Delete batch
                         removeBatch(index) {
                             this.batches.splice(index, 1);
                             if (this.isEditing && this.editIndex === index) {
@@ -292,18 +348,23 @@
                             }
                         },
 
+                        // Reset form
                         clearForm() {
                             this.batchNo = '';
                             this.batchDate = '';
                             this.startTime = '';
                             this.endTime = '';
                             this.duration = '';
+                            this.durationType = 'day';
                             this.editIndex = null;
                             this.isEditing = false;
                         }
                     }
                 }
-                </script>
+            </script>
+
+
+            
 
           
 
