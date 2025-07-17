@@ -271,9 +271,9 @@ class TrainerController extends Controller
             // Save skills and interests
             TrainingExperience::create([
                 'user_id'   => $trainer->id,
-                'user_type'   => 'Trainer',
-                'skills'         => $request->skills,
-                'interest'       => $request->interest,
+                'user_type'   => 'trainer',
+                'training_skills'         => $request->skills,
+                'area_of_interest'       => $request->interest,
                 'job_category'   => $request->job_category,
                 'website_link'   => $request->website_link,
                 'portfolio_link' => $request->portfolio_link
