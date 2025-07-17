@@ -20,10 +20,8 @@
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
 
-                <main class="p-6 ">
+                <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
-
-                    
                     <form action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
@@ -67,6 +65,9 @@
                                     </label>
                                 @endforeach
                             </div>
+                            @error('training_category')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <!-- Training Level -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -109,11 +110,12 @@
                                             <th class="p-2 border">Title</th>
                                             <th class="p-2 border">Description</th>
                                             <th class="p-2 border">Upload</th>
+                                            <th class="p-2 border">File Duration</th>
                                             <th class="p-2 border">Delete</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Yahan rows dynamically JavaScript se add honge -->
+                                        <!--  rows dynamically JavaScript add  -->
                                     </tbody>
                                 </table>
                             </div>
@@ -156,8 +158,6 @@
                             </button>
                         </div>
                     </form>
-   
-                     
                 </main>
 
 
@@ -299,7 +299,11 @@
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input  accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
+                                <input accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
+                            </td>
+                            <td class="p-2 border text-center duration-cell">
+                                --
+                                <input type="hidden" name="content_sections[${index}][file_duration]" value="">
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
@@ -333,9 +337,35 @@
                     tableBody.addEventListener('change', (e) => {
                         if (e.target.type === 'file') {
                             const fileInput = e.target;
-                            const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
+                            const file = fileInput.files[0];
                             const btn = fileInput.previousElementSibling;
-                            btn.textContent = fileName;
+
+                            if (file) {
+                                btn.textContent = file.name;
+
+                                const video = document.createElement('video');
+                                video.preload = 'metadata';
+
+                                video.onloadedmetadata = function () {
+                                    window.URL.revokeObjectURL(video.src);
+                                    const durationInSeconds = video.duration;
+
+                                    const minutes = Math.floor(durationInSeconds / 60);
+                                    const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
+                                    const formatted = `${minutes}:${seconds}`;
+
+                                    const tr = fileInput.closest('tr');
+                                    const durationCell = tr.querySelector('.duration-cell');
+                                    const hiddenInput = durationCell.querySelector('input');
+
+                                    durationCell.innerHTML = `
+                                        ${formatted}
+                                        <input type="hidden" name="${hiddenInput.name}" value="${formatted}">
+                                    `;
+                                };
+
+                                video.src = URL.createObjectURL(file);
+                            }
                         }
                     });
 
@@ -345,7 +375,8 @@
                         });
                     }
                 });
-            </script>
+                </script>
+
 
 
 

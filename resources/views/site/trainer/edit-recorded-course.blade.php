@@ -17,7 +17,7 @@
             @include('site.trainer.componants.sidebar')
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
-                <main class="p-6 ">
+                <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
 
                     
@@ -119,6 +119,7 @@
                                             <th class="p-2 border">Title</th>
                                             <th class="p-2 border">Description</th>
                                             <th class="p-2 border">Upload</th>
+                                            <th class="p-2 border">File Duration</th>
                                             <th class="p-2 border">Delete</th>
                                         </tr>
                                     </thead>
@@ -144,11 +145,12 @@
 
                                                     <input type="file" name="content_sections[{{ $i }}][file]" style="display:none" />
 
-                                                    {{-- 🟢 Preserve old file --}}
+                                                    {{--  Preserve old file --}}
                                                     @if(!empty($section['file_name']))
                                                         <input type="hidden" name="content_sections[{{ $i }}][existing_file_name]" value="{{ $section['file_name'] }}">
                                                         <input type="hidden" name="content_sections[{{ $i }}][existing_file_path]" value="{{ $section['file_path'] }}">
                                                     @endif
+
 
                                                     @if(!empty($section['file_path']))
                                                         <div class="mt-1 text-xs text-green-600">
@@ -156,7 +158,10 @@
                                                         </div>
                                                     @endif
                                                 </td>
-
+                                                <td class="p-2 border text-sm text-gray-600">
+                                                    {{ $section['file_duration'] ?? '' }}
+                                                    <input type="hidden" name="content_sections[{{ $i }}][file_duration]" value="{{ $section['file_duration'] ?? '' }}">
+                                                </td>
                                                 <td class="p-2 border text-center">
                                                     <input type="hidden" name="content_sections[{{ $i }}][document_id]" value="{{ $section['document_id'] ?? '' }}">
                                                     <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">

@@ -20,7 +20,7 @@
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
 
-            <main class="p-6 ">
+            <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"> 
                 <h2 class="text-xl font-semibold mb-6">Online/Offline course</h2>
                <form action="{{ route('trainer.training.online.update.data', $training->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
