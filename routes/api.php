@@ -5,7 +5,14 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\JobseekerController;
 use App\Http\Controllers\API\TrainerController;
+use App\Http\Controllers\API\CoachController;
+use App\Http\Controllers\API\MentorController;
+use App\Http\Controllers\API\AssessorController;
 
+use App\Http\Controllers\API\Training\TrainerProfileController;
+use App\Http\Controllers\API\Mentor\MentorProfileController;
+use App\Http\Controllers\API\Coach\CoachProfileController;
+use App\Http\Controllers\API\Assessor\AssessorProfileController;
 
 //Junaid APi Controllers in Jobseeker folder
 use App\Http\Controllers\API\Jobseeker\AssesssorController;
@@ -15,7 +22,7 @@ use App\Http\Controllers\API\Jobseeker\MyLearningController;
 use App\Http\Controllers\API\Jobseeker\SeekerProfileController;
 
 use App\Http\Controllers\API\Training\TrainingController;
-use App\Http\Controllers\API\Training\TrainerProfileController;
+
 
 
 /*
@@ -110,4 +117,52 @@ Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
     Route::post('/updateSkillsDetails', [TrainerProfileController::class, 'updateSkillsInfoDetails']);
     Route::post('/updateAdditionalDetails', [TrainerProfileController::class, 'updateAdditionalInfoDetails']);
     
+});
+
+Route::prefix('mentor')->middleware('throttle:60,1')->group(function () {
+    Route::post('/sign-in-mentor', [MentorController::class, 'signIn']);
+    Route::post('/sign-up-mentor', [MentorController::class, 'signUp']);
+    Route::post('/registration-mentor', [MentorController::class, 'registration']);
+    Route::post('/forget-password-mentor', [MentorController::class, 'forgetPassword']);
+    Route::post('/verify-otp-mentor', [MentorController::class, 'verifyOtp']);
+    Route::post('/reset-password-mentor', [MentorController::class, 'resetPassword']);
+
+    Route::get('/mentorProfile/{trainerId}', [MentorProfileController::class, 'mentorProfileById']);
+    Route::post('/updatePersonalDetails', [MentorProfileController::class, 'updatePersonalInfoDetails']);
+    Route::post('/updateEducationDetails', [MentorProfileController::class, 'updateEducationInfoDetails']);
+    Route::post('/updateWorkExperienceDetails', [MentorProfileController::class, 'updateWorkExperienceInfoDetails']);
+    Route::post('/updateSkillsDetails', [MentorProfileController::class, 'updateSkillsInfoDetails']);
+    Route::post('/updateAdditionalDetails', [MentorProfileController::class, 'updateAdditionalInfoDetails']);
+});
+
+Route::prefix('coach')->middleware('throttle:60,1')->group(function () {
+    Route::post('/sign-in-coach', [CoachController::class, 'signIn']);
+    Route::post('/sign-up-coach', [CoachController::class, 'signUp']);
+    Route::post('/registration-coach', [CoachController::class, 'registration']);
+    Route::post('/forget-password-coach', [CoachController::class, 'forgetPassword']);
+    Route::post('/verify-otp-coach', [CoachController::class, 'verifyOtp']);
+    Route::post('/reset-password-coach', [CoachController::class, 'resetPassword']);
+
+    Route::get('/coachProfile/{trainerId}', [CoachProfileController::class, 'coachProfileById']);
+    Route::post('/updatePersonalDetails', [CoachProfileController::class, 'updatePersonalInfoDetails']);
+    Route::post('/updateEducationDetails', [CoachProfileController::class, 'updateEducationInfoDetails']);
+    Route::post('/updateWorkExperienceDetails', [CoachProfileController::class, 'updateWorkExperienceInfoDetails']);
+    Route::post('/updateSkillsDetails', [CoachProfileController::class, 'updateSkillsInfoDetails']);
+    Route::post('/updateAdditionalDetails', [CoachProfileController::class, 'updateAdditionalInfoDetails']);
+});
+
+Route::prefix('assessor')->middleware('throttle:60,1')->group(function () {
+    Route::post('/sign-in-assessor', [AssessorController::class, 'signIn']);
+    Route::post('/sign-up-assessor', [AssessorController::class, 'signUp']);
+    Route::post('/registration-assessor', [AssessorController::class, 'registration']);
+    Route::post('/forget-password-assessor', [AssessorController::class, 'forgetPassword']);
+    Route::post('/verify-otp-assessor', [AssessorController::class, 'verifyOtp']);
+    Route::post('/reset-password-assessor', [AssessorController::class, 'resetPassword']);
+
+    Route::get('/assessorProfile/{trainerId}', [AssessorProfileController::class, 'assessorProfileById']);
+    Route::post('/updatePersonalDetails', [AssessorProfileController::class, 'updatePersonalInfoDetails']);
+    Route::post('/updateEducationDetails', [AssessorProfileController::class, 'updateEducationInfoDetails']);
+    Route::post('/updateWorkExperienceDetails', [AssessorProfileController::class, 'updateWorkExperienceInfoDetails']);
+    Route::post('/updateSkillsDetails', [AssessorProfileController::class, 'updateSkillsInfoDetails']);
+    Route::post('/updateAdditionalDetails', [AssessorProfileController::class, 'updateAdditionalInfoDetails']);
 });

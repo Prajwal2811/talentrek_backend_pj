@@ -22,6 +22,8 @@ class Coach extends Model
         'phone_number',
         'date_of_birth',
         'city',
+        'password',
+        'pass'
     ];
 
     /**
