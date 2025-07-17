@@ -403,8 +403,8 @@ class RecruiterController extends Controller
                                    )
                                    ->get();
 
-//     echo "<pre>";
-//     print_r($shortlisted_jobseekers);die;
+     //     echo "<pre>";
+     //     print_r($shortlisted_jobseekers);die;
 
           return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }

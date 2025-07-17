@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payments_history', function (Blueprint $table) {
             $table->id();
             $table->foreignId('jobseeker_id')->constrained('jobseekers')->onDelete('cascade');
-            $table->foreignId('course_id')->constrained('training_materials')->onDelete('cascade');
+            $table->foreignId('material_id')->constrained('training_materials')->onDelete('cascade');
             $table->string('payment_reference')->unique();
             $table->string('transaction_id')->unique();
             $table->decimal('amount_paid', 10, 2)->nullable();

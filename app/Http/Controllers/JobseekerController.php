@@ -13,6 +13,8 @@ use App\Models\Skills;
 use App\Models\Mentors;
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
+use App\Models\JobseekerTrainingMaterialPurchase;
+use App\Models\TrainingMaterial;
 use App\Models\AdditionalInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +24,9 @@ use DB;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
+
+
 
 class JobseekerController extends Controller
 {
@@ -1648,4 +1653,71 @@ public function redirectToZoom()
         ));
     }
     
+
+
+    public function purchaseCourse(Request $request)
+    {
+        if (!auth('jobseeker')->check()) {
+            return redirect()->back()->with('error', 'Please log in as a Jobseeker to purchase a course.');
+        }
+
+        $request->validate([
+            'session_type' => 'required|in:online,classroom',
+            'batch'        => 'required|exists:training_batches,id',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+
+            $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
+
+            $actualPrice = $material->training_price;
+            $offerPrice = $material->training_offer_price;
+            $savedAmount = $actualPrice - $offerPrice;
+            $tax = round($offerPrice * 0.10, 2);
+            $total = $offerPrice + $tax;
+
+            // Save course purchase
+            $purchase = JobseekerTrainingMaterialPurchase::create([
+                'jobseeker_id'   => auth('jobseeker')->id(),
+                'trainer_id'     => $material->trainer_id,
+                'material_id'    => $material->id,
+                'training_type'  => $request->training_type,
+                'session_type'   => $request->session_type,
+                'batch_id'       => $request->batch,
+                'payment_method' => $request->payment_method,
+                'amount'         => $total,
+                'tax'            => $tax,
+                'discount'       => $savedAmount,
+                'status'         => 'paid',
+            ]);
+
+            // Save payment history
+            // DB::table('payments_history')->insert([
+            //     'jobseeker_id'      => auth('jobseeker')->id(),
+            //     'material_id'       => $material->id,
+            //     'payment_reference' => 'PAY-' . strtoupper(Str::random(10)),
+            //     'transaction_id'    => strtoupper(Str::uuid()),
+            //     'amount_paid'       => $total,
+            //     'payment_status'    => 'paid',
+            //     'payment_method'    => $request->payment_method,
+            //     'paid_at'           => Carbon::now(),
+            //     'created_at'        => now(),
+            //     'updated_at'        => now(),
+            // ]);
+
+
+            DB::commit();
+
+           return redirect()->route('course.details', ['id' => $material->id])->with('success', 'Course purchased successfully!');
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+            \Log::error('Course purchase failed: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Something went wrong while processing your purchase.');
+        }
+    }
 }

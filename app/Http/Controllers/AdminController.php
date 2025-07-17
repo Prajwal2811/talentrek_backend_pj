@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use App\Models\CMS;
+use App\Models\Coach;
+use App\Models\Assessors;
 use App\Models\RecruiterCompany;
 use App\Models\Setting;
 use App\Models\SocialMedia;
@@ -211,9 +213,9 @@ class AdminController extends Controller
         $recruiterCount = Recruiters::where('status', 'active')->count();
         $trainerCount   = Trainers::where('status', 'active')->count();
         // $expatCount     = Expats::where('status', 'active')->count();
-        // $coachCount     = Coach::where('status', 'active')->count();
+        $coachCount     = Coach::where('status', 'active')->count();
         $mentorCount    = Mentors::where('status', 'active')->count();
-        // $assessorCount  = Assessors::where('status', 'active')->count();
+        $assessorCount  = Assessors::where('status', 'active')->count();
 
         // Example logic for revenue and session counts
         // $materialSales = Orders::where('type', 'material')
@@ -230,9 +232,9 @@ class AdminController extends Controller
             'Recruiter' => Recruiters::count(),
             'Trainer' => Trainers::count(),
             // 'Expat' => Expats::count(),
-            // 'Coach' => Coach::count(),
+            'Coach' => Coach::count(),
             'Mentor' => Mentors::count(),
-            // 'Assessor' => Assessor::count(),
+            'Assessor' => Assessors::count(),
         ];
 
         $months = collect(range(1, 12)); // All 12 months
@@ -252,16 +254,15 @@ class AdminController extends Controller
         );
 
 
-
         
         return view('admin.dashboard', [
             'jobseekerCount'        => $jobseekerCount,
             'recruiterCount'        => $recruiterCount,
             'trainerCount'          => $trainerCount,
             // 'expatCount'            => $expatCount,
-            // 'coachCount'            => $coachCount,
+            'coachCount'            => $coachCount,
             'mentorCount'           => $mentorCount,
-            // 'assessorCount'         => $assessorCount,
+            'assessorCount'         => $assessorCount,
             // 'materialSales'         => $materialSales,
             // 'mentorSessionCount'    => $mentorSessionCount,
             // 'coachSessionCount'     => $coachSessionCount,

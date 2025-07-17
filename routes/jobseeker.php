@@ -51,7 +51,15 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/profile/additional-info',[JobseekerController::class, 'updateAdditionalInfo'])->name('jobseeker.additional.update'); 
 		Route::delete('/jobseeker/additional/delete/{type}', [JobseekerController::class, 'deleteAdditionalFile'])->name('jobseeker.additional.delete');
 
+
+	Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
+
+
+	Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
+
 		
+	Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+
 
 
 	});
@@ -69,8 +77,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 	Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
 
-	Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
 	Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
+	Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
 
 
 	// Zoom OAuth routes

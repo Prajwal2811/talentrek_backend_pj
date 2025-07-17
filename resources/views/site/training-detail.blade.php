@@ -44,6 +44,25 @@
                 }
             </script>
 
+             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+              @if(session('success'))
+                  <script>
+                      document.addEventListener("DOMContentLoaded", function () {
+                          Swal.fire({
+                              icon: 'success',
+                              title: '{{ session('success') }}',
+                              text: 'Go to your profile to continue learning.',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'Go to Profile'
+                          }).then((result) => {
+                              if (result.isConfirmed) {
+                                  window.location.href = '{{ route('jobseeker.profile') }}';
+                              }
+                          });
+                      });
+                  </script>
+              @endif
+
           <main class="w-11/12 mx-auto py-8">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
               <!-- Left/Main Content -->
@@ -323,7 +342,7 @@
               </div>
 
               <!-- Sidebar -->
-              <aside class="w-full lg:w-1/3">
+              <aside class="w-full lg:w-1/3 lg:sticky top-12 self-start">
                 <div class="bg-white rounded-xl shadow-md overflow-hidden border p-4">
                   <!-- Course Image -->
                   <img src="{{ asset($material->thumbnail_file_path ?? 'asset/images/gallery/pic-4.png') }}"
@@ -333,13 +352,9 @@
                   <!-- Course Details -->
                   <ul class="text-sm text-gray-600 mb-4 space-y-2">
                       <li class="flex items-center space-x-2">
-                          <!-- <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                              <path d="M12 20h9"></path><path d="M12 4H3"></path><path d="M12 4v16"></path>
-                          </svg> -->
                           @if(strtolower($material->training_type) === 'recorded' && isset($material->documents) && count($material->documents) > 0)
                               <span>📘 {{ count($material->documents) }} lessons</span>
                           @endif
-
                       </li>
 
                       @if(strtolower($material->training_type) === 'online')
@@ -359,7 +374,7 @@
                                 {{ number_format($totalHours, 1) }} hrs
                             </span>
                         </li>
-                    @endif
+                      @endif
 
                       <li class="flex items-center space-x-2">
                           <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -381,25 +396,52 @@
                           </span>
                       </div>
                   </div>
-              </div>
-
-                  <!-- Buttons -->
-                   <a href="{{ route('buy-course', ['id' => $material->id]) }}">
-                      <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                        Buy course
-                      </button>
-                    </a>
-                    <a href="{{ route('buy-course-for-team') }}">
-
-                      <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                        Buy for team
-                      </button>
-                    </a>
-                    <button class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
-                      Add to cart
-                    </button>
                 </div>
+
+                @php
+                    $existOrNot = false;
+                    if (auth('jobseeker')->check()) {
+                        $existOrNot = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', auth('jobseeker')->id())
+                            ->where('material_id', $material->id)
+                            ->exists();
+                    }
+                @endphp
+
+                @if (auth('jobseeker')->check())
+                    @if (!$existOrNot)
+                        <!-- Not purchased yet -->
+                        <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                Buy course
+                            </button>
+                        </a>
+                        <a href="{{ route('buy-course-for-team') }}">
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+                                Buy for team
+                            </button>
+                        </a>
+                        <button class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
+                            Add to cart
+                        </button>
+                    @else
+                        <!-- Already purchased -->
+                        <a href="{{ route('jobseeker.profile') }}">
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                Go to course
+                            </button>
+                        </a>
+                    @endif
+                @else
+                    <!-- Not logged in -->
+                    <a href="{{ route('jobseeker.login') }}">
+                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                            Please login to continue
+                        </button>
+                    </a>
+                @endif
+
               </aside>
+
 
             </div>
           </main>

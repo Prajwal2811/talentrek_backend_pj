@@ -33,7 +33,7 @@
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Coaches</p>
-                                {{-- <h2 class="text-3xl font-bold text-red-500">{{ $coachCount }}</h2> --}}
+                                <h2 class="text-3xl font-bold text-red-500">{{ $coachCount }}</h2>
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Mentors</p>
@@ -41,7 +41,7 @@
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Assessors</p>
-                                {{-- <h2 class="text-3xl font-bold text-red-500">{{ $assessorCount }}</h2> --}}
+                                <h2 class="text-3xl font-bold text-red-500">{{ $assessorCount }}</h2>
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Training Material Sales</p>
@@ -168,6 +168,8 @@
                                 }
                             }
                         });
+
+                        
 
                     // Bar Chart: Session Bookings by Role
                     new Chart(document.getElementById('bookingBarChart'), {

@@ -432,135 +432,102 @@
 
                                 </div>
                             </div>
-                            <div class="card">
+
+
+                            @php
+                                use App\Models\JobseekerTrainingMaterialPurchase;
+
+                                $courses = JobseekerTrainingMaterialPurchase::with(['material.reviews'])
+                                                                            ->where('jobseeker_id', $jobseeker->id)
+                                                                            ->get();
+                                $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
+                                                                        ->where('user_id', $jobseeker->id)
+                                                                        ->first();
+                            @endphp
+
+                          <div class="card">
                                 <div class="header">
                                     <h2>Jobseeker Trainings</h2>
                                 </div>
                                 <div class="body">
                                     <div class="col-lg-12">
-                                        <!-- Course Card 1 -->
-                                        <div class="card d-flex flex-row p-3 mb-3">
-                                            <img src="../images/gallery/finished-quiz.png" alt="Graphic Design"
-                                                class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                <div>
-                                                    <h5 class="fw-bold mb-1">Graphic design - Advance level</h5>
-                                                    <p class="text-muted mb-2">Lorem ipsum dolor sit amet, consectetur
-                                                        adipiscing elit.</p>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <span class="text-warning me-1">★ ★ ★ ★ ☆</span>
-                                                        <span class="text-muted">(4/5) Rating</span>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between mt-3">
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                            class="rounded-circle me-2" style="width: 35px;">
-                                                        <span class="fw-semibold">Julia Maccarthy</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center text-muted gap-3">
-                                                        <div><i data-feather="book-open" class="me-1"></i>6 lessons
-                                                        </div>
-                                                        <div><i data-feather="clock" class="me-1"></i>20hrs</div>
-                                                        <div><i data-feather="bar-chart-2" class="me-1"></i>Advance
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        @forelse($courses as $index => $purchase)
+                                            @php
+                                                $material = $purchase->material;
+                                                $reviews = $material->reviews ?? collect();
+                                                $trainerName = App\Models\Trainers::where('id', $material->trainer_id)->value('name');
+                                                $lessons = $material->lesson_count ?? rand(5, 10);
+                                                $duration = $material->duration ?? rand(10, 30).'hrs';
+                                                $level = $material->level ?? 'Beginner';
+                                                $rating = $material->rating ?? 4;
+                                                $img = $material->thumbnail_file_path ?? 'default-thumbnail.jpg';
+                                            @endphp
 
-                                        <!-- Hidden More Courses -->
-                                        <div id="moreCourses" class="d-none">
-
-                                            <!-- Course Card 2 -->
-                                            <div class="card d-flex flex-row p-3 mb-3">
-                                                <img src="../images/gallery/graphic-design.png" alt="Web Design"
+                                            <div class="card d-flex flex-row p-3 mb-3 {{ $index >= 1 ? 'd-none extra-course' : '' }}">
+                                                <img src="{{ asset($img) }}" alt="{{ $material->training_title }}"
                                                     class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
+                                                <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
                                                     <div>
-                                                        <h5 class="fw-bold mb-1">Web Design Essentials</h5>
-                                                        <p class="text-muted mb-2">Learn HTML, CSS, and responsive
-                                                            design techniques.</p>
+                                                        <h5 class="fw-bold mb-1">{{ $material->training_title }}</h5>
+                                                        <p class="text-muted mb-2">{{ $material->training_sub_title ?? 'No description available.' }}</p>
+                                                        @php
+                                                            $averageRating = $reviews->avg('ratings');
+                                                            $roundedRating = round($averageRating);
+                                                        @endphp
+
                                                         <div class="d-flex align-items-center mb-2">
-                                                            <span class="text-warning me-1">★ ★ ★ ★ ★</span>
-                                                            <span class="text-muted">(5/5) Rating</span>
+                                                            <span class="text-warning me-1">
+                                                                @for ($i = 1; $i <= 5; $i++)
+                                                                    @if ($i <= $roundedRating)
+                                                                        ★
+                                                                    @else
+                                                                        ☆
+                                                                    @endif
+                                                                @endfor
+                                                            </span>
+                                                            <span class="text-muted">
+                                                                ({{ number_format($averageRating, 1) }}/5 from {{ $reviews->count() }} review{{ $reviews->count() === 1 ? '' : 's' }})
+                                                            </span>
                                                         </div>
+
                                                     </div>
                                                     <div class="d-flex align-items-center justify-content-between mt-3">
                                                         <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="Julia"
+                                                            <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}"
                                                                 class="rounded-circle me-2" style="width: 35px;">
-                                                            <span class="fw-semibold">John Smith</span>
+                                                            <span class="fw-semibold">{{ $trainerName }}</span>
                                                         </div>
                                                         <div class="d-flex align-items-center text-muted gap-3">
-                                                            <div><i data-feather="book-open" class="me-1"></i>8 lessons
-                                                            </div>
-                                                            <div><i data-feather="clock" class="me-1"></i>25hrs</div>
-                                                            <div><i data-feather="bar-chart-2"
-                                                                    class="me-1"></i>Intermediate</div>
+                                                            <div><i data-feather="book-open" class="me-1"></i>{{ $lessons }} lessons</div>
+                                                            <div><i data-feather="clock" class="me-1"></i>{{ $duration }}</div>
+                                                            <div><i data-feather="bar-chart-2" class="me-1"></i>{{ $level }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        @empty
+                                            <div class="alert alert-warning">No trainings purchased yet.</div>
+                                        @endforelse
 
-                                            <!-- Course Card 3 -->
-                                            <div class="card d-flex flex-row p-3 mb-3">
-                                                <img src="../images/gallery/ui-ux.png" alt="UI/UX Design"
-                                                    class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">UI/UX Design Fundamentals</h5>
-                                                        <p class="text-muted mb-2">Understand user-centric design
-                                                            principles and wireframing.</p>
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <span class="text-warning me-1">★ ★ ★ ★ ☆</span>
-                                                            <span class="text-muted">(4.5/5) Rating</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <span class="fw-semibold">Sara Lee</span>
-                                                        </div>
-                                                        <div class="d-flex align-items-center text-muted gap-3">
-                                                            <div><i data-feather="book-open" class="me-1"></i>5 lessons
-                                                            </div>
-                                                            <div><i data-feather="clock" class="me-1"></i>15hrs</div>
-                                                            <div><i data-feather="bar-chart-2" class="me-1"></i>Beginner
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        @if($courses->count() > 1)
+                                            <div class="text-center mt-4">
+                                                <button class="btn btn-primary" onclick="toggleCourses(this)">View More</button>
                                             </div>
-
-                                        </div>
-
-                                        <!-- View More Button -->
-                                        <div class="text-center mt-4">
-                                            <button class="btn btn-primary" onclick="toggleCourses()">View More</button>
-                                        </div>
-
+                                        @endif
                                     </div>
                                 </div>
-                                <script>
-                                    function toggleCourses() {
-                                        const moreCourses = document.getElementById('moreCourses');
-                                        const btn = event.target;
-
-                                        if (moreCourses.classList.contains('d-none')) {
-                                            moreCourses.classList.remove('d-none');
-                                            btn.textContent = 'View Less';
-                                        } else {
-                                            moreCourses.classList.add('d-none');
-                                            btn.textContent = 'View More';
-                                        }
-                                    }
-                                </script>
-                                <script>feather.replace()</script>
                             </div>
+
+
+                            <script>
+                                function toggleCourses(button) {
+                                    const extraCourses = document.querySelectorAll('.extra-course');
+                                    extraCourses.forEach(el => el.classList.toggle('d-none'));
+                                    button.textContent = button.textContent === 'View More' ? 'View Less' : 'View More';
+                                }
+                            </script>
+                            <script>feather.replace();</script>
+
 
 
 

@@ -19,6 +19,7 @@ class Coach extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'national_id',
         'phone_code',
         'phone_number',
         'date_of_birth',
@@ -26,12 +27,18 @@ class Coach extends Authenticatable
         'password',
         'pass',
         'otp',
-        'national_id',
         'status',
         'admin_status',
+        'inactive_reason',
+        'rejection_reason',
+        'shortlist',
+        'admin_recruiter_status',
+        'google_id',
+        'avatar',
         'about_coach',
-        'isSubscribtionBuy', // Added to match migration
+        'isSubscribtionBuy',
     ];
+
 
     /**
      * The attributes that should be cast to native types.

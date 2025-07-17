@@ -37,7 +37,17 @@ class TrainingMaterial extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payment::class, 'course_id');
+        return $this->hasMany(PaymentHistory::class, 'course_id');
+    }
+
+    public function batches()
+    {
+        return $this->hasMany(TrainingBatch::class, 'training_material_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'trainer_material');
     }
 
 }

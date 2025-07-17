@@ -23,7 +23,10 @@ class DatabaseSeeder extends Seeder
             RecruitersSeeder::class,
             RecruitersCompanySeeder::class,
             TrainerSeeder::class,
+            AssessorSeeder::class,
+            CoachSeeder::class,
             TestimonialSeeder::class,
+            MentorSeeder::class,
 
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
@@ -39,8 +42,8 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             BookingSlotsSeeder::class,
             PaymentSeeder::class,
-            MentorSeeder::class,
             JobseekerSavedBookingSessionSeeder::class,
+            JobseekerTrainingMaterialPurchasesSeeder::class,
 
         ]);
         

@@ -1,7 +1,7 @@
 <?php
 
 namespace Database\Seeders;
-use App\Models\Payment;
+use App\Models\PaymentHistory;
 use App\Models\Jobseekers;
 use App\Models\TrainingMaterial;
 use Illuminate\Database\Seeder;
@@ -28,9 +28,9 @@ class PaymentSeeder extends Seeder
             $jobseeker = $jobseekers->random();
             $course = $courses->random();
 
-            Payment::create([
+            PaymentHistory::create([
                 'jobseeker_id'      => $jobseeker->id,
-                'course_id'         => $course->id,
+                'material_id'         => $course->id,
                 'transaction_id'    => strtoupper(Str::random(10)),
                 'payment_reference' => strtoupper(Str::random(10)),
                 'amount_paid'       => $course->training_price,

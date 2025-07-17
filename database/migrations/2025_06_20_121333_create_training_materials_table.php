@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('thumbnail_file_path')->nullable();          // Storage path
             $table->string('thumbnail_file_name')->nullable();          // Original name
 
-
+            $table->string('total_duration')->nullable();                // e.g. 2 hours
 
             // Objective and status
             $table->text('training_objective')->nullable();

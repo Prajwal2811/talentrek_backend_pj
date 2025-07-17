@@ -232,16 +232,16 @@
                                             <!-- Shortlist Button -->
                                             <div class="ml-4 flex space-x-2">
                                                 @php
-                                                    $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'superadmin_approved';
+                                                    $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'approved';
                                                     $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? '') === 'yes';
                                                     $jobseekerId = $shortlisted_jobseeker->id;
                                                 @endphp
 
                                                 <!-- Status Label -->
-                                                <span class="border text-xs px-2 py-1 rounded
-                                                    {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}" >
+                                                <button class="border text-xs px-2 py-1 rounded cursor-not-allowed
+                                                    {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}" disabled>
                                                     {{ $isApproved ? 'Approved' : 'Pending' }}
-                                                </span>
+                                                </button>
 
                                                 <!-- View Profile -->
                                                 <a href="{{ $isApproved ? route('recruiter.jobseeker.details', ['jobseeker_id' => $jobseekerId]) : '#' }}"
