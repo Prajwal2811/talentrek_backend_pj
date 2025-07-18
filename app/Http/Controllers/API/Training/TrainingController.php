@@ -64,24 +64,63 @@ class TrainingController extends Controller
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
 
-            // Save training using Eloquent
-            $training = new TrainingMaterial();
-            $training->trainer_id = $trainer->id;
-            $training->training_type = 'recorded';
-            $training->training_title = $request->training_title;
-            $training->training_sub_title = $request->training_sub_title;
-            $training->training_descriptions = $request->training_descriptions;
-            $training->training_category = $request->training_category;
-            $training->training_level = $request->training_level;
-            $training->training_price = $request->training_price;
-            $training->training_offer_price = $request->training_offer_price;
-            $training->thumbnail_file_path = $thumbnailFilePath;
-            $training->thumbnail_file_name = $thumbnailFileName;
-            $training->training_objective = null;
-            $training->session_type = null;
-            $training->admin_status = 'pending';
-            $training->rejection_reason = null;
+            $training = TrainingMaterial::where('id', $request->courseId)->first();
+
+            if ($training) {
+                // Update existing training
+                $training->trainer_id = $trainer->id;
+                $training->training_type = 'recorded';
+                $training->training_title = $request->training_title;
+                $training->training_sub_title = $request->training_sub_title;
+                $training->training_descriptions = $request->training_descriptions;
+                $training->training_category = $request->training_category;
+                $training->training_level = $request->training_level;
+                $training->training_price = $request->training_price;
+                $training->training_offer_price = $request->training_offer_price;
+                $training->thumbnail_file_path = $thumbnailFilePath;
+                $training->thumbnail_file_name = $thumbnailFileName;
+                $training->admin_status = 'pending';
+            } else {
+                // Create new training
+                $training = new TrainingMaterial();
+                $training->trainer_id = $trainer->id;
+                $training->training_type = 'recorded';
+                $training->training_title = $request->training_title;
+                $training->training_sub_title = $request->training_sub_title;
+                $training->training_descriptions = $request->training_descriptions;
+                $training->training_category = $request->training_category;
+                $training->training_level = $request->training_level;
+                $training->training_price = $request->training_price;
+                $training->training_offer_price = $request->training_offer_price;
+                $training->thumbnail_file_path = $thumbnailFilePath;
+                $training->thumbnail_file_name = $thumbnailFileName;
+                $training->training_objective = null;
+                $training->session_type = null;
+                $training->admin_status = 'pending';
+                $training->rejection_reason = null;
+            }
+
             $training->save();
+
+
+            // Save training using Eloquent
+            // $training = new TrainingMaterial();
+            // $training->trainer_id = $trainer->id;
+            // $training->training_type = 'recorded';
+            // $training->training_title = $request->training_title;
+            // $training->training_sub_title = $request->training_sub_title;
+            // $training->training_descriptions = $request->training_descriptions;
+            // $training->training_category = $request->training_category;
+            // $training->training_level = $request->training_level;
+            // $training->training_price = $request->training_price;
+            // $training->training_offer_price = $request->training_offer_price;
+            // $training->thumbnail_file_path = $thumbnailFilePath;
+            // $training->thumbnail_file_name = $thumbnailFileName;
+            // $training->training_objective = null;
+            // $training->session_type = null;
+            // $training->admin_status = 'pending';
+            // $training->rejection_reason = null;
+            // $training->save();
 
             // Handle content sections
             if ($request->has('content_sections')) {
@@ -96,6 +135,26 @@ class TrainingController extends Controller
                         $filePath = asset('uploads/' . $fileName);
                     }
 
+                    // Check if content section has an ID (for update)
+                    if (isset($section['id'])) {
+                        $document = TrainingMaterialsDocument::where('id', $section['id'])
+                                    ->where('training_material_id', $training->id)
+                                    ->first();
+
+                        if ($document) {
+                            // Update existing record
+                            $document->training_title = $section['title'];
+                            $document->description = $section['description'];
+                            if ($filePath) {
+                                $document->file_path = $filePath;
+                                $document->file_name = $fileName;
+                            }
+                            $document->save();
+                            continue;
+                        }
+                    }
+
+                    // Create new record
                     $document = new TrainingMaterialsDocument();
                     $document->trainer_id = $trainer->id;
                     $document->training_material_id = $training->id;
@@ -107,13 +166,45 @@ class TrainingController extends Controller
                 }
             }
 
+            // if ($request->has('content_sections')) {
+            //     foreach ($request->content_sections as $index => $section) {
+            //         $filePath = null;
+            //         $fileName = null;
+
+            //         if (isset($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+            //             $uploadedFile = $section['file'];
+            //             $fileName = 'section_' . time() . '_' . $index . '.' . $uploadedFile->getClientOriginalExtension();
+            //             $uploadedFile->move(public_path('uploads'), $fileName);
+            //             $filePath = asset('uploads/' . $fileName);
+            //         }
+
+            //         $document = new TrainingMaterialsDocument();
+            //         $document->trainer_id = $trainer->id;
+            //         $document->training_material_id = $training->id;
+            //         $document->training_title = $section['title'];
+            //         $document->description = $section['description'];
+            //         $document->file_path = $filePath;
+            //         $document->file_name = $fileName;
+            //         $document->save();
+            //     }
+            // }
+
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Recorded training course saved successfully.',
-                'training_id' => $training->id
-            ]);
+            if($request->courseId)
+            {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Recorded training course updated successfully.',
+                    'training_id' => $training->id
+                ]);
+            }else{
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Recorded training course saved successfully.',
+                    'training_id' => $training->id
+                ]);
+            }
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -170,41 +261,119 @@ class TrainingController extends Controller
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
 
+            $training = TrainingMaterial::where('id', $request->courseId)->first();
             // Save training using Eloquent
-            $training = new TrainingMaterial();
-            $training->trainer_id           = $trainer->id;
-            $training->training_title       = $request->training_title;
-            $training->training_sub_title   = $request->training_sub_title;
-            $training->training_objective   = $request->training_objective;
-            $training->training_descriptions = $request->training_descriptions;
-            $training->training_level       = $request->training_level;
-            $training->training_price       = $request->training_price;
-            $training->training_offer_price = $request->training_offer_price;
-            $training->training_type        = $request->training_type;
-            $training->session_type         = $request->training_category;
-            $training->thumbnail_file_name  = $thumbnailFileName;
-            $training->thumbnail_file_path  = $thumbnailFilePath;
-            $training->admin_status         = 'pending';
+            if ($training) {
+                // Update existing training
+                $training->trainer_id = $trainer->id;
+                $training->training_type = $request->training_type ;
+                $training->training_title = $request->training_title;
+                $training->training_sub_title = $request->training_sub_title;
+                $training->training_descriptions = $request->training_descriptions;
+                $training->training_category = $request->training_category;
+                $training->training_level = $request->training_level;
+                $training->training_price = $request->training_price;
+                $training->training_offer_price = $request->training_offer_price;
+                $training->thumbnail_file_path = $thumbnailFilePath;
+                $training->thumbnail_file_name = $thumbnailFileName;
+            } else {
+                // Create new training
+                $training = new TrainingMaterial();
+                $training->trainer_id = $trainer->id;
+                $training->training_type = $request->training_type ;
+                $training->training_title = $request->training_title;
+                $training->training_sub_title = $request->training_sub_title;
+                $training->training_descriptions = $request->training_descriptions;
+                $training->training_category = $request->training_category;
+                $training->training_level = $request->training_level;
+                $training->training_price = $request->training_price;
+                $training->training_offer_price = $request->training_offer_price;
+                $training->thumbnail_file_path = $thumbnailFilePath;
+                $training->thumbnail_file_name = $thumbnailFileName;
+                $training->training_objective = null;
+                $training->session_type = null;
+                $training->admin_status = 'pending';
+            }
             $training->save();
+            
+            
+            // $training = new TrainingMaterial();
+            // $training->trainer_id           = $trainer->id;
+            // $training->training_title       = $request->training_title;
+            // $training->training_sub_title   = $request->training_sub_title;
+            // $training->training_objective   = $request->training_objective;
+            // $training->training_descriptions = $request->training_descriptions;
+            // $training->training_level       = $request->training_level;
+            // $training->training_price       = $request->training_price;
+            // $training->training_offer_price = $request->training_offer_price;
+            // $training->training_type        = $request->training_type;
+            // $training->session_type         = $request->training_category;
+            // $training->thumbnail_file_name  = $thumbnailFileName;
+            // $training->thumbnail_file_path  = $thumbnailFilePath;
+            // $training->admin_status         = 'pending';
+            // $training->save();
 
             // Save training batches using Eloquent
-            foreach ($request->content_sections as $section) {
-                TrainingBatch::create([
-                    'trainer_id'   => $trainer->id,
-                    'training_material_id'   => $training->id,
-                    'batch_no'     => $section['batch_no'],
-                    'start_date'   => $section['batch_date'],
-                    'start_timing' => date("H:i", strtotime($section['start_time'])),
-                    'end_timing'   => date("H:i", strtotime($section['end_time'])),
-                    'duration'     => $section['duration'],
-                ]);
-            }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Training and batches saved successfully.',
-                'data'    => $training->load('batches') // Optional: return with batch data
-            ], 201);
+            if ($request->has('content_sections')) {
+                foreach ($request->content_sections as $index => $section) {
+                    // Check if content section has an ID (for update)
+                    if (isset($section['id'])) {
+                        $document = TrainingBatch::where('id', $section['id'])
+                                    ->where('training_material_id', $training->id)
+                                    ->first();
+
+                        if ($document) {
+                            // Update existing record
+                            $document->trainer_id = $trainer->id;
+                            $document->training_material_id = $training->id;
+                            $document->batch_no     = $section['batch_no'];
+                            $document->start_date   = $section['batch_date'] ;
+                            $document->start_timing = date("H:i", strtotime($section['start_time']));
+                            $document->end_timing   = date("H:i", strtotime($section['end_time']));
+                            $document->duration     = $section['duration'];
+                            $document->save();
+                            continue;
+                        }
+                    }
+
+                    // Create new record
+                    $document = new TrainingBatch();
+                    $document->trainer_id = $trainer->id;
+                    $document->training_material_id = $training->id;
+                    $document->batch_no     = $section['batch_no'];
+                    $document->start_date   = $section['batch_date'] ;
+                    $document->start_timing = date("H:i", strtotime($section['start_time']));
+                    $document->end_timing   = date("H:i", strtotime($section['end_time']));
+                    $document->duration     = $section['duration'];
+                    $document->save();
+                }
+            }
+            // foreach ($request->content_sections as $section) {
+            //     TrainingBatch::create([
+            //         'trainer_id'   => $trainer->id,
+            //         'training_material_id'   => $training->id,
+            //         'batch_no'     => $section['batch_no'],
+            //         'start_date'   => $section['batch_date'],
+            //         'start_timing' => date("H:i", strtotime($section['start_time'])),
+            //         'end_timing'   => date("H:i", strtotime($section['end_time'])),
+            //         'duration'     => $section['duration'],
+            //     ]);
+            // }
+            if($request->courseId)
+            {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Training and batches updated successfully.',
+                    'data'    => $training->load('batches') // Optional: return with batch data
+                ], 201);
+            }else{
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Training and batches saved successfully.',
+                    'data'    => $training->load('batches') // Optional: return with batch data
+                ], 201);
+            }
 
         } catch (\Exception $e) {
             return response()->json([
@@ -479,6 +648,81 @@ class TrainingController extends Controller
                 'status' => 'error',
                 'message' => 'Something went wrong while deleting the file.',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function editTrainingRecordedData($trainerMaterialId)
+    {
+        try {
+            $recordedTrainings = TrainingMaterial::select(
+                    'id',
+                    'trainer_id',
+                    'training_type',
+                    'training_title',
+                    'training_level',
+                    'training_title',
+                    'training_sub_title',
+                    'training_descriptions',
+                    'training_category',
+                    'training_objective',
+                    'session_type',
+                    'training_price',
+                    'training_offer_price',
+                    'thumbnail_file_path as image'
+                )->with('trainingMaterialDocuments')
+                ->where('id', $trainerMaterialId)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Recorded training material list fetched successfully.',
+                'data'    => $recordedTrainings,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong while fetching training list.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function editTrainingOnlineData($trainerMaterialId)
+    {
+        try {
+            $recordedTrainings = TrainingMaterial::select(
+                    'id',
+                    'trainer_id',
+                    'training_type',
+                    'training_title',
+                    'training_sub_title',
+                    'training_descriptions',
+                    'training_category',
+                    'training_objective',
+                    'session_type',
+                    'training_level',
+                    'training_price',
+                    'training_offer_price',
+                    'thumbnail_file_path as image'
+                )
+                ->with('batches')
+                ->where('id', $trainerMaterialId)
+                ->where('training_type','!=', 'recorded')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Trainer training list fetched successfully.',
+                'data'    => $recordedTrainings,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong while fetching training list.',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

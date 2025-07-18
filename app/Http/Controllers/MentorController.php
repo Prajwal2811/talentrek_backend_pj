@@ -548,7 +548,6 @@ class MentorController extends Controller
         ]);
     }
 
-
     public function updateSlotTime(Request $request)
     {
         $request->validate([

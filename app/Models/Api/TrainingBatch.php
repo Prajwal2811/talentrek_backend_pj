@@ -55,6 +55,6 @@ class TrainingBatch extends Authenticatable
 
     public function trainingMaterial()
     {
-        return $this->belongsTo(TrainingMaterial::class, 'training_material_id');
+        return $this->belongsTo(TrainingMaterial::class, 'training_material_id','id');
     }
 }
