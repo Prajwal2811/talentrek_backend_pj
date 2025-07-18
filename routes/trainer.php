@@ -14,6 +14,7 @@ Route::group(['prefix' => 'trainer'], function() {
 		Route::get('/sign-up', [TrainerController::class, 'showSignUpForm'])->name('trainer.signup');
 		Route::get('/registration', [TrainerController::class, 'showRegistrationForm'])->name('trainer.registration');
 		Route::get('/forget-password', [TrainerController::class, 'showForgotPasswordForm'])->name('trainer.forget.password');
+		Route::post('/resend-otp', [TrainerController::class, 'resendOtp'])->name('trainer.resend-otp');
 		Route::get('/verify-otp', [TrainerController::class, 'showOtpForm'])->name('trainer.verify-otp');
 		Route::get('reset-password', [TrainerController::class, 'showResetPasswordForm'])->name('trainer.reset-password');
 
@@ -39,7 +40,7 @@ Route::group(['prefix' => 'trainer'], function() {
 		
 		Route::post('training/recorded/save-recorded-data', [TrainerController::class, 'saveTrainingRecorededData'])->name('trainer.training.recorded.save.data');
 		Route::post('training/online/save-online-data', [TrainerController::class, 'saveTrainingOnlineData'])->name('trainer.training.online.save.data');
-
+		
 		Route::get('/training/recorded/edit/{id}', [TrainerController::class, 'editRecordedTraining'])->name('trainer.training.recorded.edit');
 		Route::post('/training/recorded/update/{id}', [TrainerController::class, 'updateRecordedTraining'])->name('trainer.training.recorded.update.data');
 

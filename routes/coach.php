@@ -14,6 +14,7 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::get('/sign-up', [CoachController::class, 'showSignUpForm'])->name('coach.signup');
 		Route::get('/registration', [CoachController::class, 'showRegistrationForm'])->name('coach.registration');
 		Route::get('/forget-password', [CoachController::class, 'showForgotPasswordForm'])->name('coach.forget.password');
+		Route::post('/resend-otp', [CoachController::class, 'resendOtp'])->name('coach.resend-otp');
 		Route::get('/verify-otp', [CoachController::class, 'showOtpForm'])->name('coach.verify-otp');
 		Route::get('reset-password', [CoachController::class, 'showResetPasswordForm'])->name('coach.reset-password');
 

@@ -23,6 +23,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('signup.form');
 		Route::post('/jobseeker/login', [JobseekerController::class, 'loginJobseeker'])->name('jobseeker.login.submit');
 		Route::post('/submit-forget-password', [JobseekerController::class, 'submitForgetPassword'])->name('submit.forget.password');
+		Route::post('/resend-otp', [JobseekerController::class, 'resendOtp'])->name('jobseeker.resend-otp');
 		Route::get('/verify-otp', [JobseekerController::class, 'showOtpForm'])->name('jobseeker.verify-otp');
 		Route::post('/submit-verify-otp', [JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
 		Route::get('reset-password', [JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');

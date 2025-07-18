@@ -127,70 +127,65 @@
 
                        
 
-                    <div x-data="batchManager()">
+                    <div x-data="batchManager()" class="p-4 border rounded space-y-6">
+
                         <!-- Batch Input Fields -->
-                        <div class="mb-8">
-                            <h2 class="text-xl font-semibold mb-4">Batch details</h2>
+                        <div>
+                            <h2 class="text-xl font-semibold mb-4">Batch Details</h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block mb-1 font-medium">Batch No</label>
-                                    <input type="text" x-model="batchNo" placeholder="Enter batch no"
-                                        class="border p-2 rounded w-full" />
+                                    <input type="text" x-model="batchNo" placeholder="Enter batch no" class="border p-2 rounded w-full" />
                                 </div>
                                 <div>
                                     <label class="block mb-1 font-medium">Start Date</label>
                                     <input type="date" x-model="batchDate" class="border p-2 rounded w-full" />
                                 </div>
                                 <div>
-                                    <label class="block mb-1 font-medium">Start Timing</label>
+                                    <label class="block mb-1 font-medium">Start Time</label>
                                     <input type="time" x-model="startTime" class="border p-2 rounded w-full" />
                                 </div>
                                 <div>
-                                    <label class="block mb-1 font-medium">End Timing</label>
+                                    <label class="block mb-1 font-medium">End Time</label>
                                     <input type="time" x-model="endTime" class="border p-2 rounded w-full" />
                                 </div>
-
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Type Selection -->
-                                    <div>
-                                        <label class="block mb-1 font-medium">Select Type</label>
-                                        <select x-model="durationType" class="border p-2 rounded w-full">
-                                            <option value="day">Days</option>
-                                            <option value="month">Months</option>
-                                            <option value="year">Years</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Duration Options Based on Type -->
-                                    <div>
-                                        <label class="block mb-1 font-medium">Duration</label>
-                                        <select x-model="duration" class="border p-2 rounded w-full">
-                                            <option value="">Select duration</option>
-                                            <template x-for="option in getOptions()" :key="option">
-                                                <option :value="option" x-text="option"></option>
-                                            </template>
-                                        </select>
-                                    </div>
+                                <div>
+                                    <label class="block mb-1 font-medium">Select Type</label>
+                                    <select x-model="durationType" class="border p-2 rounded w-full">
+                                        <option value="day">Days</option>
+                                        <option value="month">Months</option>
+                                        <option value="year">Years</option>
+                                    </select>
                                 </div>
-
-
-
+                                <div>
+                                    <label class="block mb-1 font-medium">Duration</label>
+                                    <select x-model="duration" class="border p-2 rounded w-full">
+                                        <option value="">Select duration</option>
+                                        <template x-for="option in getOptions()" :key="option">
+                                            <option :value="option" x-text="option"></option>
+                                        </template>
+                                    </select>
+                                </div>
                             </div>
-
+                            <!-- Conflict Error Message -->
+                            <div x-show="conflict" class="text-red-600 mt-2 font-semibold">
+                                Selected timing already used for the given date range.
+                            </div>
                             <!-- Action Buttons -->
-                            <button type="button" x-show="!isEditing" @click="addBatch"
-                                    class="bg-blue-600 text-white px-6 py-2 rounded mt-4 hover:bg-blue-700">
-                                + Add batch
-                            </button>
-                            <button type="button" x-show="isEditing" @click="updateBatch"
-                                    class="bg-green-600 text-white px-6 py-2 rounded mt-4 hover:bg-green-700">
-                                ✓ Update batch
-                            </button>
+                            <div class="mt-4">
+                                <button type="button" x-show="!isEditing" @click="addBatch"
+                                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                                    + Add Batch
+                                </button>
+                                <button type="button" x-show="isEditing" @click="updateBatch"
+                                    class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                                    ✓ Update Batch
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Hidden Inputs to Submit -->
-                        <template x-for="(batch, index) in batches" :key="'form-' + index">
+                        <!-- Hidden Inputs -->
+                        <template x-for="(batch, index) in batches" :key="'hidden-' + index">
                             <div>
                                 <input type="hidden" :name="`content_sections[${index}][batch_no]`" :value="batch.batchNo">
                                 <input type="hidden" :name="`content_sections[${index}][batch_date]`" :value="batch.batchDate">
@@ -200,15 +195,15 @@
                             </div>
                         </template>
 
-                        <!-- Batch List Table -->
+                        <!-- Batch Table -->
                         <div>
-                            <h2 class="text-xl font-semibold mb-4">Batch list</h2>
+                            <h2 class="text-xl font-semibold mb-4">Batch List</h2>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full bg-white border">
                                     <thead class="bg-gray-100 text-left text-sm font-medium text-gray-700">
                                         <tr>
-                                            <th class="py-2 px-4 border-b">Sr. No.</th>
-                                            <th class="py-2 px-4 border-b">Batch Title</th>
+                                            <th class="py-2 px-4 border-b">#</th>
+                                            <th class="py-2 px-4 border-b">Batch No</th>
                                             <th class="py-2 px-4 border-b">Date</th>
                                             <th class="py-2 px-4 border-b">Time</th>
                                             <th class="py-2 px-4 border-b">Duration</th>
@@ -225,11 +220,17 @@
                                                 <td class="py-2 px-4 border-b" x-text="`${batch.startTime} - ${batch.endTime}`"></td>
                                                 <td class="py-2 px-4 border-b" x-text="batch.duration"></td>
                                                 <td class="py-2 px-4 border-b">
-                                                    <button type="button" @click="editBatch(index)" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded">Edit</button>
+                                                    <button 
+                                                        type="button" 
+                                                        @click.prevent="editBatch(index)" 
+                                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded">
+                                                        Edit
+                                                    </button>
                                                 </td>
                                                 <td class="py-2 px-4 border-b">
-                                                    <button type="button" @click="removeBatch(index)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full">
-                                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                                    <button @click="removeBatch(index)"
+                                                        class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full">
+                                                        <i class="fa fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -239,6 +240,8 @@
                             </div>
                         </div>
                     </div>
+
+
           
 
                     <!-- Submit Button -->
@@ -266,81 +269,65 @@
                         durationType: 'day',
                         duration: '',
 
-                        // List of batches
+                        // State
                         batches: [],
                         isEditing: false,
                         editIndex: null,
+                        conflict: false,
 
-                        // Duration dropdown options
+                        // 🧮 Duration options
                         getOptions() {
-                            if (this.durationType === 'day') return Array.from({ length: 30 }, (_, i) => `${i + 1} days`);
-                            if (this.durationType === 'month') return Array.from({ length: 12 }, (_, i) => `${i + 1} months`);
-                            if (this.durationType === 'year') return Array.from({ length: 5 }, (_, i) => `${i + 1} years`);
+                            if (this.durationType === 'day') return Array.from({ length: 60 }, (_, i) => `${i + 1} day`);
+                            if (this.durationType === 'month') return Array.from({ length: 12 }, (_, i) => `${i + 1} month`);
+                            if (this.durationType === 'year') return Array.from({ length: 5 }, (_, i) => `${i + 1} year`);
                             return [];
                         },
 
-                        // Add new batch
+                        // ➕ Add New Batch
                         addBatch() {
-                            if (this.batchNo && this.batchDate && this.startTime && this.endTime && this.duration) {
-                                this.batches.push({
-                                    batchNo: this.batchNo,
-                                    batchDate: this.batchDate,
-                                    startTime: this.startTime,
-                                    endTime: this.endTime,
-                                    duration: this.duration,
-                                });
-                                this.clearForm();
-                            } else {
-                                alert("Please fill all fields.");
+                            if (!this.validateForm()) return;
+
+                            if (this.hasConflict()) {
+                                this.conflict = true;
+                                return;
                             }
+
+                            this.conflict = false;
+
+                            this.batches.push(this.getBatchData());
+                            this.clearForm();
                         },
 
-                        // Edit existing batch
+                        // ✏️ Edit Batch
                         editBatch(index) {
-                            const batch = this.batches[index];
-                            this.batchNo = batch.batchNo;
-                            this.batchDate = batch.batchDate;
-                            this.startTime = batch.startTime;
-                            this.endTime = batch.endTime;
+                            const b = this.batches[index];
+                            this.batchNo = b.batchNo;
+                            this.batchDate = b.batchDate;
+                            this.startTime = b.startTime;
+                            this.endTime = b.endTime;
+                            this.duration = b.duration;
+                            this.durationType = this.getDurationTypeFromString(b.duration);
 
-                            // Parse duration and set durationType
-                            const parts = batch.duration.split(' ');
-                            const unit = parts[1]?.toLowerCase();
-
-                            if (unit?.startsWith('day')) {
-                                this.durationType = 'day';
-                            } else if (unit?.startsWith('month')) {
-                                this.durationType = 'month';
-                            } else if (unit?.startsWith('year')) {
-                                this.durationType = 'year';
-                            } else {
-                                this.durationType = 'day';
-                            }
-
-                            // Wait for options to be available before setting duration
-                            this.$nextTick(() => {
-                                this.duration = batch.duration;
-                            });
-
-                            this.editIndex = index;
                             this.isEditing = true;
+                            this.editIndex = index;
                         },
 
-                        // Update batch
+                        // 🔁 Update Existing Batch
                         updateBatch() {
-                            if (this.editIndex !== null) {
-                                this.batches[this.editIndex] = {
-                                    batchNo: this.batchNo,
-                                    batchDate: this.batchDate,
-                                    startTime: this.startTime,
-                                    endTime: this.endTime,
-                                    duration: this.duration,
-                                };
-                                this.clearForm();
+                            if (!this.validateForm()) return;
+
+                            if (this.hasConflict()) {
+                                this.conflict = true;
+                                return;
                             }
+
+                            this.conflict = false;
+
+                            this.batches[this.editIndex] = this.getBatchData();
+                            this.clearForm();
                         },
 
-                        // Delete batch
+                        // ❌ Remove Batch
                         removeBatch(index) {
                             this.batches.splice(index, 1);
                             if (this.isEditing && this.editIndex === index) {
@@ -348,7 +335,49 @@
                             }
                         },
 
-                        // Reset form
+                        // 🔍 Check Date + Time Conflict
+                        hasConflict() {
+                            const [val, unit] = this.duration.split(' ');
+                            const startDate = new Date(this.batchDate);
+                            const endDate = new Date(this.batchDate);
+                            const durationValue = parseInt(val);
+
+                            if (unit.includes('day')) {
+                                endDate.setDate(endDate.getDate() + durationValue - 1);
+                            } else if (unit.includes('month')) {
+                                endDate.setMonth(endDate.getMonth() + durationValue);
+                                endDate.setDate(endDate.getDate() - 1);
+                            } else if (unit.includes('year')) {
+                                endDate.setFullYear(endDate.getFullYear() + durationValue);
+                                endDate.setDate(endDate.getDate() - 1);
+                            }
+
+                            return this.batches.some((b, i) => {
+                                if (this.isEditing && this.editIndex === i) return false;
+
+                                const bStart = new Date(b.batchDate);
+                                const bEnd = new Date(b.batchDate);
+                                const [bVal, bUnit] = b.duration.split(' ');
+                                const bDur = parseInt(bVal);
+
+                                if (bUnit.includes('day')) {
+                                    bEnd.setDate(bEnd.getDate() + bDur - 1);
+                                } else if (bUnit.includes('month')) {
+                                    bEnd.setMonth(bEnd.getMonth() + bDur);
+                                    bEnd.setDate(bEnd.getDate() - 1);
+                                } else if (bUnit.includes('year')) {
+                                    bEnd.setFullYear(bEnd.getFullYear() + bDur);
+                                    bEnd.setDate(bEnd.getDate() - 1);
+                                }
+
+                                const isDateOverlap = (startDate <= bEnd && endDate >= bStart);
+                                const isTimeOverlap = !(this.endTime <= b.startTime || this.startTime >= b.endTime);
+
+                                return isDateOverlap && isTimeOverlap;
+                            });
+                        },
+
+                        // 🧹 Clear Form
                         clearForm() {
                             this.batchNo = '';
                             this.batchDate = '';
@@ -356,12 +385,49 @@
                             this.endTime = '';
                             this.duration = '';
                             this.durationType = 'day';
-                            this.editIndex = null;
                             this.isEditing = false;
+                            this.editIndex = null;
+                            this.conflict = false;
+                        },
+
+                        // 📦 Get Current Batch Object
+                        getBatchData() {
+                            return {
+                                batchNo: this.batchNo,
+                                batchDate: this.batchDate,
+                                startTime: this.startTime,
+                                endTime: this.endTime,
+                                duration: this.duration
+                            };
+                        },
+
+                        // 📌 Validate Inputs
+                        validateForm() {
+                            if (!this.batchNo || !this.batchDate || !this.startTime || !this.endTime || !this.duration) {
+                                alert("Please fill all fields.");
+                                return false;
+                            }
+                            if (this.endTime <= this.startTime) {
+                                alert("End time must be after start time.");
+                                return false;
+                            }
+                            return true;
+                        },
+
+                        // 🧠 Get Type from "5 day" string
+                        getDurationTypeFromString(str) {
+                            if (str.includes('day')) return 'day';
+                            if (str.includes('month')) return 'month';
+                            if (str.includes('year')) return 'year';
+                            return 'day';
                         }
-                    }
+                    };
                 }
             </script>
+
+
+
+
 
 
             

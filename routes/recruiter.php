@@ -12,7 +12,7 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::get('/sign-up', [RecruiterController::class, 'showSignUpForm'])->name('recruiter.signup');
 		Route::get('/registration', [RecruiterController::class, 'showRegistrationForm'])->name('recruiter.registration');
 		Route::get('/forget-password', [RecruiterController::class, 'showForgotPasswordForm'])->name('recruiter.forget.password');
-
+		Route::post('/resend-otp', [RecruiterController::class, 'resendOtp'])->name('recruiter.resend-otp');
 		Route::get('/verify-otp', [RecruiterController::class, 'showOtpForm'])->name('recruiter.verify-otp');
 		Route::get('reset-password', [RecruiterController::class, 'showResetPasswordForm'])->name('recruiter.reset-password');
 
