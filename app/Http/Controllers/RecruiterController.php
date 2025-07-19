@@ -312,6 +312,35 @@ class RecruiterController extends Controller
 
      }
 
+     public function resendOtp(Request $request)
+     {
+        $contact = session('otp_value');
+        $contactMethod = session('otp_method');
+
+        if (!$contact || !$contactMethod) {
+            return response()->json(['message' => 'Session expired. Please try again.'], 400);
+        }
+
+        $otp = rand(100000, 999999);
+
+        // Save new OTP in database
+        DB::table('recruiters_company')->where($contactMethod, $contact)->update([
+            'otp' => $otp,
+            'updated_at' => now()
+        ]);
+
+        // === OTP sending is disabled for now ===
+        if ($contactMethod === 'email') {
+            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
+            //     $message->to($contact)->subject('Your OTP has been resent – Talentrek');
+            // });
+        } else {
+            // SmsService::send($contact, "Your OTP is: $otp");
+        }
+
+        return response()->json(['message' => 'OTP resent successfully.']);
+    }
+
      public function verifyOtp(Request $request)
      {
           $request->validate([
@@ -473,6 +502,7 @@ class RecruiterController extends Controller
 
      public function getJobseekerDetails($jobseeker_id)
      {
+          $recruiterId = auth()->id();
           $jobseeker = Jobseekers::with(['educations', 'experiences'])
                          ->where('id', $jobseeker_id)
                          ->firstOrFail();
@@ -485,8 +515,19 @@ class RecruiterController extends Controller
                          ->first();              
           // echo "<pre>";
           // print_r( $skills);exit;
-          echo "</pre>";
-          return view('site.recruiter.jobseeker-view-details', compact('jobseeker','skill','additional'));
+          // echo "</pre>";
+          $shortlisted_jobseeker = Jobseekers::with(['educations', 'experiences', 'skills'])
+               ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+               ->where('shortlist.recruiter_id', $recruiterId)
+               ->where('jobseekers.status', 'active')
+               ->select(
+                    'jobseekers.*',
+                    'shortlist.admin_status as shortlist_admin_status',
+                    'shortlist.interview_request'
+               )
+               ->get();
+
+          return view('site.recruiter.jobseeker-view-details', compact('jobseeker','skill','additional','shortlisted_jobseeker'));
      }
 
      public function showRecruitmentSettingForm()

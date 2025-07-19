@@ -87,9 +87,33 @@
                             </div>
                             
                         </div>
-                        <button class="border border-blue-600 text-blue-600 text-sm px-4 py-1.5 rounded hover:bg-blue-50 transition" >
+                        <!-- <button class="border border-blue-600 text-blue-600 text-sm px-4 py-1.5 rounded hover:bg-blue-50 transition" >
                             Request interview
-                        </button>
+                        </button> -->
+                        @foreach ($shortlisted_jobseeker as $jobseeker)
+                            @php
+                                $jobseekerId = $jobseeker->id;
+                                $isApproved = $jobseeker->shortlist_admin_status === 'approved';
+                                $interviewRequested = strtolower($jobseeker->interview_request ?? '') === 'yes';
+                            @endphp
+
+                            <!-- Interview Request Button -->
+                            <button
+                                id="interview-btn-{{ $jobseekerId }}"
+                                onclick="confirmInterviewRequest({{ $jobseekerId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
+                                class="text-white text-base px-4 py-1.5 rounded
+                                    {{ $isApproved 
+                                        ? ($interviewRequested 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-purple-500 hover:bg-purple-600') 
+                                        : 'bg-gray-600 cursor-not-allowed' }}"
+                                {{ ($interviewRequested || !$isApproved) ? 'disabled' : '' }}
+                            >
+                                {{ $interviewRequested ? 'Interview Requested' : 'Interview Request' }}
+                            </button>
+
+                        @endforeach
+
                         </div>
                         <hr>
 
@@ -297,6 +321,127 @@
             </div>
         </div>
     </div>
+
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .swal2-popup-sm {
+        font-size: 15px;
+        border-radius: 10px;
+        padding: 1.2em;
+    }
+
+    .swal2-title-sm {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .swal2-text-sm {
+        font-size: 15px;
+        color: #333;
+    }
+
+    .swal2-confirm-sm,
+    .swal2-cancel-sm {
+        font-size: 14px !important;
+        padding: 8px 20px !important;
+        border-radius: 6px !important;
+    }
+</style>
+<script>
+    function confirmInterviewRequest(jobseekerId, isApproved, interviewRequested) {
+        if (!isApproved || interviewRequested) return;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to send interview request?",
+            icon: 'question',
+            width: '400px',
+            padding: '1.2em',
+            showCancelButton: true,
+            confirmButtonColor: '#4CAF50',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, send it!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'swal2-popup-sm',
+                title: 'swal2-title-sm',
+                htmlContainer: 'swal2-text-sm',
+                confirmButton: 'swal2-confirm-sm',
+                cancelButton: 'swal2-cancel-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sendInterviewRequest(jobseekerId);
+            }
+        });
+    }
+
+    function sendInterviewRequest(jobseekerId) {
+        const btn = document.getElementById('interview-btn-' + jobseekerId);
+
+        // Optimistically disable button
+        btn.disabled = true;
+        btn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+        btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+        btn.innerText = 'Interview Requested';
+
+        fetch("{{ route('recruiter.interview.request.submit') }}", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ jobseeker_id: jobseekerId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Interview request sent successfully.',
+                    icon: 'success',
+                    width: '400px',
+                    customClass: {
+                        popup: 'swal2-popup-sm',
+                        title: 'swal2-title-sm',
+                        htmlContainer: 'swal2-text-sm',
+                        confirmButton: 'swal2-confirm-sm'
+                    }
+                });
+            } else {
+                handleRequestFailure(btn, data.message || 'Something went wrong.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            handleRequestFailure(btn, 'Failed to send request.');
+        });
+    }
+
+    function handleRequestFailure(btn, errorMessage) {
+        Swal.fire({
+            title: 'Error!',
+            text: errorMessage,
+            icon: 'error',
+            width: '400px',
+            customClass: {
+                popup: 'swal2-popup-sm',
+                title: 'swal2-title-sm',
+                htmlContainer: 'swal2-text-sm',
+                confirmButton: 'swal2-confirm-sm'
+            }
+        });
+
+        // Re-enable button if request failed
+        btn.disabled = false;
+        btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        btn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+        btn.innerText = 'Interview Request';
+    }
+</script>    
 
 <script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
 <script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
