@@ -130,7 +130,7 @@
                             <!-- <button data-tab="contacted" class="text-gray-500 pb-1">Contacted</button> -->
                             </div>
                             <div class="text-sm font-semibold text-gray-600">
-                            Results: <span>0</span>
+                            <!-- Results: <span>0</span> -->
                             </div>
                         </div>
 
@@ -578,22 +578,22 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-function confirmShortlist(id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "Do you want to shortlist this jobseeker?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#aaa',
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('shortlist-form-' + id).submit();
-        }
-    });
-}
+    function confirmShortlist(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to shortlist this jobseeker?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('shortlist-form-' + id).submit();
+            }
+        });
+    }
 </script>
 
 

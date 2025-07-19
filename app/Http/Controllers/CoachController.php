@@ -121,6 +121,35 @@ class CoachController extends Controller
         return redirect()->route('coach.verify-otp')->with('success', 'OTP sent!');
     }
 
+    public function resendOtp(Request $request)
+    {
+        $contact = session('otp_value');
+        $contactMethod = session('otp_method');
+
+        if (!$contact || !$contactMethod) {
+            return response()->json(['message' => 'Session expired. Please try again.'], 400);
+        }
+
+        $otp = rand(100000, 999999);
+
+        // Save new OTP in database
+        DB::table('coaches')->where($contactMethod, $contact)->update([
+            'otp' => $otp,
+            'updated_at' => now()
+        ]);
+
+        // === OTP sending is disabled for now ===
+        if ($contactMethod === 'email') {
+            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
+            //     $message->to($contact)->subject('Your OTP has been resent – Talentrek');
+            // });
+        } else {
+            // SmsService::send($contact, "Your OTP is: $otp");
+        }
+
+        return response()->json(['message' => 'OTP resent successfully.']);
+    }
+
     public function verifyOtp(Request $request)
     {
         $request->validate([

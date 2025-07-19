@@ -14,6 +14,7 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::get('/sign-up', [MentorController::class, 'showSignUpForm'])->name('mentor.signup');
 		Route::get('/registration', [MentorController::class, 'showRegistrationForm'])->name('mentor.registration');
 		Route::get('/forget-password', [MentorController::class, 'showForgotPasswordForm'])->name('mentor.forget.password');
+		Route::post('/resend-otp', [MentorController::class, 'resendOtp'])->name('mentor.resend-otp');
 		Route::get('/verify-otp', [MentorController::class, 'showOtpForm'])->name('mentor.verify-otp');
 		Route::get('reset-password', [MentorController::class, 'showResetPasswordForm'])->name('mentor.reset-password');
 
