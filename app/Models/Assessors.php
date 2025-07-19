@@ -45,4 +45,47 @@ class Assessors extends Authenticatable
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+
+    public function educations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'assessor');
+    }
+    public function experiences()
+    {
+
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'assessor');
+    }
+
+    public function trainingexperience()
+    {
+        return $this->hasMany(TrainingExperience::class, 'user_id');
+       
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'assessor');
+    }
+
+
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')->where('user_type', 'assessor');
+    }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+                    ->where('user_type', 'assessor')
+                    ->where('doc_type', 'assessor_profile_picture');
+    }
+
+
+    public function bookingSlots()
+    {
+        return $this->hasMany(BookingSlot::class, 'user_id')->where('user_type', 'assessor');
+    }
 }

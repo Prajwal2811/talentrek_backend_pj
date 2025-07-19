@@ -548,13 +548,30 @@ class JobseekerController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = Socialite::driver('google')->user();
 
             $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
 
+            $isNew = false; // Flag to track if the user is newly registered
+
             if (!$jobseeker) {
-                session()->flash('error', 'No account associated with this Google email.');
-                return redirect()->route('jobseeker.sign-in');
+                // Auto-register new jobseeker
+                $name = $googleUser->getName();
+                $firstName = strtolower(trim(explode(' ', $name)[0]));
+                $password = $firstName . '@talentrek';
+
+                $jobseeker = Jobseekers::create([
+                    'name' => $name,
+                    'email' => $googleUser->getEmail(),
+                    'status' => 'active',
+                    'password' => Hash::make($password),
+                    'pass' => $password, // Not recommended to store plain password, consider removing this
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                ]);
+
+
+                $isNew = true;
             }
 
             if ($jobseeker->status !== 'active') {
@@ -563,7 +580,13 @@ class JobseekerController extends Controller
             }
 
             Auth::guard('jobseeker')->login($jobseeker);
-            return redirect()->intended(route('jobseeker.dashboard')); // Use intended for better UX
+
+            // Redirect based on whether the user is new or existing
+            if ($isNew) {
+                return redirect()->route('jobseeker.registration'); // For new users
+            }
+
+            return redirect()->intended(route('jobseeker.profile')); // For existing users
 
         } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
             session()->flash('error', 'Invalid state. Please try again.');
@@ -573,6 +596,8 @@ class JobseekerController extends Controller
 
         return redirect()->route('jobseeker.sign-in');
     }
+
+
 
 
     public function getJobseekerAllDetails()

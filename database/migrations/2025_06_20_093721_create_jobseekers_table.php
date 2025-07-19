@@ -45,7 +45,6 @@ return new class extends Migration
             $table->text('zoom_refresh_token')->nullable();
             $table->timestamp('zoom_token_expires_at')->nullable();
 
-            
             $table->timestamps();
         });
 

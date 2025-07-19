@@ -21,7 +21,8 @@ use App\Models\Trainers;
 use App\Models\Language;
 use App\Models\Resume;
 use App\Models\Review;
-use App\Models\Payment;
+use App\Models\JobseekerTrainingMaterialPurchase;
+use App\Models\PaymentHistory   ;
 use App\Models\Mentors;
 use App\Models\BookingSession;
 use App\Models\RecruiterJobseekersShortlist;
@@ -218,9 +219,10 @@ class AdminController extends Controller
         $assessorCount  = Assessors::where('status', 'active')->count();
 
         // Example logic for revenue and session counts
-        // $materialSales = Orders::where('type', 'material')
-        //                 ->where('status', 'paid')
-        //                 ->sum('amount');
+        $materialSales = JobseekerTrainingMaterialPurchase::select('.')
+                                                        ->join('payments_history', 'jobseeker_training_material_purchases.payment_id', '=', 'payments_history.id')
+                                                        ->where('payments_history.payment_status', 'paid')
+                                                        ->sum('amount_paid');
 
         // $mentorSessionCount = Bookings::where('type', 'mentor')->count();
         // $coachSessionCount = Bookings::where('type', 'coach')->count();
@@ -263,7 +265,7 @@ class AdminController extends Controller
             'coachCount'            => $coachCount,
             'mentorCount'           => $mentorCount,
             'assessorCount'         => $assessorCount,
-            // 'materialSales'         => $materialSales,
+            'materialSales'         => $materialSales,
             // 'mentorSessionCount'    => $mentorSessionCount,
             // 'coachSessionCount'     => $coachSessionCount,
             // 'assessorSessionCount'  => $assessorSessionCount,
@@ -1730,9 +1732,9 @@ class AdminController extends Controller
 
     public function payments()
     {   
-        $payments = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments.id as payment_id')
-                    ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
-                    ->orderBy('payments.created_at', 'desc')
+        $payments = PaymentHistory::select('payments_history.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments_history.id as payment_id')
+                    ->join('jobseekers', 'payments_history.jobseeker_id', '=', 'jobseekers.id')
+                    ->orderBy('payments_history.created_at', 'desc')
                     ->get();
         // echo "<pre>"; print_r($payments); die;
         return view('admin.payments.index', compact('payments'));
@@ -1740,10 +1742,10 @@ class AdminController extends Controller
 
     public function viewPayment($id)
     {
-        $payment = Payment::select('payments.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
-                                ->join('jobseekers', 'payments.jobseeker_id', '=', 'jobseekers.id')
-                                ->join('training_materials', 'payments.course_id', '=', 'training_materials.id')
-                                ->where('payments.id', $id)
+        $payment = PaymentHistory::select('payments_hostory.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
+                                ->join('jobseekers', 'payments_hostory.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('training_materials', 'payments_hostory.course_id', '=', 'training_materials.id')
+                                ->where('payments_hostory.id', $id)
                                 ->firstOrFail();
 
         // Get the jobseeker's details
@@ -1937,9 +1939,358 @@ class AdminController extends Controller
 
 
 
+    public function coach()
+    {
+        $coaches = Coach::all();
+        return view('admin.coach.index', compact('coaches'));
+    }
+
+    public function coachChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'coach_id' => 'required|exists:coaches,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
+
+        $user = Coach::findOrFail($validated['coach_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
+
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
+
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+        // Logging the change
+        Log::info('Coach status updated', [
+            'coach' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Coach status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+    public function viewCoach($id)
+    {
+        $coach = Coach::findOrFail($id);
+        $educations = $coach->educations()->orderBy('id', 'desc')->get();
+        $experiences = $coach->experiences()->orderBy('id', 'desc')->get();
+        $trainingexperience = $coach->trainingexperience()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','coach')->get();
+        return view('admin.coach.view', compact('coach', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+    }
+
+
+    public function updateCoachStatus(Request $request)
+    {
+        $request->validate([
+            'coach_id' => 'required|exists:coaches,id',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $coach = Coach::findOrFail($request->coach_id);
+        $user = auth()->user();
+        $previousStatus = $coach->admin_status;
+        $status = $request->status;
+
+        // Role validation
+        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Invalid status for superadmin');
+        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Admins cannot perform superadmin actions');
+        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
+            Log::warning('Unauthorized mentor status update attempt', [
+                'attempted_by' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ],
+                'coach_id' => $coach->id,
+                'time' => now(),
+            ]);
+            return back()->with('error', 'Unauthorized action.');
+        }
+
+        // Update status and rejection reason
+        $coach->admin_status = $status;
+        $coach->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+        $coach->save();
+
+        // Log the update
+        Log::info('Coach admin status updated', [
+            'coach' => [
+                'id' => $coach->id,
+                'name' => $coach->name,
+                'email' => $coach->email,
+                'previous_status' => $previousStatus,
+                'new_status' => $status,
+                'rejection_reason' => $coach->rejection_reason,
+            ],
+            'updated_by' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'time' => now(),
+        ]);
+
+        // Send email if rejected
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $coach->email) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Application Rejected – Talentrek</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+                    .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+                    .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Application Update – <span style="color:#dc3545;">Rejected</span></h2>
+                        </div>
+                        <p>Hi <strong>' . e($coach->name ?? $coach->email) . '</strong>,</p>
+                        <p>We regret to inform you that your application on <strong>Talentrek</strong> has been rejected.</p>
+                        <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+                        <p>If you believe this was a mistake, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+                </body>
+                </html>
+            ', function ($message) use ($coach) {
+                $message->to($coach->email)->subject('Application Rejected – Talentrek');
+            });
+        }
+
+        return back()->with('success', 'Status updated successfully.');
+    }
 
 
 
+
+    public function viewCoachBookingSession($id)
+    {
+        $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*', 'coaches.name as coach_name', 'coaches.email as coach_email','jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','booking_slots.start_time', 'booking_slots.end_time','booking_slots.*','jobseeker_saved_booking_session.status as booking_status','jobseeker_saved_booking_session.id as booking_id')
+                                ->join('coaches', 'jobseeker_saved_booking_session.user_id', '=', 'coaches.id')
+                                ->join('jobseekers', 'jobseeker_saved_booking_session.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('booking_slots', 'jobseeker_saved_booking_session.booking_slot_id', '=', 'booking_slots.id')
+                                ->where('jobseeker_saved_booking_session.user_id', $id)
+                                ->where('jobseeker_saved_booking_session.user_type', 'coach')
+                                ->get();
+        return view('admin.coach.booking-session', compact('bookingSessions'));
+    }
+
+
+
+
+
+
+    public function assessors()
+    {
+        $assessors = Assessors::all();
+        return view('admin.assessors.index', compact('assessors'));
+    }
+
+    public function assessorChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'assessor_id' => 'required|exists:assessors,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
+
+        $user = Assessors::findOrFail($validated['assessor_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
+
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
+
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+        // Logging the change
+        Log::info('Assessor status updated', [
+            'assessor' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Assessor status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+    public function viewAssessor($id)
+    {
+        $assessor = Assessors::findOrFail($id);
+        $educations = $assessor->educations()->orderBy('id', 'desc')->get();
+        $experiences = $assessor->experiences()->orderBy('id', 'desc')->get();
+        $trainingexperience = $assessor->trainingexperience()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','assessor')->get();
+        return view('admin.assessors.view', compact('assessor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+    }
+
+
+    public function updateAssessorStatus(Request $request)
+    {
+        $request->validate([
+            'assessor_id' => 'required|exists:assessors,id',
+            'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $assessor = Assessors::findOrFail($request->assessor_id);
+        $user = auth()->user();
+        $previousStatus = $assessor->admin_status;
+        $status = $request->status;
+
+        // Role validation
+        if ($user->role === 'superadmin' && !Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Invalid status for superadmin');
+        } elseif ($user->role === 'admin' && Str::startsWith($status, 'superadmin_')) {
+            return back()->with('error', 'Admins cannot perform superadmin actions');
+        } elseif (!in_array($user->role, ['admin', 'superadmin'])) {
+            Log::warning('Unauthorized mentor status update attempt', [
+                'attempted_by' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ],
+                'assessor_id' => $assessor->id,
+                'time' => now(),
+            ]);
+            return back()->with('error', 'Unauthorized action.');
+        }
+
+        // Update status and rejection reason
+        $assessor->admin_status = $status;
+        $assessor->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+        $assessor->save();
+
+        // Log the update
+        Log::info('assessor admin status updated', [
+            'assessor' => [
+                'id' => $assessor->id,
+                'name' => $assessor->name,
+                'email' => $assessor->email,
+                'previous_status' => $previousStatus,
+                'new_status' => $status,
+                'rejection_reason' => $assessor->rejection_reason,
+            ],
+            'updated_by' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'time' => now(),
+        ]);
+
+        // Send email if rejected
+        if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $assessor->email) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Application Rejected – Talentrek</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+                    .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+                    .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Application Update – <span style="color:#dc3545;">Rejected</span></h2>
+                        </div>
+                        <p>Hi <strong>' . e($assessor->name ?? $assessor->email) . '</strong>,</p>
+                        <p>We regret to inform you that your application on <strong>Talentrek</strong> has been rejected.</p>
+                        <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+                        <p>If you believe this was a mistake, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+                </body>
+                </html>
+            ', function ($message) use ($assessor) {
+                $message->to($assessor->email)->subject('Application Rejected – Talentrek');
+            });
+        }
+
+        return back()->with('success', 'Status updated successfully.');
+    }
+
+
+
+
+    public function viewAssessorBookingSession($id)
+    {
+        $bookingSessions = BookingSession::select('jobseeker_saved_booking_session.*', 'assessors.name as coach_name', 'assessors.email as coach_email','jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','booking_slots.start_time', 'booking_slots.end_time','booking_slots.*','jobseeker_saved_booking_session.status as booking_status','jobseeker_saved_booking_session.id as booking_id')
+                                ->join('assessors', 'jobseeker_saved_booking_session.user_id', '=', 'assessors.id')
+                                ->join('jobseekers', 'jobseeker_saved_booking_session.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('booking_slots', 'jobseeker_saved_booking_session.booking_slot_id', '=', 'booking_slots.id')
+                                ->where('jobseeker_saved_booking_session.user_id', $id)
+                                ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+                                ->get();
+        return view('admin.assessors.booking-session', compact('bookingSessions'));
+    }
 
     public function showActivityLog()
     {

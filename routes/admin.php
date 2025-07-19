@@ -75,11 +75,20 @@ Route::group(['prefix' => 'admin'], function() {
         // Assessors Module
         Route::middleware('admin.module:Assessors')->group(function () {
 		    Route::get('/assessors', [App\Http\Controllers\AdminController::class, 'assessors'])->name('admin.assessors');
+            Route::post('/assessor/changeStatus', [App\Http\Controllers\AdminController::class, 'assessorChangeStatus'])->name('admin.assessor.changeStatus');	
+			Route::get('/assessor/{id}/view', [App\Http\Controllers\AdminController::class, 'viewassessor'])->name('admin.assessor.view');
+            Route::get('/assessor/{id}/booking-session', [App\Http\Controllers\AdminController::class, 'viewassessorBookingSession'])->name('admin.assessor.booking-session');
+            Route::post('/assessor/update-status', [App\Http\Controllers\AdminController::class, 'updateassessorStatus'])->name('admin.assessor.updateStatus');
 			
 		});
         // Coach Module
         Route::middleware('admin.module:Coach')->group(function () {
 		    Route::get('/coach', [App\Http\Controllers\AdminController::class, 'coach'])->name('admin.coach');
+            Route::post('/coach/changeStatus', [App\Http\Controllers\AdminController::class, 'coachChangeStatus'])->name('admin.coach.changeStatus');	
+			Route::get('/coach/{id}/view', [App\Http\Controllers\AdminController::class, 'viewCoach'])->name('admin.coach.view');
+            Route::get('/coach/{id}/booking-session', [App\Http\Controllers\AdminController::class, 'viewCoachBookingSession'])->name('admin.coach.booking-session');
+            Route::post('/coach/update-status', [App\Http\Controllers\AdminController::class, 'updateCoachStatus'])->name('admin.coach.updateStatus');
+
                     
         });
         // Mentor Module

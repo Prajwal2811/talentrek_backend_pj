@@ -15,6 +15,10 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
 		
 
+		Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
+		Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
+
+
 		Route::get('/registration', [JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
 		Route::post('/registration', [JobseekerController::class, 'postRegistration'])->name('jobseeker.register.post'); 
 		Route::post('/registration/store', [JobseekerController::class, 'storeJobseekerInformation'])->name('jobseeker.registration.store');

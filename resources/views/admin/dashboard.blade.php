@@ -45,7 +45,7 @@
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Training Material Sales</p>
-                                {{-- <h2 class="text-3xl font-bold text-indigo-600">₹{{ number_format($materialSales) }}</h2> --}}
+                                <h2 class="text-3xl font-bold text-indigo-600">₹{{ number_format($materialSales) }}</h2>
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Mentor Sessions Booked</p>
@@ -120,6 +120,7 @@
                         });
 
 
+                       
                         // Registration Bar Chart
                         const monthLabels = [
                             'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
