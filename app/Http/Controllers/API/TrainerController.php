@@ -239,8 +239,6 @@ class TrainerController extends Controller
                 'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
-                'password'     => Hash::make($request->password),
-                'pass'         => $request->password,
                 'is_registered'=> true, // you should add this column to your table
             ]);
 

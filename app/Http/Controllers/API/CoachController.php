@@ -238,9 +238,7 @@ class CoachController extends Controller
                 'gender'       => $request->gender,
                 'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
-                'address'      => $request->address,
-                'password'     => Hash::make($request->password),
-                'pass'         => $request->password,
+                'address'      => $request->address,                
                 'is_registered'=> true, // you should add this column to your table
             ]);
 
