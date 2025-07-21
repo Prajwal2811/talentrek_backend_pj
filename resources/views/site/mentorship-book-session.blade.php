@@ -43,6 +43,49 @@
         }
     </script>
 
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        @if(session('success'))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '{{ session('success') }}',
+                        html: `
+                            <section class="flex flex-col items-center justify-center text-center">
+                                <h2 class="text-xl font-medium mb-1">Your Appointment Booked Successfully</h2>
+                                <p class="text-sm text-gray-600 mb-1">Booking ID: <span class="font-semibold">#{{ session('booking_id') }}</span></p>
+
+                                <div class="text-sm text-gray-600 mb-6">
+                                    <p>{{ \Carbon\Carbon::parse(session('slot_date'))->format('F d, Y') }}</p>
+                                    <p>{{ session('slot_time') }}</p>
+                                </div>
+
+                                @if(session('zoom_link'))
+                                <div class="flex items-center w-full max-w-md bg-gray-100 rounded-md px-4 py-2 shadow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2H4m16 4V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z" />
+                                    </svg>
+                                    <input type="text" readonly value="{{ session('zoom_link') }}" class="flex-1 bg-transparent text-sm outline-none" />
+                                    <button onclick="navigator.clipboard.writeText('{{ session('zoom_link') }}')" class="bg-blue-700 text-white text-sm font-medium px-4 py-1 rounded hover:bg-blue-800 ml-2">
+                                        Copy
+                                    </button>
+                                </div>
+                                @endif
+                            </section>
+                        `,
+                        confirmButtonColor: '#3085d6',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '{{ route('jobseeker.profile') }}';
+                        }
+                    });
+                });
+            </script>
+        @endif
+
+
+
           <main class="w-11/12 mx-auto py-8">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
               <!-- Left/Main Content -->
@@ -73,15 +116,45 @@
                     </div>
                     </div>
 
-                    @include('admin.errors')
+                    
+
+                    <div class="row">
+                        <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
+                            @if (session()->has('error'))
+                                <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
+                                    <strong>Oops!</strong> {{ session('error') }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <script>
+                        // Automatically hide alerts after 3 seconds
+                        setTimeout(() => {
+                            const successAlert = document.getElementById('successAlert');
+                            const errorAlert = document.getElementById('errorAlert');
+
+                            if (successAlert) {
+                                successAlert.classList.add('fade');
+                                setTimeout(() => successAlert.remove(), 500); // Remove from DOM after fade
+                            }
+                            if (errorAlert) {
+                                errorAlert.classList.add('fade');
+                                setTimeout(() => errorAlert.remove(), 500); // Remove from DOM after fade
+                            }
+                        }, 3000);
+                    </script>
                     <section class="max-w-7xl mx-auto p-4">
                         <form method="POST" action="{{ route('mentorship-booking-submit') }}">
                             @csrf
+
                             <!-- Mentorship mode & Date -->
                             <div class="grid grid-cols-2 gap-6 mb-6">
                                 <div>
-                                    <input type="hidden" name="mentor_id" id="mentorName" value="{{ $mentorDetails->mentor_id }}" class="w-full border rounded px-4 py-2 mb-4" readonly />
-                                    <input type="hidden" name="jobseeker_id" value="{{ optional(auth('jobseeker')->user())->id }}" class="w-full border rounded px-4 py-2 mb-4" readonly />
+                                    <input type="hidden" name="mentor_id" id="mentorName" value="{{ $mentorDetails->mentor_id }}" />
+                                    <input type="hidden" name="jobseeker_id" value="{{ optional(auth('jobseeker')->user())->id }}" />
 
                                     <label class="block font-semibold mb-2">Mentorship mode</label>
                                     <select id="modeSelect" name="mode" class="w-full border rounded px-4 py-2" required>
@@ -104,11 +177,12 @@
                                     <!-- Slots will be dynamically loaded here -->
                                 </div>
                                 <input type="hidden" name="slot_id" id="selectedSlotId" required />
+                                <input type="hidden" name="slot_time" id="selectedSlotTime" required />
                             </div>
 
                             <!-- Book Session Button -->
                             <div class="mt-6">
-                                <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded font-semibold">
+                                <button id="bookBtn" type="submit" class="bg-blue-700 text-white px-6 py-2 rounded font-semibold">
                                     Book Session
                                 </button>
                             </div>
@@ -160,12 +234,11 @@
                                                 <p class="text-xs ${isUnavailable ? 'text-red-600' : 'text-green-600'}">
                                                     ${isUnavailable ? 'Unavailable' : 'Available'}
                                                 </p>
-                                                <input type="hidden" name="slot_time" value="${slot.start_time} - ${slot.end_time}" required />
                                             `;
 
                                             if (!isUnavailable) {
                                                 btn.setAttribute('data-available', 'true');
-                                                btn.setAttribute('data-slot-id', slot.id); // Assuming slot.id exists
+                                                btn.setAttribute('data-slot-id', slot.id);
                                                 btn.onclick = function () {
                                                     selectTimeSlot(this);
                                                 };
@@ -190,10 +263,20 @@
                                 selectedButton.classList.remove('text-gray-900');
 
                                 const slotId = selectedButton.getAttribute('data-slot-id');
+                                const slotTime = selectedButton.querySelector('p.font-medium').innerText;
+
                                 document.getElementById('selectedSlotId').value = slotId;
+                                document.getElementById('selectedSlotTime').value = slotTime;
                             }
+
+                            document.querySelector('form').addEventListener('submit', function () {
+                                const btn = document.getElementById('bookBtn');
+                                btn.disabled = true;
+                                btn.innerText = 'Booking...';
+                            });
                         </script>
                     </section>
+
               </div>
             </div>
           </main>

@@ -112,16 +112,29 @@
                         </div>
 
                         <!-- About Section -->
+                       <!-- About Section -->
                         <section id="about" class="mb-6">
                             <h2 class="text-lg font-semibold mb-2">About Mentor</h2>
                             <p class="text-sm text-gray-700 mb-6">
-                                {{ $mentorDetails->about ?? 'No bio available.' }}
+                                {{ $mentorDetails->about_mentor ?? 'No bio available.' }}
                             </p>
 
                             <h2 class="text-lg font-semibold mb-2">Experience</h2>
                             <div class="mb-6">
-                                <p class="text-sm font-semibold text-gray-800">Work experience:</p>
-                                <p class="text-sm text-gray-700">{{ $mentorDetails->experience }} years</p>
+                                <p class="text-sm font-semibold text-gray-800">Total experience:</p>
+                                <p class="text-sm text-gray-700 mb-2">{{ $mentorDetails->experience }} years</p>
+
+                                @forelse($mentorDetails->experiences as $exp)
+                                    <div class="mb-3 border p-3 rounded bg-gray-50">
+                                        <p class="font-semibold text-gray-800">{{ $exp->job_role ?? 'Role not specified' }} at {{ $exp->organization ?? 'Organization not specified' }}</p>
+                                        <p class="text-sm text-gray-600">
+                                            {{ \Carbon\Carbon::parse($exp->starts_from)->format('M Y') ?? 'Start' }} -
+                                            {{ $exp->end_to ? \Carbon\Carbon::parse($exp->end_to)->format('M Y') : 'Present' }}
+                                        </p>
+                                    </div>
+                                @empty
+                                    <p class="text-sm text-gray-500">No work experience added yet.</p>
+                                @endforelse
                             </div>
 
                             <h2 class="text-lg font-semibold mb-2">Qualification</h2>
@@ -147,7 +160,7 @@
 
                             @php
                                 $totalReviews = $mentorDetails->reviews->count();
-                                $ratingCounts = $mentorDetails->reviews->groupBy('rating')->map->count();
+                                $ratingCounts = $mentorDetails->reviews->groupBy('ratings')->map->count();
                             @endphp
 
                             <div class="flex items-center mb-4">
@@ -167,28 +180,22 @@
                                 </div>
                             </div>
 
-                            <!-- Write Review (can be wrapped in a form if needed) -->
-                            <textarea rows="4" placeholder="Write a review..." class="w-full border border-gray-300 p-2 rounded mb-2 text-sm"></textarea>
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="text-yellow-400 text-lg">★★★★★</div>
-                                <button class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Submit Review</button>
-                            </div>
-
                             <!-- Review Cards -->
                             <div class="space-y-4">
                                 @forelse($mentorDetails->reviews as $review)
                                     <div class="border p-4 rounded shadow-sm">
                                         <p class="text-sm font-semibold">{{ $review->jobseeker->name ?? 'Anonymous' }}</p>
                                         <p class="text-yellow-400 text-sm">
-                                            {{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}
+                                            {{ str_repeat('★', $review->ratings) }}{{ str_repeat('☆', 5 - $review->ratings) }}
                                         </p>
-                                        <p class="text-sm text-gray-700">{{ $review->comment }}</p>
+                                        <p class="text-sm text-gray-700">{{ $review->reviews }}</p>
                                     </div>
                                 @empty
                                     <p class="text-sm text-gray-500">No reviews yet.</p>
                                 @endforelse
                             </div>
                         </section>
+
                     </div>
                 </div>
             </main>

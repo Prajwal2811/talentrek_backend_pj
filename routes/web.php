@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SocialAuthController;
+use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -89,6 +92,33 @@ Route::get('coach-booking-success', function () {
 
 
 
+Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle'])->name('google.redirect');
+Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+
+
+
+
+Route::get('/zoom-users', function () {
+    $accessToken = Http::asForm()
+        ->withBasicAuth(config('services.zoom.client_id'), config('services.zoom.client_secret'))
+        ->post('https://zoom.us/oauth/token', [
+            'grant_type' => 'client_credentials',
+        ])
+        ->json()['access_token'] ?? null;
+
+    if (!$accessToken) {
+        return '❌ Failed to get access token';
+    }
+
+    // ✅ Get list of users allowed to create meetings
+    $response = Http::withToken($accessToken)
+        ->get('https://api.zoom.us/v2/users');
+
+    return response()->json([
+        'status' => $response->status(),
+        'body' => $response->json(),
+    ]);
+});
 
 
 Auth::routes();

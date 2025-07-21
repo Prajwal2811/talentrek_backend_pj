@@ -28,7 +28,8 @@ return new class extends Migration
             $table->string('location')->nullable();                  // e.g., "Online", "Offline"
             $table->string('course_url')->nullable();                // e.g., "Online", "Offline"
             $table->string('status')->nullable();                    // e.g., "Active", "Completed"
-
+            $table->text('zoom_start_url')->nullable();
+            $table->text('zoom_join_url')->nullable();
             $table->timestamps();
 
             // Foreign key constraints

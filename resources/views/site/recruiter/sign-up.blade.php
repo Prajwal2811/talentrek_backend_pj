@@ -104,10 +104,10 @@
                                     </button>
 
                                     <!-- Google Button -->
-                                    <button type="button" class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md hover:bg-gray-100">
+                                    <a href="{{ route('google.redirect', ['role' => 'recruiter']) }}" type="button" class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md hover:bg-gray-100">
                                         <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5">
                                         <span>Sign in with Google</span>
-                                    </button>
+                                    </a>
 
                                     <div class="text-center text-gray-500 text-sm mt-4">- or -</div>
 

@@ -63,7 +63,10 @@
                   </script>
               @endif
 
+          
+
           <main class="w-11/12 mx-auto py-8">
+            @include('admin.errors')
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
               <!-- Left/Main Content -->
               <div class="flex-1">
@@ -420,9 +423,12 @@
                                 Buy for team
                             </button>
                         </a>
-                        <button class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
-                            Add to cart
-                        </button>
+                        <form action="{{ route('jobseeker.addtocart', ['id' => $material->id]) }}" method="POST">
+                          @csrf
+                          <button type="submit" class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
+                              Add to cart
+                          </button>
+                      </form>
                     @else
                         <!-- Already purchased -->
                         <a href="{{ route('jobseeker.profile') }}">
@@ -432,12 +438,23 @@
                         </a>
                     @endif
                 @else
-                    <!-- Not logged in -->
-                    <a href="{{ route('jobseeker.login') }}">
-                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                            Please login to continue
+                    <!-- Not purchased yet -->
+                    <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                            Buy course
                         </button>
                     </a>
+                    <a href="{{ route('buy-course-for-team') }}">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+                            Buy for team
+                        </button>
+                    </a>
+                    <form action="{{ route('jobseeker.addtocart', ['id' => $material->id]) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
+                            Add to cart
+                        </button>
+                    </form>
                 @endif
 
               </aside>

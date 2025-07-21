@@ -16,6 +16,7 @@ use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
 use App\Models\TrainingMaterial;
 use App\Models\AdditionalInfo;
+use App\Models\JobseekerCartItem;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
-
+use App\Services\ZoomService;
 
 class JobseekerController extends Controller
 {
@@ -540,62 +541,7 @@ class JobseekerController extends Controller
     }
 
 
-    public function redirectToGoogle()
-    {
-        return Socialite::driver('google')->redirect();
-    }
-
-    public function handleGoogleCallback()
-    {
-        try {
-            $googleUser = Socialite::driver('google')->user();
-
-            $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
-
-            $isNew = false; // Flag to track if the user is newly registered
-
-            if (!$jobseeker) {
-                // Auto-register new jobseeker
-                $name = $googleUser->getName();
-                $firstName = strtolower(trim(explode(' ', $name)[0]));
-                $password = $firstName . '@talentrek';
-
-                $jobseeker = Jobseekers::create([
-                    'name' => $name,
-                    'email' => $googleUser->getEmail(),
-                    'status' => 'active',
-                    'password' => Hash::make($password),
-                    'pass' => $password, // Not recommended to store plain password, consider removing this
-                    'google_id' => $googleUser->getId(),
-                    'avatar' => $googleUser->getAvatar(),
-                ]);
-
-
-                $isNew = true;
-            }
-
-            if ($jobseeker->status !== 'active') {
-                session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                return redirect()->route('jobseeker.sign-in');
-            }
-
-            Auth::guard('jobseeker')->login($jobseeker);
-
-            // Redirect based on whether the user is new or existing
-            if ($isNew) {
-                return redirect()->route('jobseeker.registration'); // For new users
-            }
-
-            return redirect()->intended(route('jobseeker.profile')); // For existing users
-
-        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            session()->flash('error', 'Invalid state. Please try again.');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Google login failed. Please try again.');
-        }
-
-        return redirect()->route('jobseeker.sign-in');
-    }
+    
 
 
 
@@ -1244,12 +1190,27 @@ class JobseekerController extends Controller
     }
 
     public function mentorshipDetails($id) {
-       $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
-                            ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
-                            ->where('booking_slots.user_type', 'mentor')
-                            ->where('mentors.id', $id)
-                            ->with(['reviews', 'additionalInfo', 'profilePicture'])
-                            ->first();
+
+    //    $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
+    //                         ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
+    //                         ->where('booking_slots.user_type', 'mentor')
+    //                         ->where('mentors.id', $id)
+    //                         ->with(['reviews', 'additionalInfo', 'profilePicture'])
+    //                         ->first();
+
+        $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
+              ->with([
+                    'reviews.jobseeker',
+                    'additionalInfo',
+                    'profilePicture',
+                    'experiences',
+                    'educations' => function ($q) {
+                        $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
+                    }
+                ])
+                ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
+                ->where('booking_slots.user_type', 'mentor')
+                ->findOrFail($id);
 
 
     //    echo "<pre>";
@@ -1271,142 +1232,59 @@ class JobseekerController extends Controller
 
 
     public function submitMentorshipBooking(Request $request)
-{
-    if (!auth('jobseeker')->check()) {
-        return redirect()->back()->with('error', 'Please log in to book a mentorship session.');
-    }
-
-    $request->validate([
-        'mentor_id' => 'required|exists:mentors,id',
-        'mode' => 'required|in:online,offline',
-        'date' => 'required|date',
-        'slot_id' => 'required|exists:booking_slots,id',
-        'slot_time' => ['required', 'regex:/^\d{2}:\d{2}:\d{2}( - \d{2}:\d{2}:\d{2})?$/'],
-    ]);
-
-    $jobseeker = auth('jobseeker')->user();
-
-    // If online mode but no Zoom token, redirect to Zoom authorization
-    if ($request->mode === 'online' && !$jobseeker->zoom_access_token) {
-        // Store booking data temporarily in session to use after Zoom auth
-        session([
-            'pending_booking' => $request->only(['mentor_id', 'mode', 'date', 'slot_id', 'slot_time'])
-        ]);
-        return redirect()->route('zoom.redirect');
-    }
-
-    $zoomStartUrl = null;
-    $zoomJoinUrl = null;
-
-    if ($request->mode === 'online') {
-        $zoomAccessToken = $jobseeker->zoom_access_token;
-        $startTime = explode(' - ', $request->slot_time)[0] ?? $request->slot_time;
-
-        try {
-            $startDateTime = Carbon::parse($request->date . ' ' . $startTime)->toIso8601String();
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Invalid time format.');
-        }
-
-        $response = Http::withToken($zoomAccessToken)->post('https://api.zoom.us/v2/users/me/meetings', [
-            'topic' => 'Mentorship Session with Jobseeker #' . $jobseeker->id,
-            'type' => 2,
-            'start_time' => $startDateTime,
-            'duration' => 30,
-            'timezone' => 'Asia/Kolkata',
-            'settings' => [
-                'join_before_host' => true,
-                'waiting_room' => false,
-            ],
+    {
+        
+        $request->validate([
+            'mentor_id' => 'required|exists:mentors,id',
+            'mode' => 'required|in:online,offline',
+            'date' => 'required|date',
+            'slot_id' => 'required|exists:booking_slots,id',
+            'slot_time' => ['required'],
         ]);
 
-        if ($response->successful()) {
-            $zoomData = $response->json();
-            $zoomStartUrl = $zoomData['start_url'];
-            $zoomJoinUrl = $zoomData['join_url'];
-        } else {
-            \Log::error('Zoom meeting creation failed:', [
-                'status' => $response->status(),
-                'body' => $response->body()
-            ]);
-            return redirect()->back()->with('error', 'Could not create Zoom meeting. Try again later.');
+        $jobseeker = auth('jobseeker')->user();
+
+        // Step 1: Save booking without Zoom info
+        $booking = BookingSession::create([
+            'jobseeker_id' => $jobseeker->id,
+            'user_type' => 'mentor',
+            'user_id' => $request->mentor_id,
+            'booking_slot_id' => $request->slot_id,
+            'slot_date' => $request->date,
+            'slot_mode' => $request->mode,
+            'slot_time' => $request->slot_time,
+            'status' => 'pending',
+        ]);
+
+        // Step 2: If online, create Zoom meeting
+        if ($request->mode === 'online') {
+            $zoom = new ZoomService();
+
+            $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
+
+            $zoomMeeting = $zoom->createMeeting("Mentorship with #{$jobseeker->id}", $startTime);
+
+            if ($zoomMeeting) {
+                $booking->update([
+                    'zoom_start_url' => $zoomMeeting['start_url'],
+                    'zoom_join_url' => $zoomMeeting['join_url'],
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Zoom meeting creation failed.');
+            }
         }
+
+       return redirect()->back()->with([
+            'success' => 'Session booked successfully.',
+            'booking_id' => $booking->id,
+            'slot_date' => $request->date,
+            'slot_time' => $request->slot_time,
+            'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
+        ]);
+
     }
 
-    // Save booking
-    BookingSession::create([
-        'jobseeker_id' => $jobseeker->id,
-        'user_type' => 'mentor',
-        'user_id' => $request->mentor_id,
-        'booking_slot_id' => $request->slot_id,
-        'slot_date' => $request->date,
-        'slot_mode' => $request->mode,
-        'slot_time' => $request->slot_time,
-        'status' => 'pending',
-        'zoom_start_url' => $zoomStartUrl,
-        'zoom_join_url' => $zoomJoinUrl,
-    ]);
-
-    return redirect()->back()->with('success', 'Session booked successfully.');
-}
-public function handleZoomCallback(Request $request)
-{
-    $response = Http::withHeaders([
-        'Authorization' => 'Basic ' . base64_encode(config('services.zoom.client_id') . ':' . config('services.zoom.client_secret')),
-    ])->asForm()->post('https://zoom.us/oauth/token', [
-        'grant_type' => 'authorization_code',
-        'code' => $request->code,
-        'redirect_uri' => config('services.zoom.redirect_uri'),
-    ]);
-
-    $data = $response->json();
-
-    if (!isset($data['access_token'])) {
-        \Log::error('Zoom token exchange failed:', $data);
-        return redirect()->back()->with('error', 'Zoom authentication failed.');
-    }
-
-    $jobseeker = auth('jobseeker')->user();
-
-    if (!$jobseeker) {
-        return redirect()->route('login')->with('error', 'Login required to connect Zoom.');
-    }
-
-    // Save Zoom tokens
-    $jobseeker->update([
-        'zoom_access_token' => $data['access_token'],
-        'zoom_refresh_token' => $data['refresh_token'],
-        'zoom_token_expires_at' => now()->addSeconds($data['expires_in']),
-    ]);
-
-    // ✅ Resume booking process
-    if (session()->has('pending_booking')) {
-        $bookingData = session()->pull('pending_booking');
-        return redirect()->back()->with('pending_booking', $bookingData);
-    }
-
-    return redirect()->back()->with('success', 'Zoom connected successfully.');
-}
-public function completeZoomBooking(Request $request)
-{
-    $bookingData = session('pending_booking');
-    if (!$bookingData) {
-        return redirect()->back()->with('error', 'No booking data found.');
-    }
-
-    // Merge booking data into request and call submitMentorshipBooking again
-    return $this->submitMentorshipBooking(new Request($bookingData));
-}
-
-
-public function redirectToZoom()
-{
-    $authorizeUrl = 'https://zoom.us/oauth/authorize?response_type=code';
-    $authorizeUrl .= '&client_id=' . config('services.zoom.client_id');
-    $authorizeUrl .= '&redirect_uri=' . urlencode(config('services.zoom.redirect_uri'));
-
-    return redirect($authorizeUrl);
-}
+    
 
     public function getAvailableSlots(Request $request)
     {
@@ -1558,6 +1436,38 @@ public function redirectToZoom()
         ));
     }
 
+
+    public function addToCart($id)
+    {
+
+        // Check if the jobseeker is logged in
+        if (!Auth::guard('jobseeker')->check()) {
+            return redirect()->back()->with('error', 'Please log in to add items to your cart.');
+        }
+
+        $jobseekerId = Auth::guard('jobseeker')->id();
+
+        // Get the material (and optionally trainer_id)
+        $material = TrainingMaterial::findOrFail($id);
+
+        // Check if the item is already in the cart
+        $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
+                                ->where('material_id', $id)
+                                ->exists();
+
+        if ($exists) {
+            return redirect()->back()->with('success', 'This item is already in your cart.');
+        }
+
+        JobseekerCartItem::create([
+            'jobseeker_id' => $jobseekerId,
+            'trainer_id' => $material->trainer_id, // assuming material has trainer_id
+            'material_id' => $id,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->back()->with('success', 'Item added to cart successfully.');
+    }
 
 
 

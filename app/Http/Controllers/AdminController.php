@@ -1742,10 +1742,10 @@ class AdminController extends Controller
 
     public function viewPayment($id)
     {
-        $payment = PaymentHistory::select('payments_hostory.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
-                                ->join('jobseekers', 'payments_hostory.jobseeker_id', '=', 'jobseekers.id')
-                                ->join('training_materials', 'payments_hostory.course_id', '=', 'training_materials.id')
-                                ->where('payments_hostory.id', $id)
+        $payment = PaymentHistory::select('payments_history.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
+                                ->join('jobseekers', 'payments_history.jobseeker_id', '=', 'jobseekers.id')
+                                ->join('training_materials', 'payments_history.material_id', '=', 'training_materials.id')
+                                ->where('payments_history.id', $id)
                                 ->firstOrFail();
 
         // Get the jobseeker's details
