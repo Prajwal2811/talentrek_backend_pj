@@ -1639,14 +1639,15 @@ class JobseekerController extends Controller
         }
 
         $request->validate([
-            'session_type' => 'required|in:online,classroom',
-            'batch'        => 'required|exists:training_batches,id',
+            'training_type' => 'required|in:online,classroom',
+            'session_type'  => 'required_if:training_type,online|in:online,classroom',
+            'batch'         => 'required_if:training_type,online|exists:training_batches,id',
+            'payment_method'=> 'required|in:card,upi'
         ]);
 
         DB::beginTransaction();
 
         try {
-
             $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
 
             $actualPrice = $material->training_price;
@@ -1655,8 +1656,7 @@ class JobseekerController extends Controller
             $tax = round($offerPrice * 0.10, 2);
             $total = $offerPrice + $tax;
 
-            // Save course purchase
-            $purchase = JobseekerTrainingMaterialPurchase::create([
+            JobseekerTrainingMaterialPurchase::create([
                 'jobseeker_id'   => auth('jobseeker')->id(),
                 'trainer_id'     => $material->trainer_id,
                 'material_id'    => $material->id,
@@ -1670,31 +1670,13 @@ class JobseekerController extends Controller
                 'status'         => 'paid',
             ]);
 
-            // Save payment history
-            // DB::table('payments_history')->insert([
-            //     'jobseeker_id'      => auth('jobseeker')->id(),
-            //     'material_id'       => $material->id,
-            //     'payment_reference' => 'PAY-' . strtoupper(Str::random(10)),
-            //     'transaction_id'    => strtoupper(Str::uuid()),
-            //     'amount_paid'       => $total,
-            //     'payment_status'    => 'paid',
-            //     'payment_method'    => $request->payment_method,
-            //     'paid_at'           => Carbon::now(),
-            //     'created_at'        => now(),
-            //     'updated_at'        => now(),
-            // ]);
-
-
             DB::commit();
-
-           return redirect()->route('course.details', ['id' => $material->id])->with('success', 'Course purchased successfully!');
-
+            return redirect()->route('course.details', $material->id)->with('success', 'Course purchased successfully!');
         } catch (\Exception $e) {
-
             DB::rollBack();
             \Log::error('Course purchase failed: ' . $e->getMessage());
-
             return redirect()->back()->with('error', 'Something went wrong while processing your purchase.');
         }
     }
+    
 }

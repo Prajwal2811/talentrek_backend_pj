@@ -37,7 +37,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		
-
+		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
 		
 		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
 		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
@@ -74,7 +75,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 	});
 
-	Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');
+		Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');
 		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
 		Route::get('/get-available-slots', [JobseekerController::class, 'getAvailableSlots'])->name('get-available-slots');
 		Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');

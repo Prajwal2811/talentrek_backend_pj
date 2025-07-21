@@ -14,7 +14,7 @@
                         <p class="text-gray-600 mb-8">Monitor platform-wide user activity and growth.</p>
 
                         <!-- User Type Cards -->
-                       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Jobseekers</p>
                                 <h2 class="text-3xl font-bold text-blue-600">{{ $jobseekerCount }}</h2>
@@ -49,7 +49,7 @@
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Mentor Sessions Booked</p>
-                                {{-- <h2 class="text-3xl font-bold text-purple-600">{{ $mentorSessionCount }}</h2> --}}
+                                <h2 class="text-3xl font-bold text-purple-600">{{ $mentorSessionCount }}</h2>
                             </div>
                             <div class="bg-white p-6 rounded-2xl shadow-md">
                                 <p class="text-gray-500">Coach Sessions Booked</p>
@@ -240,4 +240,4 @@
         </div>
     </div>
 
-    @include('admin.componants.footer')
+@include('admin.componants.footer')
