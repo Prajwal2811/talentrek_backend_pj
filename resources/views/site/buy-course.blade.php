@@ -77,154 +77,201 @@
                         }
                     }, 3000);
                 </script>
+                
                 <form accept="multipart/form-data" action="{{ route('jobseeker.purchase-course') }}" method="POST">
                     @csrf
                     <input type="text" name="material_id" value="{{ $material->id }}" hidden>
                     <input type="text" name="training_type" value="{{ $material->training_type }}" hidden>
+
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 space-y-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
-                                <input type="hidden" name="session_type" value="{{ $material->training_type }}">
-                                <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" >
-                                    <option value="" disabled>Select Training Mode</option>
-                                    <option value="online" @if($material->training_type === 'online') selected @endif disabled>Online</option>
-                                    <option value="classroom" @if($material->training_type === 'classroom') selected @endif disabled>Classroom</option>
-                                </select>
-
-                            </div>
-                            @error('session_type')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                            <div>
-                                <h3 class="text-sm font-medium mb-2">Select batch</h3>
-                                <table class="w-full border border-gray-200 rounded">
-                                    <thead class="bg-gray-100 text-gray-700 text-left text-sm">
-                                        <tr>
-                                            <th class="px-4 py-2">Select</th>
-                                            <th class="px-4 py-2">Batch No</th>
-                                            <th class="px-4 py-2">Start Date</th>
-                                            <th class="px-4 py-2">Timings</th>
-                                            <th class="px-4 py-2">Duration</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @if($material->batches->isNotEmpty())
-                                            @foreach ($material->batches as $batch)
-                                                @php
-                                                    $startDate = \Carbon\Carbon::parse($batch->start_date);
-                                                    $now = \Carbon\Carbon::now();
-
-                                                    // Parse duration
-                                                    $duration = strtolower($batch->duration);
-                                                    preg_match('/\d+/', $duration, $matches);
-                                                    $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
-
-                                                    // Calculate end date
-                                                    if (str_contains($duration, 'day')) {
-                                                        $endDate = $startDate->copy()->addDays($durationValue);
-                                                    } elseif (str_contains($duration, 'month')) {
-                                                        $endDate = $startDate->copy()->addMonths($durationValue);
-                                                    } elseif (str_contains($duration, 'year')) {
-                                                        $endDate = $startDate->copy()->addYears($durationValue);
-                                                    } else {
-                                                        $endDate = $startDate;
-                                                    }
-
-                                                    $isStarted = $startDate->isPast();
-                                                    $isEnded = $endDate->isPast();
-                                                @endphp
-
-                                                <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
-                                                    onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
-                                                    
-                                                    <td class="px-4 py-3">
-                                                        <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
-                                                            id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
-                                                    </td>
-
-                                                    <td class="px-4 py-3">{{ $batch->batch_no }}</td>
-
-                                                    <td class="px-4 py-3">
-                                                        {{ $startDate->format('d M Y') }}
-                                                        @if ($isStarted && !$isEnded)
-                                                            <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
-                                                        @elseif ($isEnded)
-                                                            <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
-                                                        @endif
-                                                    </td>
-
-                                                    <td class="px-4 py-3">
-                                                        {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                        {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                                    </td>
-
-                                                    <td class="px-4 py-3">{{ $batch->duration }}</td>
-                                                </tr>
-                                            @endforeach
-                                        @else
-                                            <tr>
-                                                <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
-                                            </tr>
-                                        @endif
-
-
-
-                                    </tbody>
-                                </table>
-                                @error('batch')
+                            @if($material->training_type  === "online")
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
+                                    <input type="hidden" name="session_type" value="{{ $material->training_type }}">
+                                    <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" >
+                                        <option value="" disabled>Select Training Mode</option>
+                                        <option value="online" @if($material->training_type === 'online') selected @endif disabled>Online</option>
+                                        <option value="classroom" @if($material->training_type === 'classroom') selected @endif disabled>Classroom</option>
+                                    </select>
+                                </div>
+                                @error('session_type')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
-                                <script>
-                                    function selectRadio(id) {
-                                        const radio = document.getElementById('batch-radio-' + id);
-                                        if (radio) {
-                                            radio.checked = true;
-                                        }
-                                    }
-                                </script>
-                            </div>
+                                <div>
+                                    <h3 class="text-sm font-medium mb-2">Select batch</h3>
+                                    <table class="w-full border border-gray-200 rounded">
+                                        <thead class="bg-gray-100 text-gray-700 text-left text-sm">
+                                            <tr>
+                                                <th class="px-4 py-2">Select</th>
+                                                <th class="px-4 py-2">Batch No</th>
+                                                <th class="px-4 py-2">Start Date</th>
+                                                <th class="px-4 py-2">Timings</th>
+                                                <th class="px-4 py-2">Duration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if($material->batches->isNotEmpty())
+                                                @foreach ($material->batches as $batch)
+                                                    @php
+                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
+                                                        $now = \Carbon\Carbon::now();
 
-                            <div class="flex border rounded p-4 space-x-4">
-                                <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
-                                    alt="Course" class="w-28 h-20 object-cover rounded">
+                                                        // Parse duration
+                                                        $duration = strtolower($batch->duration);
+                                                        preg_match('/\d+/', $duration, $matches);
+                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
 
-                                <div class="flex-1">
-                                    <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
+                                                        // Calculate end date
+                                                        if (str_contains($duration, 'day')) {
+                                                            $endDate = $startDate->copy()->addDays($durationValue);
+                                                        } elseif (str_contains($duration, 'month')) {
+                                                            $endDate = $startDate->copy()->addMonths($durationValue);
+                                                        } elseif (str_contains($duration, 'year')) {
+                                                            $endDate = $startDate->copy()->addYears($durationValue);
+                                                        } else {
+                                                            $endDate = $startDate;
+                                                        }
 
-                                    <p class="text-xs text-gray-600 mt-1">
-                                        {{ Str::limit($material->training_descriptions, 80) }}
-                                    </p>
+                                                        $isStarted = $startDate->isPast();
+                                                        $isEnded = $endDate->isPast();
+                                                    @endphp
 
-                                    <!-- <div class="flex items-center text-sm text-yellow-500 mt-1">
-                                        ★★★★☆ 
-                                        <span class="ml-1 text-gray-500 text-xs">(4.5) Rating</span>
-                                    </div> -->
-                                    <div class="flex items-center text-yellow-500">
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            @if ($i <= floor($average))
-                                                ★
-                                            @elseif ($i - $average < 1)
-                                                ☆
+                                                    <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
+                                                        onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
+                                                        
+                                                        <td class="px-4 py-3">
+                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
+                                                                id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
+                                                        </td>
+
+                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
+
+                                                        <td class="px-4 py-3">
+                                                            {{ $startDate->format('d M Y') }}
+                                                            @if ($isStarted && !$isEnded)
+                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
+                                                            @elseif ($isEnded)
+                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
+                                                            @endif
+                                                        </td>
+
+                                                        <td class="px-4 py-3">
+                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
+                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                        </td>
+
+                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
+                                                    </tr>
+                                                @endforeach
                                             @else
-                                                ☆
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
+                                                </tr>
                                             @endif
-                                        @endfor
-                                        <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                        <span class="ml-1 text-gray-500 text-xs">Rating</span>
-                                    </div>
 
 
-                                    <div class="flex items-center space-x-2 mt-2">
-                                        <span class="text-gray-400 line-through text-sm">SAR
-                                            {{ $material->training_price  }}</span>
-                                        <span class="text-sm font-bold text-blue-600">SAR
-                                            {{ $material->training_offer_price  }}</span>
-                                    </div>
 
-                                    {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                        </tbody>
+                                    </table>
+                                    @error('batch')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                    <script>
+                                        function selectRadio(id) {
+                                            const radio = document.getElementById('batch-radio-' + id);
+                                            if (radio) {
+                                                radio.checked = true;
+                                            }
+                                        }
+                                    </script>
                                 </div>
-                            </div>
+
+
+                                 <div class="flex border rounded p-4 space-x-4">
+                                    <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
+                                        alt="Course" class="w-28 h-20 object-cover rounded">
+
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
+
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            {{ Str::limit($material->training_descriptions, 80) }}
+                                        </p>
+
+                                        <!-- <div class="flex items-center text-sm text-yellow-500 mt-1">
+                                            ★★★★☆ 
+                                            <span class="ml-1 text-gray-500 text-xs">(4.5) Rating</span>
+                                        </div> -->
+                                        <div class="flex items-center text-yellow-500">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                @if ($i <= floor($average))
+                                                    ★
+                                                @elseif ($i - $average < 1)
+                                                    ☆
+                                                @else
+                                                    ☆
+                                                @endif
+                                            @endfor
+                                            <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
+                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                        </div>
+
+
+                                        <div class="flex items-center space-x-2 mt-2">
+                                            <span class="text-gray-400 line-through text-sm">SAR
+                                                {{ $material->training_price  }}</span>
+                                            <span class="text-sm font-bold text-blue-600">SAR
+                                                {{ $material->training_offer_price  }}</span>
+                                        </div>
+
+                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                    </div>
+                                </div>
+                            @else 
+                                <div class="flex border rounded p-4 space-x-4">
+                                    <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
+                                        alt="Course" class="w-28 h-20 object-cover rounded">
+
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
+
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            {{ Str::limit($material->training_descriptions, 80) }}
+                                        </p>
+
+                                        <!-- <div class="flex items-center text-sm text-yellow-500 mt-1">
+                                            ★★★★☆ 
+                                            <span class="ml-1 text-gray-500 text-xs">(4.5) Rating</span>
+                                        </div> -->
+                                        <div class="flex items-center text-yellow-500">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                @if ($i <= floor($average))
+                                                    ★
+                                                @elseif ($i - $average < 1)
+                                                    ☆
+                                                @else
+                                                    ☆
+                                                @endif
+                                            @endfor
+                                            <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
+                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                        </div>
+
+
+                                        <div class="flex items-center space-x-2 mt-2">
+                                            <span class="text-gray-400 line-through text-sm">SAR
+                                                {{ $material->training_price  }}</span>
+                                            <span class="text-sm font-bold text-blue-600">SAR
+                                                {{ $material->training_offer_price  }}</span>
+                                        </div>
+
+                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                    </div>
+                                </div>
+                            @endif
+
+                           
 
                         </div>
 
@@ -364,6 +411,18 @@
                     if (activeContent) activeContent.classList.remove('hidden');
                 });
             });
+        });
+    </script>
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const trainingType = "{{ $material->training_type }}";
+            if (trainingType === "online") {
+                const batchSelected = document.querySelector('input[name="batch"]:checked');
+                if (!batchSelected) {
+                    alert("Please select a batch before proceeding.");
+                    e.preventDefault();
+                }
+            }
         });
     </script>
     <style>
