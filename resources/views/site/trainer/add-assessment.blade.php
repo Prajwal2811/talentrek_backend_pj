@@ -19,7 +19,7 @@
                 @include('site.trainer.componants.navbar')
 
                 
-                <main class="p-6 bg-gray-50 min-h-screen">
+                <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     @include('admin.errors')
                     <h2 class="text-xl font-semibold mb-4">Assessment</h2>
 

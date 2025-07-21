@@ -28,7 +28,7 @@
                         <!-- Course Title -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Title</label>
-                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" value="{{old('training_title')}}"/>
                             @error('training_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -37,7 +37,7 @@
                         <!-- Course Sub Title -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Sub Title</label>
-                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" value="{{old('training_sub_title')}}"/>
                             @error('training_sub_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -46,7 +46,7 @@
                         <!-- Description -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Description</label>
-                            <textarea name="training_descriptions" placeholder="Enter the Description" class="w-full border rounded-md p-2 h-24"></textarea>
+                            <textarea name="training_descriptions" placeholder="Enter the Description" class="w-full border rounded-md p-2 h-24">{{old('training_descriptions')}}</textarea>
                             @error('training_descriptions')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -134,7 +134,7 @@
                             <!-- Course Price -->
                             <div>
                                 <label class="block font-medium mb-1">Course Price</label>
-                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
+                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" value="{{old('training_price')}}"/>
                                 @error('training_price')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -143,7 +143,7 @@
                             <!-- Course Offer Price -->
                             <div>
                                 <label class="block font-medium mb-1">Course Offer Price</label>
-                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" />
+                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" value="{{old('training_offer_price')}}"/>
                                 @error('training_offer_price')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
