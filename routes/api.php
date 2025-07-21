@@ -91,6 +91,9 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::post('/updateWorkExperienceDetails', [SeekerProfileController::class, 'updateWorkExperienceInfoDetails']);
     Route::post('/updateSkillsDetails', [SeekerProfileController::class, 'updateSkillsInfoDetails']);
     Route::post('/updateAdditionalDetails', [SeekerProfileController::class, 'updateAdditionalInfoDetails']);
+
+    Route::get('/myLearningTraining/{jobseekerId}', [MyLearningController::class, 'myLearningTrainingListing']);
+
 });
 
 Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
@@ -126,8 +129,8 @@ Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
     Route::post('/updateEducationDetails', [TrainerProfileController::class, 'updateEducationInfoDetails']);
     Route::post('/updateWorkExperienceDetails', [TrainerProfileController::class, 'updateWorkExperienceInfoDetails']);
     Route::post('/updateSkillsDetails', [TrainerProfileController::class, 'updateSkillsInfoDetails']);
-    Route::post('/updateAdditionalDetails', [TrainerProfileController::class, 'updateAdditionalInfoDetails']);
-    
+    Route::post('/updateAdditionalDetails', [TrainerProfileController::class, 'updateAdditionalInfoDetails']);    
+
 });
 
 Route::prefix('mentor')->middleware('throttle:60,1')->group(function () {

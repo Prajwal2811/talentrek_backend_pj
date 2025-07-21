@@ -541,7 +541,6 @@ class TrainingController extends Controller
             $assessments = TrainerAssessment::where('trainer_id', $trainerId)->get();
             $courses = TrainingMaterial::where('trainer_id', $trainerId)->get();
 
-            return $this->successwithCMSResponse($courses,$assessments , ucwords($tags).'Assessment and training material list fetched successfully.');
             return response()->json([
                 'success' => true,
                 'message' => 'Assessment and training material list fetched successfully.',
