@@ -15,6 +15,10 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
 		
 
+		Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
+		Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
+
+
 		Route::get('/registration', [JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
 		Route::post('/registration', [JobseekerController::class, 'postRegistration'])->name('jobseeker.register.post'); 
 		Route::post('/registration/store', [JobseekerController::class, 'storeJobseekerInformation'])->name('jobseeker.registration.store');
@@ -28,10 +32,15 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-verify-otp', [JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
 		Route::get('reset-password', [JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');
 		Route::post('/submit-reset-password', [JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
+		Route::post('/add-to-cart/{id}', [JobseekerController::class, 'addToCart'])->name('jobseeker.addtocart');
 
 
-		Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
-		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
+
+		
+
+		
+		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
 
 	});
 	
@@ -53,42 +62,45 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::delete('/jobseeker/additional/delete/{type}', [JobseekerController::class, 'deleteAdditionalFile'])->name('jobseeker.additional.delete');
 
 
-	Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
+		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
 
 
-	Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
+		Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
 
-		
-	Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+			
+		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
 
 
 
 	});
 
-	
 	Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');
-	Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
-	Route::get('/get-available-slots', [JobseekerController::class, 'getAvailableSlots'])->name('get-available-slots');
-	Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
+		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
+		Route::get('/get-available-slots', [JobseekerController::class, 'getAvailableSlots'])->name('get-available-slots');
+		Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
 
-	Route::get('/jobseeker/mentorship-booking-success', function () {
-		return view('jobseeker.booking-success');
-	})->name('mentorship-booking-success');
-
-
-	Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
-
-	Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
-	Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+		Route::get('/jobseeker/mentorship-booking-success', function () {
+			return view('jobseeker.booking-success');
+		})->name('mentorship-booking-success');
 
 
-	// Zoom OAuth routes
-	// Route::get('/zoom/authorize', [JobseekerController::class, 'redirectToZoom'])->name('redirectToZoom');
-	// Route::get('/zoom/callback', [JobseekerController::class, 'handleZoomCallback']);
-	Route::get('/zoom/authorize', [JobseekerController::class, 'redirectToZoom'])->name('zoom.redirect');
-	Route::get('/zoom/callback', [JobseekerController::class, 'handleZoomCallback'])->name('zoom.callback');
+		Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
 
-	// Route::get('/zoom/create-meeting', [JobseekerController::class, 'createMeeting']);
+		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
+		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+
+
+		// Zoom OAuth routes
+		// Route::get('/zoom/authorize', [JobseekerController::class, 'redirectToZoom'])->name('redirectToZoom');
+		// Route::get('/zoom/callback', [JobseekerController::class, 'handleZoomCallback']);
+		Route::get('/zoom/authorize', [JobseekerController::class, 'redirectToZoom'])->name('zoom.redirect');
+		Route::get('/zoom/callback', [JobseekerController::class, 'handleZoomCallback'])->name('zoom.callback');
+
+		// Route::get('/zoom/create-meeting', [JobseekerController::class, 'createMeeting']);
+	
+	// routes/web.php
+
+
 
 
 });

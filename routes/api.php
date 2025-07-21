@@ -22,6 +22,8 @@ use App\Http\Controllers\API\Jobseeker\MyLearningController;
 use App\Http\Controllers\API\Jobseeker\SeekerProfileController;
 
 use App\Http\Controllers\API\Training\TrainingController;
+use App\Http\Controllers\API\Training\TrainingDashboardController;
+
 
 
 
@@ -100,8 +102,17 @@ Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
     Route::post('/verify-otp-trainer', [TrainerController::class, 'verifyOtpTrainer']);
     Route::post('/reset-password-trainer', [TrainerController::class, 'resetPassword']);
     
-    Route::post('/recordedCoursesAdd', [TrainingController::class, 'saveTrainingRecordedData']);
-    Route::post('/onlineOfflineCoursesAdd', [TrainingController::class, 'saveTrainingOnlineData']);
+    Route::get('/dashboardCounts/{trainerId}', [TrainingDashboardController::class, 'dashboardCourseJobSeekerCounts']);
+    Route::get('/upcomingSessionCount/{trainerId}', [TrainingDashboardController::class, 'upcomingSessionsCounts']);
+    Route::get('/enrolledJobSeekerList/{trainerId}', [TrainingDashboardController::class, 'enrolledJobSeekerListing']);
+    Route::get('/todaysSessionMaterials/{trainerId}', [TrainingDashboardController::class, 'todaysSessionBatchesMaterials']);
+
+    Route::post('/recordedCoursesAddEdit', [TrainingController::class, 'saveTrainingRecordedData']);
+    Route::get('/recordedCoursesEdit/{trainerMaterialId}', [TrainingController::class, 'editTrainingRecordedData']);
+
+    Route::post('/onlineOfflineCoursesAddEdit', [TrainingController::class, 'saveTrainingOnlineData']);
+    Route::get('/onlineOfflineCoursesEdit/{trainerMaterialId}', [TrainingController::class, 'editTrainingOnlineData']);
+
     Route::post('/assessmentSave', [TrainingController::class, 'assessmentStore']);
     Route::get('/trainingList/{trainerId}', [TrainingController::class, 'trainingAllList']);
     Route::get('/recordedTrainingList/{trainerId}', [TrainingController::class, 'recordedTrainingAllList']);

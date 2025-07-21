@@ -85,11 +85,13 @@
                         <div class="lg:col-span-2 space-y-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
-                                <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" name="session_type">
-                                    <option value="" selected>Select Training Mode</option>
-                                    <option value="online">Online</option>
-                                    <option value="classroom">Classroom</option>
+                                <input type="hidden" name="session_type" value="{{ $material->training_type }}">
+                                <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" >
+                                    <option value="" disabled>Select Training Mode</option>
+                                    <option value="online" @if($material->training_type === 'online') selected @endif disabled>Online</option>
+                                    <option value="classroom" @if($material->training_type === 'classroom') selected @endif disabled>Classroom</option>
                                 </select>
+
                             </div>
                             @error('session_type')
                                 <small class="text-danger">{{ $message }}</small>
@@ -103,25 +105,71 @@
                                             <th class="px-4 py-2">Batch No</th>
                                             <th class="px-4 py-2">Start Date</th>
                                             <th class="px-4 py-2">Timings</th>
+                                            <th class="px-4 py-2">Duration</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($material->batches as $batch)
-                                            <tr class="border-t cursor-pointer" onclick="selectRadio({{ $batch->id }})">
-                                                <td class="px-4 py-3">
-                                                    <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
-                                                        id="batch-radio-{{ $batch->id }}">
-                                                </td>
-                                                <td class="px-4 py-3">{{ $batch->batch_no }}</td>
-                                                <td class="px-4 py-3">
-                                                    {{ \Carbon\Carbon::parse($batch->start_date)->format('d M Y') }}
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                    {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                                </td>
+                                        @if($material->batches->isNotEmpty())
+                                            @foreach ($material->batches as $batch)
+                                                @php
+                                                    $startDate = \Carbon\Carbon::parse($batch->start_date);
+                                                    $now = \Carbon\Carbon::now();
+
+                                                    // Parse duration
+                                                    $duration = strtolower($batch->duration);
+                                                    preg_match('/\d+/', $duration, $matches);
+                                                    $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
+
+                                                    // Calculate end date
+                                                    if (str_contains($duration, 'day')) {
+                                                        $endDate = $startDate->copy()->addDays($durationValue);
+                                                    } elseif (str_contains($duration, 'month')) {
+                                                        $endDate = $startDate->copy()->addMonths($durationValue);
+                                                    } elseif (str_contains($duration, 'year')) {
+                                                        $endDate = $startDate->copy()->addYears($durationValue);
+                                                    } else {
+                                                        $endDate = $startDate;
+                                                    }
+
+                                                    $isStarted = $startDate->isPast();
+                                                    $isEnded = $endDate->isPast();
+                                                @endphp
+
+                                                <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
+                                                    onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
+                                                    
+                                                    <td class="px-4 py-3">
+                                                        <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
+                                                            id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
+                                                    </td>
+
+                                                    <td class="px-4 py-3">{{ $batch->batch_no }}</td>
+
+                                                    <td class="px-4 py-3">
+                                                        {{ $startDate->format('d M Y') }}
+                                                        @if ($isStarted && !$isEnded)
+                                                            <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
+                                                        @elseif ($isEnded)
+                                                            <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
+                                                        @endif
+                                                    </td>
+
+                                                    <td class="px-4 py-3">
+                                                        {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
+                                                        {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                    </td>
+
+                                                    <td class="px-4 py-3">{{ $batch->duration }}</td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
                                             </tr>
-                                        @endforeach
+                                        @endif
+
+
+
                                     </tbody>
                                 </table>
                                 @error('batch')
@@ -142,7 +190,7 @@
                                     alt="Course" class="w-28 h-20 object-cover rounded">
 
                                 <div class="flex-1">
-                                    <h4 class="font-semibold text-sm">{{ $material->training_title }}</h4>
+                                    <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
 
                                     <p class="text-xs text-gray-600 mt-1">
                                         {{ Str::limit($material->training_descriptions, 80) }}

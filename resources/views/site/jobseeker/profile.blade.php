@@ -1362,60 +1362,106 @@ $skills = $user->skills->first();
                             </div>
                         </div>
 
+
+                        @php
+                        
+                            $courses = App\Models\JobseekerTrainingMaterialPurchase::select('training_batches.*','jobseeker_training_material_purchases.*','jobseeker_training_material_purchases.id as purchase_id')->with(['material.reviews'])
+                                                        ->where('jobseeker_id', auth()->user()->id)
+                                                        ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
+                                                        ->get();
+                            $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
+                                                                        ->where('user_id', auth()->user()->id)
+                                                                        ->first();                            
+                        @endphp
                         <!-- Training Tab -->
                         <div x-show="tab === 'training'" x-cloak>
                             <h2 class="text-xl font-semibold mb-4">Training</h2>
-                            <div class="flex items-start border rounded-md shadow-sm overflow-hidden mb-4">
-                            <!-- Course Image -->
-                            <img src="images/gallery/pic-4.png" alt="Course" class="w-48 h-48 object-cover" />
 
-                            <!-- Content -->
-                            <div class="p-4 flex-1">
-                                <!-- Title + Description -->
-                                <a href="training-details-profile.html">
-                                    <h2 class="text-lg font-semibold text-gray-900">Graphic design - Advance level</h2>
-                                </a>
+                            @forelse($courses->unique('material_id') as $index => $purchase)
+                                @php
+                                    $material = $purchase->material;
+                                    $reviews = $material->reviews ?? collect();
+                                    $trainerName = App\Models\Trainers::where('id', $material->trainer_id)->value('name');
+                                    $batchCount = App\Models\TrainingBatch::where('training_material_id', $material->id)->count();
+                                    $duration = App\Models\TrainingBatch::where('training_material_id', $material->id)->sum('duration');
+                                    $lessons = $material->lesson_count ;
+                                    $duration = $material->duration;
+                                    $level = $material->training_level;
+                                    $rating = $material->rating ?? 4;
+                                    $img = $material->thumbnail_file_path;
+                                @endphp
 
-                                <p class="text-sm text-gray-600 mt-1">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                </p>
+                                <div class="flex items-start border rounded-md shadow-sm overflow-hidden mb-4">
+                                    <!-- Course Image -->
+                                    <img src="{{ asset($img) }}" alt="{{ $material->training_title }}" class="w-48 h-48 object-cover" />
 
-                                <!-- Rating -->
-                                <div class="flex items-center text-sm mt-2 space-x-2">
-                                <div class="text-yellow-500 text-base">
-                                    ★★★★☆
-                                </div>
-                                <span class="text-gray-500">(4/5)</span>
-                                <span class="text-gray-700 font-medium">Rating</span>
-                                </div>
+                                    <!-- Content -->
+                                    <div class="p-4 flex-1">
+                                        <!-- Title + Description -->
+                                        <div class="flex items-center justify-between">
+                                            <a href="{{ route('course.details', ['id' => $material->id]) }}">
+                                                <h2 class="text-lg font-semibold text-gray-900">{{ $material->training_title }}</h2>
+                                            </a>
 
-                                <!-- Metadata -->
-                                <div class="flex items-center justify-between mt-4 text-sm text-gray-700">
-                                <!-- Instructor -->
-                                <div class="flex items-center space-x-2">
-                                    <img src="http://weimaracademy.org/wp-content/uploads/2021/08/dummy-user.png" alt="Instructor" class="w-6 h-6 rounded-full">
-                                    <span>Julia Maccarthy</span>
-                                </div>
+                                            <a href="" class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">
+                                                Join Training
+                                            </a>
+                                        </div>
 
-                                <!-- Lessons -->
-                                <div class="flex items-center space-x-1 text-blue-600">
-                                    <i class="ph ph-file-text"></i>
-                                    <span>6 lessons</span>
-                                </div>
 
-                                <!-- Time -->
-                                <div class="flex items-center space-x-1 text-blue-600">
-                                    <i class="ph ph-clock"></i>
-                                    <span>20hrs</span>
-                                </div>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                        {{ $material->training_sub_title ?? 'No description available.' }}
+                                        </p>
 
-                                <!-- Level -->
-                                <div class="flex items-center space-x-1 text-blue-600">
-                                    <i class="ph ph-activity"></i>
-                                    <span>Advance</span>
+                                        @php
+                                            $averageRating = $reviews->avg('ratings');
+                                            $roundedRating = round($averageRating);
+                                        @endphp
+                                        <!-- Rating -->
+                                        <div class="flex items-center text-sm mt-2 space-x-2">
+                                        <div class="text-yellow-500 text-base">
+                                           @for ($i = 1; $i <= 5; $i++)
+                                                @if ($i <= $roundedRating)
+                                                    ★
+                                                @else
+                                                    ☆
+                                                @endif
+                                            @endfor
+                                        </div>
+                                        <span class="text-gray-500">({{ number_format($averageRating, 1) }}/5 from {{ $reviews->count() }} review{{ $reviews->count() === 1 ? '' : 's' }})</span>
+                                        {{-- <span class="text-gray-700 font-medium">Rating</span> --}}
+                                        </div>
+
+                                        <!-- Metadata -->
+                                        <div class="flex items-center justify-between mt-4 text-sm text-gray-700">
+                                        <!-- Instructor -->
+                                        <div class="flex items-center space-x-2">
+                                            <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}" class="w-6 h-6 rounded-full">
+                                            <span>{{ $trainerName }}</span>
+                                        </div>
+
+                                        <!-- Lessons -->
+                                        <div class="flex items-center space-x-1">
+                                            <i class="ph ph-file-text"></i>
+                                            <span>Enrolled in <strong> {{ $purchase->batch_no }}</strong> batch</span>
+                                        </div>
+
+                                        <!-- Time -->
+                                        <div class="flex items-center space-x-1">
+                                            <i class="ph ph-clock"></i>
+                                            {{-- <span>{{ $duration }}</span> --}}
+                                        </div>
+
+                                        <!-- Level -->
+                                        <div class="flex items-center space-x-1">
+                                            <i class="ph ph-activity"></i>
+                                            <span class="text-bold">{{ $level }}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                </div>
-                            </div>
+                            @endforeach
+
+
                             </div>
                         </div>
 

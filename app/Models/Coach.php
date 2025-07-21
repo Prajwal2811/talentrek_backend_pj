@@ -46,4 +46,47 @@ class Coach extends Authenticatable
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+
+    public function educations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'coach');
+    }
+    public function experiences()
+    {
+
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'coach');
+    }
+
+    public function trainingexperience()
+    {
+        return $this->hasMany(TrainingExperience::class, 'user_id');
+       
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'coach');
+    }
+
+
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')->where('user_type', 'coach');
+    }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+                    ->where('user_type', 'coach')
+                    ->where('doc_type', 'coach_profile_picture');
+    }
+
+
+    public function bookingSlots()
+    {
+        return $this->hasMany(BookingSlot::class, 'user_id')->where('user_type', 'coach');
+    }
 }

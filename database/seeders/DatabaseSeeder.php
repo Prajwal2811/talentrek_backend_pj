@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             PaymentSeeder::class,
             JobseekerSavedBookingSessionSeeder::class,
             JobseekerTrainingMaterialPurchasesSeeder::class,
-
+            JobseekerCartItemSeeder::class,
         ]);
         
     }

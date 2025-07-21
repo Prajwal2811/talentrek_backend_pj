@@ -25,7 +25,7 @@ use App\Models\Review;
 use App\Models\Mentors;
 use App\Models\Assessors;
 
-
+use App\Services\ZoomService;
 
 class TrainerController extends Controller
 {
@@ -769,19 +769,35 @@ class TrainerController extends Controller
         ]);
 
         foreach ($request->input('content_sections', []) as $section) {
+            // Initialize ZoomService
+            $zoom = new ZoomService();
+
+            // Combine date and time for Zoom meeting start
+            $startTime = $section['batch_date'] . ' ' . $section['start_time'];
+
+            // Create Zoom meeting
+            $zoomMeeting = $zoom->createMeeting("Training Batch #{$section['batch_no']}", $startTime);
+
+            if (!$zoomMeeting) {
+                return redirect()->back()->with('error', 'Zoom meeting creation failed for batch ' . $section['batch_no']);
+            }
+
+            // Save the training batch along with Zoom URLs
             DB::table('training_batches')->insert([
-                'trainer_id'           => $trainer->id, 
-                'training_material_id' => $trainingId, 
+                'trainer_id'           => $trainer->id,
+                'training_material_id' => $trainingId,
                 'batch_no'             => $section['batch_no'],
                 'start_date'           => $section['batch_date'],
-                'start_timing'         => date("H:i", strtotime($section['start_time'])), 
-                'end_timing'           => date("H:i", strtotime($section['end_time'])), 
+                'start_timing'         => date("H:i", strtotime($section['start_time'])),
+                'end_timing'           => date("H:i", strtotime($section['end_time'])),
                 'duration'             => $section['duration'],
+                'zoom_start_url'       => $zoomMeeting['start_url'],
+                'zoom_join_url'        => $zoomMeeting['join_url'],
                 'created_at'           => now(),
                 'updated_at'           => now(),
             ]);
-
         }
+
 
         return redirect()->route('training.list')->with('success', 'Training and batch data saved successfully.');
     }
