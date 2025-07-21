@@ -54,66 +54,66 @@ class JobseekerController extends Controller
         ]);
 
         // Send welcome email
-        // Mail::html('
-        //     <!DOCTYPE html>
-        //     <html lang="en">
-        //     <head>
-        //         <meta charset="UTF-8">
-        //         <title>Welcome to Talentrek</title>
-        //         <style>
-        //             body {
-        //                 background-color: #f4f6f9;
-        //                 font-family: Arial, sans-serif;
-        //                 padding: 20px;
-        //                 margin: 0;
-        //             }
-        //             .email-container {
-        //                 background: #ffffff;
-        //                 max-width: 600px;
-        //                 margin: auto;
-        //                 padding: 30px;
-        //                 border-radius: 8px;
-        //                 box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        //             }
-        //             h2 {
-        //                 color: #007bff;
-        //                 margin-bottom: 20px;
-        //             }
-        //             p {
-        //                 line-height: 1.6;
-        //                 color: #333333;
-        //             }
-        //             .footer {
-        //                 margin-top: 30px;
-        //                 font-size: 12px;
-        //                 color: #888888;
-        //                 text-align: center;
-        //             }
-        //         </style>
-        //     </head>
-        //     <body>
-        //         <div class="email-container">
-        //             <h2>Welcome to Talentrek!</h2>
-        //             <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+        Mail::html('
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Welcome to Talentrek</title>
+                <style>
+                    body {
+                        background-color: #f4f6f9;
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                        margin: 0;
+                    }
+                    .email-container {
+                        background: #ffffff;
+                        max-width: 600px;
+                        margin: auto;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    }
+                    h2 {
+                        color: #007bff;
+                        margin-bottom: 20px;
+                    }
+                    p {
+                        line-height: 1.6;
+                        color: #333333;
+                    }
+                    .footer {
+                        margin-top: 30px;
+                        font-size: 12px;
+                        color: #888888;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <h2>Welcome to Talentrek!</h2>
+                    <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
 
-        //             <p>You have successfully signed up on <strong>Talentrek</strong>. We\'re excited to have you with us!</p>
+                    <p>You have successfully signed up on <strong>Talentrek</strong>. We\'re excited to have you with us!</p>
 
-        //             <p>Start exploring career opportunities, connect with employers, and grow your professional journey.</p>
+                    <p>Start exploring career opportunities, connect with employers, and grow your professional journey.</p>
 
-        //             <p>If you ever need help, feel free to contact our support team.</p>
+                    <p>If you ever need help, feel free to contact our support team.</p>
 
-        //             <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
-        //         </div>
+                    <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
+                </div>
 
-        //         <div class="footer">
-        //             © ' . date('Y') . ' Talentrek. All rights reserved.
-        //         </div>
-        //     </body>
-        //     </html>
-        // ', function ($message) use ($jobseeker) {
-        //     $message->to($jobseeker->email)
-        //             ->subject('Welcome to Talentrek – Signup Successful');
-        // });
+                <div class="footer">
+                    © ' . date('Y') . ' Talentrek. All rights reserved.
+                </div>
+            </body>
+            </html>
+        ', function ($message) use ($jobseeker) {
+            $message->to($jobseeker->email)
+                    ->subject('Welcome to Talentrek – Signup Successful');
+        });
 
         // Set session
         session([
@@ -743,30 +743,29 @@ class JobseekerController extends Controller
             'job_role.*' => 'required|string|max:255',
             'organization.*' => 'required|string|max:255',
             'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date',
+            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
             'currently_working' => 'array',
         ], [
-            // Job Role
             'job_role.*.required' => 'Please enter your job role.',
             'job_role.*.string' => 'Job role should be a valid text.',
             'job_role.*.max' => 'Job role can’t be more than 255 characters.',
 
-            // Organization
             'organization.*.required' => 'Please provide the organization name.',
             'organization.*.string' => 'Organization name must be a valid string.',
             'organization.*.max' => 'Organization name can’t exceed 255 characters.',
 
             // Start Date
-            'starts_from.*.required' => 'Start date is required for each experience.',
-            'starts_from.*.date' => 'Start date must be a valid date format.',
+            'starts_from.*.required' => 'Please select the start date for each experience.',
+            'starts_from.*.date' => 'The start date must be in a valid format (e.g., YYYY-MM-DD).',
 
             // End Date
-            'end_to.*.required' => 'Please provide the end date.',
-            'end_to.*.date' => 'End date must be a valid date format.',
+            'end_to.*.required' => 'Please select the end date for each experience.',
+            'end_to.*.date' => 'The end date must be in a valid format (e.g., YYYY-MM-DD).',
+            'end_to.*.after_or_equal' => 'The end date must be the same as or after the start date.',
 
-            // Currently Working
             'currently_working.array' => 'Currently working selection must be in a valid format.',
         ]);
+
 
         // Manual check for end date >= start date
         foreach ($request->end_to as $index => $end) {
@@ -874,22 +873,19 @@ class JobseekerController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            'profile' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             // Resume Messages
-            'resume.required' => 'Please upload your resume.',
             'resume.file' => 'The resume must be a valid file.',
             'resume.mimes' => 'The resume must be a file of type: PDF, DOC, or DOCX.',
             'resume.max' => 'The resume must not be larger than 2MB.',
 
             // Profile Messages
-            'profile.required' => 'Please upload your profile image or document.',
             'profile.file' => 'The profile must be a valid file.',
             'profile.mimes' => 'The profile must be a file of type: JPG, JPEG, PNG, or PDF.',
             'profile.max' => 'The profile file must not exceed 2MB.',
         ]);
-
 
         foreach (['resume', 'profile'] as $type) {
             if ($request->hasFile($type)) {
@@ -897,9 +893,12 @@ class JobseekerController extends Controller
                 $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads'), $fileName);
                 $path = asset('uploads/' . $fileName);
-                
+
+                // Change doc_type name if 'profile' to 'profile_picture'
+                $docType = $type === 'profile' ? 'profile_picture' : $type;
+
                 AdditionalInfo::updateOrCreate(
-                    ['user_id' => $userId, 'doc_type' => $type],
+                    ['user_id' => $userId, 'doc_type' => $docType],
                     ['document_path' => $path, 'document_name' => $fileName]
                 );
             }
@@ -912,21 +911,37 @@ class JobseekerController extends Controller
     }
 
 
+
     public function deleteAdditionalFile($type)
     {
         $userId = auth()->id();
-        $file = AdditionalInfo::where('user_id', $userId)->where('doc_type', $type)->first();
+
+        $file = AdditionalInfo::where('user_id', $userId)
+            ->where('doc_type', $type)
+            ->first();
 
         if ($file) {
-            $filePath = public_path($file->document_path);
-            if (file_exists($filePath)) unlink($filePath);
+            $filePath = public_path($file->document_path); // e.g. public/uploads/resume_1753084475.pdf
+
+            if ($file->document_path && file_exists($filePath)) {
+                unlink($filePath);
+            }
+
             $file->delete();
 
-            return response()->json(['status' => 'success', 'message' => ucfirst($type) . ' deleted successfully.']);
+            return response()->json([
+                'status' => 'success',
+                'message' => ucfirst(str_replace('_', ' ', $type)) . ' deleted successfully.'
+            ]);
         }
 
-        return response()->json(['status' => 'error', 'message' => ucfirst($type) . ' not found.'], 404);
+        return response()->json([
+            'status' => 'error',
+            'message' => ucfirst(str_replace('_', ' ', $type)) . ' not found.'
+        ], 404);
     }
+
+
 
 
     public function submitForgetPassword(Request $request)
