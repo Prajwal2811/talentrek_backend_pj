@@ -80,12 +80,11 @@
                                 >Log out</a> -->
                                 </li>
                                 <li>
-                                    <a
-                                        href="#"
-                                        @click.prevent="activeSection = 'delete'; activeSubTab = 'delete'"
-                                        :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'"
-                                    >Delete account</a>
-
+                                <a
+                                    href="#"
+                                    @click.prevent="activeSection = 'delete'"
+                                    :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'"
+                                >Delete account</a>
                                 </li>
                             </ul>
                         </aside>
@@ -479,7 +478,10 @@
                                         @php
                                             $user = auth()->user();
                                             $userId = $user->id;
-                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
+                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                ->where('user_type', 'trainer')
+                                                ->where('doc_type', 'profile_picture')
+                                                ->first();
                                         @endphp
 
                                         @if($profile && $profile->document_path)
@@ -487,6 +489,7 @@
                                         @else
                                             <img src="{{ asset('images/default-profile.png') }}" alt="Default" class="w-20 h-20 rounded-lg object-cover" />
                                         @endif
+
 
                                         <div>
                                             <h3 class="text-xl font-semibold">{{$user->name}}</h3>
@@ -841,7 +844,7 @@
                                                 <strong>Success!</strong> <span class="message-text"></span>
                                             </div>
 
-                                            <form id="work-info-form" method="POST" action="{{ route('trainer.workexprience.update') }}" class="space-y-6">
+                                            <form id="work-info-form" method="POST" action="{{ route('trainer.workexprience.update')}}"   class="space-y-6">
                                                 @csrf
 
                                                 <div id="work-container" class="space-y-6">
@@ -1139,15 +1142,24 @@
                                         <!-- Additional Information Tab -->
                                         <div x-show="activeSubTab === 'additional'" x-transition>
                                             <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
-                                            @php
-                                                $userId = auth()->id();
-                                                
-                                                $resume = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
-                                                
-                                                $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
-                                                
-                                                $certificate = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
-                                               
+                                           
+                                             @php
+                                                $user = auth()->user();
+                                                $userId = $user->id;
+                                                $profile = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                    ->where('user_type', 'trainer')
+                                                    ->where('doc_type', 'profile_picture')
+                                                    ->first();
+
+                                                $resume = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                    ->where('user_type', 'trainer')
+                                                    ->where('doc_type', 'resume')
+                                                    ->first();  
+
+                                                $certificate = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                    ->where('user_type', 'trainer')
+                                                    ->where('doc_type', 'training_certificate')
+                                                    ->first();  
                                             @endphp
 
                                             <!-- Success Message -->
@@ -1181,10 +1193,10 @@
                                                             @if($profile)
                                                                 <div class="flex items-center gap-4">
                                                                     <a href="{{ asset($profile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 text-xs rounded hover:bg-green-700">📄 View Profile</a>
-                                                                    <button type="button" class="delete-file text-red-600 text-sm" data-type="profile">Delete</button>
+                                                                    <button type="button" class="delete-file text-red-600 text-sm" data-type="profile_picture">Delete</button>
                                                                 </div>
                                                             @endif
-                                                            <input type="file" name="profile" accept="image/*" class="border rounded p-2 w-full" />
+                                                            <input type="file" name="profile_picture" accept="image/*" class="border rounded p-2 w-full" />
                                                         </div>
                                                     </div>
 
@@ -1251,7 +1263,7 @@
                                                         successBox.style.display = 'none';
                                                         successText.textContent = '';
                                                         location.reload(); // 🔄 Reload after success
-                                                    }, 3000);
+                                                    }, 1000);
                                                 })
                                                 .catch(error => {
                                                     const errors = error.errors || {};
@@ -1408,53 +1420,7 @@
 
 
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const workContainer = document.getElementById('work-container');
-        const addWorkBtn = document.getElementById('add-work');
 
-        // Add new work block
-        addWorkBtn.addEventListener('click', function () {
-            const firstEntry = workContainer.querySelector('.work-entry');
-            const clone = firstEntry.cloneNode(true);
-
-            // Clear input values
-            clone.querySelectorAll('input').forEach(input => {
-                if (input.type === 'hidden') {
-                    input.remove();
-                } else if (input.type === 'checkbox') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
-                if (input.name === 'end_to[]') input.disabled = false;
-            });
-
-            // Show remove button
-            const removeBtn = clone.querySelector('.remove-work');
-            removeBtn.style.display = 'block';
-
-            workContainer.appendChild(clone);
-        });
-
-        // Remove work block
-        workContainer.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-work')) {
-                const allEntries = workContainer.querySelectorAll('.work-entry');
-                if (allEntries.length > 1) {
-                    e.target.closest('.work-entry').remove();
-                }
-            }
-        });
-    });
-
-    // Toggle "currently working" checkbox
-    function toggleEndDate(checkbox) {
-        const input = checkbox.closest('div').querySelector('input[type="date"]');
-        input.disabled = checkbox.checked;
-        if (checkbox.checked) input.value = '';
-    }
-</script>
 
 
           

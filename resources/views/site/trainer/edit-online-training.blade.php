@@ -161,17 +161,28 @@
                                     <label class="block mb-1 font-medium">End Timing</label>
                                     <input type="time" x-model="endTime" class="border p-2 rounded w-full" />
                                 </div>
-                                <div class="md:col-span-1">
+                                <div>
+                                    <label class="block mb-1 font-medium">Select Type</label>
+                                    <select x-model="durationType" class="border p-2 rounded w-full">
+                                        <option value="day">Days</option>
+                                        <option value="month">Months</option>
+                                        <option value="year">Years</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label class="block mb-1 font-medium">Duration</label>
                                     <select x-model="duration" class="border p-2 rounded w-full">
                                         <option value="">Select duration</option>
-                                        <template x-for="i in 30" :key="i">
-                                            <option :value="`${i} days`" x-text="`${i} days`"></option>
+                                        <template x-for="option in getOptions()" :key="option">
+                                            <option :value="option" x-text="option"></option>
                                         </template>
                                     </select>
                                 </div>
                             </div>
-
+                            <!-- Conflict Error Message -->
+                            <div x-show="conflict" class="text-red-600 mt-2 font-semibold">
+                                Selected timing already used for the given date range.
+                            </div>
                             <!-- Action Buttons -->
                             <button type="button" x-show="!isEditing" @click="addBatch"
                                     class="bg-blue-600 text-white px-6 py-2 rounded mt-4 hover:bg-blue-700">
@@ -251,83 +262,176 @@
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
             <script>
                 function batchManager() {
-                    return {
-                        batchNo: '',
-                        batchDate: '',
-                        startTime: '',
-                        endTime: '',
-                        duration: '',
-                        batches: [],
-                        isEditing: false,
-                        editIndex: null,
+                        return {
+                            // Form fields
+                            batchNo: '',
+                            batchDate: '',
+                            startTime: '',
+                            endTime: '',
+                            durationType: 'day',
+                            duration: '',
 
-                        initializeBatches(serverBatches) {
-                            this.batches = serverBatches.map(b => ({
-                                batchNo: b.batch_no,
-                                batchDate: b.start_date,
-                                startTime: b.start_timing,
-                                endTime: b.end_timing,
-                                duration: b.duration
-                            }));
-                        },
+                            // State
+                            batches: [],
+                            isEditing: false,
+                            editIndex: null,
+                            conflict: false,
 
-                        addBatch() {
-                            if (this.batchNo && this.batchDate && this.startTime && this.endTime && this.duration) {
-                                this.batches.push({
-                                    batchNo: this.batchNo,
-                                    batchDate: this.batchDate,
-                                    startTime: this.startTime,
-                                    endTime: this.endTime,
-                                    duration: this.duration,
+                            // 🧾 Load from server
+                            initializeBatches(serverBatches) {
+                                this.batches = serverBatches.map(b => ({
+                                    batchNo: b.batch_no,
+                                    batchDate: b.start_date,
+                                    startTime: b.start_timing,
+                                    endTime: b.end_timing,
+                                    duration: b.duration
+                                }));
+                            },
+
+                            // 🔁 Duration dropdown options
+                            getOptions() {
+                                if (this.durationType === 'day') return Array.from({ length: 60 }, (_, i) => `${i + 1} day`);
+                                if (this.durationType === 'month') return Array.from({ length: 12 }, (_, i) => `${i + 1} month`);
+                                if (this.durationType === 'year') return Array.from({ length: 5 }, (_, i) => `${i + 1} year`);
+                                return [];
+                            },
+
+                            // ➕ Add Batch
+                            addBatch() {
+                                if (!this.validateForm()) return;
+                                if (this.hasConflict()) {
+                                    this.conflict = true;
+                                    return;
+                                }
+
+                                this.batches.push(this.getBatchData());
+                                this.clearForm();
+                            },
+
+                            // ✏️ Edit Batch
+                            editBatch(index) {
+                                const batch = this.batches[index];
+                                this.batchNo = batch.batchNo;
+                                this.batchDate = batch.batchDate;
+                                this.startTime = batch.startTime;
+                                this.endTime = batch.endTime;
+                                this.duration = batch.duration;
+                                this.durationType = this.getDurationTypeFromString(batch.duration);
+                                this.isEditing = true;
+                                this.editIndex = index;
+                            },
+
+                            // 🔁 Update Batch
+                            updateBatch() {
+                                if (!this.validateForm()) return;
+                                if (this.hasConflict()) {
+                                    this.conflict = true;
+                                    return;
+                                }
+
+                                this.batches[this.editIndex] = this.getBatchData();
+                                this.clearForm();
+                            },
+
+                            // ❌ Remove
+                            removeBatch(index) {
+                                this.batches.splice(index, 1);
+                                if (this.isEditing && this.editIndex === index) {
+                                    this.clearForm();
+                                }
+                            },
+
+                            // 🔍 Conflict Checking
+                            hasConflict() {
+                                const [val, unit] = this.duration.split(' ');
+                                const startDate = new Date(this.batchDate);
+                                const endDate = new Date(this.batchDate);
+                                const durationValue = parseInt(val);
+
+                                if (unit.includes('day')) {
+                                    endDate.setDate(endDate.getDate() + durationValue - 1);
+                                } else if (unit.includes('month')) {
+                                    endDate.setMonth(endDate.getMonth() + durationValue);
+                                    endDate.setDate(endDate.getDate() - 1);
+                                } else if (unit.includes('year')) {
+                                    endDate.setFullYear(endDate.getFullYear() + durationValue);
+                                    endDate.setDate(endDate.getDate() - 1);
+                                }
+
+                                return this.batches.some((b, i) => {
+                                    if (this.isEditing && this.editIndex === i) return false;
+
+                                    const bStart = new Date(b.batchDate);
+                                    const bEnd = new Date(b.batchDate);
+                                    const [bVal, bUnit] = b.duration.split(' ');
+                                    const bDur = parseInt(bVal);
+
+                                    if (bUnit.includes('day')) {
+                                        bEnd.setDate(bEnd.getDate() + bDur - 1);
+                                    } else if (bUnit.includes('month')) {
+                                        bEnd.setMonth(bEnd.getMonth() + bDur);
+                                        bEnd.setDate(bEnd.getDate() - 1);
+                                    } else if (bUnit.includes('year')) {
+                                        bEnd.setFullYear(bEnd.getFullYear() + bDur);
+                                        bEnd.setDate(bEnd.getDate() - 1);
+                                    }
+
+                                    const isDateOverlap = (startDate <= bEnd && endDate >= bStart);
+                                    const isTimeOverlap = !(this.endTime <= b.startTime || this.startTime >= b.endTime);
+
+                                    return isDateOverlap && isTimeOverlap;
                                 });
-                                this.clearForm();
-                            } else {
-                                alert("Please fill all fields.");
-                            }
-                        },
+                            },
 
-                        editBatch(index) {
-                            const batch = this.batches[index];
-                            this.batchNo = batch.batchNo;
-                            this.batchDate = batch.batchDate;
-                            this.startTime = batch.startTime;
-                            this.endTime = batch.endTime;
-                            this.duration = batch.duration;
-                            this.editIndex = index;
-                            this.isEditing = true;
-                        },
+                            // 🧹 Clear
+                            clearForm() {
+                                this.batchNo = '';
+                                this.batchDate = '';
+                                this.startTime = '';
+                                this.endTime = '';
+                                this.duration = '';
+                                this.durationType = 'day';
+                                this.isEditing = false;
+                                this.editIndex = null;
+                                this.conflict = false;
+                            },
 
-                        updateBatch() {
-                            if (this.editIndex !== null) {
-                                this.batches[this.editIndex] = {
+                            // 📦 Batch Object
+                            getBatchData() {
+                                return {
                                     batchNo: this.batchNo,
                                     batchDate: this.batchDate,
                                     startTime: this.startTime,
                                     endTime: this.endTime,
-                                    duration: this.duration,
+                                    duration: this.duration
                                 };
-                                this.clearForm();
-                            }
-                        },
+                            },
 
-                        removeBatch(index) {
-                            this.batches.splice(index, 1);
-                            if (this.isEditing && this.editIndex === index) {
-                                this.clearForm();
-                            }
-                        },
+                            // ✅ Validate
+                            validateForm() {
+                                if (!this.batchNo || !this.batchDate || !this.startTime || !this.endTime || !this.duration) {
+                                    alert("Please fill all fields.");
+                                    return false;
+                                }
+                                if (this.endTime <= this.startTime) {
+                                    alert("End time must be after start time.");
+                                    return false;
+                                }
+                                return true;
+                            },
 
-                        clearForm() {
-                            this.batchNo = '';
-                            this.batchDate = '';
-                            this.startTime = '';
-                            this.endTime = '';
-                            this.duration = '';
-                            this.editIndex = null;
-                            this.isEditing = false;
-                        }
+                            // 🔎 Get duration type from string
+                            getDurationTypeFromString(str) {
+                                if (str.includes('day')) return 'day';
+                                if (str.includes('month')) return 'month';
+                                if (str.includes('year')) return 'year';
+                                return 'day';
+                            }
+                        };
                     }
-                }
+                </script>
+
+
             </script>
 
 

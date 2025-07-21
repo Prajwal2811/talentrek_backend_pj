@@ -758,21 +758,35 @@ $skills = $user->skills->first();
                                                     <!-- End To & Checkbox -->
                                                     @php
                                                         $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-                                                        (isset($data->end_to) && $data->end_to === 'work here');
+                                                            (isset($data->end_to) && $data->end_to === 'work here');
                                                     @endphp
+
                                                     <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
-                                                        <label class="block text-sm font-medium mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input readonly name="end_to[]" class="datepicker-end w-full border rounded px-3 py-2"
+                                                        <label class="block text-sm font-medium mb-1">
+                                                            To <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
+
+                                                        <input 
+                                                            readonly 
+                                                            name="end_to[]" 
+                                                            class="datepicker-end w-full border rounded px-3 py-2"
                                                             x-bind:disabled="working"
-                                                            :value="working ? '' : '{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}'" />
+                                                            value="{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}"
+                                                        />
 
                                                         <label class="inline-flex items-center space-x-2 mt-2">
-                                                            <input type="checkbox" name="currently_working[]" value="{{ $i }}"
+                                                            <input 
+                                                                type="checkbox" 
+                                                                name="currently_working[]" 
+                                                                value="{{ $i }}"
                                                                 x-model="working"
-                                                                {{ $isWorking ? 'checked' : '' }} />
+                                                                {{ $isWorking ? 'checked' : '' }} 
+                                                            />
                                                             <span>I currently work here</span>
                                                         </label>
                                                     </div>
+
+
 
                                                     <!-- Remove Button -->
                                                     <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
@@ -805,18 +819,36 @@ $skills = $user->skills->first();
                                         const firstEntry = workContainer.querySelector('.work-entry');
                                         const clone = firstEntry.cloneNode(true);
 
-                                        // Remove hidden ID and clear fields
                                         clone.querySelectorAll('input').forEach(input => {
-                                            if (input.type === 'hidden') input.remove();
-                                            else if (input.type === 'checkbox') input.checked = false;
-                                            else input.value = '';
+                                            if (input.type === 'hidden') {
+                                                input.remove();
+                                            } else if (input.type === 'checkbox') {
+                                                input.checked = false;
+
+                                                const xDataContainer = input.closest('[x-data]');
+                                                if (xDataContainer && xDataContainer.__x) {
+                                                    xDataContainer.__x.$data.working = false;
+                                                }
+                                            } else {
+                                                input.value = '';
+                                                input.removeAttribute('disabled'); // Make sure input is editable
+                                            }
                                         });
+
+                                        // ✅ Specifically clear end_to[] input value (just in case)
+                                        const endToInput = clone.querySelector('.datepicker-end');
+                                        if (endToInput) {
+                                            endToInput.value = '';
+                                        }
 
                                         clone.querySelectorAll('p.text-red-600').forEach(err => err.remove());
                                         clone.querySelector('.remove-work').style.display = 'block';
 
                                         workContainer.appendChild(clone);
+                                        Alpine.initTree(clone); // Reinit Alpine.js
                                     });
+
+
 
                                     workContainer.addEventListener('click', e => {
                                         if (e.target.classList.contains('remove-work')) {
@@ -1048,7 +1080,7 @@ $skills = $user->skills->first();
                                                             class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition duration-200">
                                                             📄 View Profile
                                                         </a>
-                                                        <button type="button" class="delete-file text-red-600 text-sm" data-type="profile">Delete</button>
+                                                        <button type="button" class="delete-file text-red-600 text-sm" data-type="profile_picture">Delete</button>
                                                     </div>
                                                 @endif
                                                 <div class="flex gap-2 items-center">
@@ -1092,112 +1124,124 @@ $skills = $user->skills->first();
 
                                 <!-- Script -->
                                 <script>
-                                    // Reset file input
-                                    document.querySelectorAll('.remove-upload').forEach(btn => {
-                                        btn.addEventListener('click', function () {
-                                            const input = this.closest('.flex').querySelector('input[type="file"]');
-                                            input.value = '';
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        // 1. Reset file input
+                                        document.querySelectorAll('.remove-upload').forEach(btn => {
+                                            btn.addEventListener('click', function () {
+                                                const input = this.closest('.flex').querySelector('input[type="file"]');
+                                                if (input) input.value = '';
+                                            });
                                         });
-                                    });
 
-                                    // AJAX Save
-                                    document.getElementById('save-additional-info').addEventListener('click', function () {
-                                        const form = document.getElementById('additional-info-form');
-                                        const formData = new FormData(form);
-                                        const successBox = document.getElementById('additional-success');
-                                        const successText = successBox.querySelector('.message-text');
+                                        // 2. AJAX Save
+                                        document.getElementById('save-additional-info')?.addEventListener('click', function () {
+                                            const form = document.getElementById('additional-info-form');
+                                            const formData = new FormData(form);
+                                            const successBox = document.getElementById('additional-success');
+                                            const successText = successBox.querySelector('.message-text');
 
-                                        form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+                                            // Clear previous validation messages
+                                            form.querySelectorAll('.text-red-600').forEach(e => e.remove());
 
-                                        fetch(form.action, {
-                                            method: 'POST',
-                                            headers: {
-                                                'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
-                                                'Accept': 'application/json'
-                                            },
-                                            body: formData
-                                        })
-                                        .then(response => {
-                                            if (!response.ok) return response.json().then(err => Promise.reject(err));
-                                            return response.json();
-                                        })
-                                        .then(data => {
-                                            successText.textContent = data.message;
-                                            successBox.style.display = 'block';
-                                            setTimeout(() => {
-                                                successBox.style.display = 'none';
-                                                successText.textContent = '';
-                                            }, 3000);
-                                            if (typeof nextTab === "function") nextTab();
-                                        })
-                                        .catch(error => {
-                                            const errors = error.errors || {};
-                                            Object.keys(errors).forEach(field => {
-                                                const input = form.querySelector(`[name="${field}"]`);
-                                                if (input) {
-                                                    const errorElem = document.createElement('p');
-                                                    errorElem.className = 'text-red-600 text-sm mt-1';
-                                                    errorElem.textContent = errors[field][0];
-                                                    input.insertAdjacentElement('afterend', errorElem);
+                                            fetch(form.action, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
+                                                    'Accept': 'application/json'
+                                                },
+                                                body: formData
+                                            })
+                                            .then(response => {
+                                                if (!response.ok) return response.json().then(err => Promise.reject(err));
+                                                return response.json();
+                                            })
+                                            .then(data => {
+                                                successText.textContent = data.message;
+                                                successBox.style.display = 'block';
+
+                                                setTimeout(() => {
+                                                    successBox.style.display = 'none';
+                                                    successText.textContent = '';
+                                                    location.reload(); 
+                                                }, 3000);
+
+                                                if (typeof nextTab === "function") nextTab();
+                                            })
+                                            .catch(error => {
+                                                const errors = error.errors || {};
+                                                Object.keys(errors).forEach(field => {
+                                                    const input = form.querySelector(`[name="${field}"]`);
+                                                    if (input) {
+                                                        const errorElem = document.createElement('p');
+                                                        errorElem.className = 'text-red-600 text-sm mt-1';
+                                                        errorElem.textContent = errors[field][0];
+                                                        input.insertAdjacentElement('afterend', errorElem);
+                                                    }
+                                                });
+                                            });
+                                        });
+
+                                        // 3. Delete logic
+                                        let selectedFileType = null;
+
+                                        document.querySelectorAll('.delete-file').forEach(btn => {
+                                            btn.addEventListener('click', function () {
+                                                selectedFileType = this.dataset.type; // e.g. resume, profile_picture
+                                                document.getElementById('delete-file-type').textContent = selectedFileType.replace(/_/g, ' ');
+                                                document.getElementById('deleteConfirmModal').classList.remove('hidden');
+                                            });
+                                        });
+
+                                        document.getElementById('cancelDeleteBtn')?.addEventListener('click', function () {
+                                            document.getElementById('deleteConfirmModal').classList.add('hidden');
+                                            selectedFileType = null;
+                                        });
+
+                                        document.getElementById('confirmDeleteBtn')?.addEventListener('click', function () {
+                                            if (!selectedFileType) return;
+
+                                            const url = `{{ route('jobseeker.additional.delete', ':type') }}`.replace(':type', selectedFileType);
+
+                                            fetch(url, {
+                                                method: 'DELETE',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
+                                                    'Accept': 'application/json'
                                                 }
+                                            })
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                document.getElementById('deleteConfirmModal').classList.add('hidden');
+                                                selectedFileType = null;
+
+                                                if (data.status === 'success') {
+                                                    // Use the returned type to find and remove the correct block
+                                                    const block = document.querySelector(`[data-type="${data.message.toLowerCase().includes('profile') ? 'profile_picture' : 'resume'}"]`)?.closest('.flex.flex-col');
+                                                    block?.querySelector('a')?.remove();
+                                                    block?.querySelector('.delete-file')?.remove();
+
+                                                    const successBox = document.getElementById('additional-success');
+                                                    const successText = successBox.querySelector('.message-text');
+                                                    successText.textContent = data.message;
+                                                    successBox.style.display = 'block';
+
+                                                    setTimeout(() => {
+                                                        successBox.style.display = 'none';
+                                                        successText.textContent = '';
+                                                    }, 3000);
+                                                } else {
+                                                    alert(data.message);
+                                                }
+                                            })
+                                            .catch(() => {
+                                                alert('Delete failed.');
+                                                document.getElementById('deleteConfirmModal').classList.add('hidden');
                                             });
                                         });
                                     });
-
-                                    // Delete file modal logic
-                                    // Delete file modal logic
-                                    let selectedFileType = null;
-
-                                    document.querySelectorAll('.delete-file').forEach(btn => {
-                                        btn.addEventListener('click', function () {
-                                            selectedFileType = this.dataset.type;
-                                            document.getElementById('delete-file-type').textContent = selectedFileType;
-                                            document.getElementById('deleteConfirmModal').classList.remove('hidden');
-                                        });
-                                    });
-
-                                    document.getElementById('cancelDeleteBtn').addEventListener('click', function () {
-                                        document.getElementById('deleteConfirmModal').classList.add('hidden');
-                                        selectedFileType = null;
-                                    });
-
-                                    document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
-                                        if (!selectedFileType) return;
-
-                                        fetch(`{{ route('jobseeker.additional.delete', ':type') }}`.replace(':type', selectedFileType), {
-                                            method: 'DELETE',
-                                            headers: {
-                                                'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
-                                                'Accept': 'application/json'
-                                            }
-                                        })
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            document.getElementById('deleteConfirmModal').classList.add('hidden');
-                                            selectedFileType = null;
-
-                                            // Remove preview UI for the deleted file
-                                            const block = document.querySelector(`[data-type="${data.message.toLowerCase().includes('resume') ? 'resume' : 'profile'}"]`).closest('.flex.flex-col');
-                                            block.querySelector('a')?.remove();
-                                            block.querySelector('.delete-file')?.remove();
-
-                                            const successBox = document.getElementById('additional-success');
-                                            const successText = successBox.querySelector('.message-text');
-                                            successText.textContent = data.message;
-                                            successBox.style.display = 'block';
-
-                                            setTimeout(() => {
-                                                successBox.style.display = 'none';
-                                                successText.textContent = '';
-                                            }, 3000);
-                                        })
-                                        .catch(() => {
-                                            alert('Delete failed.');
-                                            document.getElementById('deleteConfirmModal').classList.add('hidden');
-                                        });
-                                    });
-
                                 </script>
+
+
 
 
 
