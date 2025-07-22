@@ -88,10 +88,13 @@
                                 </li>
                             </ul>
                         </aside>
+                        
 
                         <!-- Main Content -->
                         <section class="flex-1 p-6">
+                            
                             <div class="bg-white rounded-lg shadow p-6">
+                                
                                 <!-- Profile Section -->
                                 <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
                                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">Subscription</h3>
@@ -211,7 +214,34 @@
                                     </div>
                                 </div>
 
+                                <!-- Delete Account Section -->
+                                <div 
+                                    x-show="activeSection === 'delete'" 
+                                    x-transition 
+                                    class="bg-white p-6 rounded-lg border border-red-200 shadow-md mt-4"
+                                >
+                                    <h3 class="text-xl font-semibold mb-3 text-red-600">Delete Account</h3>
 
+                                    <p class="text-gray-700 leading-relaxed mb-4">
+                                        This action is <span class="font-semibold text-red-700">irreversible</span>. 
+                                        Are you sure you want to permanently delete your account?
+                                    </p>
+
+                                    <form id="deleteAccountForm" action="{{ route('trainer.destroy') }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button 
+                                            type="button" 
+                                            id="deleteAccountBtn" 
+                                            class="bg-red-600 text-white px-5 py-2.5 rounded hover:bg-red-700 transition-colors duration-200"
+                                        >
+                                            Delete Account
+                                        </button>
+                                    </form>
+                                </div>
+
+    
                                 <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
                                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
 
@@ -322,77 +352,77 @@
 
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden">
-                                        <thead class="bg-gray-100 text-gray-700">
-                                            <tr>
-                                            <th class="px-4 py-2 border">Sr. No.</th>
-                                            <th class="px-4 py-2 border">Paid to</th>
-                                            <th class="px-4 py-2 border">Date</th>
-                                            <th class="px-4 py-2 border">Amount</th>
-                                            <th class="px-4 py-2 border">Payment status</th>
-                                            <th class="px-4 py-2 border">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="text-gray-700">
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">1.</td>
-                                            <td class="px-4 py-2">Session1</td>
-                                            <td class="px-4 py-2">24/04/2025</td>
-                                            <td class="px-4 py-2">200</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Session2</td>
-                                            <td class="px-4 py-2">26/04/2025</td>
-                                            <td class="px-4 py-2">100</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <!-- Add more rows dynamically if needed -->
-                                        </tbody>
+                                            <thead class="bg-gray-100 text-gray-700">
+                                                <tr>
+                                                <th class="px-4 py-2 border">Sr. No.</th>
+                                                <th class="px-4 py-2 border">Paid to</th>
+                                                <th class="px-4 py-2 border">Date</th>
+                                                <th class="px-4 py-2 border">Amount</th>
+                                                <th class="px-4 py-2 border">Payment status</th>
+                                                <th class="px-4 py-2 border">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="text-gray-700">
+                                                <tr class="border-b">
+                                                <td class="px-4 py-2">1.</td>
+                                                <td class="px-4 py-2">Session1</td>
+                                                <td class="px-4 py-2">24/04/2025</td>
+                                                <td class="px-4 py-2">200</td>
+                                                <td class="px-4 py-2">Paid</td>
+                                                <td class="px-4 py-2">
+                                                    <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                                                    View invoice
+                                                    </button>
+                                                </td>
+                                                </tr>
+                                                <tr class="border-b">
+                                                <td class="px-4 py-2">2.</td>
+                                                <td class="px-4 py-2">Session2</td>
+                                                <td class="px-4 py-2">26/04/2025</td>
+                                                <td class="px-4 py-2">100</td>
+                                                <td class="px-4 py-2">Paid</td>
+                                                <td class="px-4 py-2">
+                                                    <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                                                    View invoice
+                                                    </button>
+                                                </td>
+                                                </tr>
+                                                <!-- Add more rows dynamically if needed -->
+                                            </tbody>
                                         </table>
                                     </div>
-                                    </div>
+                                </div>
 
                                 <!-- Notifications Section -->
                                 <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
 
                                 <!-- Scrollable notification list -->
                                 <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                                     <!-- Notification Items -->
                                     <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                            <div>
+                                                <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
+                                                <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
+                                            </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                            <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                            <div>
+                                                <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
+                                                <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
+                                            </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                            <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                                <div>
+                                                    <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
+                                                    <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
+                                                </div>
+                                            </div>
 
                                     <div class="flex items-start gap-4 border-b pb-4">
                                     <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
@@ -1382,22 +1412,7 @@
                                     <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Log Out</button>
                                 </div>
 
-                                <!-- Delete Account Section -->
-                                <div x-show="activeSection === 'delete'" x-transition class="bg-white p-6">
-                                    <h3 class="text-xl font-semibold mb-4 text-red-600">Delete Account</h3>
-                                    <p>This action is irreversible. Are you sure you want to delete your account?</p>
-                                    <form id="deleteAccountForm" action="{{ route('trainer.destroy') }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button 
-                                            type="button" 
-                                            id="deleteAccountBtn" 
-                                            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                                        >
-                                            Delete Account
-                                        </button>
-                                    </form>
-                                </div>
+                                
 
                             </div>
                         </section>
