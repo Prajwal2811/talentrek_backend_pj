@@ -68,7 +68,7 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::get('/coaches', [ExplorerController::class, 'coachList']);
 
     //Mentor Training Coach Assessor Details By Id
-    Route::get('/trainingMaterialById/{trainingId}', [ExplorerController::class, 'trainingMaterialDetailById']);
+    Route::get('/trainingMaterialById/{trainingId}/{jobSeekerId}', [ExplorerController::class, 'trainingMaterialDetailById']);
     Route::get('/mentorById/{mentorId}', [ExplorerController::class, 'mentorDetailById']);
     Route::get('/trainingMaterialById/{trainingId}', [ExplorerController::class, 'trainingMaterialDetailById']);
     Route::get('/mentorById/{mentorId}', [ExplorerController::class, 'mentorDetailById']);
@@ -93,6 +93,12 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::post('/updateAdditionalDetails', [SeekerProfileController::class, 'updateAdditionalInfoDetails']);
 
     Route::get('/myLearningTraining/{jobseekerId}', [MyLearningController::class, 'myLearningTrainingListing']);
+    Route::get('/myLearningMentor/{jobseekerId}', [MyLearningController::class, 'myLearningMentorListing']);
+    Route::get('/myLearningCoach/{jobseekerId}', [MyLearningController::class, 'myLearningCoachListing']);
+    Route::get('/myLearningAssessor/{jobseekerId}', [MyLearningController::class, 'myLearningAssessorListing']);
+
+    Route::post('/jobSeekerBookASession', [MyLearningController::class, 'jobSeekerBookAConsultationSession']);
+
 
 });
 
