@@ -328,7 +328,7 @@ class TrainingController extends Controller
                             $document->trainer_id = $trainer->id;
                             $document->training_material_id = $training->id;
                             $document->batch_no     = $section['batch_no'];
-                            $document->start_date   = $section['batch_date'] ;
+                            $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
                             $document->start_timing = date("H:i", strtotime($section['start_time']));
                             $document->end_timing   = date("H:i", strtotime($section['end_time']));
                             $document->duration     = $section['duration'];
@@ -342,7 +342,7 @@ class TrainingController extends Controller
                     $document->trainer_id = $trainer->id;
                     $document->training_material_id = $training->id;
                     $document->batch_no     = $section['batch_no'];
-                    $document->start_date   = $section['batch_date'] ;
+                    $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
                     $document->start_timing = date("H:i", strtotime($section['start_time']));
                     $document->end_timing   = date("H:i", strtotime($section['end_time']));
                     $document->duration     = $section['duration'];
