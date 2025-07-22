@@ -154,8 +154,6 @@ class SocialAuthController extends Controller
             'assessor.registration'
         );
     }
-w
-
 
 }
 
