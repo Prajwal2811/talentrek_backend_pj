@@ -202,7 +202,7 @@ class MentorController extends Controller
                 'date_of_birth'=> 'required|date|before:today',
                 'location'     => 'required|string|max:255',
                 'address'      => 'required|string|max:500',
-                'password'     => 'required|string|min:6|confirmed',
+                //'password'     => 'required|string|min:6|confirmed',
 
                 // Education
                 'education' => 'required|array|min:1',

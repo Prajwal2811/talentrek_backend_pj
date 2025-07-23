@@ -7,6 +7,7 @@ use App\Models\Api\Coach;
 use App\Models\Api\TrainingMaterial;
 use App\Models\Api\Trainers;
 use App\Models\Api\Review;
+use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -226,11 +227,12 @@ class ExplorerController extends Controller
             return $this->errorResponse( 'An error occurred while fetching coaches.', 500,[]);
         }
     }
-    public function trainingMaterialDetailById($trainingId)
+    public function trainingMaterialDetailById($trainingId,$jobSeekerId)
     {
         try {
             $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
                 ->withCount('trainingMaterialDocuments')
+                ->with('trainingMaterialDocuments')
                 ->with(['trainer:id,name', 'latestWorkExperience'])
                 ->with('trainerReviews')
                 ->withAvg('trainerReviews', 'ratings')
@@ -242,6 +244,19 @@ class ExplorerController extends Controller
                 // Optional: remove the raw field if not needed in response
                 unset($TrainingMaterial->trainer_reviews_avg_ratings);
                 unset($TrainingMaterial->trainerReviews);
+
+                // Check if jobseeker purchased the training from this trainer
+                $isPurchased = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobSeekerId)
+                ->where('trainer_id', $TrainingMaterial->trainer_id)
+                ->where('material_id', $trainingId)
+                ->exists();
+                $TrainingMaterial->isPurchased = $isPurchased; // true/false
+                $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
+                if(!$isPurchased){
+                    unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
+                }
+                unset($TrainingMaterial->trainingMaterialDocuments);
+
             }
             
             return $this->successResponse($TrainingMaterial, 'Training course details with review  percentage fetched successfully.');

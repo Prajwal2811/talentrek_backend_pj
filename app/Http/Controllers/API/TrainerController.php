@@ -67,8 +67,8 @@ class TrainerController extends Controller
         try {
             // Validation
             $request->validate([
-                'email' => 'required|email|unique:Trainers,email',
-                'mobile' => 'required|string|unique:Trainers,phone_number|regex:/^[0-9]{10}$/',
+                'email' => 'required|email|unique:trainers,email',
+                'mobile' => 'required|string|unique:trainers,phone_number|regex:/^[0-9]{10}$/',
                 'password' => 'required|string|min:6|confirmed',
             ]);
 
@@ -202,7 +202,7 @@ class TrainerController extends Controller
                 'date_of_birth'=> 'required|date|before:today',
                 'location'     => 'required|string|max:255',
                 'address'      => 'required|string|max:500',
-                'password'     => 'required|string|min:6|confirmed',
+                //'password'     => 'required|string|min:6|confirmed',
 
                 // Education
                 'education' => 'required|array|min:1',
@@ -459,8 +459,8 @@ class TrainerController extends Controller
     public function forgetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:Trainers,email',
-            'phone_number' => 'nullable|string|exists:Trainers,phone_number',
+            'email' => 'nullable|email|exists:trainers,email',
+            'phone_number' => 'nullable|string|exists:trainers,phone_number',
         ]);
 
         if ($validator->fails()) {
@@ -478,7 +478,7 @@ class TrainerController extends Controller
         $contactValue = $request->$contactMethod;
 
         // Store OTP
-        DB::table('Trainers')->updateOrInsert(
+        DB::table('trainers')->updateOrInsert(
             [$contactMethod => $contactValue],
             [
                 'otp' => $otp,
@@ -583,7 +583,7 @@ class TrainerController extends Controller
         $otp = $request->otp;
 
         // Fetch the jobseeker record
-        $jobseeker = DB::table('Trainers')
+        $jobseeker = DB::table('trainers')
             ->where($contactMethod, $contactValue)
             ->where('otp', $otp)
             ->first();
@@ -619,7 +619,7 @@ class TrainerController extends Controller
         $contactMethod = $request->email ? 'email' : 'phone_number';
         $contactValue = $request->$contactMethod;
 
-        $jobseeker = DB::table('Trainers')
+        $jobseeker = DB::table('trainers')
             ->where($contactMethod, $contactValue)
             ->first();
 
@@ -630,7 +630,7 @@ class TrainerController extends Controller
         }
 
         // Update password
-        DB::table('Trainers')
+        DB::table('trainers')
             ->where($contactMethod, $contactValue)
             ->update([
                 'password' => Hash::make($request->new_password),
