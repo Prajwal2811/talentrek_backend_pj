@@ -15,12 +15,9 @@ use App\Models\Skills;
 use App\Models\JobseekerAssessmentStatus;
 use App\Models\JobseekerAssessmentData;
 use App\Models\Mentors;
-<<<<<<< HEAD
 use App\Models\TrainerAssessment;
-=======
 use App\Models\Assessors;
 use App\Models\Coach;
->>>>>>> b3671b257e339665b800178f8d977824a0c0634d
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -1215,43 +1212,6 @@ class JobseekerController extends Controller
         return redirect()->route('signin.form')->with('success', 'Password changed successfully.');
     }
 
-  
-
-    // public function mentorshipDetails($id)
-    // {
-    //     $mentorDetails = Mentors::with([
-    //             'reviews.jobseeker',
-    //             'additionalInfo',
-    //             'profilePicture',
-    //             'experiences',
-    //             'educations' => function ($q) {
-    //                 $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
-    //             },
-               
-    //             'bookingSlots'  
-    //         ])
-    //         ->where('id', $id)
-    //         ->firstOrFail();
-    //         // echo "<pre>";
-    //         // print_r($mentorDetails);exit;
-    //     $reviews = DB::table('reviews')
-    //         ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
-    //         ->where('reviews.user_type', 'mentor')
-    //         ->select(
-    //             'reviews.*',
-    //             'jobseekers.name as jobseeker_name'
-    //         )
-    //         ->get();
-
-       
-
-    //         // echo "<pre>";
-    //         // print_r($reviews);exit;
-    //         // echo "</pre>";
-
-    //     return view('site.mentorship-details', compact('mentorDetails','reviews'));
-    // }
-
 
     public function mentorshipDetails($id)
     {
@@ -1300,56 +1260,380 @@ class JobseekerController extends Controller
         return view('site.mentorship-details', compact('mentorDetails', 'reviews'));
     }
 
-    
 
     public function bookingSession($mentor_id, $slot_id) {
+        $mentor = Mentors::with([
+            'reviews.jobseeker',
+            'additionalInfo',
+            'profilePicture',
+            'experiences',
+        ])
+        ->where('id', $mentor_id)
+        ->firstOrFail();
+
+        // Calculate total experience
+        $experiences = DB::table('work_experience')
+            ->where('user_id', $mentor_id)
+            ->where('user_type', 'mentor')
+            ->get();
+
+        $totalDays = 0;
+
+        foreach ($experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $interval = CarbonInterval::days($totalDays)->cascade();
+        $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
+
+        // Pass experience as property (optional)
+        $mentor->total_experience = $totalExperience;
+
         $mentorDetails = Mentors::select('mentors.*','booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
-                                ->where('mentors.id', $mentor_id)
-                                ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
-                                ->where('booking_slots.id', $slot_id)
-                                ->first();
-        // echo "<pre>";
-        // print_r($slot_id); die;
-        return view('site.mentorship-book-session', compact('mentorDetails'));
+            ->where('mentors.id', $mentor_id)
+            ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
+            ->where('booking_slots.id', $slot_id)
+            ->first();
+        return view('site.mentorship-book-session', compact('mentorDetails','mentor'));
     }
 
-    public function bookingAssessorSession($assessor_id, $slot_id) {
+
+    public function bookingAssessorSession($assessor_id, $slot_id) 
+    {
+      
+        $assessor = Assessors::with([
+            'reviews.jobseeker',
+            'additionalInfo',
+            'profilePicture',
+            'experiences',
+        ])
+        ->where('id', $assessor_id)
+        ->firstOrFail();
+
+        // Calculate total experience
+        $experiences = DB::table('work_experience')
+            ->where('user_id', $assessor_id)
+            ->where('user_type', 'assessor')
+            ->get();
+
+        $totalDays = 0;
+
+        foreach ($experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $interval = CarbonInterval::days($totalDays)->cascade();
+        $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
+
+        // Pass experience as property (optional)
+        $assessor->total_experience = $totalExperience;
+
+
+
         $assessorDetails = Assessors::select('assessors.*','booking_slots.*','booking_slots.id as booking_slot_id','assessors.id as assessor_id')
-                                ->where('assessors.id', $assessor_id)
-                                ->join('booking_slots', 'assessors.id', '=', 'booking_slots.user_id')
-                                ->where('booking_slots.id', $slot_id)
-                                ->first();
-        // echo "<pre>";
-        // print_r($slot_id); die;
-        return view('site.assessment-book-session', compact('assessorDetails'));
+            ->where('assessors.id', $assessor_id)
+            ->join('booking_slots', 'assessors.id', '=', 'booking_slots.user_id')
+            ->where('booking_slots.id', $slot_id)
+            ->first();
+
+        return view('site.assessment-book-session', compact('assessorDetails','assessor'));
     }
 
-    public function bookingCoachSession($coach_id, $slot_id) {
+    
+    public function bookingCoachSession($coach_id, $slot_id) 
+    {
+        $coach = Coach::with([
+            'reviews.jobseeker',
+            'additionalInfo',
+            'profilePicture',
+            'experiences',
+        ])
+        ->where('id', $coach_id)
+        ->firstOrFail();
+
+        // Calculate total experience
+        $experiences = DB::table('work_experience')
+            ->where('user_id', $coach_id)
+            ->where('user_type', 'coach')
+            ->get();
+
+        $totalDays = 0;
+
+        foreach ($experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $interval = CarbonInterval::days($totalDays)->cascade();
+        $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
+
+        // Pass experience as property (optional)
+        $coach->total_experience = $totalExperience;
+
+
         $coachDetails = Coach::select('coaches.*','booking_slots.*','booking_slots.id as booking_slot_id','coaches.id as coach_id')
-                                ->where('coaches.id', $coach_id)
-                                ->join('booking_slots', 'coaches.id', '=', 'booking_slots.user_id')
-                                ->where('booking_slots.id', $slot_id)
-                                ->first();
-        // echo "<pre>";
-        // print_r($slot_id); die;
-        return view('site.coach-book-session', compact('coachDetails'));
+            ->where('coaches.id', $coach_id)
+            ->join('booking_slots', 'coaches.id', '=', 'booking_slots.user_id')
+            ->where('booking_slots.id', $slot_id)
+            ->first();
+        return view('site.coach-book-session', compact('coachDetails','coach'));
+    }
+
+
+    public function getAvailableSlots(Request $request)
+    {
+        $mode = $request->query('mode');
+        $date = $request->query('date');
+        $mentor_id = $request->query('mentor_id');
+        $jobseeker_id = auth('jobseeker')->id(); // or use from request if sent
+
+        if (!$mode || !$date || !$mentor_id) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Missing required parameters.'
+            ], 400);
+        }
+
+        $formattedDate = date('Y-m-d', strtotime($date));
+
+        $slots = BookingSlot::where('slot_mode', $mode)
+            ->where('user_type', 'mentor')
+            ->where('user_id', $mentor_id)
+            ->get();
+
+        if ($slots->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No slots available.'
+            ], 404);
+        }
+
+        // Step: Get already booked slots by jobseeker on selected date
+        $bookedSlots = DB::table('jobseeker_saved_booking_session')
+            ->where('jobseeker_id', $jobseeker_id)
+            ->where('user_type', 'mentor')
+            ->where('user_id', $mentor_id)
+            ->whereDate('slot_date', $formattedDate)
+            ->pluck('booking_slot_id')
+            ->toArray();
+
+        // Get slot IDs that are unavailable for this date from separate table
+        $unavailableSlotIds = DB::table('booking_slots_unavailable_dates')
+            ->where('unavailable_date', $formattedDate)
+            ->pluck('booking_slot_id')
+            ->toArray();
+
+        // Transform each slot with is_unavailable flag
+        $slots->transform(function ($slot) use ($formattedDate, $unavailableSlotIds) {
+            $unavailableDates = [];    
+
+            if (!empty($slot->unavailable_dates)) {
+                if (is_string($slot->unavailable_dates)) {
+                    $decoded = json_decode($slot->unavailable_dates, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $unavailableDates = $decoded;
+                    }
+                } elseif (is_array($slot->unavailable_dates)) {
+                    $unavailableDates = $slot->unavailable_dates;
+                }
+            }
+
+            $slot->is_unavailable = in_array($formattedDate, $unavailableDates) || in_array($slot->id, $unavailableSlotIds);
+            $slot->start_time = \Carbon\Carbon::parse($slot->start_time)->format('h:i A');
+            $slot->end_time = \Carbon\Carbon::parse($slot->end_time)->format('h:i A');
+
+            return $slot;
+        });
+
+        return response()->json([
+            'status' => true,
+            'date' => $formattedDate,
+            'slots' => $slots,
+            'booked_slot_ids' => $bookedSlots
+        ]);
+    }
+
+
+    public function getAssesorAvailableSlots(Request $request)
+    {
+        $mode = $request->query('mode');
+        $date = $request->query('date');
+        $assessor_id = $request->query('assessor_id');
+        $jobseeker_id = auth('jobseeker')->id(); 
+
+        if (!$mode || !$date || !$assessor_id) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Missing required parameters.'
+            ], 400);
+        }
+
+        $formattedDate = date('Y-m-d', strtotime($date));
+
+        // Get all slots for the assessor
+        $slots = BookingSlot::where('slot_mode', $mode)
+            ->where('user_type', 'assessor')
+            ->where('user_id', $assessor_id)
+            ->get();
+
+        if ($slots->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No slots available.'
+            ], 404);
+        }
+
+        // Get already booked slots by jobseeker on selected date
+        $bookedSlots = DB::table('jobseeker_saved_booking_session')
+            ->where('jobseeker_id', $jobseeker_id)
+            ->where('user_type', 'assessor')
+            ->where('user_id', $assessor_id)
+            ->whereDate('slot_date', $formattedDate)
+            ->pluck('booking_slot_id')
+            ->toArray();
+
+        // Get slot IDs that are unavailable for this date from separate table
+        $unavailableSlotIds = DB::table('booking_slots_unavailable_dates')
+            ->where('unavailable_date', $formattedDate)
+            ->pluck('booking_slot_id')
+            ->toArray();
+
+        // Transform each slot with is_unavailable flag
+        $slots->transform(function ($slot) use ($formattedDate, $unavailableSlotIds) {
+            $unavailableDates = [];
+
+            // Decode unavailable_dates JSON field
+            if (!empty($slot->unavailable_dates)) {
+                if (is_string($slot->unavailable_dates)) {
+                    $decoded = json_decode($slot->unavailable_dates, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $unavailableDates = $decoded;
+                    }
+                } elseif (is_array($slot->unavailable_dates)) {
+                    $unavailableDates = $slot->unavailable_dates;
+                }
+            }
+
+            $slot->is_unavailable = in_array($formattedDate, $unavailableDates) || in_array($slot->id, $unavailableSlotIds);
+            $slot->start_time = \Carbon\Carbon::parse($slot->start_time)->format('h:i A');
+            $slot->end_time = \Carbon\Carbon::parse($slot->end_time)->format('h:i A');
+
+            return $slot;
+        });
+
+        return response()->json([
+            'status' => true,
+            'date' => $formattedDate,
+            'slots' => $slots,
+            'booked_slot_ids' => $bookedSlots
+        ]);
+    }
+
+
+    public function getCoachAvailableSlots(Request $request)
+    {
+        $mode = $request->query('mode');
+        $date = $request->query('date');
+        $coach_id = $request->query('coach_id');
+        $jobseeker_id = auth('jobseeker')->id(); // or use from request if sent
+
+        if (!$mode || !$date || !$coach_id) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Missing required parameters.'
+            ], 400);
+        }
+
+        $formattedDate = date('Y-m-d', strtotime($date));
+
+        $slots = BookingSlot::where('slot_mode', $mode)
+            ->where('user_type', 'coach')
+            ->where('user_id', $coach_id)
+            ->get();
+
+        if ($slots->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No slots available.'
+            ], 404);
+        }
+
+        // Step: Get already booked slots by jobseeker on selected date
+        $bookedSlots = DB::table('jobseeker_saved_booking_session')
+            ->where('jobseeker_id', $jobseeker_id)
+            ->where('user_type', 'coach')
+            ->where('user_id', $coach_id)
+            ->whereDate('slot_date', $formattedDate)
+            ->pluck('booking_slot_id')
+            ->toArray();
+
+        // Get slot IDs that are unavailable for this date from separate table
+        $unavailableSlotIds = DB::table('booking_slots_unavailable_dates')
+            ->where('unavailable_date', $formattedDate)
+            ->pluck('booking_slot_id')
+            ->toArray();
+
+        // Transform each slot with is_unavailable flag
+        $slots->transform(function ($slot) use ($formattedDate, $unavailableSlotIds) {
+            $unavailableDates = [];    
+
+            if (!empty($slot->unavailable_dates)) {
+                if (is_string($slot->unavailable_dates)) {
+                    $decoded = json_decode($slot->unavailable_dates, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $unavailableDates = $decoded;
+                    }
+                } elseif (is_array($slot->unavailable_dates)) {
+                    $unavailableDates = $slot->unavailable_dates;
+                }
+            }
+
+            $slot->is_unavailable = in_array($formattedDate, $unavailableDates) || in_array($slot->id, $unavailableSlotIds);
+            $slot->start_time = \Carbon\Carbon::parse($slot->start_time)->format('h:i A');
+            $slot->end_time = \Carbon\Carbon::parse($slot->end_time)->format('h:i A');
+
+            return $slot;
+        });
+
+        return response()->json([
+            'status' => true,
+            'date' => $formattedDate,
+            'slots' => $slots,
+            'booked_slot_ids' => $bookedSlots
+        ]);
     }
 
 
     public function submitMentorshipBooking(Request $request)
     {
-        
         $request->validate([
             'mentor_id' => 'required|exists:mentors,id',
             'mode' => 'required|in:online,offline',
             'date' => 'required|date',
             'slot_id' => 'required|exists:booking_slots,id',
-            'slot_time' => ['required'],
+            'slot_time' => 'required',
         ]);
 
         $jobseeker = auth('jobseeker')->user();
 
-        // Step 1: Save booking without Zoom info
+        // Step 0: Check for existing booking on same date
+        $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
+            ->where('user_type', 'mentor')
+            ->where('user_id', $request->mentor_id)
+            ->whereDate('slot_date', $request->date)
+            ->whereIn('status', ['pending', 'confirmed']) // optional: skip cancelled
+            ->first();
+
+        if ($existingBooking) {
+            return redirect()->back()->with('error', 'You have already booked a session for this date.');
+        }
+
+        // Step 1: Save booking
         $booking = BookingSession::create([
             'jobseeker_id' => $jobseeker->id,
             'user_type' => 'mentor',
@@ -1361,13 +1645,11 @@ class JobseekerController extends Controller
             'status' => 'pending',
         ]);
 
-        // Step 2: If online, create Zoom meeting
+        // Step 2: Create Zoom if online
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
-
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-
-            $zoomMeeting = $zoom->createMeeting("Mentorship with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -1379,61 +1661,138 @@ class JobseekerController extends Controller
             }
         }
 
-       return redirect()->back()->with([
+        return redirect()->back()->with([
             'success' => 'Session booked successfully.',
             'booking_id' => $booking->id,
             'slot_date' => $request->date,
             'slot_time' => $request->slot_time,
             'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
         ]);
-
     }
 
-    
 
-    public function getAvailableSlots(Request $request)
+    public function submitAssessorBooking(Request $request)
     {
-        $mode = $request->query('mode');
-        $date = $request->query('date'); // Expecting format: YYYY-MM-DD
-        $mentor_id = $request->query('mentor_id');
+        $request->validate([
+            'assessor_id' => 'required|exists:assessors,id',
+            'mode' => 'required|in:online,offline',
+            'date' => 'required|date',
+            'slot_id' => 'required|exists:booking_slots,id',
+            'slot_time' => 'required',
+        ]);
 
-        $formattedDate = date('Y-m-d', strtotime($date));
+        $jobseeker = auth('jobseeker')->user();
 
-        // Fetch all slots for this mentor and mode
-        $slots = BookingSlot::where('slot_mode', $mode)
-                            ->where('user_type', 'mentor')
-                            ->where('user_id', $mentor_id)
-                            ->get();
+        // Step 0: Check for existing booking on same date
+        $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
+            ->where('user_type', 'assessor')
+            ->where('user_id', $request->assessor_id)
+            ->whereDate('slot_date', $request->date)
+            ->whereIn('status', ['pending', 'confirmed']) // optional: skip cancelled
+            ->first();
 
-        $slots->transform(function ($slot) use ($formattedDate) {
-        $isUnavailable = false;
-        $unavailableDates = [];
+        if ($existingBooking) {
+            return redirect()->back()->with('error', 'You have already booked a session for this date.');
+        }
 
-        if (!empty($slot->unavailable_dates)) {
-            if (is_string($slot->unavailable_dates)) {
-                $decoded = json_decode($slot->unavailable_dates, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $unavailableDates = $decoded;
-                }
-            } elseif (is_array($slot->unavailable_dates)) {
-                $unavailableDates = $slot->unavailable_dates;
+        // Step 1: Save booking
+        $booking = BookingSession::create([
+            'jobseeker_id' => $jobseeker->id,
+            'user_type' => 'assessor',
+            'user_id' => $request->assessor_id,
+            'booking_slot_id' => $request->slot_id,
+            'slot_date' => $request->date,
+            'slot_mode' => $request->mode,
+            'slot_time' => $request->slot_time,
+            'status' => 'pending',
+        ]);
+
+        // Step 2: Create Zoom if online
+        if ($request->mode === 'online') {
+            $zoom = new ZoomService();
+            $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
+            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
+
+            if ($zoomMeeting) {
+                $booking->update([
+                    'zoom_start_url' => $zoomMeeting['start_url'],
+                    'zoom_join_url' => $zoomMeeting['join_url'],
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Zoom meeting creation failed.');
             }
         }
 
-        $isUnavailable = in_array($formattedDate, $unavailableDates);
-
-        $slot->is_unavailable = $isUnavailable;
-        $slot->start_time = \Carbon\Carbon::parse($slot->start_time)->format('h:i A');
-        $slot->end_time = \Carbon\Carbon::parse($slot->end_time)->format('h:i A');
-
-        return $slot;
-    });
-
-
-        return response()->json($slots);
+        return redirect()->back()->with([
+            'success' => 'Session booked successfully.',
+            'booking_id' => $booking->id,
+            'slot_date' => $request->date,
+            'slot_time' => $request->slot_time,
+            'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
+        ]);
     }
 
 
+    public function submitCoachBooking(Request $request)
+    {
+        $request->validate([
+            'coach_id' => 'required|exists:coaches,id',
+            'mode' => 'required|in:online,offline',
+            'date' => 'required|date',
+            'slot_id' => 'required|exists:booking_slots,id',
+            'slot_time' => 'required',
+        ]);
+
+        $jobseeker = auth('jobseeker')->user();
+
+        // Step 0: Check for existing booking on same date
+        $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
+            ->where('user_type', 'coach')
+            ->where('user_id', $request->coach_id)
+            ->whereDate('slot_date', $request->date)
+            ->whereIn('status', ['pending', 'confirmed']) // optional: skip cancelled
+            ->first();
+
+        if ($existingBooking) {
+            return redirect()->back()->with('error', 'You have already booked a session for this date.');
+        }
+
+        // Step 1: Save booking
+        $booking = BookingSession::create([
+            'jobseeker_id' => $jobseeker->id,
+            'user_type' => 'coach',
+            'user_id' => $request->coach_id,
+            'booking_slot_id' => $request->slot_id,
+            'slot_date' => $request->date,
+            'slot_mode' => $request->mode,
+            'slot_time' => $request->slot_time,
+            'status' => 'pending',
+        ]);
+
+        // Step 2: Create Zoom if online
+        if ($request->mode === 'online') {
+            $zoom = new ZoomService();
+            $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
+            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
+
+            if ($zoomMeeting) {
+                $booking->update([
+                    'zoom_start_url' => $zoomMeeting['start_url'],
+                    'zoom_join_url' => $zoomMeeting['join_url'],
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Zoom meeting creation failed.');
+            }
+        }
+
+        return redirect()->back()->with([
+            'success' => 'Session booked successfully.',
+            'booking_id' => $booking->id,
+            'slot_date' => $request->date,
+            'slot_time' => $request->slot_time,
+            'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
+        ]);
+    }
 
 
     public function courseDetails($id)
@@ -1573,7 +1932,6 @@ class JobseekerController extends Controller
 
         return redirect()->back()->with('success', 'Item added to cart successfully.');
     }
-
 
 
     public function submitReview(Request $request)
@@ -1722,7 +2080,6 @@ class JobseekerController extends Controller
     }
     
 
-
     public function purchaseCourse(Request $request)
     {
         if (!auth('jobseeker')->check()) {
@@ -1771,7 +2128,6 @@ class JobseekerController extends Controller
     }
 
 
-<<<<<<< HEAD
     public function viewAssessment($id)
     {
         $assessment = TrainerAssessment::where('material_id', $id)
@@ -1840,7 +2196,6 @@ class JobseekerController extends Controller
         ));
 
     }
-
 
 
     public function saveJobseekerAnswer(Request $request)
@@ -1945,9 +2300,6 @@ class JobseekerController extends Controller
     }
 
 
-
-    
-=======
     public function assessorDetails($id)
     {
         $assessor = Assessors::with([
@@ -2162,5 +2514,4 @@ class JobseekerController extends Controller
         ]);
     }
 
->>>>>>> b3671b257e339665b800178f8d977824a0c0634d
 }

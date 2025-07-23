@@ -86,7 +86,17 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');
 		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
 		Route::get('/get-available-slots', [JobseekerController::class, 'getAvailableSlots'])->name('get-available-slots');
+		Route::get('/get-assessor-available-slots', [JobseekerController::class, 'getAssesorAvailableSlots'])->name('get-assessor-available-slots');
+
+		Route::get('/get-coach-available-slots', [JobseekerController::class, 'getCoachAvailableSlots'])->name('get-coach-available-slots');
+		
+
+		
 		Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
+		Route::post('/assessor-book-session', [JobseekerController::class, 'submitAssessorBooking'])->name('assessor-booking-submit');
+		Route::post('/coach-book-session', [JobseekerController::class, 'submitCoachBooking'])->name('coach-booking-submit');
+
+
 
 		Route::get('/jobseeker/mentorship-booking-success', function () {
 			return view('jobseeker.booking-success');

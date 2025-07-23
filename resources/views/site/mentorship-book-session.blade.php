@@ -92,34 +92,43 @@
               <div class="flex-1">
 
 
-                 <div class="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-lg">
+                <div class="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-lg">
                     <div class="flex items-center gap-6">
-                        <img src="{{ asset('asset/images/client-logo/w2.png') }}" alt="Mentor" class="w-28 h-28 rounded-full object-cover border" />
+                        @php
+                            $profilePicture = optional($mentor->profilePicture)->document_path ?? asset('default.jpg');
+                            $avgRating = number_format($mentor->reviews->avg('ratings'), 1);
+                            $reviewStars = floor($avgRating);
+                        @endphp
+
+                        <img src="{{ $profilePicture }}" alt="{{ $mentor->name }}" class="w-28 h-28 rounded-full object-cover border" />
+
                         <div>
-                        <h1 class="text-xl font-semibold text-gray-900">Mohammad Raza</h1>
-                        <p class="text-sm text-gray-600 mt-1">Web Designer</p>
-                        <p class="text-sm text-gray-500 mt-0.5">5+ years experience</p>
-                        <div class="flex items-center mt-1 text-sm">
-                            <div class="flex text-[#f59e0b]">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9 "/></svg>
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9 "/></svg>
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9 "/></svg>
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9 "/></svg>
-                            <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9 "/></svg>
+                            <h1 class="text-xl font-semibold text-gray-900">{{ $mentor->name }}</h1>
+                            <!-- <p class="text-sm text-gray-600 mt-1">{{ $mentor->additionalInfo->designation ?? 'mentor' }}</p> -->
+                             <p class="text-sm text-gray-700 mt-0.5">
+                                {{ $mentor->total_experience ?? '0 years 0 months 0 days' }} of experience
+                            </p>
+
+                            <div class="flex items-center mt-1 text-sm">
+                                <div class="flex text-[#f59e0b]">
+                                    @for ($i = 0; $i < 5; $i++)
+                                        @if ($i < $reviewStars)
+                                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9"/></svg>
+                                        @else
+                                            <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20"><polygon points="9.9,1.1 7.6,6.9 1.4,7.6 6.1,11.8 4.8,18 9.9,14.9 15,18 13.7,11.8 18.4,7.6 12.2,6.9"/></svg>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <span class="ml-2 text-gray-600">({{ $avgRating }}/5) <span class="text-xs">Rating</span></span>
                             </div>
-                            <span class="ml-2 text-gray-600">(4.8/5) <span class="text-xs">Rating</span></span>
-                        </div>
-                        <p class="text-sm text-gray-800 font-semibold mt-1">
-                            SAR 89 <span class="text-xs text-gray-500">per mentorship session</span>
-                        </p>
                         </div>
                     </div>
-                    </div>
+                </div>
 
                     
 
                     <div class="row">
-                        <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
+                        <div class="col-6 ml-auto mr-auto text-center" style="margin: auto">
                             @if (session()->has('error'))
                                 <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
                                     <strong>Oops!</strong> {{ session('error') }}
@@ -144,7 +153,7 @@
                                 errorAlert.classList.add('fade');
                                 setTimeout(() => errorAlert.remove(), 500); // Remove from DOM after fade
                             }
-                        }, 3000);
+                        }, 10000);
                     </script>
                     <section class="max-w-7xl mx-auto p-4">
                         <form method="POST" action="{{ route('mentorship-booking-submit') }}">
@@ -188,6 +197,57 @@
                             </div>
                         </form>
 
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                        <script>
+                            $(document).ready(function () {
+                                // Book button click validation
+                                $('#bookBtn').on('click', function(e) {
+                                    e.preventDefault();
+
+                                    let mode = $('#modeSelect').val();
+                                    let date = $('#dateInput').val();
+                                    let slotId = $('#selectedSlotId').val();
+                                    let slotTime = $('#selectedSlotTime').val();
+
+                                    // Clear previous errors
+                                    $('.error-message').remove();
+
+                                    let isValid = true;
+
+                                    if (!mode) {
+                                        $('#modeSelect').after('<span class="text-red-500 error-message">Please select assessment mode</span>');
+                                        isValid = false;
+                                    }
+
+                                    if (!date) {
+                                        $('#dateInput').after('<span class="text-red-500 error-message">Please select a date</span>');
+                                        isValid = false;
+                                    }
+
+                                    if (!slotId || !slotTime) {
+                                        $('#slotContainer').after('<span class="text-red-500 error-message">Please select a time slot</span>');
+                                        isValid = false;
+                                    }
+
+                                    if (isValid) {
+                                        $(this).closest('form').submit();
+                                    }
+                                });
+
+                                // Remove error message on change or input
+                                $('#modeSelect').on('change', function () {
+                                    $(this).next('.error-message').remove();
+                                });
+
+                                $('#dateInput').on('input change', function () {
+                                    $(this).next('.error-message').remove();
+                                });
+
+                                $('#slotContainer').on('click', 'button', function () {
+                                    $('#slotContainer').next('.error-message').remove();
+                                });
+                            });
+                        </script>
                         <!-- Script -->
                         <script>
                             document.getElementById('modeSelect').addEventListener('change', fetchSlots);
@@ -211,30 +271,41 @@
                                     .then(data => {
                                         container.innerHTML = '';
 
-                                        if (data.length === 0) {
-                                            container.innerHTML = `<p class="col-span-4 text-center text-gray-500">No slots available</p>`;
+                                        if (!data.status || data.slots.length === 0) {
+                                            container.innerHTML = `<p class="col-span-2 text-center text-gray-500">No slots available</p>`;
                                             return;
                                         }
 
-                                        data.forEach(slot => {
+                                        const bookedSlotIds = data.booked_slot_ids || [];
+
+                                        data.slots.forEach(slot => {
                                             const isUnavailable = slot.is_unavailable;
+                                            const isBooked = bookedSlotIds.includes(slot.id);
 
                                             const btn = document.createElement('button');
                                             btn.type = 'button';
-                                            btn.className = `border rounded py-2 px-3 w-full ${
-                                                isUnavailable
-                                                    ? 'text-red-600 border-red-500 cursor-not-allowed bg-red-50'
-                                                    : 'text-gray-900 hover:bg-blue-100'
-                                            }`;
 
+                                            let baseClass = 'border rounded py-2 px-3 w-full';
+                                            if (isUnavailable) {
+                                                baseClass += ' text-red-600 border-red-500 cursor-not-allowed bg-red-50';
+                                            } else if (isBooked) {
+                                                baseClass += ' bg-yellow-200 border-yellow-500 text-yellow-800'; // highlight booked
+                                            } else {
+                                                baseClass += ' text-gray-900';
+                                            }
+
+                                            btn.className = baseClass;
                                             btn.disabled = isUnavailable;
 
                                             btn.innerHTML = `
                                                 <p class="font-medium">${slot.start_time} - ${slot.end_time}</p>
-                                                <p class="text-xs ${isUnavailable ? 'text-red-600' : 'text-green-600'}">
-                                                    ${isUnavailable ? 'Unavailable' : 'Available'}
-                                                </p>
+                                                <p class="text-xs ${
+                                                    isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-600'
+                                                }">${isUnavailable ? 'Unavailable' : isBooked ? 'Already Booked' : 'Available'}</p>
                                             `;
+
+                                            btn.disabled = isUnavailable || isBooked;
+
 
                                             if (!isUnavailable) {
                                                 btn.setAttribute('data-available', 'true');
