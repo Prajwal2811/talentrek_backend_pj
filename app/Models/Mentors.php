@@ -42,13 +42,13 @@ class Mentors extends Authenticatable
     public function educations()
     {
         return $this->hasMany(EducationDetails::class, 'user_id')
-                    ->where('user_type', 'mentors');
+                    ->where('user_type', 'mentor');
     }
     public function experiences()
     {
 
         return $this->hasMany(WorkExperience::class, 'user_id')
-                    ->where('user_type', 'mentors');
+                    ->where('user_type', 'mentor');
     }
 
     public function trainingexperience()

@@ -1,3 +1,29 @@
+<?php
+use Illuminate\Support\Facades\DB;
+ 
+
+    use App\Models\Coach;
+
+    $coaches = Coach::with([
+        'reviews',
+        'additionalInfo' => function ($q) {
+            $q->whereIn('doc_type', ['coach_resume', 'coach_training_certificate']);
+        },
+        'profilePicture' => function ($q) {
+            $q->where('doc_type', 'coach_profile_picture');
+        },
+        'experiences'
+    ])
+    ->where('status', 'active')
+    ->paginate(9);
+
+
+
+    // echo "<pre>";
+    // print_r($assessors);exit;
+    // echo "</pre>";
+
+?>
 @include('site.componants.header')
 <body>
     <div class="loading-area">
@@ -98,13 +124,13 @@
 
 
                     <div class="max-w-4xl mx-auto space-y-4" x-data="{ open: null }">
-                        <!-- Mentorship Overview -->
+                        <!-- Coach Overview -->
                         <div class="border-b pb-4">
                         <button
                             @click="open === 1 ? open = null : open = 1"
                             class="w-full flex justify-between items-center text-left text-lg font-semibold focus:outline-none"
                         >
-                            <span>Mentorship overview</span>
+                            <span>Coach overview</span>
                             <svg :class="{'rotate-180': open === 1}" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -118,13 +144,13 @@
                         </div>
                         </div>
 
-                        <!-- Benefits of Mentorship -->
+                        <!-- Benefits of Coach -->
                         <div class="border-b pb-4">
                         <button
                             @click="open === 2 ? open = null : open = 2"
                             class="w-full flex justify-between items-center text-left text-lg font-semibold focus:outline-none"
                         >
-                            <span>Benefits of mentorship</span>
+                            <span>Benefits of Coach</span>
                             <svg :class="{'rotate-180': open === 2}" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -141,24 +167,38 @@
                         </div>
                     </div>
 
-                    <!-- Mentor cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <template x-for="mentor in paginatedMentors()" :key="mentor.id">
-                            <div class="bg-white rounded-lg shadow p-4 text-center">
-                                <!-- Rectangular image with rounded corners -->
-                                <img :src="mentor.image" :alt="mentor.name"
-                                    class="w-full h-48 object-cover rounded-md mb-4 mx-auto">
-                                <a href="{{ route('coach-details')}}">
-                                    <h3 class="text-lg font-semibold text-gray-900" x-text="mentor.name"></h3>
-                                </a>
-                                <p class="text-sm text-gray-600 mt-1" x-text="mentor.role"></p>
-
-                                <div class="flex items-center justify-center mt-2">
-                                    <span class="text-orange-500 text-sm mr-1">★</span>
-                                    <span class="text-sm text-gray-700">(4/5) Rating</span>
+                    <!-- coach Cards -->
+                    <div class="container mx-auto px-4 py-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($coaches as $coach)
+                                @php
+                                    $profilePicture = optional($coach->profilePicture)->document_path ?? asset('default.jpg');
+                                    $avgRating = $coach->reviews->avg('ratings') ?? 0;
+                                    $reviewCount = $coach->reviews->count();
+                                  
+                                @endphp
+                                <div class="bg-white rounded-lg shadow p-4 text-center space-y-3">
+                                    
+                                    <img src="{{ $profilePicture }}" alt="coach Image" class="w-full h-48 object-cover rounded-lg">
+                                    <a href="{{ route('coach-details', ['id' => $coach->id]) }}">
+                                        <h3 class="text-lg font-semibold text-gray-900 ">{{ $coach->name }}</h3>
+                                    </a>
+                                    <!-- <p class="text-sm text-gray-600">
+                                        {{ $coach->experiences->pluck('job_role')->implode(', ') ?: 'N/A' }}
+                                    </p> -->
+                                    <div class="flex items-center justify-center text-sm text-gray-700 space-x-1">
+                                        <span class="text-orange-500">★</span>
+                                        <span>{{ number_format($avgRating, 1) }}/5</span>
+                                        <span>({{ $reviewCount }} reviews)</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </template>
+                            @endforeach
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-8">
+                            {{ $coaches ->links('pagination::tailwind') }}
+                        </div>
                     </div>
 
 
@@ -179,61 +219,6 @@
             </div>
 
             <!-- Alpine Data -->
-            <script>
-                function mentorApp() {
-                    return {
-                        search: '',
-                        page: 1,
-                        perPage: 8,
-                        selectedTopics: [],
-                        selectedLevels: [],
-                        mentors: [
-                            { id: 1, name: 'Mohammad Raza', role: 'UI/UX Designer', rating: '4.5', image: 'https://randomuser.me/api/portraits/men/75.jpg', topic: 'design', level: 'basic' },
-                            { id: 2, name: 'Zayd Rahman', role: 'Video Editor', rating: '4.6', image: 'https://randomuser.me/api/portraits/men/76.jpg', topic: 'design', level: 'advanced' },
-                            { id: 3, name: 'Aisha Siddiqui', role: 'UI/UX Designer', rating: '4.7', image: 'https://randomuser.me/api/portraits/women/45.jpg', topic: 'design', level: 'basic' },
-                            { id: 4, name: 'Farhan Khan', role: 'Web Developer', rating: '4.3', image: 'https://randomuser.me/api/portraits/men/78.jpg', topic: 'coding', level: 'advanced' },
-                            { id: 5, name: 'Sana Ali', role: 'Graphic Designer', rating: '4.4', image: 'https://randomuser.me/api/portraits/women/47.jpg', topic: 'design', level: 'basic' },
-                            { id: 6, name: 'Imran Patel', role: 'Digital Marketing', rating: '4.2', image: 'https://randomuser.me/api/portraits/men/80.jpg', topic: 'language', level: 'advanced' },
-                            { id: 7, name: 'Fatima Noor', role: 'Animator', rating: '4.8', image: 'https://randomuser.me/api/portraits/women/52.jpg', topic: 'design', level: 'advanced' },
-                            { id: 8, name: 'Rohit Sen', role: 'Data Analyst', rating: '4.1', image: 'https://randomuser.me/api/portraits/men/83.jpg', topic: 'mechanical', level: 'basic' },
-                            { id: 9, name: 'Hina Sheikh', role: 'Content Writer', rating: '4.6', image: 'https://randomuser.me/api/portraits/women/54.jpg', topic: 'language', level: 'basic' },
-                            { id: 10, name: 'Aman Verma', role: 'Frontend Developer', rating: '4.9', image: 'https://randomuser.me/api/portraits/men/84.jpg', topic: 'coding', level: 'advanced' },
-                        ],
-                        get filteredMentors() {
-                            return this.mentors
-                                .filter(m =>
-                                    (!this.search || m.name.toLowerCase().includes(this.search.toLowerCase()) || m.role.toLowerCase().includes(this.search.toLowerCase()))
-                                )
-                                .filter(m =>
-                                    this.selectedTopics.length === 0 || this.selectedTopics.includes(m.topic)
-                                )
-                                .filter(m =>
-                                    this.selectedLevels.length === 0 || this.selectedLevels.includes(m.level)
-                                );
-                        },
-                        paginatedMentors() {
-                            const start = (this.page - 1) * this.perPage;
-                            return this.filteredMentors.slice(start, start + this.perPage);
-                        },
-                        get totalPages() {
-                            return Math.ceil(this.filteredMentors.length / this.perPage);
-                        },
-                        nextPage() {
-                            if (this.page < this.totalPages) this.page++;
-                        },
-                        prevPage() {
-                            if (this.page > 1) this.page--;
-                        }
-                    };
-                }
-
-                // Optional: Accordion toggle for filter sections
-                function toggleSection(sectionId, iconId) {
-                    const section = document.getElementById(sectionId);
-                    const icon = document.getElementById(iconId);
-                    section.classList.toggle('hidden');
-                    icon.classList.toggle('rotate-180');
-                }
-            </script>
+            
 
 @include('site.componants.footer')
