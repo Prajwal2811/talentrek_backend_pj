@@ -23,7 +23,6 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
 
-            $table->json('unavailable_dates')->nullable(); // For storing an array of unavailable dates
             $table->boolean('is_available')->nullable();
             $table->boolean('is_booked')->nullable();
 

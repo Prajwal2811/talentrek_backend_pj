@@ -12,6 +12,7 @@ class AssessmentOptionsTableSeeder extends Seeder
         $optionsData = [];
 
         $optionSets = [
+            // [question, [option, is_correct], ...]
             [
                 'Laravel is...',
                 ['A framework', true],
@@ -226,11 +227,12 @@ class AssessmentOptionsTableSeeder extends Seeder
 
         $questionId = 1;
 
-        foreach ($optionSets as $set) {
+        foreach ($optionSets as $index => $set) {
+            $assessmentId = ($index < 15) ? 1 : 2; // First 15 => assessment 1, next 15 => assessment 2
             foreach (array_slice($set, 1) as $option) {
                 $optionsData[] = [
                     'trainer_id' => 1,
-                    'assessment_id' => 1,
+                    'assessment_id' => $assessmentId,
                     'question_id' => $questionId,
                     'options' => $option[0],
                     'correct_option' => $option[1],

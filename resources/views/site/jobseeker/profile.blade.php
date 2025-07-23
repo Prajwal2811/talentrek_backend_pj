@@ -1364,7 +1364,6 @@ $skills = $user->skills->first();
 
 
                         @php
-                        
                             $courses = App\Models\JobseekerTrainingMaterialPurchase::select('training_batches.*','jobseeker_training_material_purchases.*','jobseeker_training_material_purchases.id as purchase_id')->with(['material.reviews'])
                                                         ->where('jobseeker_id', auth()->user()->id)
                                                         ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
@@ -1396,9 +1395,23 @@ $skills = $user->skills->first();
 
                                     $isAssessmentAvailable = false;
 
+                                    $jobseekerId = auth()->guard('jobseeker')->id();
+                                    $assessment = App\Models\TrainerAssessment::where('material_id', $material->id)->first();
+
+                                    $endDate = null;
+                                    $isAssessmentAvailable = false;
+                                    $assessmentTaken = false;
+
                                     if ($batchData && $batchData->start_date && $batchData->duration) {
                                         $endDate = \Carbon\Carbon::parse($batchData->start_date)->addDays($batchData->duration);
-                                        $isAssessmentAvailable = now()->gt($endDate); // if current time > endDate
+                                        $isAssessmentAvailable = now()->gt($endDate); // assessment is available after batch ends
+                                    }
+
+                                    if ($assessment) {
+                                        $assessmentTaken = App\Models\JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
+                                                            ->where('assessment_id', $assessment->id)
+                                                            ->where('submitted', 1)
+                                                            ->exists();
                                     }
                                 @endphp
 
@@ -1414,14 +1427,88 @@ $skills = $user->skills->first();
                                                 <h2 class="text-lg font-semibold text-gray-900">{{ $material->training_title }}</h2>
                                             </a>
 
-                                           <a 
-                                                href="{{ $isAssessmentAvailable ? '#' : route('training.join', $material->id) }}"
-                                                data-bs-toggle="{{ $isAssessmentAvailable ? 'modal' : '' }}"
-                                                data-bs-target="{{ $isAssessmentAvailable ? '#assessmentModal' : '' }}"
-                                                class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">
-                                                {{ $isAssessmentAvailable ? 'Take Assessment' : 'Join Training' }}
-                                            </a>
+                                           <!-- 👇 Button Display Logic -->
+                                            <div class="dropdown">
+                                                @if($assessment)
+                                                    <button class="btn " type="button" id="assessmentDropdown{{ $assessment->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
 
+                                                    <ul class="dropdown-menu" aria-labelledby="assessmentDropdown{{ $assessment->id }}">
+                                                        @if ($assessmentTaken)
+                                                            <li>
+                                                                <a class="dropdown-item text-green-600" href="{{ route('jobseeker.assessment.result', $assessment->id) }}">
+                                                                    View Score
+                                                                </a>
+                                                            </li>
+                                                        @elseif ($isAssessmentAvailable)
+                                                            <li>
+                                                                <a class="dropdown-item text-yellow-600" href="#" data-bs-toggle="modal" data-bs-target="#assessmentModal">
+                                                                    Take Assessment
+                                                                </a>
+                                                            </li>
+                                                        @else
+                                                            <li>
+                                                                <a class="dropdown-item text-blue-600" href="{{ route('training.join', $material->id ?? 0) }}">
+                                                                    Join Training
+                                                                </a>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
+                                                @elseif(!($assessment) && $material->training_type != 'classroom')  
+                                                    <button class="btn " type="button" id="assessmentDropdown{{ $material->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="assessmentDropdown{{ $material->id }}">
+                                                        <li>
+                                                            <a target="_blank" class="dropdown-item text-blue-600" href="{{ $batchData->zoom_join_url }}">
+                                                                Join Training
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                @elseif($material->training_type === 'classroom')  
+                                                    <button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="assessmentDropdown{{ $material->id }}">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="assessmentDropdown{{ $material->id }}">
+                                                        <li>
+                                                            <!-- Trigger modal on click -->
+                                                            <a href="#" class="dropdown-item text-blue-600" data-bs-toggle="modal" data-bs-target="#trainerAddressModal{{ $material->id }}">
+                                                                Classroom Address
+                                                            </a>
+                                                        </li>
+                                                        
+                                                    </ul>
+                                                    <!-- Trainer Address Modal -->
+                                                    <div class="modal fade" id="trainerAddressModal{{ $material->id }}" tabindex="-1" aria-labelledby="trainerAddressLabel{{ $material->id }}" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 500px;">
+                                                            <div class="modal-content border-0 shadow">
+                                                                <!-- Modal Header -->
+                                                                <div class="modal-header bg-light text-dark">
+                                                                    <h5 class="modal-title" id="trainerAddressLabel{{ $material->id }}">Trainer Address</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+
+                                                                <!-- Modal Body -->
+                                                                <div class="modal-body text-sm">
+                                                                    <p><strong>Name:</strong> {{ App\Models\Trainers::where('id', $material->trainer_id)->value('name') }}</p>
+                                                                    <p><strong>Phone Number:</strong> {{ App\Models\Trainers::where('id', $material->trainer_id)->value('phone_number') ?? 'Not available' }}</p>
+                                                                    <p><strong>Location:</strong> {{ App\Models\Trainers::where('id', $material->trainer_id)->value('city') ?? 'Not available' }}</p>
+                                                                </div>
+
+                                                                <!-- Modal Footer with Close Button -->
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+
+
+                                                @endif
+
+                                            </div>
                                             <!-- Assessment Modal -->
                                             <div class="modal fade" id="assessmentModal" tabindex="-1" aria-labelledby="assessmentModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered">
@@ -1445,9 +1532,6 @@ $skills = $user->skills->first();
                                                     </div>
                                                 </div>
                                             </div>
-
-
-
                                         </div>
 
 
@@ -1501,9 +1585,9 @@ $skills = $user->skills->first();
                                         </div>
                                     </div>
                                 </div>
+                                </div>
+                                </div>
                             @endforeach
-
-
                             </div>
                         </div>
 

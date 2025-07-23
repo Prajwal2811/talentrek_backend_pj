@@ -79,6 +79,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/save-remaining-time', [JobseekerController::class, 'saveRemainingTime'])->name('jobseeker.saveRemainingTime');
 
 		Route::get('/quiz/success', [JobseekerController::class, 'quizSuccess'])->name('jobseeker.quizSuccessPage');
+		Route::get('/assessment/result/{id}', [JobseekerController::class, 'viewScore'])->name('jobseeker.assessment.result');
 
 
 	});
@@ -108,11 +109,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		// Route::get('/zoom/create-meeting', [JobseekerController::class, 'createMeeting']);
 	
-	// routes/web.php
+		// routes/web.php
 
-	// Assessors
-	Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
-	Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
+		// Assessors
+		Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
+		Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
 
 
 

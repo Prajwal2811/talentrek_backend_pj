@@ -51,7 +51,7 @@
                                     Congratulations! You have finished the<br />
                                     assessment quiz successfully.
                                 </h2>
-                                <p class="text-lg text-gray-700 mb-2">
+                                {{-- <p class="text-lg text-gray-700 mb-2">
                                     You scored <span class="font-bold text-blue-600">{{ $result['score'] }}</span> out of
                                     <span class="font-bold text-blue-600">{{ $result['total'] }}</span>.
                                 </p>
@@ -60,9 +60,9 @@
                                     <p class="text-green-600 font-semibold mb-4">✅ You passed the quiz!</p>
                                 @else
                                     <p class="text-red-600 font-semibold mb-4">❌ You did not pass. Please try again after admin reset.</p>
-                                @endif
+                                @endif --}}
 
-                                <a href="see-scorecard.html">
+                                <a href="{{ route('jobseeker.assessment.result', $assessment->id) }}">
                                     <button class="mt-4 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-6 py-2.5 rounded">
                                         See scorecard
                                     </button>

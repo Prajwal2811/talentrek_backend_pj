@@ -24,6 +24,7 @@ class AssessmentQuestionsTableSeeder extends Seeder
             'What are relationships in Eloquent?',
             'What is CSRF protection in Laravel?',
             'How do you handle file uploads in Laravel?',
+
             'What is the use of queues in Laravel?',
             'How can you create a controller in Laravel?',
             'What is the difference between `hasOne` and `belongsTo`?',
@@ -41,14 +42,16 @@ class AssessmentQuestionsTableSeeder extends Seeder
             'What is the difference between `web.php` and `api.php` routes?'
         ];
 
+        $now = now();
         $data = [];
-        foreach ($questions as $question) {
+
+        foreach ($questions as $index => $question) {
             $data[] = [
                 'trainer_id' => 1,
-                'assessment_id' => 1,
+                'assessment_id' => $index < 15 ? 1 : 2, // First 15 -> Laravel Basics, Next 15 -> Advanced Laravel
                 'questions_title' => $question,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
 

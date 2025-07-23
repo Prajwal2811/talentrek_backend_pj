@@ -15,12 +15,9 @@ use App\Models\Skills;
 use App\Models\JobseekerAssessmentStatus;
 use App\Models\JobseekerAssessmentData;
 use App\Models\Mentors;
-<<<<<<< HEAD
 use App\Models\TrainerAssessment;
-=======
 use App\Models\Assessors;
 use App\Models\Coach;
->>>>>>> b3671b257e339665b800178f8d977824a0c0634d
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -1771,7 +1768,7 @@ class JobseekerController extends Controller
     }
 
 
-<<<<<<< HEAD
+
     public function viewAssessment($id)
     {
         $assessment = TrainerAssessment::where('material_id', $id)
@@ -1944,10 +1941,94 @@ class JobseekerController extends Controller
         return view('site.jobseeker.quiz_success');
     }
 
+   public function viewScore($id)
+{
+    $jobseekerId = Auth::guard('jobseeker')->id();
+
+    $assessment = TrainerAssessment::with(['questions.options'])->findOrFail($id);
+
+    // Check if submitted
+    $status = JobseekerAssessmentStatus::where([
+        ['assessment_id', '=', $id],
+        ['jobseeker_id', '=', $jobseekerId],
+        ['submitted', '=', '1'],
+    ])->first();
+
+    if (!$status) {
+        return redirect()->back()->with('error', 'You have not submitted this assessment yet.');
+    }
+
+    // Fetch all submitted answers
+    $answers = JobseekerAssessmentData::where([
+        ['assessment_id', '=', $id],
+        ['jobseeker_id', '=', $jobseekerId],
+    ])->get();
+
+    // Map of question_id => selected_answer
+    $answeredMap = $answers->keyBy('question_id');
+    $answeredAnswers = $answeredMap->map(fn($a) => $a->selected_answer)->toArray();
+
+    // Build result data
+    $questionsWithAnswers = $assessment->questions->map(function ($question) use ($answeredMap) {
+        $answer = $answeredMap->get($question->id);
+        $options = $question->options->pluck('options')->toArray();
+        $correctAnswer = $question->options->firstWhere('correct_option', 1)?->options;
+        $selectedAnswer = $answer?->selected_answer;
+
+        return [
+            'id'              => $question->id,
+            'question'        => $question->questions_title,
+            'options'         => $options,
+            'correct_answer'  => $correctAnswer,
+            'selected_answer' => $selectedAnswer,
+            'is_correct'      => $selectedAnswer === $correctAnswer,
+        ];
+    });
+
+    $totalQuestions = $assessment->total_questions;
+    $correctAnswers = $questionsWithAnswers->where('is_correct', true)->count();
+    $score = $correctAnswers;
+    $passingScore = $assessment->passing_questions;
+    $resultStatus = $score >= $passingScore ? 'Passed' : 'Failed';
+
+    // This is the structure used by the quiz/result UI
+    $quizQuestions = $assessment->questions->map(function ($question) use ($assessment, $answeredAnswers) {
+        $options = $question->options->pluck('options')->toArray();
+        $selectedAnswer = $answeredAnswers[$question->id] ?? null;
+        $selectedIndex = is_null($selectedAnswer) ? null : array_search($selectedAnswer, $options);
+        $correctAnswer = $question->options->firstWhere('correct_option', 1)?->options;
+        $correctIndex = array_search($correctAnswer, $options);
+
+        return [
+            'id'               => $question->id,
+            'question'         => $question->questions_title,
+            'options'          => $options,
+            'correct_option'   => $correctAnswer,
+            'correct_index'    => $correctIndex,
+            'trainer_id'       => $assessment->trainer_id,
+            'material_id'      => $assessment->material_id,
+            'assessment_id'    => $assessment->id,
+            'totalQuestions'   => $assessment->total_questions,
+            'passingQuestions' => $assessment->passing_questions,
+            'selected_index'   => $selectedIndex,
+        ];
+    });
+
+    return view('site.jobseeker.assessment-result', compact(
+        'assessment',
+        'score',
+        'totalQuestions',
+        'resultStatus',
+        'questionsWithAnswers',
+        'quizQuestions'
+    ));
+}
+
+
+
 
 
     
-=======
     public function assessorDetails($id)
     {
         $assessor = Assessors::with([
@@ -2162,5 +2243,6 @@ class JobseekerController extends Controller
         ]);
     }
 
->>>>>>> b3671b257e339665b800178f8d977824a0c0634d
+
+    
 }
