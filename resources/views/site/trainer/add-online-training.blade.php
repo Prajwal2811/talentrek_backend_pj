@@ -90,10 +90,10 @@
                             <label class="block font-medium mb-2">Session Type</label>
                             <div class="flex flex-wrap gap-4">
                                 <label>
-                                    <input type="radio" name="training_category" value="Online" class="mr-2" /> Online
+                                    <input type="radio" name="training_category" value="online" class="mr-2" /> Online
                                 </label>
                                 <label>
-                                    <input type="radio" name="training_category" value="Classroom" class="mr-2" /> Classroom
+                                    <input type="radio" name="training_category" value="classroom" class="mr-2" /> Classroom
                                 </label>
                             </div>
                             @error('training_category')
