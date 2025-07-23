@@ -81,12 +81,12 @@
                             <label class="block font-medium mb-2">Session Type</label>
                             <div class="flex flex-wrap gap-4">
                                 <label>
-                                    <input type="radio" name="training_category" value="Online"
+                                    <input type="radio" name="training_category" value="online"
                                     {{ old('training_category', $training->session_type ?? '') == 'Online' ? 'checked' : '' }} /> 
                                         Online
                                 </label>
                                 <label>
-                                    <input type="radio" name="training_category" value="Classroom"
+                                    <input type="radio" name="training_category" value="classroom"
                                     {{ old('training_category', $training->session_type ?? '') == 'Classroom' ? 'checked' : '' }} /> Classroom
 
                                 </label>

@@ -67,7 +67,7 @@
 
                         <div>
                             <h1 class="text-xl font-semibold text-gray-900">{{ $assessor->name }}</h1>
-                            <p class="text-sm text-gray-600 mt-1">{{ $assessor->additionalInfo->designation ?? 'Assessor' }}</p>
+                            <!-- <p class="text-sm text-gray-600 mt-1">{{ $assessor->additionalInfo->designation ?? 'Assessor' }}</p> -->
                              <p class="text-sm text-gray-700 mt-0.5">
                                 {{ $assessor->total_experience ?? '0 years 0 months 0 days' }} of experience
                             </p>
