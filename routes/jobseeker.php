@@ -71,6 +71,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 			
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
 
+		Route::post('/jobseeker/save-answer', [JobseekerController::class, 'saveJobseekerAnswer'])->name('jobseeker.saveAnswer');
+		Route::post('/jobseeker/submit-quiz', [JobseekerController::class, 'submitQuiz'])->name('jobseeker.submitQuiz');
+		Route::post('/save-remaining-time', [JobseekerController::class, 'saveRemainingTime'])->name('jobseeker.saveRemainingTime');
+
+		Route::get('/quiz/success', [JobseekerController::class, 'quizSuccess'])->name('jobseeker.quizSuccessPage');
 
 
 	});
@@ -86,6 +91,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
+		Route::get('/take-assessment/{id}', [JobseekerController::class, 'viewAssessment'])->name('assessment.view');
 
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');

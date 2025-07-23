@@ -1383,12 +1383,23 @@ $skills = $user->skills->first();
                                     $reviews = $material->reviews ?? collect();
                                     $trainerName = App\Models\Trainers::where('id', $material->trainer_id)->value('name');
                                     $batchCount = App\Models\TrainingBatch::where('training_material_id', $material->id)->count();
+                                    // $batchData = App\Models\TrainingBatch::where('training_material_id', $material->id)->where('batch_no',$purchase->batch_no)->first();
                                     $duration = App\Models\TrainingBatch::where('training_material_id', $material->id)->sum('duration');
                                     $lessons = $material->lesson_count ;
                                     $duration = $material->duration;
                                     $level = $material->training_level;
-                                    $rating = $material->rating ?? 4;
+                                    $rating = $material->rating;
                                     $img = $material->thumbnail_file_path;
+                                    $batchData = App\Models\TrainingBatch::where('training_material_id', $material->id)
+                                                    ->where('batch_no', $purchase->batch_no)
+                                                    ->first();
+
+                                    $isAssessmentAvailable = false;
+
+                                    if ($batchData && $batchData->start_date && $batchData->duration) {
+                                        $endDate = \Carbon\Carbon::parse($batchData->start_date)->addDays($batchData->duration);
+                                        $isAssessmentAvailable = now()->gt($endDate); // if current time > endDate
+                                    }
                                 @endphp
 
                                 <div class="flex items-start border rounded-md shadow-sm overflow-hidden mb-4">
@@ -1403,9 +1414,40 @@ $skills = $user->skills->first();
                                                 <h2 class="text-lg font-semibold text-gray-900">{{ $material->training_title }}</h2>
                                             </a>
 
-                                            <a href="" class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">
-                                                Join Training
+                                           <a 
+                                                href="{{ $isAssessmentAvailable ? '#' : route('training.join', $material->id) }}"
+                                                data-bs-toggle="{{ $isAssessmentAvailable ? 'modal' : '' }}"
+                                                data-bs-target="{{ $isAssessmentAvailable ? '#assessmentModal' : '' }}"
+                                                class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">
+                                                {{ $isAssessmentAvailable ? 'Take Assessment' : 'Join Training' }}
                                             </a>
+
+                                            <!-- Assessment Modal -->
+                                            <div class="modal fade" id="assessmentModal" tabindex="-1" aria-labelledby="assessmentModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="assessmentModalLabel">Assessment Instructions</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <ul>
+                                                        <li>Make sure you're in a quiet environment.</li>
+                                                        <li>Once started, the assessment must be completed in one go.</li>
+                                                        <li>No external help or switching tabs.</li>
+                                                        <li>Timer will start once you begin.</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="{{ route('assessment.view', $material->id) }}" class="btn btn-primary">Start Assessment</a>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
                                         </div>
 
 

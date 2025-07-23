@@ -7,10 +7,15 @@ use Session;
 use App\Models\Jobseekers;
 use App\Models\Recruiters;
 use App\Models\Trainers;
+use App\Models\AssessmentQuestion;
+use App\Models\AssessmentOption;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
+use App\Models\JobseekerAssessmentStatus;
+use App\Models\JobseekerAssessmentData;
 use App\Models\Mentors;
+use App\Models\TrainerAssessment;
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -1678,5 +1683,181 @@ class JobseekerController extends Controller
             return redirect()->back()->with('error', 'Something went wrong while processing your purchase.');
         }
     }
+
+
+    public function viewAssessment($id)
+    {
+        $assessment = TrainerAssessment::where('material_id', $id)
+            ->with(['questions.options'])
+            ->firstOrFail();
+
+        $jobseekerId = Auth::guard('jobseeker')->id();
+
+        $answeredData = JobseekerAssessmentData::where([
+            ['assessment_id', '=', $assessment->id],
+            ['jobseeker_id', '=', $jobseekerId],
+        ])->get();
+
+        $answeredAnswers = $answeredData->mapWithKeys(function ($answer) {
+            return [$answer->question_id => $answer->selected_answer];
+        });
+
+        $answeredIds = $answeredData->pluck('question_id')->toArray();
+
+        $sessionKey = 'quiz_start_time_' . $assessment->id . '_' . $jobseekerId;
+
+        if (!session()->has($sessionKey)) {
+            session([$sessionKey => now()]);
+        }
+
+        $startTime = session($sessionKey);
+        $duration = 3600;
+        $elapsed = now()->diffInSeconds($startTime);
+        $remainingTime = max($duration - $elapsed, 0);
+
+        $quizQuestions = $assessment->questions->map(function ($q) use ($assessment, $answeredAnswers) {
+            $options = $q->options->pluck('options')->toArray();
+            $selectedAnswer = $answeredAnswers[$q->id] ?? null;
+            $selectedIndex = is_null($selectedAnswer) ? null : array_search($selectedAnswer, $options);
+
+            return [
+                'id'               => $q->id,
+                'question'         => $q->questions_title,
+                'options'          => $options,
+                'correct_option'   => $q->options->firstWhere('correct_option', 1)?->options,
+                'trainer_id'       => $assessment->trainer_id,
+                'material_id'      => $assessment->material_id,
+                'assessment_id'    => $assessment->id,
+                'totalQuestions'   => $assessment->total_questions,
+                'passingQuestions' => $assessment->passing_questions,
+                'selected_index'   => $selectedIndex,
+            ];
+        });
+
+        $lastIndex = $answeredData->count();
+
+        $alreadySubmitted = JobseekerAssessmentStatus::where([
+            ['assessment_id', '=', $assessment->id],
+            ['jobseeker_id', '=', $jobseekerId],
+            ['submitted', '=', true],
+        ])->exists();
+
+
+        return view('site.jobseeker.assessment', compact(
+            'assessment',
+            'quizQuestions',
+            'answeredIds',
+            'remainingTime',
+            'lastIndex',
+            'alreadySubmitted' // ✅ Add this
+        ));
+
+    }
+
+
+
+    public function saveJobseekerAnswer(Request $request)
+    {
+        $request->validate([
+            'trainer_id'      => 'required|integer',
+            'material_id'     => 'required|integer',
+            'assessment_id'   => 'required|integer',
+            'question_id'     => 'required|integer',
+            'selected_answer' => 'required|string',
+            'correct_answer'  => 'required|string',
+        ]);
+
+        $jobseekerId = Auth::guard('jobseeker')->id();
+
+        JobseekerAssessmentData::updateOrCreate(
+            [
+                'trainer_id'    => $request->trainer_id,
+                'training_id'   => $request->material_id,
+                'assessment_id' => $request->assessment_id,
+                'question_id'   => $request->question_id,
+                'jobseeker_id'  => $jobseekerId,
+            ],
+            [
+                'selected_answer' => $request->selected_answer,
+                'correct_answer'  => $request->correct_answer,
+            ]
+        );
+
+        return response()->json(['message' => 'Answer saved.']);
+    }
+
+    public function submitQuiz(Request $request)
+    {
+        $request->validate([
+            'answers' => 'required|array',
+        ]);
+
+        $jobseekerId = Auth::guard('jobseeker')->id();
+        $correctCount = 0;
+        $assessmentId = null;
+
+        foreach ($request->answers as $answer) {
+            if (!isset($answer['trainer_id'], $answer['material_id'], $answer['assessment_id'], $answer['question_id'], $answer['selected_answer'], $answer['correct_answer'])) {
+                continue;
+            }
+
+            $assessmentId = $answer['assessment_id'];
+
+            if ($answer['selected_answer'] === $answer['correct_answer']) {
+                $correctCount++;
+            }
+
+            JobseekerAssessmentData::updateOrCreate(
+                [
+                    'trainer_id'    => $answer['trainer_id'],
+                    'training_id'   => $answer['material_id'],
+                    'assessment_id' => $answer['assessment_id'],
+                    'question_id'   => $answer['question_id'],
+                    'jobseeker_id'  => $jobseekerId,
+                ],
+                [
+                    'selected_answer' => $answer['selected_answer'],
+                    'correct_answer'  => $answer['correct_answer'],
+                ]
+            );
+        }
+
+        if ($assessmentId) {
+            // Save status as submitted
+            JobseekerAssessmentStatus::updateOrCreate(
+                [
+                    'jobseeker_id'  => $jobseekerId,
+                    'assessment_id' => $assessmentId,
+                ],
+                ['submitted' => true]
+            );
+
+            // Remove timer
+            $sessionKey = 'quiz_start_time_' . $assessmentId . '_' . $jobseekerId;
+            session()->forget($sessionKey);
+
+            // Store score in session
+            session()->flash('quiz_result', [
+                'score' => $correctCount,
+                'total' => count($request->answers)
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Quiz submitted successfully.',
+            'score' => $correctCount,
+            'total' => count($request->answers),
+            'status' => 'success',
+        ]);
+    }
+
+
+    public function quizSuccess()
+    {
+        return view('site.jobseeker.quiz_success');
+    }
+
+
+
     
 }
