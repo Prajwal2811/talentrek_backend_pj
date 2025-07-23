@@ -1,3 +1,31 @@
+<?php
+use Illuminate\Support\Facades\DB;
+    // Fetch all trainers
+    // $assessors = DB::table('assessors')->get();
+ 
+
+    use App\Models\Assessors;
+
+    $assessors = Assessors::with([
+        'reviews',
+        'additionalInfo' => function ($q) {
+            $q->whereIn('doc_type', ['assessor_resume', 'assessor_certificate']);
+        },
+        'profilePicture' => function ($q) {
+            $q->where('doc_type', 'assessor_profile_picture');
+        },
+        'experiences'
+    ])
+    ->where('status', 'active')
+    ->paginate(9);
+
+
+
+    // echo "<pre>";
+    // print_r($assessors);exit;
+    // echo "</pre>";
+
+?>
 @include('site.componants.header')
 <body>
     <div class="loading-area">
@@ -98,13 +126,13 @@
 
 
                     <div class="max-w-4xl mx-auto space-y-4" x-data="{ open: null }">
-                        <!-- Mentorship Overview -->
+                        <!-- Assessment Overview -->
                         <div class="border-b pb-4">
                         <button
                             @click="open === 1 ? open = null : open = 1"
                             class="w-full flex justify-between items-center text-left text-lg font-semibold focus:outline-none"
                         >
-                            <span>Mentorship overview</span>
+                            <span>Assessment overview</span>
                             <svg :class="{'rotate-180': open === 1}" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -118,13 +146,13 @@
                         </div>
                         </div>
 
-                        <!-- Benefits of Mentorship -->
+                        <!-- Benefits of Assessment -->
                         <div class="border-b pb-4">
                         <button
                             @click="open === 2 ? open = null : open = 2"
                             class="w-full flex justify-between items-center text-left text-lg font-semibold focus:outline-none"
                         >
-                            <span>Benefits of mentorship</span>
+                            <span>Benefits of Assessment</span>
                             <svg :class="{'rotate-180': open === 2}" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -142,26 +170,47 @@
                     </div>
 
                     <!-- Mentor cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <template x-for="mentor in paginatedMentors()" :key="mentor.id">
-                            <div class="bg-white rounded-lg shadow p-4 text-center">
-                                <!-- Rectangular image with rounded corners -->
-                                <img :src="mentor.image" :alt="mentor.name"
-                                    class="w-full h-48 object-cover rounded-md mb-4 mx-auto">
-
-                                <a href="{{ route('assessment-details') }}">
-                                    <h3 class="text-lg font-semibold text-gray-900" x-text="mentor.name"></h3>
-                                </a>
-
-                                <p class="text-sm text-gray-600 mt-1" x-text="mentor.role"></p>
-
-                                <div class="flex items-center justify-center mt-2">
-                                    <span class="text-orange-500 text-sm mr-1">★</span>
-                                    <span class="text-sm text-gray-700">(4/5) Rating</span>
+                     
+                    <!-- Assessor Cards -->
+                    <div class="container mx-auto px-4 py-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($assessors as $assessor)
+                                @php
+                                    $profilePicture = optional($assessor->profilePicture)->document_path ?? asset('default.jpg');
+                                    $avgRating = $assessor->reviews->avg('ratings') ?? 0;
+                                    $reviewCount = $assessor->reviews->count();
+                                  
+                                @endphp
+                                <div class="bg-white rounded-lg shadow p-4 text-center space-y-3">
+                                    
+                                    <img src="{{ $profilePicture }}" alt="Assessor Image" class="w-full h-48 object-cover rounded-lg">
+                                    <a href="{{ route('assessor-details', ['id' => $assessor->id]) }}">
+                                        <h3 class="text-lg font-semibold text-gray-900 ">{{ $assessor->name }}</h3>
+                                    </a>
+                                    <!-- <p class="text-sm text-gray-600">
+                                        {{ $assessor->experiences->pluck('job_role')->implode(', ') ?: 'N/A' }}
+                                    </p> -->
+                                    <div class="flex items-center justify-center text-sm text-gray-700 space-x-1">
+                                        <span class="text-orange-500">★</span>
+                                        <span>{{ number_format($avgRating, 1) }}/5</span>
+                                        <span>({{ $reviewCount }} reviews)</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </template>
+                            @endforeach
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-8">
+                            {{ $assessors->links('pagination::tailwind') }}
+                        </div>
                     </div>
+
+
+
+
+                <!-- Optional Pagination -->
+                <div id="pagination" class="flex justify-start items-center mt-8 space-x-2"></div>
+
 
 
                     <!-- Pagination -->
@@ -182,52 +231,7 @@
 
             <!-- Alpine Data -->
             <script>
-                function mentorApp() {
-                    return {
-                        search: '',
-                        page: 1,
-                        perPage: 8,
-                        selectedTopics: [],
-                        selectedLevels: [],
-                        mentors: [
-                            { id: 1, name: 'Mohammad Raza', role: 'UI/UX Designer', rating: '4.5', image: 'https://randomuser.me/api/portraits/men/75.jpg', topic: 'design', level: 'basic' },
-                            { id: 2, name: 'Zayd Rahman', role: 'Video Editor', rating: '4.6', image: 'https://randomuser.me/api/portraits/men/76.jpg', topic: 'design', level: 'advanced' },
-                            { id: 3, name: 'Aisha Siddiqui', role: 'UI/UX Designer', rating: '4.7', image: 'https://randomuser.me/api/portraits/women/45.jpg', topic: 'design', level: 'basic' },
-                            { id: 4, name: 'Farhan Khan', role: 'Web Developer', rating: '4.3', image: 'https://randomuser.me/api/portraits/men/78.jpg', topic: 'coding', level: 'advanced' },
-                            { id: 5, name: 'Sana Ali', role: 'Graphic Designer', rating: '4.4', image: 'https://randomuser.me/api/portraits/women/47.jpg', topic: 'design', level: 'basic' },
-                            { id: 6, name: 'Imran Patel', role: 'Digital Marketing', rating: '4.2', image: 'https://randomuser.me/api/portraits/men/80.jpg', topic: 'language', level: 'advanced' },
-                            { id: 7, name: 'Fatima Noor', role: 'Animator', rating: '4.8', image: 'https://randomuser.me/api/portraits/women/52.jpg', topic: 'design', level: 'advanced' },
-                            { id: 8, name: 'Rohit Sen', role: 'Data Analyst', rating: '4.1', image: 'https://randomuser.me/api/portraits/men/83.jpg', topic: 'mechanical', level: 'basic' },
-                            { id: 9, name: 'Hina Sheikh', role: 'Content Writer', rating: '4.6', image: 'https://randomuser.me/api/portraits/women/54.jpg', topic: 'language', level: 'basic' },
-                            { id: 10, name: 'Aman Verma', role: 'Frontend Developer', rating: '4.9', image: 'https://randomuser.me/api/portraits/men/84.jpg', topic: 'coding', level: 'advanced' },
-                        ],
-                        get filteredMentors() {
-                            return this.mentors
-                                .filter(m =>
-                                    (!this.search || m.name.toLowerCase().includes(this.search.toLowerCase()) || m.role.toLowerCase().includes(this.search.toLowerCase()))
-                                )
-                                .filter(m =>
-                                    this.selectedTopics.length === 0 || this.selectedTopics.includes(m.topic)
-                                )
-                                .filter(m =>
-                                    this.selectedLevels.length === 0 || this.selectedLevels.includes(m.level)
-                                );
-                        },
-                        paginatedMentors() {
-                            const start = (this.page - 1) * this.perPage;
-                            return this.filteredMentors.slice(start, start + this.perPage);
-                        },
-                        get totalPages() {
-                            return Math.ceil(this.filteredMentors.length / this.perPage);
-                        },
-                        nextPage() {
-                            if (this.page < this.totalPages) this.page++;
-                        },
-                        prevPage() {
-                            if (this.page > 1) this.page--;
-                        }
-                    };
-                }
+               
 
                 // Optional: Accordion toggle for filter sections
                 function toggleSection(sectionId, iconId) {

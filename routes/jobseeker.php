@@ -64,10 +64,13 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [JobseekerController::class, 'bookingSession'])->name('mentorship-book-session');
-
+		Route::get('/assessor-details/{assessor_id}/assessor-book-session/{slot_id}', [JobseekerController::class, 'bookingAssessorSession'])->name('assessor-book-session');
+		Route::get('/coach-details/{coach_id}/coach-book-session/{slot_id}', [JobseekerController::class, 'bookingCoachSession'])->name('coach-book-session');
 
 		Route::post('/submit-review', [JobseekerController::class, 'submitReview'])->name('submit.review');
-
+		Route::post('/submit-assessor-review', [JobseekerController::class, 'submitAssessorReview'])->name('submit.assessor.review');
+		Route::post('/submit-coach-review', [JobseekerController::class, 'submitCoachReview'])->name('submit.coach.review');
+		Route::post('/submit-mentor-review', [JobseekerController::class, 'submitMentorReview'])->name('submit.mentor.review');
 			
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
 
@@ -107,6 +110,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 	
 	// routes/web.php
 
+	// Assessors
+	Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
+	Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
 
 
 

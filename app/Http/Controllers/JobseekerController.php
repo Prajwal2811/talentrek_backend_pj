@@ -15,7 +15,12 @@ use App\Models\Skills;
 use App\Models\JobseekerAssessmentStatus;
 use App\Models\JobseekerAssessmentData;
 use App\Models\Mentors;
+<<<<<<< HEAD
 use App\Models\TrainerAssessment;
+=======
+use App\Models\Assessors;
+use App\Models\Coach;
+>>>>>>> b3671b257e339665b800178f8d977824a0c0634d
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -32,6 +37,7 @@ use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
+use Carbon\CarbonInterval;
 use App\Services\ZoomService;
 
 class JobseekerController extends Controller
@@ -1209,34 +1215,91 @@ class JobseekerController extends Controller
         return redirect()->route('signin.form')->with('success', 'Password changed successfully.');
     }
 
-    public function mentorshipDetails($id) {
+  
 
-    //    $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
-    //                         ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
-    //                         ->where('booking_slots.user_type', 'mentor')
-    //                         ->where('mentors.id', $id)
-    //                         ->with(['reviews', 'additionalInfo', 'profilePicture'])
-    //                         ->first();
+    // public function mentorshipDetails($id)
+    // {
+    //     $mentorDetails = Mentors::with([
+    //             'reviews.jobseeker',
+    //             'additionalInfo',
+    //             'profilePicture',
+    //             'experiences',
+    //             'educations' => function ($q) {
+    //                 $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
+    //             },
+               
+    //             'bookingSlots'  
+    //         ])
+    //         ->where('id', $id)
+    //         ->firstOrFail();
+    //         // echo "<pre>";
+    //         // print_r($mentorDetails);exit;
+    //     $reviews = DB::table('reviews')
+    //         ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+    //         ->where('reviews.user_type', 'mentor')
+    //         ->select(
+    //             'reviews.*',
+    //             'jobseekers.name as jobseeker_name'
+    //         )
+    //         ->get();
 
-        $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
-              ->with([
-                    'reviews.jobseeker',
-                    'additionalInfo',
-                    'profilePicture',
-                    'experiences',
-                    'educations' => function ($q) {
-                        $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
-                    }
-                ])
-                ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
-                ->where('booking_slots.user_type', 'mentor')
-                ->findOrFail($id);
+       
+
+    //         // echo "<pre>";
+    //         // print_r($reviews);exit;
+    //         // echo "</pre>";
+
+    //     return view('site.mentorship-details', compact('mentorDetails','reviews'));
+    // }
 
 
-    //    echo "<pre>";
-    //     print_r($mentorDetails); die;
-        return view('site.mentorship-details', compact('mentorDetails'));
+    public function mentorshipDetails($id)
+    {
+        $mentorDetails = Mentors::with([
+                'reviews.jobseeker',
+                'additionalInfo',
+                'profilePicture',
+                'experiences',
+                'educations' => function ($q) {
+                    $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
+                },
+                'bookingSlots'  
+            ])
+            ->where('id', $id)
+            ->firstOrFail();
+
+        // Calculate total experience
+        $experiences = DB::table('work_experience')
+            ->where('user_id', $id)
+            ->where('user_type', 'mentor')
+            ->get();
+
+        $totalDays = 0;
+
+        foreach ($experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $interval = CarbonInterval::days($totalDays)->cascade();
+        $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
+
+        // Pass experience as property (optional)
+        $mentorDetails->total_experience = $totalExperience;
+
+        $reviews = DB::table('reviews')
+            ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+            ->where('reviews.user_type', 'mentor')
+            ->select(
+                'reviews.*',
+                'jobseekers.name as jobseeker_name'
+            )
+            ->get();
+
+        return view('site.mentorship-details', compact('mentorDetails', 'reviews'));
     }
+
     
 
     public function bookingSession($mentor_id, $slot_id) {
@@ -1248,6 +1311,28 @@ class JobseekerController extends Controller
         // echo "<pre>";
         // print_r($slot_id); die;
         return view('site.mentorship-book-session', compact('mentorDetails'));
+    }
+
+    public function bookingAssessorSession($assessor_id, $slot_id) {
+        $assessorDetails = Assessors::select('assessors.*','booking_slots.*','booking_slots.id as booking_slot_id','assessors.id as assessor_id')
+                                ->where('assessors.id', $assessor_id)
+                                ->join('booking_slots', 'assessors.id', '=', 'booking_slots.user_id')
+                                ->where('booking_slots.id', $slot_id)
+                                ->first();
+        // echo "<pre>";
+        // print_r($slot_id); die;
+        return view('site.assessment-book-session', compact('assessorDetails'));
+    }
+
+    public function bookingCoachSession($coach_id, $slot_id) {
+        $coachDetails = Coach::select('coaches.*','booking_slots.*','booking_slots.id as booking_slot_id','coaches.id as coach_id')
+                                ->where('coaches.id', $coach_id)
+                                ->join('booking_slots', 'coaches.id', '=', 'booking_slots.user_id')
+                                ->where('booking_slots.id', $slot_id)
+                                ->first();
+        // echo "<pre>";
+        // print_r($slot_id); die;
+        return view('site.coach-book-session', compact('coachDetails'));
     }
 
 
@@ -1499,6 +1584,7 @@ class JobseekerController extends Controller
         }
 
         $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
+        
         if (!in_array($request->user_type, $allowedTypes)) {
             return response()->json(['success' => false, 'message' => 'Invalid user type'], 400);
         }
@@ -1685,6 +1771,7 @@ class JobseekerController extends Controller
     }
 
 
+<<<<<<< HEAD
     public function viewAssessment($id)
     {
         $assessment = TrainerAssessment::where('material_id', $id)
@@ -1860,4 +1947,220 @@ class JobseekerController extends Controller
 
 
     
+=======
+    public function assessorDetails($id)
+    {
+        $assessor = Assessors::with([
+                'reviews.jobseeker',
+                'additionalInfo',
+                'profilePicture',
+                'experiences',
+                'educations' => function ($q) {
+                    $q->where('user_type', 'assessor')->orderBy('id')->limit(1);
+                },
+               
+                'bookingSlots'   
+            ])
+            ->where('id', $id)
+            ->firstOrFail();
+
+        // Calculate total experience
+        $experiences = DB::table('work_experience')
+            ->where('user_id', $id)
+            ->where('user_type', 'assessor')
+            ->get();
+
+        $totalDays = 0;
+
+        foreach ($experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $interval = CarbonInterval::days($totalDays)->cascade();
+        $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
+
+        // Pass experience as property (optional)
+        $assessor->total_experience = $totalExperience;
+
+            
+
+        $reviews = DB::table('reviews')
+            ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+            ->where('reviews.user_type', 'assessor')
+            ->select(
+                'reviews.*',
+                'jobseekers.name as jobseeker_name'
+            )
+            ->get();
+
+       
+
+            // echo "<pre>";
+            // print_r($reviews);exit;
+            // echo "</pre>";
+
+        return view('site.assessment-details', compact('assessor','reviews'));
+    }
+
+    public function coachDetails($id)
+    {
+      
+        $coach = Coach::with([
+                'reviews.jobseeker',
+                'additionalInfo',
+                'profilePicture',
+                'experiences',
+                'educations' => function ($q) {
+                    $q->where('user_type', 'coach')->orderBy('id')->limit(1);
+                },
+               
+                'bookingSlots'   
+            ])
+            ->where('id', $id)
+            ->firstOrFail();
+
+        // Calculate total experience
+        $experiences = DB::table('work_experience')
+            ->where('user_id', $id)
+            ->where('user_type', 'coach')
+            ->get();
+
+        $totalDays = 0;
+
+        foreach ($experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
+            $end = Carbon::parse($exp->end_to);
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $interval = CarbonInterval::days($totalDays)->cascade();
+        $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
+
+        // Pass experience as property (optional)
+        $coach->total_experience = $totalExperience;
+
+
+        $reviews = DB::table('reviews')
+            ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
+            ->where('reviews.user_type', 'coach')
+            ->select(
+                'reviews.*',
+                'jobseekers.name as jobseeker_name'
+            )
+            ->get();
+
+            // echo "<pre>";
+            // print_r($reviews);exit;
+            // echo "</pre>";
+
+        return view('site.coach-details', compact('coach','reviews'));
+    }
+
+    public function submitAssessorReview(Request $request)
+    {
+        $jobseeker = auth()->guard('jobseeker')->user();
+
+        if (!$jobseeker) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'assessor_id' => 'required|integer',
+            'review' => 'required|string',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        $reviewId = DB::table('reviews')->insertGetId([
+            'jobseeker_id' => $jobseeker->id,
+            'user_type' => 'assessor',
+            'user_id' => $request->assessor_id,
+            'reviews' => $request->review,
+            'ratings' => $request->rating,
+            'trainer_material' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => 'Review submitted successfully',
+            'review' => [
+                'jobseeker_name' => $jobseeker->name ?? 'Anonymous',
+                'reviews' => $request->review,
+                'ratings' => $request->rating,
+            ]
+        ]);
+    }
+    public function submitCoachReview(Request $request)
+    {
+        $jobseeker = auth()->guard('jobseeker')->user();
+        
+        if (!$jobseeker) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'coach_id' => 'required|integer',
+            'review' => 'required|string',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+      
+        $reviewId = DB::table('reviews')->insertGetId([
+            'jobseeker_id' => $jobseeker->id,
+            'user_type' => 'coach',
+            'user_id' => $request->coach_id,
+            'reviews' => $request->review,
+            'ratings' => $request->rating,
+            'trainer_material' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+      
+        return response()->json([
+            'success' => 'Review submitted successfully',
+            'review' => [
+                'jobseeker_name' => $jobseeker->name ?? 'Anonymous',
+                'reviews' => $request->review,
+                'ratings' => $request->rating,
+            ]
+        ]);
+    }
+
+    public function submitMentorReview(Request $request)
+    {
+        $jobseeker = auth()->guard('jobseeker')->user();
+        
+        if (!$jobseeker) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'mentor_id' => 'required|integer',
+            'review' => 'required|string',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+      
+        $reviewId = DB::table('reviews')->insertGetId([
+            'jobseeker_id' => $jobseeker->id,
+            'user_type' => 'mentor',
+            'user_id' => $request->mentor_id,
+            'reviews' => $request->review,
+            'ratings' => $request->rating,
+            'trainer_material' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+      
+        return response()->json([
+            'success' => 'Review submitted successfully',
+            'review' => [
+                'jobseeker_name' => $jobseeker->name ?? 'Anonymous',
+                'reviews' => $request->review,
+                'ratings' => $request->rating,
+            ]
+        ]);
+    }
+
+>>>>>>> b3671b257e339665b800178f8d977824a0c0634d
 }
