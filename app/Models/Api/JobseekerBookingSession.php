@@ -36,6 +36,11 @@ class JobseekerBookingSession extends Model
         'zoom_start_url'
     ];
 
+    public function mentors()
+    {
+        return $this->hasOne(Mentors::class, 'user_id') ->where('user_type', 'mentor') ;
+    }
+    
     public function mentorLatestWorkExperience()
     {
         return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id

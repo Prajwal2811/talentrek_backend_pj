@@ -13,7 +13,11 @@ use App\Models\Api\Trainers;
 use App\Models\Api\Review;
 use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Models\Api\JobseekerBookingSession;
+use App\Models\Api\BookingSession;
+use App\Models\Api\BookingSlot;
+use App\Models\Api\BookingSlotUnavailableDate;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 
 class MyLearningController extends Controller
@@ -108,7 +112,7 @@ class MyLearningController extends Controller
             $today = Carbon::today();
 
             $allPurchases = JobseekerBookingSession::select('*')
-            ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo'])
+            ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo','mentors'])
                 ->where('jobseeker_id', $jobseekerId)
                 ->where('status','confirmed')
                 ->where('user_type','mentor')
@@ -127,6 +131,9 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
+                    $session->userName = 'Abhishek Sharma' ;
+                    $session->designation = 'UI/UX' ;
+                    $session->experiance = '3' ;
                     $session->mentorLatestWorkExperience = $session->mentorLatestWorkExperience->job_role ?? 'N/A' ;
                     $image = '' ;
                     foreach($session->mentorAdditionalInfo as $jobseekerAdditionalInfos){
@@ -185,6 +192,9 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
+                    $session->userName = 'Abhishek Sharma' ;
+                    $session->designation = 'UI/UX' ;
+                    $session->experiance = '3' ;
                     $session->assessorLatestWorkExperience = $session->assessorLatestWorkExperience->job_role ?? 'N/A' ;
                     $image = '' ;
                     foreach($session->assessorAdditionalInfo as $jobseekerAdditionalInfos){
@@ -243,6 +253,9 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
+                    $session->userName = 'Abhishek Sharma' ;
+                    $session->designation = 'UI/UX' ;
+                    $session->experiance = '3' ;
                     $session->coachLatestWorkExperience = $session->coachLatestWorkExperience->job_role ?? 'N/A' ;
                     $image = '' ;
                     foreach($session->coachAdditionalInfo as $jobseekerAdditionalInfos){
@@ -275,56 +288,92 @@ class MyLearningController extends Controller
         }
     }
 
-    public function jobSeekerBookAConsultationSession(Request $request)
+    public function jobSeekerConsultationSession(Request $request)
     {
-        try {   
-            // Fetch training materials with relationships and average ratings
-            $today = Carbon::today();
+       try {  
+            
+            $request->validate([
+                'jobSeekerId'     => 'required|integer',
+                'sessionDate'      => 'required',
+                'roleType'    => 'required',
+                'userId'   => 'required|integer',
+                'trainingMode'     => 'required'
+            ]);
 
-            $allPurchases = JobseekerBookingSession::select('*')
-            ->with(['coachLatestWorkExperience', 'coachAdditionalInfo'])
-                ->where('jobseeker_id', $jobseekerId)
-                ->where('status','confirmed')
-                ->where('user_type','coach')
+           $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
+
+            $bookingSlots = BookingSlot::select('id','user_type','user_id','slot_mode','start_time',DB::raw("DATE_FORMAT(start_time, '%h:%i %p') as startTime"))
+                ->where('user_id', $request->userId)
+                ->where('slot_mode',$request->trainingMode)
+                ->where('user_type',$request->roleType)
                 ->get()
-                ->map(function ($session) use ($today) {
-                    // Extract start and end times from slot_time
-                    $timeRange = explode(' - ', $session->slot_time);
-                    $startTime = $timeRange[0] ?? '00:00:00';
-                    $endTime = $timeRange[1] ?? '00:00:00';
+                ->map(function ($slot) use ($sessionDate) {
+                    $isUnavailable = BookingSlotUnavailableDate::where('booking_slot_id', $slot->id)
+                                        ->whereDate('unavailable_date', $sessionDate)
+                                        ->exists();
 
-                    // Build datetime objects
-                    $slotEnd = Carbon::parse($session->slot_date . ' ' . $endTime);
+                    $slot->is_available = !$isUnavailable;
+                   
 
-                    // Determine status
-                    $session->session_status = $slotEnd->isPast() ? 'completed' : 'upcoming';
-                    $session->session_start_time = $startTime ;
-                    $session->session_end_time = $endTime ;
-                    $session->session_date = $session->slot_date ;
-                    $session->coachLatestWorkExperience = $session->coachLatestWorkExperience->job_role ?? 'N/A' ;
-                    $image = '' ;
-                    foreach($session->coachAdditionalInfo as $jobseekerAdditionalInfos){
-                        if($jobseekerAdditionalInfos->doc_type == 'coach_profile_picture'){
-                            $image = $jobseekerAdditionalInfos->document_path ;
-                        }                
-                    }
-                    $session->image = $image ;
-                    unset($session->coachAdditionalInfo, $session->coachLatestWorkExperience);
 
-                    return $session;
+
+                    return $slot;
                 });
 
-            $upcomingSessions = $allPurchases->where('session_status', 'upcoming')->values();
-            $completedSessions = $allPurchases->where('session_status', 'completed')->values();
 
             // Return success with data
             return response()->json([
                 'success' => true,
-                'message' => 'My learning coach list fetched successfully.',
-                'data' => [
-                    'mycoachSession' => $upcomingSessions,
-                    'myCompletedcoachSession' => $completedSessions
-                ]
+                'message' => ucwords($request->roleType).'  '.ucwords($request->trainingMode).' Booking slot list fetched successfully.',
+                'data' => $bookingSlots               
+            ]);
+
+        } catch (\Exception $e) {
+            // Log error if needed: Log::error($e);
+            return $this->errorResponse('An error occurred while fetching training courses.', 500,[]);
+        }
+    }
+
+    public function jobSeekerBookAConsultationSession(Request $request)
+    {
+       
+       try {
+            $request->validate([
+                'jobSeekerId'     => 'required|integer',
+                'sessionDate'      => 'required',
+                'roleType'    => 'required',
+                'userId'   => 'required|integer',
+                'trainingMode'=> 'required',
+                'slot_id'     => 'required'
+            ]);
+
+            $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
+
+            $exists = BookingSession::where('user_id', $request->userId)
+                ->where('user_type', $request->roleType)
+                ->whereDate('slot_date', $sessionDate)
+                ->where('booking_slot_id', $request->slot_id) // adjust as needed
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['success' => false, 'message' => ucwords($request->roleType).'  '.ucwords($request->trainingMode).' session booking already exists.']);
+            }
+
+            // If not exists, insert
+            BookingSession::create([
+                'jobseeker_id' => $request->jobSeekerId,
+                'user_id' => $request->userId,
+                'user_type' => $request->roleType,
+                'slot_date' => $sessionDate,
+                'slot_time' =>  '',
+                'booking_slot_id' => $request->slot_id,
+                'slot_mode' => $request->trainingMode,
+            ]);
+
+            // Return success with data
+            return response()->json([
+                'success' => true,
+                'message' => ucwords($request->roleType).'  '.ucwords($request->trainingMode).' slot booked successfully.'
             ]);
 
         } catch (\Exception $e) {

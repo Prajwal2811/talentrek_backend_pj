@@ -97,9 +97,8 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::get('/myLearningCoach/{jobseekerId}', [MyLearningController::class, 'myLearningCoachListing']);
     Route::get('/myLearningAssessor/{jobseekerId}', [MyLearningController::class, 'myLearningAssessorListing']);
 
+    Route::post('/jobSeekerConsultantSession', [MyLearningController::class, 'jobSeekerConsultationSession']);
     Route::post('/jobSeekerBookASession', [MyLearningController::class, 'jobSeekerBookAConsultationSession']);
-
-
 });
 
 Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
