@@ -1797,6 +1797,9 @@ class JobseekerController extends Controller
 
     public function courseDetails($id)
     {
+        $jobseeker =  auth()->guard('jobseeker')->user();
+        $jobseekerId = $jobseeker->id;
+        
         $material = DB::table('training_materials')->where('id', $id)->first();
         if (!$material) {
             abort(404, 'Course not found');
@@ -1809,6 +1812,12 @@ class JobseekerController extends Controller
         $material->batches = DB::table('training_batches')
             ->where('training_material_id', $material->id)
             ->get();
+
+        $cartItems = DB::table('jobseeker_cart_items')
+            ->where('jobseeker_id', $jobseekerId)
+            ->pluck('material_id')
+            ->toArray();    
+        //print_r( $cartItems);exit;
 
         $userType = null;
         $userId = null;
@@ -1841,7 +1850,7 @@ class JobseekerController extends Controller
         $profile = DB::table('additional_info')
         ->where('user_id', $userId)
         ->where('user_type', 'trainer')
-        ->where('doc_type', 'profile') // ✅ important fix here
+        ->where('doc_type', 'profile_picture') // ✅ important fix here
         ->orderByDesc('id')
         ->first();
 
@@ -1896,42 +1905,78 @@ class JobseekerController extends Controller
             ->get();
 
         return view('site.training-detail', compact(
-            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews'
+            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews', 'cartItems'
         ));
     }
 
 
-    public function addToCart($id)
-    {
+    // public function addToCart($id)
+    // {
 
-        // Check if the jobseeker is logged in
+    //     // Check if the jobseeker is logged in
+    //     if (!Auth::guard('jobseeker')->check()) {
+    //         return redirect()->back()->with('error', 'Please log in to add items to your cart.');
+    //     }
+
+    //     $jobseekerId = Auth::guard('jobseeker')->id();
+
+    //     // Get the material (and optionally trainer_id)
+    //     $material = TrainingMaterial::findOrFail($id);
+
+    //     // Check if the item is already in the cart
+    //     $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
+    //                             ->where('material_id', $id)
+    //                             ->exists();
+
+    //     if ($exists) {
+    //         return redirect()->back()->with('success', 'This item is already in your cart.');
+    //     }
+
+    //     JobseekerCartItem::create([
+    //         'jobseeker_id' => $jobseekerId,
+    //         'trainer_id' => $material->trainer_id, // assuming material has trainer_id
+    //         'material_id' => $id,
+    //         'status' => 'pending',
+    //     ]);
+
+    //     return redirect()->back()->with('success', 'Item added to cart successfully.');
+    // }
+
+
+    
+    public function addToCart(Request $request, $id)
+    {
         if (!Auth::guard('jobseeker')->check()) {
-            return redirect()->back()->with('error', 'Please log in to add items to your cart.');
+            return response()->json(['message' => 'Please log in to add items to your cart.'], 401);
         }
 
         $jobseekerId = Auth::guard('jobseeker')->id();
+        $material = TrainingMaterial::find($id);
 
-        // Get the material (and optionally trainer_id)
-        $material = TrainingMaterial::findOrFail($id);
+        if (!$material) {
+            return response()->json(['message' => 'Invalid material ID.'], 400);
+        }
 
-        // Check if the item is already in the cart
         $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
-                                ->where('material_id', $id)
-                                ->exists();
+            ->where('material_id', $id)
+            ->exists();
 
         if ($exists) {
-            return redirect()->back()->with('success', 'This item is already in your cart.');
+            return response()->json(['message' => 'Item is already in your cart.'], 200);
         }
 
         JobseekerCartItem::create([
             'jobseeker_id' => $jobseekerId,
-            'trainer_id' => $material->trainer_id, // assuming material has trainer_id
+            'trainer_id' => $material->trainer_id,
             'material_id' => $id,
             'status' => 'pending',
         ]);
 
-        return redirect()->back()->with('success', 'Item added to cart successfully.');
+        return response()->json(['message' => 'Item added to cart successfully.']);
     }
+
+
+
 
 
     public function submitReview(Request $request)
