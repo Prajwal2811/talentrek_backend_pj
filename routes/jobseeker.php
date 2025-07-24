@@ -32,7 +32,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-verify-otp', [JobseekerController::class, 'verifyOtp'])->name('jobseeker.verify-otp.submit');
 		Route::get('reset-password', [JobseekerController::class, 'showResetPasswordForm'])->name('jobseeker.reset-password');
 		Route::post('/submit-reset-password', [JobseekerController::class, 'resetPassword'])->name('jobseeker.reset-password.submit');
-		Route::post('/add-to-cart/{id}', [JobseekerController::class, 'addToCart'])->name('jobseeker.addtocart');
+		
 
 
 
@@ -81,6 +81,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/quiz/success', [JobseekerController::class, 'quizSuccess'])->name('jobseeker.quizSuccessPage');
 		Route::get('/assessment/result/{id}', [JobseekerController::class, 'viewScore'])->name('jobseeker.assessment.result');
 
+		Route::post('/add-to-cart/{id}', [JobseekerController::class, 'addToCart'])->name('jobseeker.addtocart');
 
 	});
 

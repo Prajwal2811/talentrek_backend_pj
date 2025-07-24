@@ -6,6 +6,14 @@
     $trainers = DB::table('trainers')->get();
 
     foreach ($trainers as $trainer) {
+        $profile = DB::table('additional_info')
+            ->where('user_id', $trainer->id)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'profile_picture')
+            ->first();
+
+        $trainer->profile_picture = $profile ? $profile->document_path : null;
+        
         // Fetch materials for each trainer
         $trainer->materials = DB::table('training_materials')
             ->where('trainer_id', $trainer->id)
@@ -23,6 +31,7 @@
                 ->get();
         }
     }
+
 
 ?>
 @include('site.componants.header')
@@ -233,7 +242,9 @@
                                         <div class="d-flex align-items-center gap-3 text-muted small flex-wrap">
                                             {{-- Trainer --}}
                                             <div class="d-flex align-items-center me-3">
-                                                <img src="https://ui-avatars.com/api/?name={{ urlencode($trainer->name) }}" class="rounded-circle me-2" width="24" height="24" alt="Trainer">
+                                                <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/? name=' . urlencode($trainer->name) }}" 
+                                                        alt="{{ $trainer->name }}" 
+                                                        class="w-7 h-7 rounded-full mr-2">
                                                 {{ $trainer->name }}
                                             </div>
 
