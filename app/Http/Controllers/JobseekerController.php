@@ -27,7 +27,7 @@ use App\Models\JobseekerCartItem;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;   
+use Illuminate\Support\Facades\Mail;
 use DB;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
@@ -43,7 +43,7 @@ class JobseekerController extends Controller
     {
         return view('site.jobseeker.registration');
     }
-    
+
 
     public function postRegistration(Request $request)
     {
@@ -120,7 +120,7 @@ class JobseekerController extends Controller
             </html>
         ', function ($message) use ($jobseeker) {
             $message->to($jobseeker->email)
-                    ->subject('Welcome to Talentrek – Signup Successful');
+                ->subject('Welcome to Talentrek – Signup Successful');
         });
 
         // Set session
@@ -133,7 +133,7 @@ class JobseekerController extends Controller
         return redirect()->route('jobseeker.registration');
     }
 
-  
+
     public function showDetailsForm()
     {
         $email = session('email');
@@ -141,7 +141,7 @@ class JobseekerController extends Controller
         $jobseekerId = session('jobseeker_id');
         $jobseeker = Jobseekers::find($jobseekerId);
 
-        return view('site.jobseeker.registration', compact('jobseeker','email','phone'));
+        return view('site.jobseeker.registration', compact('jobseeker', 'email', 'phone'));
     }
 
 
@@ -282,7 +282,7 @@ class JobseekerController extends Controller
             'gender' => $validated['gender'],
             'national_id' => $validated['national_id'],
         ]);
-       
+
         // Save education details
         foreach ($request->high_education as $index => $education) {
             EducationDetails::create([
@@ -301,17 +301,17 @@ class JobseekerController extends Controller
                 $isCurrentlyWorking = $request->input("currently_working.$index") === 'on';
 
                 $startDate = $request->starts_from[$index] ?? null;
-                $endDate = $isCurrentlyWorking 
+                $endDate = $isCurrentlyWorking
                     ? 'work here'
                     : ($request->end_to[$index] ?? null);
 
                 WorkExperience::create([
-                    'user_id'       => $jobseeker->id,
-                    'user_type'     => 'jobseeker',
-                    'job_role'      => $role,
-                    'organization'  => $request->organization[$index] ?? null,
-                    'starts_from'   => $startDate,
-                    'end_to'        => $endDate,
+                    'user_id' => $jobseeker->id,
+                    'user_type' => 'jobseeker',
+                    'job_role' => $role,
+                    'organization' => $request->organization[$index] ?? null,
+                    'starts_from' => $startDate,
+                    'end_to' => $endDate,
                 ]);
             }
         }
@@ -326,7 +326,7 @@ class JobseekerController extends Controller
             'website_link' => $request->website_link,
             'portfolio_link' => $request->portfolio_link,
         ]);
-        
+
 
         // Upload Resume
         if ($request->hasFile('resume')) {
@@ -341,9 +341,9 @@ class JobseekerController extends Controller
                 $request->file('resume')->move('uploads/', $fileNameToStoreResume);
 
                 AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
-                    'user_type'     => 'jobseeker',
-                    'doc_type'      => 'resume',
+                    'user_id' => $jobseeker->id,
+                    'user_type' => 'jobseeker',
+                    'doc_type' => 'resume',
                     'document_name' => $resumeName,
                     'document_path' => asset('uploads/' . $fileNameToStoreResume),
                 ]);
@@ -363,9 +363,9 @@ class JobseekerController extends Controller
                 $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
 
                 AdditionalInfo::create([
-                    'user_id'       => $jobseeker->id,
-                    'user_type'     => 'jobseeker',
-                    'doc_type'      => 'profile_picture',
+                    'user_id' => $jobseeker->id,
+                    'user_type' => 'jobseeker',
+                    'doc_type' => 'profile_picture',
                     'document_name' => $profileName,
                     'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                 ]);
@@ -443,18 +443,18 @@ class JobseekerController extends Controller
             </html>
         ', function ($message) use ($jobseeker) {
             $message->to($jobseeker->email)
-                    ->subject('Welcome to Talentrek – Registration Successful');
+                ->subject('Welcome to Talentrek – Registration Successful');
         });
 
 
         session()->forget('jobseeker_id');
         return redirect()->route('signin.form')->with('success_popup', true);
     }
- 
+
 
     public function showSignInForm()
     {
-        return view('site.jobseeker.sign-in'); 
+        return view('site.jobseeker.sign-in');
     }
 
     public function showSignUpForm()
@@ -478,8 +478,8 @@ class JobseekerController extends Controller
     public function loginJobseeker(Request $request)
     {
         $this->validate($request, [
-            'email'     => 'required|email',
-            'password'  => 'required'
+            'email' => 'required|email',
+            'password' => 'required'
         ]);
 
         $jobseeker = Jobseekers::where('email', $request->email)->first();
@@ -505,42 +505,10 @@ class JobseekerController extends Controller
         }
     }
 
-    // public function loginJobseeker(Request $request)
-    // {
-    //     $this->validate($request, [
-    //         'email'    => 'required|email',
-    //         'password' => 'required',
-    //     ]);
-
-    //     $jobseeker = Jobseekers::where('email', $request->email)->first();
-
-    //     if (!$jobseeker) {
-    //         session()->flash('error', 'Invalid email or password.');
-    //         return back()->withInput($request->only('email'));
-    //     }
-
-    //     if ($jobseeker->status !== 'active') {
-    //         session()->flash('error', 'Your account is inactive. Please contact administrator.');
-    //         return back()->withInput($request->only('email'));
-    //     }
-
-    //     if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
-    //         $jobseeker = Auth::guard('jobseeker')->user();
-
-    //         if ($jobseeker->isSubscriptionBuy === 'yes') { // or === 1 if boolean
-    //             return redirect()->route('jobseeker.profile');
-    //         } else {
-    //             return redirect()->route('jobseeker.subscription.plan');
-    //         }
-    //     } else {
-    //         session()->flash('error', 'Invalid email or password.');
-    //         return back()->withInput($request->only('email'));
-    //     }
-    // }
 
     public function processSubscriptionPayment(Request $request)
     {
-        $jobseeker = auth()->user(); 
+        $jobseeker = auth()->user();
 
         $jobseeker->isSubscribtionBuy = 'yes';
         $jobseeker->save();
@@ -549,55 +517,51 @@ class JobseekerController extends Controller
     }
 
 
-    
-
-
-
 
     public function getJobseekerAllDetails()
     {
         $jobseeker = Auth::guard('jobseeker')->user();
         $jobseekerId = $jobseeker->id;
-      
+
         // Jobseeker basic details and skill details
         $jobseekerSkills = DB::table('jobseekers')
             ->leftJoin('skills', 'skills.jobseeker_id', '=', 'jobseekers.id')
             ->where('jobseekers.id', $jobseekerId)
             ->select('jobseekers.*', 'skills.*')
             ->first();
-          
-    
+
+
         // Education details (multiple)
         $educationDetails = DB::table('education_details')
             ->where('user_id', $jobseekerId)
             ->get();
-       
+
         // Work experience (multiple)
         $workExperiences = DB::table('work_experience')
             ->where('user_id', $jobseekerId)
             ->get();
-        
+
         // echo "<pre>";
         // print_r($workExperiences);
         // exit;
-        
+
         return view('site.jobseeker.profile', compact(
             'jobseekerSkills',
             'educationDetails',
             'workExperiences',
-           
+
         ));
 
     }
 
 
-    
+
     public function logoutJobseeker(Request $request)
     {
         Auth::guard('jobseeker')->logout();
-       
-        $request->session()->invalidate(); 
-        $request->session()->regenerateToken(); 
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('signin.form')->with('success', 'Logged out successfully');
     }
@@ -688,32 +652,32 @@ class JobseekerController extends Controller
             'high_education.*' => 'required|string|max:255',
             'field_of_study.*' => 'required|string|max:255',
             'institution.*' => 'required|string|max:255',
-            'graduate_year.*' => 'required|string|max:255', 
+            'graduate_year.*' => 'required|string|max:255',
         ], [
             'high_education.*.required' => 'The highest education field is required.',
-            'high_education.*.string'   => 'The highest education must be a valid string.',
-            'high_education.*.max'      => 'The highest education must not exceed 255 characters.',
+            'high_education.*.string' => 'The highest education must be a valid string.',
+            'high_education.*.max' => 'The highest education must not exceed 255 characters.',
 
             'field_of_study.*.required' => 'The field of study is required.',
-            'field_of_study.*.string'   => 'The field of study must be a valid string.',
-            'field_of_study.*.max'      => 'The field of study must not exceed 255 characters.',
+            'field_of_study.*.string' => 'The field of study must be a valid string.',
+            'field_of_study.*.max' => 'The field of study must not exceed 255 characters.',
 
-            'institution.*.required'    => 'The institution name is required.',
-            'institution.*.string'      => 'The institution must be a valid string.',
-            'institution.*.max'         => 'The institution must not exceed 255 characters.',
+            'institution.*.required' => 'The institution name is required.',
+            'institution.*.string' => 'The institution must be a valid string.',
+            'institution.*.max' => 'The institution must not exceed 255 characters.',
 
-            'graduate_year.*.required'  => 'The graduation year is required.',
-            'graduate_year.*.string'    => 'The graduation year must be a valid string.',
-            'graduate_year.*.max'       => 'The graduation year must not exceed 255 characters.',
+            'graduate_year.*.required' => 'The graduation year is required.',
+            'graduate_year.*.string' => 'The graduation year must be a valid string.',
+            'graduate_year.*.max' => 'The graduation year must not exceed 255 characters.',
         ]);
 
 
         $incomingIds = $request->input('education_id', []);
 
         $existingIds = EducationDetails::where('user_id', $userId)
-                        ->where('user_type', 'jobseeker')
-                        ->pluck('id')
-                        ->toArray();
+            ->where('user_type', 'jobseeker')
+            ->pluck('id')
+            ->toArray();
 
         $toDelete = array_diff($existingIds, $incomingIds);
         EducationDetails::whereIn('id', $toDelete)->delete();
@@ -741,7 +705,7 @@ class JobseekerController extends Controller
     }
 
 
-    
+
     public function updateWorkExprienceInfo(Request $request)
     {
         $user_id = auth()->id();
@@ -787,9 +751,9 @@ class JobseekerController extends Controller
 
         $workIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
-                        ->where('user_type', 'jobseeker')
-                        ->pluck('id')
-                        ->toArray();
+            ->where('user_type', 'jobseeker')
+            ->pluck('id')
+            ->toArray();
 
         $toDelete = array_diff($existingIds, $workIds);
         WorkExperience::whereIn('id', $toDelete)->delete();
@@ -955,16 +919,19 @@ class JobseekerController extends Controller
     public function submitForgetPassword(Request $request)
     {
         $request->validate([
-            'contact' => ['required', function ($attribute, $value, $fail) {
-                $isEmail = filter_var($value, FILTER_VALIDATE_EMAIL);
-                $column = $isEmail ? 'email' : 'phone_number';
+            'contact' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $isEmail = filter_var($value, FILTER_VALIDATE_EMAIL);
+                    $column = $isEmail ? 'email' : 'phone_number';
 
-                $exists = DB::table('jobseekers')->where($column, $value)->exists();
+                    $exists = DB::table('jobseekers')->where($column, $value)->exists();
 
-                if (!$exists) {
-                    $fail("This " . ($isEmail ? 'email' : 'mobile number') . " is not registered.");
+                    if (!$exists) {
+                        $fail("This " . ($isEmail ? 'email' : 'mobile number') . " is not registered.");
+                    }
                 }
-            }],
+            ],
         ]);
 
         $otp = rand(100000, 999999);
@@ -1084,14 +1051,15 @@ class JobseekerController extends Controller
 
         return response()->json(['message' => 'OTP resent successfully.']);
     }
-     
-    public function showOtpForm(){
-        return view('site.jobseeker.verify-otp'); 
+
+    public function showOtpForm()
+    {
+        return view('site.jobseeker.verify-otp');
     }
 
     public function showResetPasswordForm()
     {
-        return view('site.jobseeker.reset-password'); 
+        return view('site.jobseeker.reset-password');
     }
 
     public function verifyOtp(Request $request)
@@ -1200,7 +1168,7 @@ class JobseekerController extends Controller
                 </html>
             ', function ($message) use ($jobseeker) {
                 $message->to($jobseeker->email)
-                        ->subject('Your Talentrek Password Has Been Reset');
+                    ->subject('Your Talentrek Password Has Been Reset');
             });
         }
 
@@ -1216,15 +1184,15 @@ class JobseekerController extends Controller
     public function mentorshipDetails($id)
     {
         $mentorDetails = Mentors::with([
-                'reviews.jobseeker',
-                'additionalInfo',
-                'profilePicture',
-                'experiences',
-                'educations' => function ($q) {
-                    $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
-                },
-                'bookingSlots'  
-            ])
+            'reviews.jobseeker',
+            'additionalInfo',
+            'profilePicture',
+            'experiences',
+            'educations' => function ($q) {
+                $q->where('user_type', 'mentor')->orderBy('id')->limit(1);
+            },
+            'bookingSlots'
+        ])
             ->where('id', $id)
             ->firstOrFail();
 
@@ -1261,15 +1229,16 @@ class JobseekerController extends Controller
     }
 
 
-    public function bookingSession($mentor_id, $slot_id) {
+    public function bookingSession($mentor_id, $slot_id)
+    {
         $mentor = Mentors::with([
             'reviews.jobseeker',
             'additionalInfo',
             'profilePicture',
             'experiences',
         ])
-        ->where('id', $mentor_id)
-        ->firstOrFail();
+            ->where('id', $mentor_id)
+            ->firstOrFail();
 
         // Calculate total experience
         $experiences = DB::table('work_experience')
@@ -1291,26 +1260,26 @@ class JobseekerController extends Controller
         // Pass experience as property (optional)
         $mentor->total_experience = $totalExperience;
 
-        $mentorDetails = Mentors::select('mentors.*','booking_slots.*','booking_slots.id as booking_slot_id','mentors.id as mentor_id')
+        $mentorDetails = Mentors::select('mentors.*', 'booking_slots.*', 'booking_slots.id as booking_slot_id', 'mentors.id as mentor_id')
             ->where('mentors.id', $mentor_id)
             ->join('booking_slots', 'mentors.id', '=', 'booking_slots.user_id')
             ->where('booking_slots.id', $slot_id)
             ->first();
-        return view('site.mentorship-book-session', compact('mentorDetails','mentor'));
+        return view('site.mentorship-book-session', compact('mentorDetails', 'mentor'));
     }
 
 
-    public function bookingAssessorSession($assessor_id, $slot_id) 
+    public function bookingAssessorSession($assessor_id, $slot_id)
     {
-      
+
         $assessor = Assessors::with([
             'reviews.jobseeker',
             'additionalInfo',
             'profilePicture',
             'experiences',
         ])
-        ->where('id', $assessor_id)
-        ->firstOrFail();
+            ->where('id', $assessor_id)
+            ->firstOrFail();
 
         // Calculate total experience
         $experiences = DB::table('work_experience')
@@ -1334,17 +1303,17 @@ class JobseekerController extends Controller
 
 
 
-        $assessorDetails = Assessors::select('assessors.*','booking_slots.*','booking_slots.id as booking_slot_id','assessors.id as assessor_id')
+        $assessorDetails = Assessors::select('assessors.*', 'booking_slots.*', 'booking_slots.id as booking_slot_id', 'assessors.id as assessor_id')
             ->where('assessors.id', $assessor_id)
             ->join('booking_slots', 'assessors.id', '=', 'booking_slots.user_id')
             ->where('booking_slots.id', $slot_id)
             ->first();
 
-        return view('site.assessment-book-session', compact('assessorDetails','assessor'));
+        return view('site.assessment-book-session', compact('assessorDetails', 'assessor'));
     }
 
-    
-    public function bookingCoachSession($coach_id, $slot_id) 
+
+    public function bookingCoachSession($coach_id, $slot_id)
     {
         $coach = Coach::with([
             'reviews.jobseeker',
@@ -1352,8 +1321,8 @@ class JobseekerController extends Controller
             'profilePicture',
             'experiences',
         ])
-        ->where('id', $coach_id)
-        ->firstOrFail();
+            ->where('id', $coach_id)
+            ->firstOrFail();
 
         // Calculate total experience
         $experiences = DB::table('work_experience')
@@ -1376,12 +1345,12 @@ class JobseekerController extends Controller
         $coach->total_experience = $totalExperience;
 
 
-        $coachDetails = Coach::select('coaches.*','booking_slots.*','booking_slots.id as booking_slot_id','coaches.id as coach_id')
+        $coachDetails = Coach::select('coaches.*', 'booking_slots.*', 'booking_slots.id as booking_slot_id', 'coaches.id as coach_id')
             ->where('coaches.id', $coach_id)
             ->join('booking_slots', 'coaches.id', '=', 'booking_slots.user_id')
             ->where('booking_slots.id', $slot_id)
             ->first();
-        return view('site.coach-book-session', compact('coachDetails','coach'));
+        return view('site.coach-book-session', compact('coachDetails', 'coach'));
     }
 
 
@@ -1430,7 +1399,7 @@ class JobseekerController extends Controller
 
         // Transform each slot with is_unavailable flag
         $slots->transform(function ($slot) use ($formattedDate, $unavailableSlotIds) {
-            $unavailableDates = [];    
+            $unavailableDates = [];
 
             if (!empty($slot->unavailable_dates)) {
                 if (is_string($slot->unavailable_dates)) {
@@ -1464,7 +1433,7 @@ class JobseekerController extends Controller
         $mode = $request->query('mode');
         $date = $request->query('date');
         $assessor_id = $request->query('assessor_id');
-        $jobseeker_id = auth('jobseeker')->id(); 
+        $jobseeker_id = auth('jobseeker')->id();
 
         if (!$mode || !$date || !$assessor_id) {
             return response()->json([
@@ -1580,7 +1549,7 @@ class JobseekerController extends Controller
 
         // Transform each slot with is_unavailable flag
         $slots->transform(function ($slot) use ($formattedDate, $unavailableSlotIds) {
-            $unavailableDates = [];    
+            $unavailableDates = [];
 
             if (!empty($slot->unavailable_dates)) {
                 if (is_string($slot->unavailable_dates)) {
@@ -1621,19 +1590,20 @@ class JobseekerController extends Controller
 
         $jobseeker = auth('jobseeker')->user();
 
-        // Step 0: Check for existing booking on same date
+        // Check if there's already a booking on the same date and time
         $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
             ->where('user_type', 'mentor')
             ->where('user_id', $request->mentor_id)
             ->whereDate('slot_date', $request->date)
-            ->whereIn('status', ['pending', 'confirmed']) // optional: skip cancelled
+            ->where('slot_time', $request->slot_time)
+            ->whereIn('status', ['pending', 'confirmed'])
             ->first();
 
         if ($existingBooking) {
-            return redirect()->back()->with('error', 'You have already booked a session for this date.');
+            return redirect()->back()->with('error', 'You have already booked a session for this date and time.');
         }
 
-        // Step 1: Save booking
+        // Create the booking record
         $booking = BookingSession::create([
             'jobseeker_id' => $jobseeker->id,
             'user_type' => 'mentor',
@@ -1645,11 +1615,13 @@ class JobseekerController extends Controller
             'status' => 'pending',
         ]);
 
-        // Step 2: Create Zoom if online
+        $mentorAddress = null;
+
+        // If online, create Zoom meeting
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Mentorship with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -1657,8 +1629,17 @@ class JobseekerController extends Controller
                     'zoom_join_url' => $zoomMeeting['join_url'],
                 ]);
             } else {
-                return redirect()->back()->with('error', 'Zoom meeting creation failed.');
+                \Log::error('Zoom creation failed for mentorship booking', [
+                    'jobseeker_id' => $jobseeker->id,
+                    'mentor_id' => $request->mentor_id,
+                    'slot_time' => $request->slot_time,
+                ]);
+                return redirect()->back()->with('error', 'Zoom meeting creation failed. Please try again later.');
             }
+        } elseif ($request->mode === 'offline') {
+            // Get mentor address
+            $mentor = Mentors::find($request->mentor_id);
+            $mentorAddress = $mentor?->address ?? 'Address not available';
         }
 
         return redirect()->back()->with([
@@ -1666,12 +1647,15 @@ class JobseekerController extends Controller
             'booking_id' => $booking->id,
             'slot_date' => $request->date,
             'slot_time' => $request->slot_time,
-            'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
+            'zoom_link' => $request->mode === 'online' ? ($booking->zoom_join_url ?? null) : null,
+            'mentor_address' => $request->mode === 'offline' ? $mentorAddress : null,
         ]);
     }
 
 
-    public function submitAssessorBooking(Request $request)
+
+
+   public function submitAssessorBooking(Request $request)
     {
         $request->validate([
             'assessor_id' => 'required|exists:assessors,id',
@@ -1683,19 +1667,20 @@ class JobseekerController extends Controller
 
         $jobseeker = auth('jobseeker')->user();
 
-        // Step 0: Check for existing booking on same date
+        // Check if there's already a booking on the same date and time
         $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
             ->where('user_type', 'assessor')
             ->where('user_id', $request->assessor_id)
             ->whereDate('slot_date', $request->date)
-            ->whereIn('status', ['pending', 'confirmed']) // optional: skip cancelled
+            ->where('slot_time', $request->slot_time)
+            ->whereIn('status', ['pending', 'confirmed'])
             ->first();
 
         if ($existingBooking) {
-            return redirect()->back()->with('error', 'You have already booked a session for this date.');
+            return redirect()->back()->with('error', 'You have already booked a session for this date and time.');
         }
 
-        // Step 1: Save booking
+        // Create the booking
         $booking = BookingSession::create([
             'jobseeker_id' => $jobseeker->id,
             'user_type' => 'assessor',
@@ -1707,7 +1692,9 @@ class JobseekerController extends Controller
             'status' => 'pending',
         ]);
 
-        // Step 2: Create Zoom if online
+        $assessorAddress = null;
+
+        // If mode is online, create Zoom meeting
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
@@ -1719,8 +1706,17 @@ class JobseekerController extends Controller
                     'zoom_join_url' => $zoomMeeting['join_url'],
                 ]);
             } else {
-                return redirect()->back()->with('error', 'Zoom meeting creation failed.');
+                \Log::error('Zoom creation failed for assessor booking', [
+                    'jobseeker_id' => $jobseeker->id,
+                    'assessor_id' => $request->assessor_id,
+                    'slot_time' => $request->slot_time,
+                ]);
+                return redirect()->back()->with('error', 'Zoom meeting creation failed. Please try again later.');
             }
+        } elseif ($request->mode === 'offline') {
+            // Get assessor address
+            $assessor = Assessors::find($request->assessor_id);
+            $assessorAddress = $assessor?->address ?? 'Address not available';
         }
 
         return redirect()->back()->with([
@@ -1728,9 +1724,12 @@ class JobseekerController extends Controller
             'booking_id' => $booking->id,
             'slot_date' => $request->date,
             'slot_time' => $request->slot_time,
-            'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
+            'zoom_link' => $request->mode === 'online' ? ($booking->zoom_join_url ?? null) : null,
+            'assessor_address' => $request->mode === 'offline' ? $assessorAddress : null,
         ]);
     }
+
+
 
 
     public function submitCoachBooking(Request $request)
@@ -1745,19 +1744,20 @@ class JobseekerController extends Controller
 
         $jobseeker = auth('jobseeker')->user();
 
-        // Step 0: Check for existing booking on same date
+        // Check for duplicate booking
         $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
             ->where('user_type', 'coach')
             ->where('user_id', $request->coach_id)
             ->whereDate('slot_date', $request->date)
-            ->whereIn('status', ['pending', 'confirmed']) // optional: skip cancelled
+            ->where('slot_time', $request->slot_time)
+            ->whereIn('status', ['pending', 'confirmed'])
             ->first();
 
         if ($existingBooking) {
-            return redirect()->back()->with('error', 'You have already booked a session for this date.');
+            return redirect()->back()->with('error', 'You have already booked a session for this date and time.');
         }
 
-        // Step 1: Save booking
+        // Create booking
         $booking = BookingSession::create([
             'jobseeker_id' => $jobseeker->id,
             'user_type' => 'coach',
@@ -1769,11 +1769,13 @@ class JobseekerController extends Controller
             'status' => 'pending',
         ]);
 
-        // Step 2: Create Zoom if online
+        $coachAddress = null;
+
+        // Handle Zoom if online
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Coaching with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -1781,18 +1783,31 @@ class JobseekerController extends Controller
                     'zoom_join_url' => $zoomMeeting['join_url'],
                 ]);
             } else {
-                return redirect()->back()->with('error', 'Zoom meeting creation failed.');
+                \Log::error('Zoom creation failed for coach booking', [
+                    'jobseeker_id' => $jobseeker->id,
+                    'coach_id' => $request->coach_id,
+                    'slot_time' => $request->slot_time,
+                ]);
+                return redirect()->back()->with('error', 'Zoom meeting creation failed. Please try again later.');
             }
+        } elseif ($request->mode === 'offline') {
+            // Get coach address
+            $coach = Coach::find($request->coach_id);
+            $coachAddress = $coach?->address ?? 'Address not available';
         }
 
+        // Redirect with session values
         return redirect()->back()->with([
             'success' => 'Session booked successfully.',
             'booking_id' => $booking->id,
             'slot_date' => $request->date,
             'slot_time' => $request->slot_time,
-            'zoom_link' => $request->mode === 'online' ? ($zoomMeeting['join_url'] ?? null) : null,
+            'zoom_link' => $request->mode === 'online' ? ($booking->zoom_join_url ?? null) : null,
+            'coach_address' => $request->mode === 'offline' ? $coachAddress : null,
         ]);
     }
+
+
 
 
     public function courseDetails($id)
@@ -1839,11 +1854,11 @@ class JobseekerController extends Controller
 
         // Fetch profile picture from talentrek_additional_info
         $profile = DB::table('additional_info')
-        ->where('user_id', $userId)
-        ->where('user_type', 'trainer')
-        ->where('doc_type', 'profile') // ✅ important fix here
-        ->orderByDesc('id')
-        ->first();
+            ->where('user_id', $userId)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'profile') // ✅ important fix here
+            ->orderByDesc('id')
+            ->first();
 
         $material->user_name = $user->name ?? '';
         $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
@@ -1896,7 +1911,13 @@ class JobseekerController extends Controller
             ->get();
 
         return view('site.training-detail', compact(
-            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews'
+            'material',
+            'user',
+            'userType',
+            'userId',
+            'average',
+            'ratingsPercent',
+            'reviews'
         ));
     }
 
@@ -1916,8 +1937,8 @@ class JobseekerController extends Controller
 
         // Check if the item is already in the cart
         $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
-                                ->where('material_id', $id)
-                                ->exists();
+            ->where('material_id', $id)
+            ->exists();
 
         if ($exists) {
             return redirect()->back()->with('success', 'This item is already in your cart.');
@@ -1942,19 +1963,19 @@ class JobseekerController extends Controller
         }
 
         $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
-        
+
         if (!in_array($request->user_type, $allowedTypes)) {
             return response()->json(['success' => false, 'message' => 'Invalid user type'], 400);
         }
 
         $data = [
-            'jobseeker_id'     => $user->id,
-            'user_type'        => $request->user_type,
-            'user_id'          => $request->user_id,
-            'reviews'          => $request->reviews,
-            'ratings'          => $request->ratings,
-            'created_at'       => now(),
-            'updated_at'       => now(),
+            'jobseeker_id' => $user->id,
+            'user_type' => $request->user_type,
+            'user_id' => $request->user_id,
+            'reviews' => $request->reviews,
+            'ratings' => $request->ratings,
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
 
         if ($request->user_type === 'trainer' && $request->filled('material_id')) {
@@ -1967,13 +1988,13 @@ class JobseekerController extends Controller
             'success' => true,
             'review' => [
                 'jobseeker_name' => $user->name,
-                'ratings'        => $request->ratings,
-                'reviews'        => $request->reviews
+                'ratings' => $request->ratings,
+                'reviews' => $request->reviews
             ]
         ]);
     }
 
-     
+
     public function buyCourseDetails($id)
     {
         $material = DB::table('training_materials')->where('id', $id)->first();
@@ -2018,11 +2039,11 @@ class JobseekerController extends Controller
 
         // Fetch profile picture from talentrek_additional_info
         $profile = DB::table('additional_info')
-        ->where('user_id', $userId)
-        ->where('user_type', 'trainer')
-        ->where('doc_type', 'profile') // ✅ important fix here
-        ->orderByDesc('id')
-        ->first();
+            ->where('user_id', $userId)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'profile') // ✅ important fix here
+            ->orderByDesc('id')
+            ->first();
 
         $material->user_name = $user->name ?? '';
         $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
@@ -2075,10 +2096,16 @@ class JobseekerController extends Controller
             ->get();
 
         return view('site.buy-course', compact(
-            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews'
+            'material',
+            'user',
+            'userType',
+            'userId',
+            'average',
+            'ratingsPercent',
+            'reviews'
         ));
     }
-    
+
 
     public function purchaseCourse(Request $request)
     {
@@ -2088,9 +2115,9 @@ class JobseekerController extends Controller
 
         $request->validate([
             'training_type' => 'required|in:online,classroom',
-            'session_type'  => 'required_if:training_type,online|in:online,classroom',
-            'batch'         => 'required_if:training_type,online|exists:training_batches,id',
-            'payment_method'=> 'required|in:card,upi'
+            'session_type' => 'required_if:training_type,online|in:online,classroom',
+            'batch' => 'required_if:training_type,online|exists:training_batches,id',
+            'payment_method' => 'required|in:card,upi'
         ]);
 
         DB::beginTransaction();
@@ -2105,17 +2132,17 @@ class JobseekerController extends Controller
             $total = $offerPrice + $tax;
 
             JobseekerTrainingMaterialPurchase::create([
-                'jobseeker_id'   => auth('jobseeker')->id(),
-                'trainer_id'     => $material->trainer_id,
-                'material_id'    => $material->id,
-                'training_type'  => $request->training_type,
-                'session_type'   => $request->session_type,
-                'batch_id'       => $request->batch,
+                'jobseeker_id' => auth('jobseeker')->id(),
+                'trainer_id' => $material->trainer_id,
+                'material_id' => $material->id,
+                'training_type' => $request->training_type,
+                'session_type' => $request->session_type,
+                'batch_id' => $request->batch,
                 'payment_method' => $request->payment_method,
-                'amount'         => $total,
-                'tax'            => $tax,
-                'discount'       => $savedAmount,
-                'status'         => 'paid',
+                'amount' => $total,
+                'tax' => $tax,
+                'discount' => $savedAmount,
+                'status' => 'paid',
             ]);
 
             DB::commit();
@@ -2165,16 +2192,16 @@ class JobseekerController extends Controller
             $selectedIndex = is_null($selectedAnswer) ? null : array_search($selectedAnswer, $options);
 
             return [
-                'id'               => $q->id,
-                'question'         => $q->questions_title,
-                'options'          => $options,
-                'correct_option'   => $q->options->firstWhere('correct_option', 1)?->options,
-                'trainer_id'       => $assessment->trainer_id,
-                'material_id'      => $assessment->material_id,
-                'assessment_id'    => $assessment->id,
-                'totalQuestions'   => $assessment->total_questions,
+                'id' => $q->id,
+                'question' => $q->questions_title,
+                'options' => $options,
+                'correct_option' => $q->options->firstWhere('correct_option', 1)?->options,
+                'trainer_id' => $assessment->trainer_id,
+                'material_id' => $assessment->material_id,
+                'assessment_id' => $assessment->id,
+                'totalQuestions' => $assessment->total_questions,
                 'passingQuestions' => $assessment->passing_questions,
-                'selected_index'   => $selectedIndex,
+                'selected_index' => $selectedIndex,
             ];
         });
 
@@ -2202,27 +2229,27 @@ class JobseekerController extends Controller
     public function saveJobseekerAnswer(Request $request)
     {
         $request->validate([
-            'trainer_id'      => 'required|integer',
-            'material_id'     => 'required|integer',
-            'assessment_id'   => 'required|integer',
-            'question_id'     => 'required|integer',
+            'trainer_id' => 'required|integer',
+            'material_id' => 'required|integer',
+            'assessment_id' => 'required|integer',
+            'question_id' => 'required|integer',
             'selected_answer' => 'required|string',
-            'correct_answer'  => 'required|string',
+            'correct_answer' => 'required|string',
         ]);
 
         $jobseekerId = Auth::guard('jobseeker')->id();
 
         JobseekerAssessmentData::updateOrCreate(
             [
-                'trainer_id'    => $request->trainer_id,
-                'training_id'   => $request->material_id,
+                'trainer_id' => $request->trainer_id,
+                'training_id' => $request->material_id,
                 'assessment_id' => $request->assessment_id,
-                'question_id'   => $request->question_id,
-                'jobseeker_id'  => $jobseekerId,
+                'question_id' => $request->question_id,
+                'jobseeker_id' => $jobseekerId,
             ],
             [
                 'selected_answer' => $request->selected_answer,
-                'correct_answer'  => $request->correct_answer,
+                'correct_answer' => $request->correct_answer,
             ]
         );
 
@@ -2252,15 +2279,15 @@ class JobseekerController extends Controller
 
             JobseekerAssessmentData::updateOrCreate(
                 [
-                    'trainer_id'    => $answer['trainer_id'],
-                    'training_id'   => $answer['material_id'],
+                    'trainer_id' => $answer['trainer_id'],
+                    'training_id' => $answer['material_id'],
                     'assessment_id' => $answer['assessment_id'],
-                    'question_id'   => $answer['question_id'],
-                    'jobseeker_id'  => $jobseekerId,
+                    'question_id' => $answer['question_id'],
+                    'jobseeker_id' => $jobseekerId,
                 ],
                 [
                     'selected_answer' => $answer['selected_answer'],
-                    'correct_answer'  => $answer['correct_answer'],
+                    'correct_answer' => $answer['correct_answer'],
                 ]
             );
         }
@@ -2269,7 +2296,7 @@ class JobseekerController extends Controller
             // Save status as submitted
             JobseekerAssessmentStatus::updateOrCreate(
                 [
-                    'jobseeker_id'  => $jobseekerId,
+                    'jobseeker_id' => $jobseekerId,
                     'assessment_id' => $assessmentId,
                 ],
                 ['submitted' => true]
@@ -2300,104 +2327,104 @@ class JobseekerController extends Controller
         return view('site.jobseeker.quiz_success');
     }
 
-   public function viewScore($id)
-{
-    $jobseekerId = Auth::guard('jobseeker')->id();
+    public function viewScore($id)
+    {
+        $jobseekerId = Auth::guard('jobseeker')->id();
 
-    $assessment = TrainerAssessment::with(['questions.options'])->findOrFail($id);
+        $assessment = TrainerAssessment::with(['questions.options'])->findOrFail($id);
 
-    // Check if submitted
-    $status = JobseekerAssessmentStatus::where([
-        ['assessment_id', '=', $id],
-        ['jobseeker_id', '=', $jobseekerId],
-        ['submitted', '=', '1'],
-    ])->first();
+        // Check if submitted
+        $status = JobseekerAssessmentStatus::where([
+            ['assessment_id', '=', $id],
+            ['jobseeker_id', '=', $jobseekerId],
+            ['submitted', '=', '1'],
+        ])->first();
 
-    if (!$status) {
-        return redirect()->back()->with('error', 'You have not submitted this assessment yet.');
+        if (!$status) {
+            return redirect()->back()->with('error', 'You have not submitted this assessment yet.');
+        }
+
+        // Fetch all submitted answers
+        $answers = JobseekerAssessmentData::where([
+            ['assessment_id', '=', $id],
+            ['jobseeker_id', '=', $jobseekerId],
+        ])->get();
+
+        // Map of question_id => selected_answer
+        $answeredMap = $answers->keyBy('question_id');
+        $answeredAnswers = $answeredMap->map(fn($a) => $a->selected_answer)->toArray();
+
+        // Build result data
+        $questionsWithAnswers = $assessment->questions->map(function ($question) use ($answeredMap) {
+            $answer = $answeredMap->get($question->id);
+            $options = $question->options->pluck('options')->toArray();
+            $correctAnswer = $question->options->firstWhere('correct_option', 1)?->options;
+            $selectedAnswer = $answer?->selected_answer;
+
+            return [
+                'id' => $question->id,
+                'question' => $question->questions_title,
+                'options' => $options,
+                'correct_answer' => $correctAnswer,
+                'selected_answer' => $selectedAnswer,
+                'is_correct' => $selectedAnswer === $correctAnswer,
+            ];
+        });
+
+        $totalQuestions = $assessment->total_questions;
+        $correctAnswers = $questionsWithAnswers->where('is_correct', true)->count();
+        $score = $correctAnswers;
+        $passingScore = $assessment->passing_questions;
+        $resultStatus = $score >= $passingScore ? 'Passed' : 'Failed';
+
+        // This is the structure used by the quiz/result UI
+        $quizQuestions = $assessment->questions->map(function ($question) use ($assessment, $answeredAnswers) {
+            $options = $question->options->pluck('options')->toArray();
+            $selectedAnswer = $answeredAnswers[$question->id] ?? null;
+            $selectedIndex = is_null($selectedAnswer) ? null : array_search($selectedAnswer, $options);
+            $correctAnswer = $question->options->firstWhere('correct_option', 1)?->options;
+            $correctIndex = array_search($correctAnswer, $options);
+
+            return [
+                'id' => $question->id,
+                'question' => $question->questions_title,
+                'options' => $options,
+                'correct_option' => $correctAnswer,
+                'correct_index' => $correctIndex,
+                'trainer_id' => $assessment->trainer_id,
+                'material_id' => $assessment->material_id,
+                'assessment_id' => $assessment->id,
+                'totalQuestions' => $assessment->total_questions,
+                'passingQuestions' => $assessment->passing_questions,
+                'selected_index' => $selectedIndex,
+            ];
+        });
+
+        return view('site.jobseeker.assessment-result', compact(
+            'assessment',
+            'score',
+            'totalQuestions',
+            'resultStatus',
+            'questionsWithAnswers',
+            'quizQuestions'
+        ));
     }
-
-    // Fetch all submitted answers
-    $answers = JobseekerAssessmentData::where([
-        ['assessment_id', '=', $id],
-        ['jobseeker_id', '=', $jobseekerId],
-    ])->get();
-
-    // Map of question_id => selected_answer
-    $answeredMap = $answers->keyBy('question_id');
-    $answeredAnswers = $answeredMap->map(fn($a) => $a->selected_answer)->toArray();
-
-    // Build result data
-    $questionsWithAnswers = $assessment->questions->map(function ($question) use ($answeredMap) {
-        $answer = $answeredMap->get($question->id);
-        $options = $question->options->pluck('options')->toArray();
-        $correctAnswer = $question->options->firstWhere('correct_option', 1)?->options;
-        $selectedAnswer = $answer?->selected_answer;
-
-        return [
-            'id'              => $question->id,
-            'question'        => $question->questions_title,
-            'options'         => $options,
-            'correct_answer'  => $correctAnswer,
-            'selected_answer' => $selectedAnswer,
-            'is_correct'      => $selectedAnswer === $correctAnswer,
-        ];
-    });
-
-    $totalQuestions = $assessment->total_questions;
-    $correctAnswers = $questionsWithAnswers->where('is_correct', true)->count();
-    $score = $correctAnswers;
-    $passingScore = $assessment->passing_questions;
-    $resultStatus = $score >= $passingScore ? 'Passed' : 'Failed';
-
-    // This is the structure used by the quiz/result UI
-    $quizQuestions = $assessment->questions->map(function ($question) use ($assessment, $answeredAnswers) {
-        $options = $question->options->pluck('options')->toArray();
-        $selectedAnswer = $answeredAnswers[$question->id] ?? null;
-        $selectedIndex = is_null($selectedAnswer) ? null : array_search($selectedAnswer, $options);
-        $correctAnswer = $question->options->firstWhere('correct_option', 1)?->options;
-        $correctIndex = array_search($correctAnswer, $options);
-
-        return [
-            'id'               => $question->id,
-            'question'         => $question->questions_title,
-            'options'          => $options,
-            'correct_option'   => $correctAnswer,
-            'correct_index'    => $correctIndex,
-            'trainer_id'       => $assessment->trainer_id,
-            'material_id'      => $assessment->material_id,
-            'assessment_id'    => $assessment->id,
-            'totalQuestions'   => $assessment->total_questions,
-            'passingQuestions' => $assessment->passing_questions,
-            'selected_index'   => $selectedIndex,
-        ];
-    });
-
-    return view('site.jobseeker.assessment-result', compact(
-        'assessment',
-        'score',
-        'totalQuestions',
-        'resultStatus',
-        'questionsWithAnswers',
-        'quizQuestions'
-    ));
-}
 
 
 
     public function assessorDetails($id)
     {
         $assessor = Assessors::with([
-                'reviews.jobseeker',
-                'additionalInfo',
-                'profilePicture',
-                'experiences',
-                'educations' => function ($q) {
-                    $q->where('user_type', 'assessor')->orderBy('id')->limit(1);
-                },
-               
-                'bookingSlots'   
-            ])
+            'reviews.jobseeker',
+            'additionalInfo',
+            'profilePicture',
+            'experiences',
+            'educations' => function ($q) {
+                $q->where('user_type', 'assessor')->orderBy('id')->limit(1);
+            },
+
+            'bookingSlots'
+        ])
             ->where('id', $id)
             ->firstOrFail();
 
@@ -2421,7 +2448,7 @@ class JobseekerController extends Controller
         // Pass experience as property (optional)
         $assessor->total_experience = $totalExperience;
 
-            
+
 
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
@@ -2432,29 +2459,29 @@ class JobseekerController extends Controller
             )
             ->get();
 
-       
 
-            // echo "<pre>";
-            // print_r($reviews);exit;
-            // echo "</pre>";
 
-        return view('site.assessment-details', compact('assessor','reviews'));
+        // echo "<pre>";
+        // print_r($reviews);exit;
+        // echo "</pre>";
+
+        return view('site.assessment-details', compact('assessor', 'reviews'));
     }
 
     public function coachDetails($id)
     {
-      
+
         $coach = Coach::with([
-                'reviews.jobseeker',
-                'additionalInfo',
-                'profilePicture',
-                'experiences',
-                'educations' => function ($q) {
-                    $q->where('user_type', 'coach')->orderBy('id')->limit(1);
-                },
-               
-                'bookingSlots'   
-            ])
+            'reviews.jobseeker',
+            'additionalInfo',
+            'profilePicture',
+            'experiences',
+            'educations' => function ($q) {
+                $q->where('user_type', 'coach')->orderBy('id')->limit(1);
+            },
+
+            'bookingSlots'
+        ])
             ->where('id', $id)
             ->firstOrFail();
 
@@ -2488,11 +2515,11 @@ class JobseekerController extends Controller
             )
             ->get();
 
-            // echo "<pre>";
-            // print_r($reviews);exit;
-            // echo "</pre>";
+        // echo "<pre>";
+        // print_r($reviews);exit;
+        // echo "</pre>";
 
-        return view('site.coach-details', compact('coach','reviews'));
+        return view('site.coach-details', compact('coach', 'reviews'));
     }
 
     public function submitAssessorReview(Request $request)
@@ -2532,7 +2559,7 @@ class JobseekerController extends Controller
     public function submitCoachReview(Request $request)
     {
         $jobseeker = auth()->guard('jobseeker')->user();
-        
+
         if (!$jobseeker) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
@@ -2542,7 +2569,7 @@ class JobseekerController extends Controller
             'review' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
         ]);
-      
+
         $reviewId = DB::table('reviews')->insertGetId([
             'jobseeker_id' => $jobseeker->id,
             'user_type' => 'coach',
@@ -2553,7 +2580,7 @@ class JobseekerController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-      
+
         return response()->json([
             'success' => 'Review submitted successfully',
             'review' => [
@@ -2567,7 +2594,7 @@ class JobseekerController extends Controller
     public function submitMentorReview(Request $request)
     {
         $jobseeker = auth()->guard('jobseeker')->user();
-        
+
         if (!$jobseeker) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
@@ -2577,7 +2604,7 @@ class JobseekerController extends Controller
             'review' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
         ]);
-      
+
         $reviewId = DB::table('reviews')->insertGetId([
             'jobseeker_id' => $jobseeker->id,
             'user_type' => 'mentor',
@@ -2588,7 +2615,7 @@ class JobseekerController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-      
+
         return response()->json([
             'success' => 'Review submitted successfully',
             'review' => [
@@ -2597,6 +2624,22 @@ class JobseekerController extends Controller
                 'ratings' => $request->rating,
             ]
         ]);
+    }
+
+
+   public function removeCartItem($id)
+    {
+        $item = JobseekerCartItem::where('id', $id)
+            ->where('jobseeker_id', auth('jobseeker')->id())
+            ->first();
+
+        if (!$item) {
+            return response()->json(['status' => 'error', 'message' => 'Item not found'], 404);
+        }
+
+        $item->delete();
+
+        return response()->json(['status' => 'success', 'message' => 'Item removed']);
     }
 
 }

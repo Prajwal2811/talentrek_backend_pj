@@ -82,6 +82,10 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/assessment/result/{id}', [JobseekerController::class, 'viewScore'])->name('jobseeker.assessment.result');
 
 
+		Route::post('/cart/remove/{id}', [JobseekerController::class, 'remove'])->name('cart.remove');
+
+
+
 	});
 
 		Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');

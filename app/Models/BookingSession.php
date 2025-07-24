@@ -52,5 +52,19 @@ class BookingSession extends Model
     {
         return $this->belongsTo(BookingSlot::class, 'booking_slot_id');
     }
+
+    public function mentor()
+    {
+        return $this->belongsTo(Mentors::class, 'user_id', 'id');
+    }
+
+    public function assessor()
+    {
+        return $this->belongsTo(Assessors::class, 'user_id', 'id');
+    }
     
+    public function coach()
+    {
+        return $this->belongsTo(Coach::class, 'user_id', 'id');
+    }
 }

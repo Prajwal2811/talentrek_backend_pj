@@ -32,4 +32,6 @@ class JobseekerCartItem extends Model
     {
         return $this->belongsTo(TrainingMaterial::class, 'material_id');
     }
+
+    
 }

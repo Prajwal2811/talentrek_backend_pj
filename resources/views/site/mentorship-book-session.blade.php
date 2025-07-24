@@ -46,23 +46,30 @@
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         @if(session('success'))
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '{{ session('success') }}',
-                        html: `
-                            <section class="flex flex-col items-center justify-center text-center">
-                                <h2 class="text-xl font-medium mb-1">Your Appointment Booked Successfully</h2>
-                                <p class="text-sm text-gray-600 mb-1">Booking ID: <span class="font-semibold">#{{ session('booking_id') }}</span></p>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: '{{ session('success') }}',
+                    html: `
+                        <section class="flex flex-col items-center justify-center text-center">
+                            <h2 class="text-xl font-medium mb-1">Your Appointment Booked Successfully</h2>
+                            <p class="text-sm text-gray-600 mb-1">Booking ID: <span class="font-semibold">#{{ session('booking_id') }}</span></p>
 
-                                <div class="text-sm text-gray-600 mb-6">
-                                    <p>{{ \Carbon\Carbon::parse(session('slot_date'))->format('F d, Y') }}</p>
-                                    <p>{{ session('slot_time') }}</p>
+                            <div class="text-sm text-gray-600 mb-4">
+                                <p>{{ \Carbon\Carbon::parse(session('slot_date'))->format('F d, Y') }}</p>
+                                <p>{{ session('slot_time') }}</p>
+                            </div>
+
+                            @if(session('mentor_address'))
+                                <div class="text-sm text-gray-700 mt-2">
+                                    <p class="font-semibold text-gray-800">Location:</p>
+                                    <p>{{ session('mentor_address') }}</p>
                                 </div>
+                            @endif
 
-                                @if(session('zoom_link'))
-                                <div class="flex items-center w-full max-w-md bg-gray-100 rounded-md px-4 py-2 shadow">
+                            @if(session('zoom_link'))
+                                <div class="flex items-center w-full max-w-md bg-gray-100 rounded-md px-4 py-2 shadow mt-4">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2H4m16 4V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z" />
                                     </svg>
@@ -71,18 +78,19 @@
                                         Copy
                                     </button>
                                 </div>
-                                @endif
-                            </section>
-                        `,
-                        confirmButtonColor: '#3085d6',
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = '{{ route('jobseeker.profile') }}';
-                        }
-                    });
+                            @endif
+                        </section>
+                    `,
+                    confirmButtonColor: '#3085d6',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route('jobseeker.profile') }}';
+                    }
                 });
-            </script>
+            });
+        </script>
         @endif
+
 
 
 
