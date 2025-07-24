@@ -423,12 +423,18 @@
                                 Buy for team
                             </button>
                         </a>
-                        <form action="{{ route('jobseeker.addtocart', ['id' => $material->id]) }}" method="POST">
-                          @csrf
-                          <button type="submit" class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
-                              Add to cart
-                          </button>
-                      </form>
+                        
+                        @if(in_array($material->id, $cartItems))
+                            <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium">
+                                Go to Cart
+                            </a>
+                        @else
+                            <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium"
+                                data-id="{{ $material->id }}">
+                            Add to cart
+                        </button>
+                        @endif
+
                     @else
                         <!-- Already purchased -->
                         <a href="{{ route('jobseeker.profile') }}">
@@ -449,12 +455,17 @@
                             Buy for team
                         </button>
                     </a>
-                    <form action="{{ route('jobseeker.addtocart', ['id' => $material->id]) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium">
-                            Add to cart
-                        </button>
-                    </form>
+                    @if(in_array($material->id, $cartItems))
+                        <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium">
+                            Go to Cart
+                        </a>
+                    @else
+                        <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium"
+                            data-id="{{ $material->id }}">
+                        Add to cart
+                    </button>
+                    @endif
+
                 @endif
 
               </aside>
@@ -462,6 +473,67 @@
 
             </div>
           </main>
+
+         <!-- jQuery -->
+          <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+          <script>
+            $(document).ready(function () {
+                $('.add-to-cart-btn').on('click', function (e) {
+                    e.preventDefault(); 
+
+                    let button = $(this);
+                    let materialId = button.data('id');
+
+                    $.ajax({
+                        url: "{{ route('jobseeker.addtocart', ['id' => '__id__']) }}".replace('__id__', materialId),
+                        type: "POST",
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function (res) {
+                            
+                            button
+                              .removeClass('add-to-cart-btn bg-blue-500 hover:bg-blue-600 hover:text-white hover:bg-white')
+                              .addClass('bg-orange-500 text-white border border-orange-500')
+                              .css({
+                                  'background-color': '#f97316',
+                                  'color': '#fff'
+                              })
+                              .hover(
+                                  function () {
+                                      $(this).css({
+                                          'background-color': '#f97316',
+                                          'color': '#fff'
+                                      });
+                                  },
+                                  function () {
+                                      $(this).css({
+                                          'background-color': '#f97316',
+                                          'color': '#fff'
+                                      });
+                                  }
+                              )
+                              .text('Go to cart')
+                              .off('click')
+                              .on('click', function () {
+                                  window.location.href = "{{ route('jobseeker.profile') }}";
+                              });
+
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 401) {
+                                alert("Please log in to add items to your cart.");
+                            } else {
+                                alert("Something went wrong.");
+                            }
+                        }
+                    });
+                });
+            });
+          </script>
+
+         
 
           
           <style>
