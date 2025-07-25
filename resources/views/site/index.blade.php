@@ -1,3 +1,39 @@
+<?php
+    
+    
+
+    // Fetch all trainers
+    $trainers = DB::table('trainers')->get();
+
+    foreach ($trainers as $trainer) {
+        // Fetch profile picture from talentrek_additional_info
+        $profile = DB::table('additional_info')
+            ->where('user_id', $trainer->id)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'profile_picture')
+            ->first();
+
+        $trainer->profile_picture = $profile ? $profile->document_path : null;
+
+        // Fetch materials for each trainer
+        $trainer->materials = DB::table('training_materials')
+            ->where('trainer_id', $trainer->id)
+            ->get();
+
+        foreach ($trainer->materials as $material) {
+            // Fetch documents for each material
+            $material->documents = DB::table('training_materials_documents')
+                ->where('training_material_id', $material->id)
+                ->get();
+
+            // Fetch batches for each material
+            $material->batches = DB::table('training_batches')
+                ->where('training_material_id', $material->id)
+                ->get();
+        }
+    }
+
+?>
 @include('site.componants.header')
 <body>
     <div class="loading-area">
@@ -129,15 +165,88 @@
                         <p class="text-gray-500">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
                     <div id="courseContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        @php $index = 0; @endphp
+                        @foreach($trainers as $trainer)
+                            @foreach($trainer->materials as $material)
+                            <a href="{{ route('course.details', $material->id) }}" class="text-decoration-none text-dark">
+                                <div class="course-card {{ $index >= 4 ? 'hidden' : '' }}">
+                                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition hover:-translate-y-1">
+                                        <img src="{{ asset($material->thumbnail_file_path) }}" alt="{{ $material->training_title }}" class="w-full h-40 object-cover">
+                                        <div class="p-4">
+                                            <h6 class="text-base font-semibold mb-2">{{ $material->training_title }}</h6>
+                                            <p class="text-sm text-gray-500 mb-2">{{ $material->training_sub_title }}</p>
+
+                                            <div class="flex items-center text-yellow-500 text-sm mb-2">
+                                                <span class="mr-1">★★★★☆</span>
+                                                <span class="text-gray-500 text-xs">(4/5) Rating</span>
+                                            </div>
+
+                                            <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4">
+                                                <li><i class="bi bi-book"></i> {{ count($material->documents) }} lessons</li>
+                                                <li><i class="bi bi-clock"></i> 
+                                                    @php
+                                                        $totalHours = 0;
+                                                        foreach ($material->batches as $batch) {
+                                                            $start = strtotime($batch->start_timing);
+                                                            $end = strtotime($batch->end_timing);
+                                                            $totalHours += ($end - $start) / 3600;
+                                                        }
+                                                    @endphp
+                                                    {{ $totalHours }} hrs
+                                                </li>
+                                                <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? 'Beginner' }}</li>
+                                            </ul>
+
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/?name=' . urlencode($trainer->name) }}" 
+                                                        alt="{{ $trainer->name }}" 
+                                                        class="w-7 h-7 rounded-full mr-2">
+                                                    <span class="text-xs text-gray-600">{{ $trainer->name }}</span>
+                                                </div>
+                                                <div class="text-right text-xs">
+                                                    <span class="line-through text-gray-400">SAR {{ number_format($material->training_price, 0) }}</span>
+                                                    <span class="text-green-600 font-semibold ml-1">SAR {{ number_format($material->training_offer_price, 0) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @php $index++; @endphp
+                                </a>    
+                            @endforeach
+                        @endforeach
                     </div>
+
                     <div class="mt-10 text-center">
-                    <button id="viewAllBtn" class="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition">
-                        View All Courses
-                    </button>
+                        <button id="viewAllBtn" class="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition">
+                            View All Courses
+                        </button>
                     </div>
+
                 </div>
             </section>
             <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const allCards = document.querySelectorAll(".course-card");
+                    let visibleCount = 4;
+
+                    document.getElementById("viewAllBtn").addEventListener("click", function () {
+                        let nextVisibleCount = visibleCount + 4;
+                        for (let i = visibleCount; i < nextVisibleCount && i < allCards.length; i++) {
+                            allCards[i].classList.remove("hidden");
+                        }
+                        visibleCount = nextVisibleCount;
+
+                        // Hide button if all cards are visible
+                        if (visibleCount >= allCards.length) {
+                            this.style.display = "none";
+                        }
+                    });
+                });
+            </script>
+
+            <!-- <script>
                 const courses = [
                     {
                         title: "Learn FIGMA - UIUX Design essentials",
@@ -275,7 +384,7 @@
 
                 // Initial render of first row
                 renderCourses();
-            </script>
+            </script> -->
 
 
 
@@ -303,105 +412,82 @@
                 </div>
             </section>
 
+            @php
+                use Illuminate\Support\Facades\DB;
+                $testimonials = DB::table('testimonials')->whereNotNull('message')->get();
+            @endphp
 
-             <section class="py-12 bg-white">
+            <section class="py-12 bg-white">
                 <div class="max-w-6xl mx-auto px-4">
                     <h2 class="text-3xl font-bold text-center mb-10">What people are saying</h2>
-                    <div class="relative">
-                    <div class="swiper mySwiper">
-                        <div class="swiper-wrapper">
-                        <div class="swiper-slide px-2">
-                            <div class="bg-white shadow-md rounded-lg p-6 h-full">
-                            <div class="flex items-center mb-4">
-                                <img src="https://randomuser.me/api/portraits/women/79.jpg" class="w-10 h-10 rounded-full mr-3" />
-                                <div>
-                                <p class="font-medium text-sm">Sarah M.</p>
-                                </div>
-                            </div>
-                            <h4 class="font-semibold text-lg mb-2">A Game-Changer for My Career!</h4>
-                            <p class="text-gray-600 text-sm">
-                                Enrolling in these courses helped me upskill and land a job I truly love. The content is high quality and the instructors are incredibly knowledgeable.
-                            </p>
-                            </div>
-                        </div>
-
-                        <div class="swiper-slide px-2">
-                            <div class="bg-white shadow-md rounded-lg p-6 h-full">
-                                <div class="flex items-center mb-4">
-                                    <img src="https://randomuser.me/api/portraits/men/45.jpg" class="w-10 h-10 rounded-full mr-3" />
-                                    <div>
-                                    <p class="font-medium text-sm">James R</p>
+                    <div class="relative px-10">
+                        <div class="swiper mySwiper">
+                            <div class="swiper-wrapper">
+                                @foreach ($testimonials as $testimonial)
+                                    <div class="swiper-slide px-2">
+                                        <div class="bg-white shadow-md rounded-lg p-6 h-full flex flex-col justify-between">
+                                            <div class="flex items-center mb-4">
+                                                @if ($testimonial->file_path)
+                                                    <img src="{{ asset($testimonial->file_path) }}" class="w-10 h-10 rounded-full mr-3" alt="{{ $testimonial->name }}" />
+                                                @else
+                                                    <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full mr-3" alt="Default" />
+                                                @endif
+                                                <p class="font-medium text-sm">{{ $testimonial->name }}</p>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-semibold text-lg mb-2">{{ $testimonial->title ?? 'What They Said' }}</h4>
+                                                <p class="text-gray-600 text-sm">
+                                                    {{ $testimonial->message }}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            <h4 class="font-semibold text-lg mb-2">Learning That Fits My Schedule</h4>
-                            <p class="text-gray-600 text-sm">
-                                As a working professional, flexibility is key. These online classes gave me the freedom to learn at my own pace while earning a certificate from a top university!
-                            </p>
+                                @endforeach
                             </div>
                         </div>
 
-                        <div class="swiper-slide px-2">
-                            <div class="bg-white shadow-md rounded-lg p-6 h-full">
-                                <div class="flex items-center mb-4">
-                                    <img src="https://randomuser.me/api/portraits/women/65.jpg" class="w-10 h-10 rounded-full mr-3" />
-                                    <div>
-                                    <p class="font-medium text-sm">Emily T</p>
-                                    </div>
-                                </div>
-                            <h4 class="font-semibold text-lg mb-2">Highly Recommended</h4>
-                            <p class="text-gray-600 text-sm">
-                                The platform was easy to use, and the lessons were interactive and engaging. I completed two certifications and felt ready to apply what I learned immediately.
-                            </p>
-                            </div>
-                        </div>
+                        <!-- Swiper Arrows -->
+                        <div class="swiper-button-prev !text-gray-500 hover:!text-black !left-0"></div>
+                        <div class="swiper-button-next !text-gray-500 hover:!text-black !right-0"></div>
 
-                        <div class="swiper-slide px-2">
-                            <div class="bg-white shadow-md rounded-lg p-6 h-full">
-                            <div class="flex items-center mb-4">
-                                <img src="https://randomuser.me/api/portraits/men/60.jpg" class="w-10 h-10 rounded-full mr-3" />
-                                <div>
-                                <p class="font-medium text-sm">David K</p>
-                                </div>
-                            </div>
-                            <h4 class="font-semibold text-lg mb-2">Solid Courses with Practical Value</h4>
-                            <p class="text-gray-600 text-sm">
-                                I appreciated the real-world examples and industry-relevant content. The instructors were top-notch and supportive throughout.
-                            </p>
-                            </div>
-                        </div>
-                        </div>
+                        <!-- Swiper Pagination -->
+                        <div class="swiper-pagination bullets mt-6 text-center"></div>
                     </div>
+                    <!-- Swiper Pagination OUTSIDE for better spacing -->
 
-                    <div class="swiper-button-prev !text-gray-500 hover:!text-black !left-0"></div>
-                    <div class="swiper-button-next !text-gray-500 hover:!text-black !right-0"></div>
-                    <div class="swiper-pagination mt-6 text-center"></div>
-                    </div>
                 </div>
             </section>
+
+
+            <!-- Swiper JS -->
+            <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+            <!-- Swiper Init -->
             <script>
                 const swiper = new Swiper(".mySwiper", {
                     slidesPerView: 1,
                     spaceBetween: 20,
                     loop: true,
                     autoplay: {
-                    delay: 4000,
-                    disableOnInteraction: false,
+                        delay: 4000,
+                        disableOnInteraction: false,
                     },
                     navigation: {
-                    nextEl: ".swiper-button-next",
-                    prevEl: ".swiper-button-prev"
+                        nextEl: ".swiper-button-next",
+                        prevEl: ".swiper-button-prev"
                     },
                     pagination: {
-                    el: ".swiper-pagination",
-                    clickable: true,
+                        el: ".swiper-pagination",
+                        clickable: true,
                     },
                     breakpoints: {
-                    768: {
-                        slidesPerView: 2,
-                    }
+                        768: {
+                            slidesPerView: 2,
+                        }
                     }
                 });
             </script>
+
 
             <style>
                 .stats-section {

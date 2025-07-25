@@ -28,7 +28,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                 ],
                 [
                     'trainer_id' => 2,
-                    'training_type' => 'Offline',
+                    'training_type' => 'classroom',
                     'training_title' => 'Time Management Mastery',
                     'training_sub_title' => 'Boost Productivity and Efficiency',
                     'training_descriptions' => "- Identify personal and professional time wasters\n- Learn time-blocking and goal setting techniques\n- Improve productivity with tested frameworks\n- Participate in group activities and planning tools",
@@ -76,7 +76,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                 ],
                 [
                     'trainer_id' => 1,
-                    'training_type' => 'Offline',
+                    'training_type' => 'classroom',
                     'training_title' => 'Communication for Managers',
                     'training_sub_title' => 'Lead with Clarity and Confidence',
                     'training_descriptions' => "- Improve verbal and non-verbal communication skills\n- Practice persuasive speaking and active listening\n- Learn strategies for team and stakeholder communication\n- Handle tough conversations with confidence",
@@ -124,7 +124,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                 ],
                 [
                     'trainer_id' => 4,
-                    'training_type' => 'Offline',
+                    'training_type' => 'classroom',
                     'training_title' => 'Agile & Scrum Certification',
                     'training_sub_title' => 'Become a Certified Scrum Master',
                     'training_descriptions' => "- Learn Agile principles and Scrum methodology\n- Understand sprint planning, reviews, and retrospectives\n- Prepare for Scrum Master certification\n- Use tools like Jira to manage Agile projects",

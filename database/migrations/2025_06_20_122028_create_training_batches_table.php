@@ -21,6 +21,7 @@ return new class extends Migration
 
             $table->string('batch_no')->nullable();                  // Unique or label for batch
             $table->date('start_date')->nullable();                  // e.g., 2025-07-01
+            $table->date('end_date')->nullable();                  // e.g., 2025-07-01
             $table->time('start_timing')->nullable();                // e.g., 10:00:00
             $table->time('end_timing')->nullable();                  // e.g., 12:00:00
             $table->string('duration')->nullable();                  // e.g., "2 hours", "4 weeks"

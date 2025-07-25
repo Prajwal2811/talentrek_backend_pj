@@ -268,7 +268,7 @@
                     unavailableDatesMap: @json($unavailableDatesMap),
                 };
 
-                function createBookingSlots() {
+function createBookingSlots() {
     const today = new Date();
     const thisYear = today.getFullYear();
 

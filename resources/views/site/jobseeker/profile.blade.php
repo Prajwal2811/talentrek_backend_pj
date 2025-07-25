@@ -1260,111 +1260,195 @@ $skills = $user->skills->first();
                             </div> -->
                         </div>
 
+
+                        @php
+                            $cartItems = \App\Models\JobseekerCartItem::with([
+                                'material.reviews', 
+                                'material.profilePicture'
+                            ])
+                            ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->get();
+
+                            $courseTotal = $cartItems->sum(fn($item) => $item->material->training_offer_price ?? 0);
+                            $savedAmount = $cartItems->sum(fn($item) => 
+                                ($item->material->training_price ?? 0) > ($item->material->training_offer_price ?? 0)
+                                ? ($item->material->training_price - $item->material->training_offer_price)
+                                : 0
+                            );
+                            $tax = round($courseTotal * 0.05, 2);
+                            $finalTotal = $courseTotal + $tax;
+                        @endphp
+
+
                         <div x-show="tab === 'cart'" x-cloak>
-                            <h2 class="text-xl font-semibold mb-4">My cart</h2>
+                            <h2 class="text-xl font-semibold mb-4">My Cart</h2>
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                
                                 <!-- Left: Course List -->
                                 <div class="lg:col-span-2 space-y-4">
-                                <!-- Course Item -->
-                                <div class="flex border rounded-lg p-4 gap-4">
-                                <!-- Left side: Image + Remove -->
-                                <div class="flex flex-col items-center gap-2">
-                                    <img src="/images/gallery/pic-4.png" alt="Course" class="w-48 h-48 object-cover rounded" />
-                                    <button class="text-red-500 text-sm hover:underline">🗑 Remove</button>
-                                </div>
+                                    @forelse($cartItems as $item)
+                                        @php $material = $item->material; @endphp
+                                        <div class="flex border rounded-lg p-4 gap-4">
+                                            <!-- Image and Remove -->
+                                            <div class="flex flex-col items-start gap-2">
+                                                <img src="{{ $material->thumbnail_file_path }}" alt="Course" class="w-48 h-48 object-cover rounded" />
+                                                <button class="text-red-500 text-sm hover:underline remove-item" data-id="{{ $item->id }}">Remove</button>
+                                            </div>
 
 
-                                <!-- Right side: Course Info -->
-                                <div class="flex-1">
-                                    <h4 class="font-semibold text-base">Graphic design - Advance level</h4>
-                                    <p class="text-sm text-gray-600 mt-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                    <div class="flex items-center text-yellow-500 text-sm mt-1">
-                                    ★★★★☆ <span class="ml-2 text-gray-500 text-xs">(4/5) Rating</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 mt-2">
-                                    <span class="line-through text-sm text-gray-400">SAR 89</span>
-                                    <span class="text-base font-semibold text-gray-800">SAR 89</span>
+                                            <!-- Course Info -->
+                                            <div class="flex-1">
+                                                <h4 class="font-semibold text-base">{{ $material->training_title }}</h4>
+                                                <p class="text-sm text-gray-600 mt-1">{{ Str::limit($material->training_sub_title, 150) }}</p>
+                                                
+                                                <div class="flex items-center text-yellow-500 text-sm mt-1">
+                                                    @php
+                                                        $reviews = $material->reviews;
+                                                        $rating = $reviews->avg('ratings');
+                                                        $ratingRounded = round($rating);
+                                                        $reviewCount = $reviews->count();
+                                                    @endphp
 
-                                    </div>
-                                </div>
-                                </div>
+                                                    {{-- Show stars --}}
+                                                    @for ($i = 1; $i <= 5; $i++)
+                                                        @if ($i <= $ratingRounded)
+                                                            ★
+                                                        @else
+                                                            ☆
+                                                        @endif
+                                                    @endfor
+
+                                                    <span class="ml-2 text-gray-500 text-xs">
+                                                        ({{ number_format($rating, 1) }}/5 Rating — {{ $reviewCount }} reviews)
+                                                    </span>
+                                                </div>
 
 
-                                <div class="flex border rounded-lg p-4 gap-4">
-                                    <!-- Left side: Image + Remove -->
-                                    <div class="flex flex-col items-center gap-2">
-                                        <img src="/images/gallery/pic-4.png" alt="Course" class="w-48 h-48 object-cover rounded" />
-                                        <button class="text-red-500 text-sm hover:underline">🗑 Remove</button>
-                                    </div>
-
-                                    <!-- Right side: Course Info -->
-                                    <div class="flex-1">
-                                        <h4 class="font-semibold text-base">Graphic design - Advance level</h4>
-                                        <p class="text-sm text-gray-600 mt-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                        <div class="flex items-center text-yellow-500 text-sm mt-1">
-                                        ★★★★☆ <span class="ml-2 text-gray-500 text-xs">(4/5) Rating</span>
+                                                <div class="flex items-center gap-2 mt-2">
+                                                    @if($material->training_price > $material->training_offer_price)
+                                                        <span class="line-through text-sm text-gray-400">SAR {{ $material->training_price }}</span>
+                                                    @endif
+                                                    <span class="text-base font-semibold text-gray-800">SAR {{ $material->training_offer_price }}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center gap-2 mt-2">
-                                        <span class="line-through text-sm text-gray-400">SAR 89</span>
-                                        <span class="text-base font-semibold text-gray-800">SAR 89</span>
-                                        </div>
-                                    </div>
-                                    </div>
+                                    @empty
+                                        <p class="text-gray-500">Your cart is empty.</p>
+                                    @endforelse
 
-
-                                <!-- Add more items button -->
-                                <div>
-                                    <button class="w-full border border-gray-300 text-sm py-2 rounded hover:bg-gray-100">
-                                    Add more items
-                                    </button>
-                                </div>
                                 </div>
 
                                 <!-- Right: Promo + Billing -->
                                 <div class="space-y-6">
-                                <!-- Promo Code -->
-                                <div>
-                                    <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
-                                    <div class="flex gap-2">
-                                    <input type="text" placeholder="Enter promocode for dicount" class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm" />
-                                    <button class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                    <!-- Promocode -->
+                                    <div>
+                                        <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
+                                        <div class="flex gap-2">
+                                            <input type="text" placeholder="Enter promocode for discount" class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm" />
+                                            <button class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Billing Information -->
-                                <div class="border rounded-lg p-4 space-y-3">
-                                    <h3 class="text-sm font-medium pb-2 border-b">Billing Information</h3>
-                                    <div class="flex justify-between text-sm">
-                                    <span>Course total</span>
-                                    <span>SAR 89</span>
+                                    <!-- Billing Information -->
+                                    <div class="border rounded-lg p-4 space-y-3 bg-gray-50">
+                                        <h3 class="text-sm font-medium pb-2 border-b">Billing Information</h3>
+                                        <div class="flex justify-between text-sm">
+                                            <span>Course total</span>
+                                            <span>SAR {{ number_format($courseTotal, 2) }}</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span>Saved amount</span>
+                                            <span>SAR {{ number_format($savedAmount, 2) }}</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span>Tax</span>
+                                            <span>SAR {{ number_format($tax, 2) }}</span>
+                                        </div>
+                                        <hr />
+                                        <div class="flex justify-between text-base font-semibold pt-2">
+                                            <span>Total</span>
+                                            <span>SAR {{ number_format($finalTotal, 2) }}</span>
+                                        </div>
+                                        <a href="">
+                                            <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded text-sm font-medium mt-4">
+                                                Proceed to Checkout
+                                            </button>
+                                        </a>
                                     </div>
-                                    <div class="flex justify-between text-sm">
-                                    <span>Saved amount</span>
-                                    <span>SAR 5</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                    <span>Tax</span>
-                                    <span>SAR 2</span>
-                                    </div>
-                                    <hr />
-                                    <div class="flex justify-between text-base font-semibold pt-2">
-                                    <span>Total</span>
-                                    <span>SAR 86</span>
-                                    </div>
-                                    <a href="checkout-1-page.html">
-                                    <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded text-sm font-medium mt-4">
-                                        Proceed to Checkout
-                                    </button>
-                                    </a>
                                 </div>
+                            </div>
+                        </div>
+                        <!-- Remove Confirmation Modal -->
+                       <!-- Remove Confirmation Modal -->
+                        <div id="removeConfirmModal" class="fixed top-20 left-0 right-0 flex justify-center z-50 hidden">
+                            <div class="bg-white border border-gray-300 rounded-lg shadow-lg p-6 w-full max-w-md">
+                                <h2 class="text-lg font-semibold mb-4">Confirm Removal</h2>
+                                <p class="text-sm text-gray-600">Are you sure you want to remove this item from your cart?</p>
+                                <div class="flex justify-end mt-6 space-x-3">
+                                    <button id="cancelRemove" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+                                    <button id="confirmRemove" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Remove</button>
                                 </div>
                             </div>
                         </div>
 
 
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                let itemToRemoveId = null;
+                                let removeBtnElement = null;
+
+                                // Open confirmation modal
+                                document.querySelectorAll('.remove-item').forEach(button => {
+                                    button.addEventListener('click', function () {
+                                        itemToRemoveId = this.dataset.id;
+                                        removeBtnElement = this;
+                                        document.getElementById('removeConfirmModal').classList.remove('hidden');
+                                    });
+                                });
+
+                                // Cancel removal
+                                document.getElementById('cancelRemove').addEventListener('click', function () {
+                                    itemToRemoveId = null;
+                                    removeBtnElement = null;
+                                    document.getElementById('removeConfirmModal').classList.add('hidden');
+                                });
+
+                                // Confirm removal
+                                document.getElementById('confirmRemove').addEventListener('click', function () {
+                                    if (!itemToRemoveId) return;
+
+                                    fetch(`/cart/remove/${itemToRemoveId}`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                            'Accept': 'application/json',
+                                        }
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.status === 'success') {
+                                            const itemContainer = removeBtnElement.closest('.flex.border.rounded-lg.p-4');
+                                            itemContainer.remove();
+                                            document.getElementById('removeConfirmModal').classList.add('hidden');
+                                            location.reload(); // optional
+                                        } else {
+                                            alert(data.message || 'Failed to remove item');
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error(err);
+                                        alert('Something went wrong!');
+                                    });
+                                });
+                            });
+                            </script>
+
+
+
+
+
+
+
                         @php
-                        
                             $courses = App\Models\JobseekerTrainingMaterialPurchase::select('training_batches.*','jobseeker_training_material_purchases.*','jobseeker_training_material_purchases.id as purchase_id')->with(['material.reviews'])
                                                         ->where('jobseeker_id', auth()->user()->id)
                                                         ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
@@ -1383,12 +1467,37 @@ $skills = $user->skills->first();
                                     $reviews = $material->reviews ?? collect();
                                     $trainerName = App\Models\Trainers::where('id', $material->trainer_id)->value('name');
                                     $batchCount = App\Models\TrainingBatch::where('training_material_id', $material->id)->count();
+                                    // $batchData = App\Models\TrainingBatch::where('training_material_id', $material->id)->where('batch_no',$purchase->batch_no)->first();
                                     $duration = App\Models\TrainingBatch::where('training_material_id', $material->id)->sum('duration');
                                     $lessons = $material->lesson_count ;
                                     $duration = $material->duration;
                                     $level = $material->training_level;
-                                    $rating = $material->rating ?? 4;
+                                    $rating = $material->rating;
                                     $img = $material->thumbnail_file_path;
+                                    $batchData = App\Models\TrainingBatch::where('training_material_id', $material->id)
+                                                    ->where('batch_no', $purchase->batch_no)
+                                                    ->first();
+
+                                    $isAssessmentAvailable = false;
+
+                                    $jobseekerId = auth()->guard('jobseeker')->id();
+                                    $assessment = App\Models\TrainerAssessment::where('material_id', $material->id)->first();
+
+                                    $endDate = null;
+                                    $isAssessmentAvailable = false;
+                                    $assessmentTaken = false;
+
+                                    if ($batchData && $batchData->start_date && $batchData->duration) {
+                                        $endDate = \Carbon\Carbon::parse($batchData->start_date)->addDays($batchData->duration);
+                                        $isAssessmentAvailable = now()->gt($endDate); // assessment is available after batch ends
+                                    }
+
+                                    if ($assessment) {
+                                        $assessmentTaken = App\Models\JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
+                                                            ->where('assessment_id', $assessment->id)
+                                                            ->where('submitted', 1)
+                                                            ->exists();
+                                    }
                                 @endphp
 
                                 <div class="flex items-start border rounded-md shadow-sm overflow-hidden mb-4">
@@ -1403,9 +1512,111 @@ $skills = $user->skills->first();
                                                 <h2 class="text-lg font-semibold text-gray-900">{{ $material->training_title }}</h2>
                                             </a>
 
-                                            <a href="" class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">
-                                                Join Training
-                                            </a>
+                                           <!-- 👇 Button Display Logic -->
+                                            <div class="dropdown">
+                                                @if($assessment)
+                                                    <button class="btn " type="button" id="assessmentDropdown{{ $assessment->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+
+                                                    <ul class="dropdown-menu" aria-labelledby="assessmentDropdown{{ $assessment->id }}">
+                                                        @if ($assessmentTaken)
+                                                            <li>
+                                                                <a class="dropdown-item text-green-600" href="{{ route('jobseeker.assessment.result', $assessment->id) }}">
+                                                                    View Score
+                                                                </a>
+                                                            </li>
+                                                        @elseif ($isAssessmentAvailable)
+                                                            <li>
+                                                                <a class="dropdown-item text-yellow-600" href="#" data-bs-toggle="modal" data-bs-target="#assessmentModal">
+                                                                    Take Assessment
+                                                                </a>
+                                                            </li>
+                                                        @else
+                                                            <li>
+                                                                <a class="dropdown-item text-blue-600" href="{{ route('training.join', $material->id ?? 0) }}">
+                                                                    Join Training
+                                                                </a>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
+                                                @elseif(!($assessment) && $material->training_type != 'classroom')  
+                                                    <button class="btn " type="button" id="assessmentDropdown{{ $material->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="assessmentDropdown{{ $material->id }}">
+                                                        <li>
+                                                            <a target="_blank" class="dropdown-item text-blue-600" href="{{ $batchData->zoom_join_url }}">
+                                                                Join Training
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                @elseif($material->training_type === 'classroom')  
+                                                    <button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="assessmentDropdown{{ $material->id }}">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="assessmentDropdown{{ $material->id }}">
+                                                        <li>
+                                                            <!-- Trigger modal on click -->
+                                                            <a href="#" class="dropdown-item text-blue-600" data-bs-toggle="modal" data-bs-target="#trainerAddressModal{{ $material->id }}">
+                                                                Classroom Address
+                                                            </a>
+                                                        </li>
+                                                        
+                                                    </ul>
+                                                    <!-- Trainer Address Modal -->
+                                                    <div class="modal fade" id="trainerAddressModal{{ $material->id }}" tabindex="-1" aria-labelledby="trainerAddressLabel{{ $material->id }}" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 500px;">
+                                                            <div class="modal-content border-0 shadow">
+                                                                <!-- Modal Header -->
+                                                                <div class="modal-header bg-light text-dark">
+                                                                    <h5 class="modal-title" id="trainerAddressLabel{{ $material->id }}">Trainer Address</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+
+                                                                <!-- Modal Body -->
+                                                                <div class="modal-body text-sm">
+                                                                    <p><strong>Name:</strong> {{ App\Models\Trainers::where('id', $material->trainer_id)->value('name') }}</p>
+                                                                    <p><strong>Phone Number:</strong> {{ App\Models\Trainers::where('id', $material->trainer_id)->value('phone_number') ?? 'Not available' }}</p>
+                                                                    <p><strong>Location:</strong> {{ App\Models\Trainers::where('id', $material->trainer_id)->value('city') ?? 'Not available' }}</p>
+                                                                </div>
+
+                                                                <!-- Modal Footer with Close Button -->
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+
+
+                                                @endif
+
+                                            </div>
+                                            <!-- Assessment Modal -->
+                                            <div class="modal fade" id="assessmentModal" tabindex="-1" aria-labelledby="assessmentModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="assessmentModalLabel">Assessment Instructions</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <ul>
+                                                        <li>Make sure you're in a quiet environment.</li>
+                                                        <li>Once started, the assessment must be completed in one go.</li>
+                                                        <li>No external help or switching tabs.</li>
+                                                        <li>Timer will start once you begin.</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="{{ route('assessment.view', $material->id) }}" class="btn btn-primary">Start Assessment</a>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
 
@@ -1459,99 +1670,157 @@ $skills = $user->skills->first();
                                         </div>
                                     </div>
                                 </div>
+                                </div>
                             @endforeach
-
-
-                            </div>
                         </div>
 
-                        <!-- Mentorship Tab -->
+                        @php
+                            function renderSessionCard($user, $session, $index, $type) {
+                                $reviews = $user?->reviews ?? collect();
+                                $experiences = $user?->experiences ?? collect();
+                                $averageRating = $reviews->avg('ratings') ?? 0;
+                                $totalReviews = $reviews->count();
+                                $roundedRating = round($averageRating);
+                                $stars = str_repeat('★', $roundedRating) . str_repeat('☆', 5 - $roundedRating);
+                                $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                $designation = $currentExp?->job_role ?? 'No designation available';
+                                $zoomLink = $session->zoom_join_url ?? null;
+                                $slotMode = $session->slot_mode;
+                                $address = $user?->address ?? 'Address not available';
+
+                                echo '
+                                <div class="flex items-start border-b pb-4 mb-4 space-x-4">
+                                    <img src="' . $user?->profilePicture?->document_path . '" alt="' . ucfirst($type) . '" class="w-24 h-24 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <h3 class="text-lg font-semibold text-gray-900">' . $user?->name . '</h3>
+                                                <p class="text-sm text-gray-500 mt-1">' . $designation . '</p>
+                                                <div class="flex items-center mt-2 text-sm space-x-2">
+                                                    <div class="text-yellow-500 text-base">' . $stars . '</div>
+                                                    <span class="text-gray-500">(' . number_format($averageRating, 1) . '/5 from ' . $totalReviews . ' reviews)</span>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 shrink-0">';
+                                                if ($slotMode === 'online' && $zoomLink) {
+                                                    echo '<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal' . $type . $index . '">Join Meet</button>';
+                                                } elseif ($slotMode === 'offline') {
+                                                    echo '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal' . $type . $index . '">View Address</button>';
+                                                } else {
+                                                    echo '<p class="text-red-500 text-sm">Link not available</p>';
+                                                }
+                                            echo '</div>
+                                        </div>
+                                    </div>
+                                </div>';
+
+                                // Zoom Modal
+                                if ($slotMode === 'online' && $zoomLink) {
+                                    echo '
+                                    <div class="modal fade" id="zoomModal' . $type . $index . '" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Join Zoom Meeting with ' . $user->name . '</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Click the link below to join the meeting:</p>
+                                                    <a href="' . $zoomLink . '" target="_blank" class="text-blue-600 font-medium underline break-all">' . $zoomLink . '</a>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                    <a href="' . $zoomLink . '" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>';
+                                }
+
+                                // Address Modal
+                                if ($slotMode === 'offline') {
+                                    echo '
+                                    <div class="modal fade" id="addressModal' . $type . $index . '" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">' . ucfirst($type) . '\'s Address</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p class="text-gray-800">' . $address . '</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>';
+                                }
+                            }
+                        @endphp
+
+                        {{-- Mentorship --}}
+                        @php
+                            $mentorships = \App\Models\BookingSession::with([
+                                'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
+                            ])->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->where('user_type', 'mentor')
+                            ->whereHas('mentor.profilePicture')
+                            ->get();
+                        @endphp
+
                         <div x-show="tab === 'mentorship'" x-cloak>
                             <h2 class="text-xl font-semibold mb-4">Mentorship</h2>
-                            <div class="flex items-center border-b pb-4 mb-4 space-x-4">
-                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Mentor" class="w-24 h-24 rounded-full object-cover">
-                            <div>
-                                <a href="mentorship-details-profile.html">
-                                    <h3 class="text-lg font-semibold text-gray-900">Mohammad Raza</h3>
-                                </a>
-
-                                <p class="text-sm text-gray-500 mt-1">UI UX designer</p>
-
-                                <!-- Rating -->
-                                <div class="flex items-center mt-2 text-sm space-x-2">
-                                <div class="text-yellow-500 text-base">
-                                    ★★★★☆
-                                </div>
-                                <span class="text-gray-500">(4/5)</span>
-                                <span class="text-gray-700 font-medium">Rating</span>
-                                </div>
-                            </div>
+                            @foreach ($mentorships as $index => $session)
+                                @php renderSessionCard($session->mentor, $session, $index, 'mentor'); @endphp
+                            @endforeach
                         </div>
 
-                        
-                    </div>
+                        {{-- Assessment --}}
+                        @php
+                            $assessments = \App\Models\BookingSession::with([
+                                'assessor.reviews', 'assessor.profilePicture', 'assessor.experiences'
+                            ])->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->where('user_type', 'assessor')
+                            ->whereHas('assessor.profilePicture')
+                            ->get();
+                        @endphp
 
-                    <!-- Assessment Tab -->
-                    <div x-show="tab === 'assessment'" x-cloak>
-                        <h2 class="text-xl font-semibold mb-4">Assessment</h2>
-
-                        <div class="flex items-start space-x-4 border-b pb-4 mb-4">
-                        <!-- Image -->
-                        <img src="images/gallery/pic-4.png" alt="Assessment" class="w-32 h-24 object-cover rounded-md">
-
-                        <!-- Content -->
-                        <div>
-                            <a href="assessment-quiz.html">
-                                <h3 class="text-base font-semibold text-gray-900">
-                                    Graphic design beginner - Quiz 1
-                                </h3>
-                            </a>
-
-                            <p class="text-sm text-gray-600 mt-1">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                            </p>
-
-                            <!-- Quiz Author -->
-                            <div class="flex items-center mt-3 text-sm">
-                            <span class="text-gray-600 mr-2">Quiz by:</span>
-                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Julia Maccarthy" class="w-5 h-5 rounded-full mr-1">
-                            <span class="text-gray-800 font-medium">Julia Maccarthy</span>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-
-                    <!-- Coaching Tab -->
-                    <div x-show="tab === 'coaching'" x-cloak>
-                        <h2 class="text-xl font-semibold mb-4">Coaching</h2>
-
-                        <div class="flex items-center space-x-4 border-b pb-4 mb-4">
-                        <!-- Coach Image -->
-                        <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Tom Holland" class="w-24 h-24 object-cover rounded-full">
-
-                        <!-- Coach Info -->
-                        <div>
-                            <a href="coaching-details-profile.html">
-                                <h3 class="text-lg font-semibold text-gray-900">Tom Holland</h3>
-                            </a>
-                            <p class="text-sm text-gray-600">Java developer</p>
-
-                            <!-- Rating -->
-                            <div class="flex items-center mt-2 space-x-1 text-sm">
-                            <div class="flex text-yellow-500 text-sm">
-                                <i class="ph ph-star-fill"></i>
-                                <i class="ph ph-star-fill"></i>
-                                <i class="ph ph-star-fill"></i>
-                                <i class="ph ph-star-fill"></i>
-                                <i class="ph ph-star"></i>
-                            </div>
-                            <span class="text-gray-500">(4/5)</span>
-                            <span class="text-gray-700 font-medium ml-1">Rating</span>
-                            </div>
-                        </div>
+                        <div x-show="tab === 'assessment'" x-cloak>
+                            <h2 class="text-xl font-semibold mb-4">Assessment</h2>
+                            @if ($assessments->isEmpty())
+                                <p class="text-gray-500 text-sm">No assessment sessions found.</p>
+                            @else
+                                @foreach ($assessments as $index => $session)
+                                    @php renderSessionCard($session->assessor, $session, $index, 'assessor'); @endphp
+                                @endforeach
+                            @endif
                         </div>
 
-                    </div>
+                        {{-- Coaching --}}
+                        @php
+                            $coachings = \App\Models\BookingSession::with([
+                                'coach.reviews', 'coach.profilePicture', 'coach.experiences'
+                            ])->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->where('user_type', 'coach')
+                            ->whereHas('coach.profilePicture')
+                            ->get();
+                        @endphp
+
+                        <div x-show="tab === 'coaching'" x-cloak>
+                            <h2 class="text-xl font-semibold mb-4">Coaching</h2>
+                            @if ($coachings->isEmpty())
+                                <p class="text-gray-500 text-sm">No coaching sessions found.</p>
+                            @else
+                                @foreach ($coachings as $index => $session)
+                                    @php renderSessionCard($session->coach, $session, $index, 'coach'); @endphp
+                                @endforeach
+                            @endif
+                        </div>
+
+
+
 
                     <!-- Subscription Tab -->
                     <div x-show="tab === 'subscription'" x-cloak>

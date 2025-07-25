@@ -255,8 +255,6 @@ class AdminController extends Controller
             Trainers::whereMonth('created_at', $month)->whereYear('created_at', $currentYear)->count()
         );
 
-
-        
         return view('admin.dashboard', [
             'jobseekerCount'        => $jobseekerCount,
             'recruiterCount'        => $recruiterCount,

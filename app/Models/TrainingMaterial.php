@@ -50,4 +50,11 @@ class TrainingMaterial extends Model
         return $this->hasMany(Review::class, 'trainer_material');
     }
 
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+                    ->where('user_type', 'trainer')
+                    ->where('doc_type', 'trainer_profile_picture');
+    }
 }

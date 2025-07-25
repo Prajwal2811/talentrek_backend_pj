@@ -85,7 +85,7 @@
 
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 space-y-6">
-                            @if($material->training_type  === "online")
+                            @if($material->training_type  === "online" || $material->training_type  === "classroom")
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
                                     <input type="hidden" name="session_type" value="{{ $material->training_type }}">
@@ -186,9 +186,7 @@
                                         }
                                     </script>
                                 </div>
-
-
-                                 <div class="flex border rounded p-4 space-x-4">
+                                <div class="flex border rounded p-4 space-x-4">
                                     <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
                                         alt="Course" class="w-28 h-20 object-cover rounded">
 
@@ -228,7 +226,7 @@
                                         {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
                                     </div>
                                 </div>
-                            @else 
+                            @elseif($material->training_type  === "recorded")
                                 <div class="flex border rounded p-4 space-x-4">
                                     <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
                                         alt="Course" class="w-28 h-20 object-cover rounded">

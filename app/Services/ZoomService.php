@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Log;
 class ZoomService
 {
     private function getAccessToken()
@@ -24,7 +24,7 @@ class ZoomService
             return $response->json()['access_token'];
         }
 
-        \Log::error('Zoom access token failed', [
+        Log::error('Zoom access token failed', [
             'status' => $response->status(),
             'body' => $response->body(),
         ]);
@@ -32,17 +32,19 @@ class ZoomService
         return null;
     }
 
-
     public function createMeeting($topic, $startTime)
     {
         $accessToken = $this->getAccessToken();
-        if (!$accessToken) return null;
+        if (!$accessToken) {
+            Log::error('Zoom Access Token retrieval failed.');
+            return null;
+        }
 
-        $userEmail = 'prajwalpixelvalues@gmail.com'; // ✅ Replace with YOUR Zoom email (owner of this app)
+        $userEmail = config('services.zoom.user_email');
 
         $response = Http::withToken($accessToken)->post("https://api.zoom.us/v2/users/{$userEmail}/meetings", [
             'topic' => $topic,
-            'type' => 2,
+            'type' => 2, // Scheduled meeting
             'start_time' => Carbon::parse($startTime)->toIso8601String(),
             'duration' => 30,
             'timezone' => 'Asia/Kolkata',
@@ -56,7 +58,7 @@ class ZoomService
             return $response->json();
         }
 
-        \Log::error('Zoom meeting creation failed', [
+        Log::error('Zoom meeting creation failed', [
             'status' => $response->status(),
             'body' => $response->body(),
         ]);

@@ -30,10 +30,6 @@ class BookingSlotsSeeder extends Seeder
                 'slot_mode' => $slotModes[array_rand($slotModes)],
                 'start_time' => now()->setTime(rand(8, 12), 0),
                 'end_time' => now()->setTime(rand(13, 18), 0),
-                'unavailable_dates' => json_encode([
-                    now()->addDays(rand(1, 5))->toDateString(),
-                    now()->addDays(rand(6, 10))->toDateString()
-                ]),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
