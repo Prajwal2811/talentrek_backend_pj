@@ -41,7 +41,7 @@
                     <div class="col-span-6">
                         <div class="bg-white p-4 rounded-lg shadow text-sm flex justify-between items-start">
                             <div>
-                                <p class="text-gray-700">Total upcoming sessions</p>
+                                <p class="text-gray-700">Total upcoming batches</p>
                                 <h3 class="text-3xl font-semibold mt-1">5</h3>
                             </div>
                             <div class="mt-6 space-x-4 text-sm mt-5">
@@ -52,38 +52,44 @@
                     </div>
                 </div>
 
-
+                <script>
+                    window.jobseekersFromLaravel = @json($jobseekersData);
+                    window.sessionsFromLaravel = @json($batches);
+                </script>
+               
                 <div x-data="dashboard()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Enrolled Jobseekers -->
                     <div class="bg-white p-4 rounded-lg shadow">
                         <h3 class="text-base font-semibold mb-3">Enrolled jobseekers</h3>
                         <div class="divide-y">
-                            <template x-for="jobseeker in visibleJobseekers" :key="jobseeker.enrollment">
+                            <template x-for="jobseeker in visibleJobseekers" :key="jobseeker.id">
                                 <div class="flex justify-between items-center py-3">
                                     <div class="flex items-center space-x-3">
-                                        <img :src="jobseeker.img" class="w-10 h-10 rounded-full object-cover" alt="Profile" />
+                                        <img :src="jobseeker.avatar" class="w-10 h-10 rounded-full object-cover" alt="Profile" />
                                         <div>
                                             <h4 class="font-medium text-sm" x-text="jobseeker.name"></h4>
-                                            <p class="text-xs text-gray-500" x-text="jobseeker.role"></p>
+                                            <p class="text-xs text-gray-500" x-text="jobseeker.designation"></p>
                                         </div>
                                     </div>
-                                    <p class="text-sm text-gray-600" x-text="`Enrollment No:${jobseeker.enrollment}`"></p>
+                                    <p class="text-sm text-gray-600" x-text="`Enrollment No: ${jobseeker.enrollmentNo}`"></p>
                                 </div>
                             </template>
                         </div>
+
                         <div class="pt-4 text-sm text-blue-600 text-right">
                             <button x-show="visibleJobseekers.length < jobseekers.length" @click="loadMoreJobseekers()" class="hover:underline">See all</button>
                         </div>
                     </div>
 
+
                     <!-- Today's Sessions -->
-                    <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="text-base font-semibold mb-3">Today's sessions</h3>
+                     <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-base font-semibold mb-3">Today's batches</h3>
                         <div class="divide-y">
-                            <template x-for="session in visibleSessions" :key="session.title + session.time">
+                            <template x-for="session in visibleSessions" :key="session.id">
                                 <div class="flex justify-between items-center py-3">
                                     <div>
-                                        <h4 class="text-sm font-medium" x-text="session.title"></h4>
+                                        <h4 class="text-sm font-medium" x-text="session.title + ' - ' + session.training_level"></h4>
                                         <p class="text-xs text-gray-500">
                                             Time: <span x-text="session.time"></span> &nbsp;&nbsp;
                                             Batch: <span x-text="session.batch"></span>
@@ -97,54 +103,55 @@
                             <button x-show="visibleSessions.length < sessions.length" @click="loadMoreSessions()" class="hover:underline">See all</button>
                         </div>
                     </div>
+
                 </div>
 
                 <script>
                     function dashboard() {
                         return {
-                            // Full data lists
-                            jobseekers: [
-                                { name: 'Ravi Kumar', role: 'UI UX Designer', enrollment: '373857', img: 'https://randomuser.me/api/portraits/men/11.jpg' },
-                                { name: 'Anjali Sharma', role: 'Frontend Dev', enrollment: '374122', img: 'https://randomuser.me/api/portraits/women/12.jpg' },
-                                { name: 'Vikram Singh', role: 'Backend Dev', enrollment: '374890', img: 'https://randomuser.me/api/portraits/men/13.jpg' },
-                                { name: 'Neha Verma', role: 'QA Engineer', enrollment: '372398', img: 'https://randomuser.me/api/portraits/women/14.jpg' },
-                                { name: 'Amit Patel', role: 'Data Analyst', enrollment: '375671', img: 'https://randomuser.me/api/portraits/men/15.jpg' },
-                                { name: 'Kiran Joshi', role: 'DevOps Engineer', enrollment: '375999', img: 'https://randomuser.me/api/portraits/women/16.jpg' },
-                                { name: 'Rahul Mehta', role: 'React Developer', enrollment: '376321', img: 'https://randomuser.me/api/portraits/men/17.jpg' },
-                            ],
-                            sessions: [
-                                { title: 'UI UX design - Basic', time: '03:15 pm', batch: 'Batch 01' },
-                                { title: 'UI UX design - Basic', time: '05:15 pm', batch: 'Batch 02' },
-                                { title: 'Graphic design - Basic', time: '01:15 pm', batch: 'Batch 01' },
-                                { title: 'Graphic design - Basic', time: '03:15 pm', batch: 'Batch 02' },
-                                { title: 'Web design - Advanced', time: '10:15 am', batch: 'Batch 03' },
-                                { title: 'Digital Marketing', time: '04:00 pm', batch: 'Batch 01' },
-                            ],
-
-                            // Pagination control
-                            visibleJobseekers: [],
+                            jobseekers: window.jobseekersFromLaravel || [],
+                            sessions: (window.sessionsFromLaravel || []).map((session, index) => ({
+                                id: session.id ?? index, // Unique ID fallback
+                                title: session.training_name ?? 'No Title',
+                                time: formatTime(session.start_timing ?? '00:00:00'),
+                                batch: session.batch_no ?? 'Batch N/A',
+                                training_level: session.training_level ?? 'Level N/A'
+                            })),
                             visibleSessions: [],
                             limit: 5,
 
-                            // On init
                             init() {
                                 this.visibleJobseekers = this.jobseekers.slice(0, this.limit);
-                                this.visibleSessions = this.sessions.slice(0, this.limit);
+                                 this.visibleSessions = this.sessions.slice(0, this.limit);
                             },
 
-                            // Load more
                             loadMoreJobseekers() {
                                 const next = this.visibleJobseekers.length + this.limit;
                                 this.visibleJobseekers = this.jobseekers.slice(0, next);
                             },
+
                             loadMoreSessions() {
                                 const next = this.visibleSessions.length + this.limit;
                                 this.visibleSessions = this.sessions.slice(0, next);
                             }
-                        };
+                        }
+                    }
+
+                    // Optional helper function to format time to 12-hour format
+                    function formatTime(timeStr) {
+                        if (!timeStr) return 'Invalid';
+                        const [hours, minutes] = timeStr.split(':');
+                        const date = new Date();
+                        date.setHours(hours, minutes);
+                        return date.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }).toLowerCase();
                     }
 
                 </script>
+
+
 
 
             

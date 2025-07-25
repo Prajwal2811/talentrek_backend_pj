@@ -629,7 +629,9 @@ class MentorController extends Controller
 
     public function updateStatus(Request $request)
     {
-        $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+        // $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+        $date = Carbon::createFromFormat('Y-m-d', $request->date)->addDay()->format('Y-m-d');
+
         $slot = BookingSlot::find($request->slot_id);
 
         if (!$slot) {

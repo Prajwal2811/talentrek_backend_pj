@@ -641,10 +641,10 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                                <!-- Location -->
+                                                <!-- Address -->
                                                 <div class="md:col-span-2 mt-3">
-                                                    <label class="block mb-1 font-medium">Location</label>
-                                                    <input type="text" name="location" value="{{ $trainerSkills->city ?? '' }}" placeholder="City, State, Country" class="w-full border rounded px-3 py-2" />
+                                                    <label class="block mb-1 font-medium">Address</label>
+                                                    <textarea name="location" placeholder="Enter address" class="w-full border rounded px-3 py-2">{{ $trainerSkills->city ?? '' }}</textarea>
                                                     @error('location')
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -910,11 +910,13 @@
 
                                                                 <label class="inline-flex items-center mt-2">
                                                                     <input 
-                                                                        type="checkbox" 
-                                                                        name="currently_working[]" 
-                                                                        onchange="toggleEndDate(this)" 
-                                                                        {{ is_null($work->end_to) || $work->end_to === 'Work here' ? 'checked' : '' }} 
-                                                                    />
+                                                                            type="checkbox" 
+                                                                            name="currently_working[{{ $loop->index }}]" 
+                                                                            value="1"
+                                                                            onchange="toggleEndDate(this)" 
+                                                                            {{ is_null($work->end_to) || $work->end_to === 'Work here' ? 'checked' : '' }} 
+                                                                        />
+
                                                                     <span class="ml-2">I currently work here</span>
                                                                 </label>
                                                             </div>
@@ -986,6 +988,17 @@
                                                         }
                                                     }
                                                 });
+
+                                                // function toggleEndDate(checkbox) {
+                                                //     const endDateInput = checkbox.closest('.work-entry').querySelector('input[name="end_to[]"]');
+                                                //     if (checkbox.checked) {
+                                                //         endDateInput.value = '';
+                                                //         endDateInput.disabled = true;
+                                                //     } else {
+                                                //         endDateInput.disabled = false;
+                                                //     }
+                                                // }
+
 
                                                 // Toggle End Date when checkbox clicked
                                                 window.toggleEndDate = function (checkbox) {

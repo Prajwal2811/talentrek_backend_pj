@@ -98,6 +98,12 @@ class Jobseekers extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture');
+    }
     
 
 }

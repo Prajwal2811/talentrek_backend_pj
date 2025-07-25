@@ -75,15 +75,15 @@
                                     <div id="step-1" class="">
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="name" class="w-full border rounded-md p-2" placeholder="Enter full name" value="{{old('name')}}"/>
+                                            <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter full name" value="{{old('name')}}"/>
                                             @error('name')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
 
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Email <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{old('email', $email)}}" readonly/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Email <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
                                             @error('email')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -91,9 +91,9 @@
                                         
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium">Phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
-                                                <select class="w-1/3 border rounded-l-md p-2"><option>+91</option></select>
+                                                <select class="w-1/3 border rounded-l-md p-2 mt-1"><option>+91</option></select>
                                                 <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number', $phone)}}" readonly/>
                                                 
                                             </div>
@@ -102,8 +102,8 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="date" name="dob" class="w-full border rounded-md p-2" value="{{old('dob')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="date" name="dob" class="w-full border rounded-md p-2 mt-1" value="{{old('dob')}}"/>
                                             @error('dob')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -131,13 +131,16 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Location <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="city" class="w-full border rounded-md p-2" placeholder="City or State" value="{{old('city')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">
+                                                Address <span style="color: red; font-size: 17px;">*</span>
+                                            </label>
+                                            <textarea name="city" class="w-full border rounded-md p-2 mt-1" placeholder="Enter address">{{ old('city') }}</textarea>
                                             @error('city')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
-                                        <div class="flex justify-end">
+
+                                        <div class="flex justify-end mt-3">
                                             <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                         </div>
                                     
@@ -153,7 +156,7 @@
                                             @foreach($educationData as $i => $value)
                                             <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"">
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select highest qualification</option>
                                                         @foreach(['high_school', 'diploma', 'bachelor', 'master', 'phd'] as $option)
@@ -166,7 +169,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select field of study</option>
                                                         @foreach(['engineering', 'science', 'commerce', 'arts', 'medicine', 'law', 'education', 'management', 'other'] as $field)
@@ -179,7 +182,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i") }}" placeholder="Enter Institution name">
                                                     @error("institution.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -187,7 +190,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select year of passing</option>
                                                         @for($year = now()->year; $year >= 2000; $year--)
@@ -206,7 +209,7 @@
                                         </div>
 
                                         <div class="col-span-2">
-                                            <button type="button" id="add-education" class="text-green-600 text-sm mt-3">+ Add Education</button>
+                                            <button type="button" id="add-education" class="text-green-600 text-sm mt-3">+ Add More Education</button>
                                         </div>
 
                                         <div class="col-span-2 flex justify-between mt-4">
@@ -267,7 +270,7 @@
 
                                                     {{-- Job Role --}}
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Job Role <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
                                                             placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
                                                         @error("job_role.$i")
@@ -361,37 +364,37 @@
                                     
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Training Experience <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="training_experience" class="w-full border rounded-md p-2" placeholder="e.g. 2 years in corporate training, 1 year teaching Python" value="{{old('training_experience')}}"/>
+                                            <input type="text" name="training_experience" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. 2 years in corporate training, 1 year teaching Python" value="{{old('training_experience')}}"/>
                                             @error('training_experience')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Training Skills <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="training_skills" class="w-full border rounded-md p-2" placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{old('training_skills')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Training Skills <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="training_skills" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{old('training_skills')}}"/>
                                             @error('training_skills')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Website Link <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="url" name="website_link" class="w-full border rounded-md p-2" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Website Link <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
                                             @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Portfolio Link</label>
-                                            <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link</label>
+                                            <input type="url" name="portfolio_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}"/>
                                             @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div class="flex justify-between">
-                                            <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md">
+                                            <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md mt-3">
                                                 Back
                                             </button>
-                                            <button type="button" onclick="showStep(5)" class="bg-blue-700 text-white px-6 py-2 rounded-md">
+                                            <button type="button" onclick="showStep(5)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
                                                 Next
                                             </button>
                                         </div>
@@ -406,7 +409,7 @@
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Upload resume <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex gap-2 items-center">
-                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm" />
+                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm mt-1" />
                                             </div>
                                             @error('resume')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -415,9 +418,9 @@
 
                                         <!-- Upload Profile Picture -->
                                         <div>
-                                        <label class="block text-sm font-medium mb-1">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm" />
+                                            <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm mt-1" />
                                         </div>
                                         @error('profile_picture')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -425,16 +428,16 @@
                                         </div>
 
                                         <div>
-                                        <label class="block text-sm font-medium mb-1">Upload training certificate <span style="color: red; font-size: 17px;">*</span></label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload training certificate <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm" />
+                                            <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm mt-1" />
                                         </div>
                                         @error('training_certificate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         </div>
 
-                                        <div class="text-sm">
+                                        <div class="text-sm mt-3">
                                             <label class="flex items-start gap-2">
                                             <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}></input>
                                             <span>
@@ -452,7 +455,7 @@
 
                                             </label>
                                         </div>
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between mt-">
                                         <button type="button" onclick="showStep(4)" class="px-4 py-2 border rounded-md">Back</button>
                                         <button type="submit" id="submitBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md">
                                             Submit
