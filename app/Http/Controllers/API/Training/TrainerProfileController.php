@@ -37,7 +37,7 @@ class TrainerProfileController extends Controller
                 'institution', 'graduate_year'
             )
             ->where('user_id', $id)
-            ->where('user_type', 'Trainers')
+            ->where('user_type', 'trainer')
             ->get();
 
             $TrainersWorkExp = WorkExperience::select(
@@ -45,11 +45,12 @@ class TrainerProfileController extends Controller
                 'starts_from', 'end_to'
             )
             ->where('user_id', $id)
-            ->where('user_type', 'Trainers')
+            ->where('user_type', 'trainer')
             ->get();
 
-            $Trainerskill = TrainingMaterialsDocument::select('id','trainer_id','training_material_id','training_title','description','file_path','file_name')
-            ->where('trainer_id', $id)
+            $Trainerskill = TrainingExperience::select('*')
+            ->where('user_id', $id)
+            ->where('user_type', 'trainer')
             ->get();
 
             $TrainersAdditionalInfo = AdditionalInfo::select(
@@ -57,7 +58,7 @@ class TrainerProfileController extends Controller
                 'document_name', 'document_path'
             )
             ->where('user_id', $id)
-            ->where('user_type', 'Trainers')
+            ->where('user_type', 'trainer')
             ->get();
 
             // Return combined response
@@ -110,7 +111,7 @@ class TrainerProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'Trainers')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -173,7 +174,7 @@ class TrainerProfileController extends Controller
             foreach ($request->education as $edu) {
                 EducationDetails::create([
                     'user_id'         => $TrainersId,
-                    'user_type'       => 'Trainers',
+                    'user_type'       => 'trainer',
                     'high_education'  => $edu['high_education'],
                     'field_of_study'  => $edu['field_of_study'],
                     'institution'     => $edu['institution'],
@@ -184,7 +185,7 @@ class TrainerProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'Trainers')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -233,7 +234,7 @@ class TrainerProfileController extends Controller
                 'experience.*.organization' => 'required|string|max:255',
                 'experience.*.start_date' => 'required|date|before_or_equal:today',
                 'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
-                'Trainers_id' => 'required'
+                'trainers_id' => 'required'
             ]);
 
             $TrainersId = $request->trainers_id;
@@ -247,7 +248,7 @@ class TrainerProfileController extends Controller
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
                     'user_id'      => $TrainersId,
-                    'user_type'    => 'Trainers',
+                    'user_type'    => 'trainer',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
                     'starts_from'  => $exp['start_date'],
@@ -258,7 +259,7 @@ class TrainerProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'Trainers')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -314,7 +315,7 @@ class TrainerProfileController extends Controller
             if (!$TrainingMaterialsDocument) {
                 TrainingExperience::create([
                     'user_id'   => $trainer->id,
-                    'user_type'   => 'Trainer',
+                    'user_type'   => 'trainer',
                     'skills'         => $request->skills,
                     'interest'       => $request->interest,
                     'job_category'   => $request->job_category,
@@ -325,7 +326,7 @@ class TrainerProfileController extends Controller
                 // Update the Trainers basic info
                 $TrainingMaterialsDocument->update([
                     'user_id'   => $trainer->id,
-                    'user_type'   => 'Trainer',
+                    'user_type'   => 'trainer',
                     'skills'         => $request->skills,
                     'interest'       => $request->interest,
                     'job_category'   => $request->job_category,
@@ -337,7 +338,7 @@ class TrainerProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'Trainers')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -391,7 +392,7 @@ class TrainerProfileController extends Controller
             // Upload Resume
             if ($request->hasFile('resume')) {
                 $existingResume = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'Trainers')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'resume')
                     ->first();
 
