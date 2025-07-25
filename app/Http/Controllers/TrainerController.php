@@ -16,6 +16,7 @@ use App\Models\AssessmentOption;
 use App\Models\TrainingMaterial;
 use App\Models\TrainingBatch;
 use App\Models\TrainingMaterialsDocument;
+use App\Models\JobseekerTrainingMaterialPurchase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Review;
 use App\Models\Mentors;
 use App\Models\Assessors;
-
+use Carbon\Carbon;
 use App\Services\ZoomService;
 
 class TrainerController extends Controller
@@ -252,7 +253,7 @@ class TrainerController extends Controller
                 },
             ],
             'high_education.*' => 'required|string',
-            'field_of_study.*' => 'nullable|string',
+            'field_of_study.*' => 'required|string',
             'institution.*' => 'required|string',
             'graduate_year.*' => 'required|string',
             'job_role.*' => 'required|string',
@@ -261,8 +262,8 @@ class TrainerController extends Controller
             'end_to.*' => 'required|date',
             'training_experience' => 'required|string',
             'training_skills' => 'required|string',
-            'website_link' => 'required|url',
-            'portfolio_link' => 'required|url',
+            'website_link' => 'nullable|url',
+            'portfolio_link' => 'nullable|url',
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
@@ -275,24 +276,25 @@ class TrainerController extends Controller
                 'email.unique' => 'This email is already registered.',
                 'phone_number.required' => 'Phone number is required.',
                 'phone_number.unique' => 'This phone number is already in use.',
-                'dob.required' => 'Date of birth is required.',
+                'dob.required' => 'Please enter your date of birth.',
                 'dob.date' => 'Invalid date format for date of birth.',
-                'city.required' => 'City is required.',
-                'national_id.required' => 'National ID is required.',
+                'city.required' => 'Please enter your address.',
+                'national_id.required' => 'Please enter your national ID.',
                 'national_id.min' => 'National ID must be at least 10 digits.',
 
-                'high_education.*.required' => 'Please enter your highest education.',
-                'institution.*.required' => 'Institution name is required.',
-                'graduate_year.*.required' => 'Graduation year is required.',
+                'high_education.*.required' => 'Please select your highest education.',
+                'field_of_study.*.required' => 'Please select your field of study.',
+                'institution.*.required' => 'Please enter your institution name.',
+                'graduate_year.*.required' => 'Please select your graduation year.',
 
-                'job_role.*.required' => 'Job role is required.',
-                'organization.*.required' => 'Organization name is required.',
-                'starts_from.*.required' => 'Start date is required.',
+                'job_role.*.required' => 'Please enter your Job role.',
+                'organization.*.required' => 'Please enter your organization name.',
+                'starts_from.*.required' => 'Please select start date.',
                 'starts_from.*.date' => 'Invalid start date format.',
-                'end_to.*.required' => 'End date is required.',
+                'end_to.*.required' => 'Please select end date.',
                 'end_to.*.date' => 'Invalid end date format.',
 
-                'training_experience.required' => 'Training experience is required.',
+                'training_experience.required' => 'Please enter your training experience.',
                 'training_skills.required' => 'Please specify your training skills.',
                 'website_link.required' => 'Website link is required.',
                 'website_link.url' => 'Please provide a valid website URL.',
@@ -302,11 +304,11 @@ class TrainerController extends Controller
                 'resume.required' => 'Please upload your resume.',
                 'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
                 'resume.max' => 'Resume file must not exceed 2MB.',
-                'profile_picture.required' => 'Profile picture is required.',
+                'profile_picture.required' => 'Please upload your profile picture.',
                 'profile_picture.image' => 'Profile picture must be an image.',
                 'profile_picture.mimes' => 'Allowed image types are JPG, JPEG, and PNG.',
                 'profile_picture.max' => 'Profile picture must not exceed 2MB.',
-                'training_certificate.required' => 'Training certificate is required.',
+                'training_certificate.required' => 'Please upload your training certificate.',
                 'training_certificate.mimes' => 'Certificate must be a PDF, DOC, or DOCX file.',
                 'training_certificate.max' => 'Certificate file must not exceed 2MB.',
             ]);
@@ -427,10 +429,6 @@ class TrainerController extends Controller
         }
     }
 
-    public function showTrainerDashboard()
-    {
-        return view('site.trainer.trainer-dashboard');    
-    }
 
     public function logoutTrainer(Request $request)
     {
@@ -535,10 +533,6 @@ class TrainerController extends Controller
     }
     public function addAssessment() {
         return view('site.trainer.add-assessment');
-    }
-
-    public function traineesJobseekers() {
-        return view('site.trainer.trainees-jobseekers');
     }
 
     public function chatWithJobseeker() {
@@ -1348,14 +1342,16 @@ class TrainerController extends Controller
         }
 
         $currentlyWorkingIndices = $request->input('currently_working', []);
+        
 
         foreach ($request->input('job_role', []) as $i => $role) {
-            $currentlyWorking = in_array($i, $currentlyWorkingIndices);
-            $startDate = $request->starts_from[$i] ?? null;
-            $endDate = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
+            $isCurrentlyWorking = isset($request->currently_working[$i]) && $request->currently_working[$i] == 1;
 
-            // Manual validation: ensure end date is not before start date if not currently working
-            if (!$currentlyWorking && $startDate && $endDate && $endDate < $startDate) {
+            $startDate = $request->starts_from[$i] ?? null;
+            $endDate = $isCurrentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
+
+            // Validation
+            if (!$isCurrentlyWorking && $startDate && $endDate && $endDate < $startDate) {
                 return response()->json([
                     'status' => 'error',
                     'errors' => ["end_to.$i" => ["The end date must be after or equal to the start date."]]
@@ -1377,6 +1373,7 @@ class TrainerController extends Controller
                 WorkExperience::create($data);
             }
         }
+
 
         return response()->json([
             'status' => 'success',
@@ -1495,5 +1492,147 @@ class TrainerController extends Controller
         ], 404);
     }
    
+
+
+    // public function traineesJobseekers() {
+        
+    //     $trainerId = Auth::guard('trainer')->id();
+
+    //     $coursePurchasesJobseekers = JobseekerTrainingMaterialPurchase::with(['jobseeker','profilePicture', 'material', 'batch'])
+    //     ->where('trainer_id', $trainerId)
+    //     ->get();
+
+    //     return view('site.trainer.trainees-jobseekers', compact(
+    //         'coursePurchasesJobseekers',
+    //     ));
+    // }
+
+    public function traineesJobseekers()
+    {
+        $trainerId = Auth::guard('trainer')->id();
+
+        $coursePurchasesJobseekers = JobseekerTrainingMaterialPurchase::with([
+            'jobseeker:id,name',
+            'jobseeker.profilePicture:id,user_id,document_path',
+            'jobseeker.experiences:id,user_id,job_role,end_to',
+            'material:id,training_title,session_type',
+            'material.lessons:id,training_material_id',
+            'batch:id,batch_no',
+        ])
+        ->where('trainer_id', $trainerId)
+        ->get()
+        ->map(function ($item) {
+            $sessionType = strtolower($item->material->session_type ?? $item->material->training_type ?? 'recorded');
+
+            $mode = $sessionType === 'classroom' ? 'Offline' :
+                    ($sessionType === 'online' ? 'Online' : 'Recorded');
+
+            $designation = optional($item->jobseeker->experiences->sortByDesc('end_to')->first())->job_role ?? '—';
+
+            $data = [
+                'id' => $item->id,
+                'name' => $item->jobseeker->name,
+                'designation' => $designation,
+                'avatar' => $item->jobseeker->profilePicture?->document_path 
+                            ? asset($item->jobseeker->profilePicture->document_path)
+                            : asset('default-avatar.png'),
+                'courseName' => $item->material->training_title ?? '—',
+                'mode' => $mode,
+                'enrollmentNo' => $item->enrollment_no ?? '—',
+            ];
+
+            if ($mode === 'Recorded') {
+                $data['totalLessons'] = $item->material->lessons->count();
+            } else {
+                $data['batchName'] = $item->batch->batch_no ?? '—';
+            }
+
+            return $data;
+        });
+
+
+        // echo "<pre>";
+        // print_r($coursePurchasesJobseekers);exit;
+
+        return view('site.trainer.trainees-jobseekers', [
+            'jobseekersData' => $coursePurchasesJobseekers
+        ]);
+    }
+
+
+
+    public function showTrainerDashboard()
+    {
+        $trainerId = Auth::guard('trainer')->id();
+
+        $coursePurchasesJobseekers = JobseekerTrainingMaterialPurchase::with([
+            'jobseeker:id,name',
+            'jobseeker.profilePicture:id,user_id,document_path',
+            'jobseeker.experiences:id,user_id,job_role,end_to',
+            'material:id,training_title,session_type',
+            'material.lessons:id,training_material_id',
+            'batch:id,batch_no',
+        ])
+        ->where('trainer_id', $trainerId)
+        ->get()
+        ->map(function ($item) {
+            $sessionType = strtolower($item->material->session_type ?? $item->material->training_type ?? 'recorded');
+
+            $mode = $sessionType === 'classroom' ? 'Offline' :
+                    ($sessionType === 'online' ? 'Online' : 'Recorded');
+
+            $designation = optional($item->jobseeker->experiences->sortByDesc('end_to')->first())->job_role ?? '—';
+
+            $data = [
+                'id' => $item->id,
+                'name' => $item->jobseeker->name,
+                'designation' => $designation,
+                'avatar' => $item->jobseeker->profilePicture?->document_path 
+                            ? asset($item->jobseeker->profilePicture->document_path)
+                            : asset('default-avatar.png'),
+                'courseName' => $item->material->training_title ?? '—',
+                'mode' => $mode,
+                'enrollmentNo' => $item->enrollment_no ?? '—',
+            ];
+
+            if ($mode === 'Recorded') {
+                $data['totalLessons'] = $item->material->lessons->count();
+            } else {
+                $data['batchName'] = $item->batch->batch_no ?? '—';
+            }
+
+            return $data;
+        });
+
+        $today = Carbon::today()->toDateString();       // Current date (YYYY-MM-DD)
+        $nowTime = Carbon::now()->format('H:i:s');      // Current time (HH:MM:SS)
+
+        $batches = DB::table('training_batches as b')
+            ->join('training_materials as m', 'b.training_material_id', '=', 'm.id')
+            ->select(
+                'b.*',
+                'm.training_title as training_name',     
+                'm.training_type',
+                'm.training_level'
+            )
+            ->whereDate('b.start_date', $today)
+            ->orderBy('b.start_timing', 'asc')
+            ->get();
+
+
+        // echo "<pre>";
+        // print_r($batches);
+        // exit;
+
+
+
+
+        return view('site.trainer.trainer-dashboard', [
+            'jobseekersData' => $coursePurchasesJobseekers,
+            'batches' => $batches
+        ]);
+     
+    }
+
 
 }

@@ -23,8 +23,17 @@ class JobseekerTrainingMaterialPurchase extends Model
     // Relationships
     public function jobseeker()
     {
-        return $this->belongsTo(Jobseekers::class);
+        return $this->belongsTo(Jobseekers::class, 'jobseeker_id');
     }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture');
+    }
+
+
 
     public function trainer()
     {

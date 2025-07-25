@@ -123,6 +123,7 @@
                     </span>
 
                     <span>🏷️ {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
+                    <span>🎥 {{ ucfirst($material->session_type ?? 'recorded') }}</span>
                 </div>
 
                 <!-- Tabs -->

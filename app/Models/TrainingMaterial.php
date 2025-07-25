@@ -57,4 +57,10 @@ class TrainingMaterial extends Model
                     ->where('user_type', 'trainer')
                     ->where('doc_type', 'trainer_profile_picture');
     }
+
+    public function lessons()
+    {
+        return $this->hasMany(TrainingMaterialsDocument::class, 'training_material_id');
+    }
+
 }

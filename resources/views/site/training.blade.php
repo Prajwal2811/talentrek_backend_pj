@@ -18,7 +18,8 @@
         $trainer->materials = DB::table('training_materials')
             ->where('trainer_id', $trainer->id)
             ->get();
-
+        //     echo "<pre>";
+        // print_r($trainer->materials);exit;
         foreach ($trainer->materials as $material) {
             // Fetch documents for each material
             $material->documents = DB::table('training_materials_documents')
@@ -271,6 +272,12 @@
                                             <div>
                                                 📈 {{ $material->training_level ?? 'Beginner' }}
                                             </div>
+
+                                            {{-- Session Type --}}
+                                            <div>
+                                                🎥 {{ !empty($material->session_type) ? $material->session_type : 'Recorded' }}
+                                            </div>
+                                            
                                         </div>
                                     </div>
 

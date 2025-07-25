@@ -195,6 +195,11 @@
                                                     {{ $totalHours }} hrs
                                                 </li>
                                                 <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? 'Beginner' }}</li>
+                                                <li>
+                                                    <i class="bi bi-play-circle"></i>
+                                                    {{ !empty($material->session_type) ? $material->session_type : 'Recorded' }}
+                                                </li>
+
                                             </ul>
 
                                             <div class="flex items-center justify-between">
