@@ -112,12 +112,19 @@ class MyLearningController extends Controller
             $today = Carbon::today();
 
             $allPurchases = JobseekerBookingSession::select('*')
-            ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo','mentors'])
+            ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo','mentors','WorkExperience'])
                 ->where('jobseeker_id', $jobseekerId)
                 ->where('status','confirmed')
                 ->where('user_type','mentor')
                 ->get()
                 ->map(function ($session) use ($today) {
+                    $totalDays = collect($session->WorkExperience)->reduce(function ($carry, $exp) {
+                        $start = \Carbon\Carbon::parse($exp->start_from);
+                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        return $carry + $start->diffInDays($end);
+                    }, 0);
+                    $session->total_experience_days = $totalDays;
+                    $session->experiance = round($totalDays / 365, 1);
                     // Extract start and end times from slot_time
                     $timeRange = explode(' - ', $session->slot_time);
                     $startTime = $timeRange[0] ?? '00:00:00';
@@ -131,10 +138,8 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
-                    $session->userName = 'Abhishek Sharma' ;
-                    $session->designation = 'UI/UX' ;
-                    $session->experiance = '3' ;
-                    $session->mentorLatestWorkExperience = $session->mentorLatestWorkExperience->job_role ?? 'N/A' ;
+                    $session->userName = $session->mentors->name ?? '' ;                   
+                    $session->designation = $session->mentorLatestWorkExperience->job_role ?? 'N/A' ;
                     $image = '' ;
                     foreach($session->mentorAdditionalInfo as $jobseekerAdditionalInfos){
                         if($jobseekerAdditionalInfos->doc_type == 'mentor_profile_picture'){
@@ -142,7 +147,7 @@ class MyLearningController extends Controller
                         }                
                     }
                     $session->image = $image ;
-                    unset($session->mentorAdditionalInfo, $session->mentorLatestWorkExperience);
+                    unset($session->mentorAdditionalInfo, $session->mentorLatestWorkExperience, $session->mentors,$session->WorkExperience);
 
                     return $session;
                 });
@@ -173,12 +178,20 @@ class MyLearningController extends Controller
             $today = Carbon::today();
 
             $allPurchases = JobseekerBookingSession::select('*')
-            ->with(['assessorLatestWorkExperience', 'assessorAdditionalInfo'])
+            ->with(['assessorLatestWorkExperience', 'assessorAdditionalInfo','assessors','AssessorWorkExperience'])
                 ->where('jobseeker_id', $jobseekerId)
                 ->where('status','confirmed')
                 ->where('user_type','assessor')
                 ->get()
                 ->map(function ($session) use ($today) {
+                    $totalDays = collect($session->AssessorWorkExperience)->reduce(function ($carry, $exp) {
+                        $start = \Carbon\Carbon::parse($exp->start_from);
+                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        return $carry + $start->diffInDays($end);
+                    }, 0);
+                    $session->total_experience_days = $totalDays;
+                    $session->experiance = round($totalDays / 365, 1);
+
                     // Extract start and end times from slot_time
                     $timeRange = explode(' - ', $session->slot_time);
                     $startTime = $timeRange[0] ?? '00:00:00';
@@ -192,10 +205,9 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
-                    $session->userName = 'Abhishek Sharma' ;
-                    $session->designation = 'UI/UX' ;
-                    $session->experiance = '3' ;
-                    $session->assessorLatestWorkExperience = $session->assessorLatestWorkExperience->job_role ?? 'N/A' ;
+                    $session->userName = $session->assessors->name ?? '' ;                   
+                    $session->designation = $session->assessorLatestWorkExperience->job_role ?? 'N/A' ;
+                    
                     $image = '' ;
                     foreach($session->assessorAdditionalInfo as $jobseekerAdditionalInfos){
                         if($jobseekerAdditionalInfos->doc_type == 'assessor_profile_picture'){
@@ -203,7 +215,7 @@ class MyLearningController extends Controller
                         }                
                     }
                     $session->image = $image ;
-                    unset($session->assessorAdditionalInfo, $session->assessorLatestWorkExperience);
+                    unset($session->assessorAdditionalInfo, $session->assessorLatestWorkExperience, $session->assessors,$session->AssessorWorkExperience);
 
                     return $session;
                 });
@@ -216,8 +228,8 @@ class MyLearningController extends Controller
                 'success' => true,
                 'message' => 'My learning assessor list fetched successfully.',
                 'data' => [
-                    'myMentorSession' => $upcomingSessions,
-                    'myCompletedMentorSession' => $completedSessions
+                    'myAssessorSession' => $upcomingSessions,
+                    'myCompletedAssessorSession' => $completedSessions
                 ]
             ]);
 
@@ -234,12 +246,20 @@ class MyLearningController extends Controller
             $today = Carbon::today();
 
             $allPurchases = JobseekerBookingSession::select('*')
-            ->with(['coachLatestWorkExperience', 'coachAdditionalInfo'])
+            ->with(['coachLatestWorkExperience', 'coachAdditionalInfo','coaches','coachWorkExperience'])
                 ->where('jobseeker_id', $jobseekerId)
                 ->where('status','confirmed')
                 ->where('user_type','coach')
                 ->get()
                 ->map(function ($session) use ($today) {
+                    $totalDays = collect($session->coachWorkExperience)->reduce(function ($carry, $exp) {
+                        $start = \Carbon\Carbon::parse($exp->start_from);
+                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        return $carry + $start->diffInDays($end);
+                    }, 0);
+                    $session->total_experience_days = $totalDays;
+                    $session->experiance = round($totalDays / 365, 1);
+
                     // Extract start and end times from slot_time
                     $timeRange = explode(' - ', $session->slot_time);
                     $startTime = $timeRange[0] ?? '00:00:00';
@@ -253,10 +273,8 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
-                    $session->userName = 'Abhishek Sharma' ;
-                    $session->designation = 'UI/UX' ;
-                    $session->experiance = '3' ;
-                    $session->coachLatestWorkExperience = $session->coachLatestWorkExperience->job_role ?? 'N/A' ;
+                    $session->userName = $session->coaches->name ?? '' ;                   
+                    $session->designation = $session->coachLatestWorkExperience->job_role ?? 'N/A' ;
                     $image = '' ;
                     foreach($session->coachAdditionalInfo as $jobseekerAdditionalInfos){
                         if($jobseekerAdditionalInfos->doc_type == 'coach_profile_picture'){
@@ -264,7 +282,7 @@ class MyLearningController extends Controller
                         }                
                     }
                     $session->image = $image ;
-                    unset($session->coachAdditionalInfo, $session->coachLatestWorkExperience);
+                    unset($session->coachAdditionalInfo, $session->coachLatestWorkExperience, $session->coaches,$session->WorkExperience);
 
                     return $session;
                 });

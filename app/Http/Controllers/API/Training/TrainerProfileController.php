@@ -234,7 +234,7 @@ class TrainerProfileController extends Controller
                 'experience.*.organization' => 'required|string|max:255',
                 'experience.*.start_date' => 'required|date|before_or_equal:today',
                 'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
-                'Trainers_id' => 'required'
+                'trainers_id' => 'required'
             ]);
 
             $TrainersId = $request->trainers_id;
@@ -248,7 +248,7 @@ class TrainerProfileController extends Controller
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
                     'user_id'      => $TrainersId,
-                    'user_type'    => 'Trainers',
+                    'user_type'    => 'trainer',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
                     'starts_from'  => $exp['start_date'],

@@ -36,23 +36,36 @@ class JobseekerBookingSession extends Model
         'zoom_start_url'
     ];
 
+    // ──────── MENTOR RELATIONS ────────
     public function mentors()
     {
-        return $this->hasOne(Mentors::class, 'user_id') ->where('user_type', 'mentor') ;
+        return $this->hasOne(Mentors::class,'id', 'user_id') ;
     }
     
     public function mentorLatestWorkExperience()
     {
-        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
+        return $this->hasOne(WorkExperience::class, 'user_id', 'user_id') // user_id in work_experience = trainer's id
             ->where('user_type', 'mentor') // filter only trainer-type
             ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
             ->select('user_id', 'job_role', 'end_to');
+    }
+
+    public function WorkExperience()
+    {
+        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
+        ->where('user_type', 'mentor');
     }
 
     public function mentorAdditionalInfo()
     {
         return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
                     ->where('user_type', 'mentor');
+    }
+
+    // ──────── COACHES RELATIONS ────────
+    public function coaches()
+    {
+        return $this->hasOne(Coach::class,'id', 'user_id') ;
     }
 
     public function coachLatestWorkExperience()
@@ -63,10 +76,22 @@ class JobseekerBookingSession extends Model
             ->select('user_id', 'job_role', 'end_to');
     }
 
+    public function coachWorkExperience()
+    {
+        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
+        ->where('user_type', 'coach');
+    }
+
     public function coachAdditionalInfo()
     {
         return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
                     ->where('user_type', 'coach');
+    }
+
+    // ──────── ASSESSOR RELATIONS ────────
+    public function assessors()
+    {
+        return $this->hasOne(Assessors::class,'id', 'user_id') ;
     }
 
     public function assessorLatestWorkExperience()
@@ -80,6 +105,13 @@ class JobseekerBookingSession extends Model
     public function assessorAdditionalInfo()
     {
         return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'assessor');
+        
+        ->where('user_type', 'assessor');
+    }
+
+    public function AssessorWorkExperience()
+    {
+        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
+        ->where('user_type', 'assessor');
     }
 }

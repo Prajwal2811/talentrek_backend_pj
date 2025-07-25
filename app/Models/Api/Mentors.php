@@ -30,6 +30,7 @@ class Mentors extends Model
         'date_of_birth' => 'date',
     ];
 
+    
     // Relationship with reviews (assuming `mentor_id` is foreign key in reviews)
     public function mentorReviews()
     {
