@@ -22,11 +22,14 @@ use App\Http\Controllers\API\Jobseeker\ExplorerController;
 use App\Http\Controllers\API\Jobseeker\AppHomeController;
 use App\Http\Controllers\API\Jobseeker\MyLearningController;
 use App\Http\Controllers\API\Jobseeker\SeekerProfileController;
+use App\Http\Controllers\API\Jobseeker\CartManagementController;
 
 use App\Http\Controllers\API\Training\TrainingController;
 use App\Http\Controllers\API\Training\TrainingDashboardController;
 
 use App\Http\Controllers\API\SlotManagementController;
+use App\Http\Controllers\API\SessionsManagementController;
+use App\Http\Controllers\API\ReviewManagementController;
 
 
 
@@ -112,6 +115,10 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
 
     Route::post('/jobSeekerConsultantSession', [MyLearningController::class, 'jobSeekerConsultationSession']);
     Route::post('/jobSeekerBookASession', [MyLearningController::class, 'jobSeekerBookAConsultationSession']);
+    
+    Route::post('/addToCart', [CartManagementController::class, 'addToCartByJobseeker']);
+    Route::post('/removeCartItem', [CartManagementController::class, 'removeCartItemByJobseeker']);
+    Route::get('/viewCartItem/{jobseekerId}', [CartManagementController::class, 'viewCartItemByJobseeker']);
 });
 
 Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {
@@ -205,6 +212,12 @@ Route::post('/showBookingSlotDetailsByDate', [SlotManagementController::class, '
 Route::get('/deleteBookingSlotById/{bookingSlotId}', [SlotManagementController::class, 'deleteBookingSlotDetailsByIdForMCA']);
 Route::post('/updateBookingSlotById', [SlotManagementController::class, 'updateBookingSlotDetailsByIdForMCA']);
 Route::post('/markSlotUnavailableByDate', [SlotManagementController::class, 'markSlotUnavailableByDateForMCA']);
-
 Route::post('/cancelSessionByRole', [SlotManagementController::class, 'cancelSessionByRoleForMCA']);
 Route::post('/rescheduleSessionByRole', [SlotManagementController::class, 'rescheduleSessionByRoleForMCA']);
+Route::post('/calenderUnavailableDates', [SlotManagementController::class, 'calenderUnavailableDatesForMCA']);
+
+Route::post('/upcomingBookedSessions', [SessionsManagementController::class, 'upcomingBookedSessionsForMCA']);
+Route::post('/cancelledBookedSessions', [SessionsManagementController::class, 'cancelledBookedSessionsForMCA']);
+Route::post('/completedBookedSessions', [SessionsManagementController::class, 'completedBookedSessionsForMCA']);
+
+Route::post('/reviewsDetailsById', [ReviewManagementController::class, 'reviewsDetailsByMCAIds']);

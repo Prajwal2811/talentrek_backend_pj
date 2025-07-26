@@ -53,4 +53,5 @@ class BookingSession extends Model
         return $this->belongsTo(BookingSlot::class, 'booking_slot_id');
     }
     
+    
 }

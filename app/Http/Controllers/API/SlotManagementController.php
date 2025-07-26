@@ -416,4 +416,38 @@ class SlotManagementController extends Controller
             ], 500);
         }
     }
+
+    public function calenderUnavailableDatesForMCA(Request $request)
+    {
+            try{
+                    $request->validate([
+                    'user_id' => 'required',
+                    'type' => 'required|string'
+                    
+                ]);
+       
+               $unavailableDates = BookingSlot::with('unavailableDates')
+                ->where('user_id', $request->user_id)
+                ->where('user_type', $request->type)
+                ->get()
+                ->pluck('unavailableDates.*.unavailable_date')
+                ->flatten()
+                ->unique()
+                ->values();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Un Available dates for slots in calender.',
+                    'data' => $unavailableDates
+                ]);                
+
+                
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong.'
+            ], 500);
+        }
+    }
 }
