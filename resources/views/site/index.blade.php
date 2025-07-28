@@ -30,6 +30,25 @@
             $material->batches = DB::table('training_batches')
                 ->where('training_material_id', $material->id)
                 ->get();
+            
+            $material->rating = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->avg('ratings');
+
+            $material->rating_count = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->count();
+
+            $material->reviews = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->select('ratings', 'reviews')
+                ->get();  
         }
     }
 
@@ -177,8 +196,17 @@
                                             <p class="text-sm text-gray-500 mb-2">{{ $material->training_sub_title }}</p>
 
                                             <div class="flex items-center text-yellow-500 text-sm mb-2">
-                                                <span class="mr-1">★★★★☆</span>
-                                                <span class="text-gray-500 text-xs">(4/5) Rating</span>
+                                               @php
+                                                $avgRating = round($material->rating ?? 0, 1); // rounded to 1 decimal place
+                                                $filledStars = floor($avgRating); // for star display
+                                                @endphp
+
+                                                <p class="mt-1 text-yellow-500">
+                                                    @for ($i = 1; $i <= 5; $i++)
+                                                        <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
+                                                    @endfor
+                                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) Rating</span>
+                                                </p>
                                             </div>
 
                                             <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4">

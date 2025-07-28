@@ -62,66 +62,7 @@ class JobseekerController extends Controller
         ]);
 
         // Send welcome email
-        Mail::html('
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>Welcome to Talentrek</title>
-                <style>
-                    body {
-                        background-color: #f4f6f9;
-                        font-family: Arial, sans-serif;
-                        padding: 20px;
-                        margin: 0;
-                    }
-                    .email-container {
-                        background: #ffffff;
-                        max-width: 600px;
-                        margin: auto;
-                        padding: 30px;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                    }
-                    h2 {
-                        color: #007bff;
-                        margin-bottom: 20px;
-                    }
-                    p {
-                        line-height: 1.6;
-                        color: #333333;
-                    }
-                    .footer {
-                        margin-top: 30px;
-                        font-size: 12px;
-                        color: #888888;
-                        text-align: center;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="email-container">
-                    <h2>Welcome to Talentrek!</h2>
-                    <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
-
-                    <p>You have successfully signed up on <strong>Talentrek</strong>. We\'re excited to have you with us!</p>
-
-                    <p>Start exploring career opportunities, connect with employers, and grow your professional journey.</p>
-
-                    <p>If you ever need help, feel free to contact our support team.</p>
-
-                    <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
-                </div>
-
-                <div class="footer">
-                    © ' . date('Y') . ' Talentrek. All rights reserved.
-                </div>
-            </body>
-            </html>
-        ', function ($message) use ($jobseeker) {
-            $message->to($jobseeker->email)
-                ->subject('Welcome to Talentrek – Signup Successful');
-        });
+        //   
 
         // Set session
         session([
@@ -168,7 +109,7 @@ class JobseekerController extends Controller
 
         $validated = $request->validate([
             // Basic Info
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $jobseeker->id,
             'phone_number' => 'required|unique:jobseekers,phone_number,' . $jobseeker->id,
             'dob' => 'required|date',
@@ -220,6 +161,7 @@ class JobseekerController extends Controller
 
             // Basic Info
             'name.required' => 'Please enter your name.',
+            'name.regex' => 'The full name should contain only letters and single spaces.',
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already registered.',

@@ -1580,6 +1580,7 @@ class TrainerController extends Controller
                 'm.training_type',
                 'm.training_level'
             )
+            ->where('m.trainer_id', $trainerId)
             ->whereDate('b.start_date', $today)
             ->orderBy('b.start_timing', 'asc')
             ->get();

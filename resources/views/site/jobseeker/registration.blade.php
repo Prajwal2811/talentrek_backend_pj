@@ -127,7 +127,7 @@
                                             <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2 mt-1">
-                                                    <option>+91</option>
+                                                    <option>+966</option>
                                                 </select>
                                                 <input name="phone_number" placeholder="Enter Phone number" type="tel"
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
@@ -169,14 +169,6 @@
                                     </div>
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Location <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="City or State" value="{{ old('city') }}" />
-                                        @error('city')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Address <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="Street, Area, ZIP" value="{{ old('address') }}" />
@@ -184,6 +176,34 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
+
+                                    <div>
+                                        <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red; font-size: 17px;">*</span></label>
+                                        <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="City or State" value="{{ old('city') }}" />
+                                        @error('city')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
+                                        <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Select state" value="{{ old('address') }}" />
+                                        @error('address')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
+                                        <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Enter pin code" value="{{ old('city') }}" />
+                                        @error('city')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                  
                                     <div class="flex justify-end">
                                         <button type="button" onclick="showStep(2)"
                                             class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">Next</button>
