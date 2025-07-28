@@ -440,12 +440,13 @@
                                 $courses = JobseekerTrainingMaterialPurchase::with(['material.reviews'])
                                                                             ->where('jobseeker_id', $jobseeker->id)
                                                                             ->get();
+
                                 $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
                                                                         ->where('user_id', $jobseeker->id)
                                                                         ->first();
                             @endphp
 
-                          <div class="card">
+                            <div class="card">
                                 <div class="header">
                                     <h2>Jobseeker Trainings</h2>
                                 </div>
@@ -456,24 +457,43 @@
                                                 $material = $purchase->material;
                                                 $reviews = $material->reviews ?? collect();
                                                 $trainerName = App\Models\Trainers::where('id', $material->trainer_id)->value('name');
-                                                $lessons = $material->lesson_count ?? rand(5, 10);
-                                                $duration = $material->duration ?? rand(10, 30).'hrs';
-                                                $level = $material->level ?? 'Beginner';
+                                                $lessons = $material->lesson_count;
+                                                $duration = $material->duration .'hrs';
+                                                $level = $material->level;
                                                 $rating = $material->rating ?? 4;
-                                                $img = $material->thumbnail_file_path ?? 'default-thumbnail.jpg';
+                                                $img = $material->thumbnail_file_path;
+                                                $assingBatch = \App\Models\TrainingBatch::where('training_material_id', $material->id)
+                                                                                        ->where('id', $purchase->batch_id)
+                                                                                        ->first();
                                             @endphp
 
                                             <div class="card d-flex flex-row p-3 mb-3 {{ $index >= 1 ? 'd-none extra-course' : '' }}">
                                                 <img src="{{ asset($img) }}" alt="{{ $material->training_title }}"
                                                     class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">{{ $material->training_title }}</h5>
+                                                    <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
+                                                        <div>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <h5 class="fw-bold mb-1 mb-0">{{ $material->training_title }}</h5>
+                                                            @php
+                                                                $batchStatus = strtolower($purchase->batchStatus); // e.g., 'pending', 'completed', 'in process'
+                                                                $badgeClass = match($batchStatus) {
+                                                                    'completed' => 'bg-success text-white',
+                                                                    'pending' => 'bg-warning text-dark',
+                                                                    'in process' => 'bg-info text-white',
+                                                                    default => 'bg-secondary'
+                                                                };
+                                                            @endphp
+                                                            <span class="badge {{ $badgeClass }} text-capitalize">
+                                                                {{ $batchStatus }}
+                                                            </span>
+                                                        </div>
+                                                            
                                                         <p class="text-muted mb-2">{{ $material->training_sub_title ?? 'No description available.' }}</p>
                                                         @php
                                                             $averageRating = $reviews->avg('ratings');
                                                             $roundedRating = round($averageRating);
                                                         @endphp
+
 
                                                         <div class="d-flex align-items-center mb-2">
                                                             <span class="text-warning me-1">
@@ -489,21 +509,33 @@
                                                                 ({{ number_format($averageRating, 1) }}/5 from {{ $reviews->count() }} review{{ $reviews->count() === 1 ? '' : 's' }})
                                                             </span>
                                                         </div>
+                                                    </div>
+                                                        <div class="d-flex align-items-center justify-content-between mt-3">
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}"
+                                                                    class="rounded-circle me-2" style="width: 35px;">
+                                                                <span class="fw-semibold">{{ $trainerName }}</span>
+                                                            </div>
+                                                            <div class="d-flex align-items-center text-muted gap-3">
+                                                            <div>
+                                                                    <i data-feather="book-open" class="me-1"></i>
+                                                                   @if(in_array($material->training_type, ['online', 'classroom']))
+                                                                        @if($assingBatch)
+                                                                            {{ $assingBatch->batch_no . ' (' . \Carbon\Carbon::parse($assingBatch->start_date)->format('d M, Y') . ')' }}
+                                                                        @else
+                                                                            <span class="text-danger">No Batch Assigned</span>
+                                                                        @endif
+                                                                    @else
+                                                                        {{ $lessons }} lesson{{ $lessons != 1 ? 's' : '' }}
+                                                                    @endif
 
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <span class="fw-semibold">{{ $trainerName }}</span>
-                                                        </div>
-                                                        <div class="d-flex align-items-center text-muted gap-3">
-                                                            <div><i data-feather="book-open" class="me-1"></i>{{ $lessons }} lessons</div>
-                                                            <div><i data-feather="clock" class="me-1"></i>{{ $duration }}</div>
-                                                            <div><i data-feather="bar-chart-2" class="me-1"></i>{{ $level }}</div>
+                                                                </div>
+
+                                                                <div><i data-feather="clock" class="me-1"></i>{{ $purchase->training_type }}</div>
+                                                                <div><i data-feather="bar-chart-2" class="me-1"></i>{{ $level }}</div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
                                             </div>
                                         @empty
                                             <div class="alert alert-warning">No trainings purchased yet.</div>
@@ -527,10 +559,16 @@
                                 }
                             </script>
                             <script>feather.replace();</script>
+                            @php
+                                $mentorships = \App\Models\BookingSession::with([
+                                                    'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
+                                                ])->where('jobseeker_id', $jobseeker->id)
+                                                ->where('user_type', 'mentor')
+                                                ->whereHas('mentor.profilePicture')
+                                                ->get();
 
-
-
-
+                                // echo "<pre>"; print_r($mentorships); 
+                            @endphp
                             <div class="card">
                                 <div class="header">
                                     <h2>Jobseeker Mentorship</h2>
@@ -540,86 +578,64 @@
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Mentorship Card 1 -->
-                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                    <img src="../images/gallery/finished-quiz.png" alt="Mentor Image"
-                                                        class="img-fluid rounded"
-                                                        style="width: 200px; height: 140px; object-fit: cover;">
-                                                    <div
-                                                        class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                        <h5 class="fw-bold mb-1">Julia Maccarthy</h5>
-                                                        <p class="text-muted mb-2">Career Coach</p>
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                            <span class="text-muted">(4/5 Rating)</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                @php $firstMentor = true; @endphp
 
-                                                <!-- Hidden More Mentors -->
-                                                <div id="moreMentors" class="d-none">
+                                                @foreach($mentorships as $mentorship)
+                                                    @php
+                                                        $mentor = $mentorship->mentor;
+                                                        $image = $mentor->profilePicture?->path ?? asset('images/default-avatar.png');
+                                                        $rating = $mentor->reviews->avg('ratings') ?? 0;
+                                                        $rounded = round($rating);
+                                                        $filledStars = str_repeat('★ ', $rounded);
+                                                        $emptyStars = str_repeat('☆ ', 5 - $rounded);
+                                                        $role = $mentor->experiences->first()?->role ?? 'Mentor';
+                                                    @endphp
 
-                                                    <!-- Mentorship Card 2 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/graphic-design.png"
-                                                            alt="Mentor Image" class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">John Smith</h5>
-                                                            <p class="text-muted mb-2">Leadership Consultant</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ★</span>
-                                                                <span class="text-muted">(5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Mentorship Card 3 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/ui-ux.png" alt="Mentor Image"
+                                                    <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm {{ $firstMentor ? '' : 'moreMentor d-none' }}">
+                                                        <img src="{{ asset($image) }}" alt="Mentor Image"
                                                             class="img-fluid rounded"
                                                             style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">Sara Lee</h5>
-                                                            <p class="text-muted mb-2">Startup Advisor</p>
+                                                        <div class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
+                                                            <h5 class="fw-bold mb-1">{{ $mentor->name }}</h5>
+                                                            <p class="text-muted mb-2">{{ $role }}</p>
                                                             <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                                <span class="text-muted">(4.5/5 Rating)</span>
+                                                                <span class="text-warning me-2">{!! $filledStars . $emptyStars !!}</span>
+                                                                <span class="text-muted">({{ number_format($rating, 1) }}/5 Rating)</span>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                </div>
+                                                    @php $firstMentor = false; @endphp
+                                                @endforeach
 
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButton"
-                                                        onclick="toggleMentors()">View More</button>
-                                                </div>
+                                                @if($mentorships->count() > 1)
+                                                    <!-- View More Button -->
+                                                    <div class="text-center mt-4">
+                                                        <button class="btn btn-primary" id="toggleButton" onclick="toggleMentors()">View More</button>
+                                                    </div>
+                                                @endif
 
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
                                 <script>
                                     function toggleMentors() {
-                                        const moreMentors = document.getElementById("moreMentors");
+                                        const moreMentors = document.querySelectorAll(".moreMentor");
                                         const button = document.getElementById("toggleButton");
 
-                                        if (moreMentors.classList.contains("d-none")) {
-                                            moreMentors.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            moreMentors.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
+                                        const isHidden = moreMentors[0]?.classList.contains("d-none");
+
+                                        moreMentors.forEach(mentor => {
+                                            mentor.classList.toggle("d-none");
+                                        });
+
+                                        button.textContent = isHidden ? "View Less" : "View More";
                                     }
                                 </script>
                             </div>
+
 
 
                             <div class="card">

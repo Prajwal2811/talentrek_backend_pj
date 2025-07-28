@@ -23,6 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('batch_id')->nullable();
             $table->enum('purchase_for', ['individual', 'team']);
             $table->unsignedBigInteger('payment_id')->nullable();
+            $table->string('batchStatus')->nullable();
             $table->timestamps();
 
             // Foreign key constraints (optional, adjust table names as per your DB structure)

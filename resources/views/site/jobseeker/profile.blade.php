@@ -1759,7 +1759,6 @@ $skills = $user->skills->first();
                                 }
                             }
                         @endphp
-
                         {{-- Mentorship --}}
                         @php
                             $mentorships = \App\Models\BookingSession::with([
@@ -1769,6 +1768,7 @@ $skills = $user->skills->first();
                             ->whereHas('mentor.profilePicture')
                             ->get();
                         @endphp
+
 
                         <div x-show="tab === 'mentorship'" x-cloak>
                             <h2 class="text-xl font-semibold mb-4">Mentorship</h2>
