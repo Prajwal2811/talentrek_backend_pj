@@ -86,115 +86,63 @@
                             <!-- Candidates experience -->
                             <div>
                                 <p class="font-semibold text-sm mb-1">Candidates experience</p>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Fresher (0-3 years experience)</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />3+ years experience</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="fresher" class="mr-2 filter-checkbox" />Fresher (0-3 years)</label>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="experienced" class="mr-2 filter-checkbox" />3+ years</label>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="all" class="mr-2 filter-checkbox" />All</label>
                             </div>
 
-                            @php
-                                $educations = \App\Models\EducationDetails::all();
-                            @endphp
+                            @php $educations = \App\Models\EducationDetails::all(); @endphp
+
                             <!-- Education -->
                             <div>
                                 <p class="font-semibold text-sm mb-1">Education</p>
-                                @foreach ($educations->unique('high_education') as $education )
-                                    <label class="block text-sm"><input type="checkbox" class="mr-2" />{{ $education->high_education }}</label>
+                                @foreach ($educations->unique('high_education') as $education)
+                                    <label class="block text-sm">
+                                        <input type="checkbox" name="education[]" value="{{ $education->high_education }}" class="mr-2 filter-checkbox" />{{ $education->high_education }}
+                                    </label>
                                 @endforeach
                             </div>
 
                             <!-- Gender -->
                             <div>
                                 <p class="font-semibold text-sm mb-1">Gender</p>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Male</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Female</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="male" class="mr-2 filter-checkbox" />Male</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="female" class="mr-2 filter-checkbox" />Female</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="all" class="mr-2 filter-checkbox" />All</label>
                             </div>
 
                             <!-- Certificate -->
                             <div>
                                 <p class="font-semibold text-sm mb-1">Certificate</p>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Certificate (0-5)</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Certificate 5+</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Not certified</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="0-5" class="mr-2 filter-checkbox" />Certificate (0-5)</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="5+" class="mr-2 filter-checkbox" />Certificate 5+</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="not-certified" class="mr-2 filter-checkbox" />Not certified</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="all" class="mr-2 filter-checkbox" />All</label>
                             </div>
                         </div>
 
                         <!-- Main Panel -->
                         <div class="flex-1 bg-white p-4 rounded shadow">
-                        <!-- Tabs -->
-                        <div class="flex justify-between border-b pb-2 mb-4">
-                            <div class="space-x-6 font-medium text-sm">
-                            <button data-tab="jobseekers" class="pb-1 border-b-2">Jobseekers</button>
-                            <button data-tab="shortlisted" class="text-gray-500 pb-1">Shortlisted</button>
-                            <!-- <button data-tab="contacted" class="text-gray-500 pb-1">Contacted</button> -->
-                            </div>
-                            <div class="text-sm font-semibold text-gray-600">
-                            <!-- Results: <span>0</span> -->
-                            </div>
-                        </div>
-
-                        <!-- Jobseekers Tab -->
-                        <div data-tab-content="jobseekers" class="divide-y">
-                            @foreach($jobseekers as $jobseeker)
-                                <div class=" jobseeker-entry flex justify-between items-center py-4">
-                                    <!-- Profile Image & Name -->
-                                    <div class="flex items-center space-x-4 w-1/3">
-                                        <img 
-                                            src="{{ $jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
-                                            class="w-12 h-12 rounded-full object-cover blur-sm" 
-                                            alt="{{ $jobseeker->name }}"
-                                        />
-                                        <div>
-                                            <h4 class="font-semibold text-sm blur-sm">{{ $jobseeker->name }}</h4>
-                                            <p class="text-sm text-gray-500">
-                                                {{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Experience Years -->
-                                    <div class="w-32 text-sm">
-                                        <p class="font-semibold">Experience</p>
-                                        <p>{{ $jobseeker->total_experience }}</p>
-                                    </div>
-
-                                    <!-- Skills -->
-                                    <div class="text-sm flex-1">
-                                        <p class="font-semibold">Skills</p>
-                                        <p>
-                                            @if($jobseeker->skills && $jobseeker->skills->count())
-                                                {{ $jobseeker->skills->pluck('skills')->filter()->join(', ') }}
-                                            @else
-                                                Not provided
-                                            @endif
-                                        </p>
-                                    </div>
-
-                                    <!-- Shortlist Button -->
-                                    <div class="ml-4">
-                                        <form id="shortlist-form-{{ $jobseeker->id }}" action="{{ route('recruiter.shortlist.submit') }}" method="POST" onsubmit="return false;">
-                                            @csrf
-                                            <input type="hidden" name="jobseeker_id" value="{{ $jobseeker->id }}">
-                                            <button type="button" onclick="confirmShortlist({{ $jobseeker->id }})" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
-                                                Shortlist
-                                            </button>
-                                        </form>    
-                                    </div>
+                            <!-- Tabs -->
+                            <!-- Tabs -->
+                            <div class="flex justify-between border-b pb-2 mb-4">
+                                <div class="space-x-6 font-medium text-sm">
+                                    <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">Jobseekers</button>
+                                    <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">Shortlisted</button>
 
                                 </div>
-                            @endforeach
-                            <!-- Pagination Controls -->
-                            <div id="pagination" class="mt-6 flex justify-center space-x-2"></div>
-                        </div>
+                            </div>
 
+                           
+                            <!-- Jobseekers Tab -->
+                            <div id="jobseekerList" data-tab-content="jobseekers" class="divide-y">
+                                @include('site.recruiter.partials.jobseeker-list', ['jobseekers' => $jobseekers])
+                                <div id="pagination" class="mt-6 flex justify-center space-x-2"></div>
+                            </div>
                             
-
-
                             <!-- Shortlisted Tab -->
-                            <div data-tab-content="shortlisted" style="display: none;">
-                                <div data-tab-content="shortlisted" class="divide-y">
-                                    @foreach($shortlisted_jobseekers as $shortlisted_jobseeker)
+                            <div id="shortlistedList" data-tab-content="shortlisted" class="divide-y hidden">
+                                @foreach($shortlisted_jobseekers as $shortlisted_jobseeker)
                                         <div class="jobseeker-shortlisted  flex justify-between items-center py-4">
                                             <!-- Profile Image & Name -->
                                             <div class="flex items-center space-x-4 w-1/3">
@@ -268,18 +216,128 @@
                                             </div>
                                         </div>
                                     @endforeach
-                                    <!-- Pagination Controls -->
-                                    <div id="shortlistedPagination" class="mt-6 flex justify-center space-x-2"></div>
-                                </div>
+                                @include('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers])
+                                <div id="shortlistedPagination" class="mt-6 flex justify-center space-x-2"></div>
                             </div>
 
                             <!-- Contacted Tab -->
                             <div data-tab-content="contacted" style="display: none;">
                                 <div class="text-center py-6 text-gray-500">No contacted jobseekers.</div>
                             </div>
+
                         </div>
-                    </div> 
-                </main>
+                    </div>
+
+                    <!-- jQuery for Filters -->
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const tabButtons = document.querySelectorAll('.tab-btn');
+                            const tabContents = document.querySelectorAll('[data-tab-content]');
+
+                            // Show default tab on load
+                            let defaultTab = 'jobseekers';
+                            tabContents.forEach(content => {
+                                if (content.getAttribute('data-tab-content') === defaultTab) {
+                                    content.classList.remove('hidden');
+                                } else {
+                                    content.classList.add('hidden');
+                                }
+                            });
+
+                            tabButtons.forEach(button => {
+                                button.addEventListener('click', () => {
+                                    const tab = button.getAttribute('data-tab');
+
+                                    // Update button styles
+                                    tabButtons.forEach(btn => {
+                                        btn.classList.remove('border-b-2', 'text-black');
+                                        btn.classList.add('text-gray-500');
+                                    });
+                                    button.classList.add('border-b-2', 'text-black');
+                                    button.classList.remove('text-gray-500');
+
+                                    // Show selected tab
+                                    tabContents.forEach(content => {
+                                        if (content.getAttribute('data-tab-content') === tab) {
+                                            content.classList.remove('hidden');
+                                        } else {
+                                            content.classList.add('hidden');
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    </script>
+
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const tabButtons = document.querySelectorAll('[data-tab]');
+                            const tabContents = document.querySelectorAll('[data-tab-content]');
+
+                            tabButtons.forEach(button => {
+                                button.addEventListener('click', () => {
+                                    const tab = button.getAttribute('data-tab');
+
+                                    // Toggle active tab button
+                                    tabButtons.forEach(btn => {
+                                        btn.classList.remove('border-b-2', 'text-black');
+                                        btn.classList.add('text-gray-500');
+                                    });
+                                    button.classList.add('border-b-2', 'text-black');
+                                    button.classList.remove('text-gray-500');
+
+                                    // Show/Hide tab content
+                                    tabContents.forEach(content => {
+                                        if (content.getAttribute('data-tab-content') === tab) {
+                                            content.style.display = 'block';
+                                        } else {
+                                            content.style.display = 'none';
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    </script>
+
+                    <script>
+                        $('.filter-checkbox').on('change', function () {
+                            filterJobseekers();
+                        });
+
+                        function getCheckedValues(name) {
+                            return $("input[name='" + name + "']:checked").map(function () {
+                                return this.value;
+                            }).get();
+                        }
+
+                        function filterJobseekers() {
+                            let filters = {
+                                experience: getCheckedValues('experience[]'),
+                                education: getCheckedValues('education[]'),
+                                gender: getCheckedValues('gender[]'),
+                                certificate: getCheckedValues('certificate[]')
+                            };
+
+                            $('#jobseekerList').html('<p class="p-4 text-gray-500">Loading...</p>');
+
+                            $.ajax({
+                                url: "{{ route('recruiter.filter.jobseekers') }}",
+                                type: "GET",
+                                data: filters,
+                                success: function (response) {
+                                    $('#jobseekerList').html(response.jobseekers_html);
+                                    $('#shortlistedList').html(response.shortlisted_html);
+                                },
+                                error: function () {
+                                    $('#jobseekerList').html('<p class="p-4 text-red-500">Failed to load filtered jobseekers.</p>');
+                                }
+                            });
+                        }
+                    </script>
+
+                </main>  
                 <!-- SweetAlert2 CDN -->
                 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                 <style>

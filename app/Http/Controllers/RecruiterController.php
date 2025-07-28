@@ -409,17 +409,17 @@ class RecruiterController extends Controller
      public function showJobseekerListForm()
      {
           $recruiterId = auth()->user()->recruiter_id;
-
+          
           $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
                               ->pluck('jobseeker_id')
                               ->toArray();
-          
+
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                     ->where('status', 'active')
                     ->whereIn('admin_status', ['approved', 'superadmin_approved'])
                     ->whereNotIn('id', $shortlistedIds)
                     ->get();
-
+          
 
          $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                                    ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
@@ -432,8 +432,8 @@ class RecruiterController extends Controller
                                    )
                                    ->get();
 
-     //     echo "<pre>";
-     //     print_r($shortlisted_jobseekers);die;
+          //     echo "<pre>";
+          //     print_r($shortlisted_jobseekers);die;
 
           return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }
@@ -465,36 +465,36 @@ class RecruiterController extends Controller
 
      public function interviewRequestSubmit(Request $request)
      {
-     $request->validate([
-          'jobseeker_id' => 'required|integer',
-     ]);
-
-     $recruiter = auth()->user();
-     $jobseekerId = $request->input('jobseeker_id');
-
-     $shortlist = RecruiterJobseekersShortlist::where([
-          'company_id' => $recruiter->id,
-          'recruiter_id' => $recruiter->recruiter_id,
-          'jobseeker_id' => $jobseekerId,
-     ])->first();
-
-     if ($shortlist) {
-          $shortlist->update([
-               'interview_request' => 'yes',
+          $request->validate([
+               'jobseeker_id' => 'required|integer',
           ]);
-     } else {
-          RecruiterJobseekersShortlist::create([
+
+          $recruiter = auth()->user();
+          $jobseekerId = $request->input('jobseeker_id');
+
+          $shortlist = RecruiterJobseekersShortlist::where([
                'company_id' => $recruiter->id,
                'recruiter_id' => $recruiter->recruiter_id,
                'jobseeker_id' => $jobseekerId,
-               'status' => 'yes',
-               'admin_status' => 'pending',
-               'interview_request' => 'yes',
-               'interview_url' => null,
-          ]);
-     }
+          ])->first();
 
-     return response()->json(['success' => true, 'message' => 'Interview request sent.']);
+          if ($shortlist) {
+               $shortlist->update([
+                    'interview_request' => 'yes',
+               ]);
+          } else {
+               RecruiterJobseekersShortlist::create([
+                    'company_id' => $recruiter->id,
+                    'recruiter_id' => $recruiter->recruiter_id,
+                    'jobseeker_id' => $jobseekerId,
+                    'status' => 'yes',
+                    'admin_status' => 'pending',
+                    'interview_request' => 'yes',
+                    'interview_url' => null,
+               ]);
+          }
+
+          return response()->json(['success' => true, 'message' => 'Interview request sent.']);
      }
 
 
@@ -696,8 +696,6 @@ class RecruiterController extends Controller
      }
 
 
-
-
      public function deleteCompanyDocument($type)
      {
           $userId = auth()->id();
@@ -726,22 +724,147 @@ class RecruiterController extends Controller
      }
 
 
-
-
      public function deleteAccount()
      {
-     $user = auth()->user(); 
+          $user = auth()->user(); 
 
-     $companyId = $user->id; 
-     $recruiterId = $user->recruiter_id;
+          $companyId = $user->id; 
+          $recruiterId = $user->recruiter_id;
 
-     RecruiterCompany::where('id', $companyId)->delete();
-     Recruiters::where('id', $recruiterId)->delete();
+          RecruiterCompany::where('id', $companyId)->delete();
+          Recruiters::where('id', $recruiterId)->delete();
 
-     auth()->logout();
+          auth()->logout();
 
-     return redirect()->route('recruiter.login')->with('success', 'Your account has been deleted successfully.');
+          return redirect()->route('recruiter.login')->with('success', 'Your account has been deleted successfully.');
      }
+
+
+
+
+
+
+    public function filterJobseekers(Request $request)
+     {
+     $recruiterId = auth()->user()->recruiter_id;
+
+     // Get shortlisted IDs
+     $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
+          ->pluck('jobseeker_id')
+          ->toArray();
+
+     // Get shortlisted jobseekers with total experience
+     $shortlisted_jobseekers = $this->getShortlistedJobseekers($recruiterId);
+
+     // Get non-shortlisted jobseekers
+     $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+          ->where('status', 'active')
+          ->whereIn('admin_status', ['approved', 'superadmin_approved'])
+          ->whereNotIn('id', $shortlistedIds)
+          ->get();
+
+     // Apply filters
+     $filtered = $jobseekers->filter(function ($jobseeker) use ($request) {
+          return $this->applyFilters($jobseeker, $request);
+     });
+
+     // Render HTML
+     $jobseekerListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $filtered])->render();
+     $shortlistedListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers])->render();
+
+     return response()->json([
+          'jobseekers_html' => $jobseekerListHtml,
+          'shortlisted_html' => $shortlistedListHtml
+     ]);
+     }
+
+     private function getShortlistedJobseekers($recruiterId)
+     {
+     $shortlisted = Jobseekers::with(['educations', 'experiences', 'skills'])
+          ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+          ->where('shortlist.recruiter_id', $recruiterId)
+          ->where('jobseekers.status', 'active')
+          ->select(
+               'jobseekers.*',
+               'shortlist.admin_status as shortlist_admin_status',
+               'shortlist.interview_request'
+          )
+          ->get();
+
+     foreach ($shortlisted as $jobseeker) {
+          $jobseeker->total_experience = $this->calculateExperience($jobseeker);
+     }
+
+     return $shortlisted;
+     }
+
+     private function calculateExperience($jobseeker)
+     {
+     $totalExp = 0;
+     foreach ($jobseeker->experiences as $exp) {
+          if ($exp->starts_from && $exp->end_to) {
+               $start = \Carbon\Carbon::parse($exp->starts_from);
+               $end = \Carbon\Carbon::parse($exp->end_to);
+               $totalExp += $start->diffInDays($end);
+          }
+     }
+     $years = floor($totalExp / 365);
+     return $years . ' years';
+     }
+
+     private function applyFilters($jobseeker, $request)
+     {
+     $totalExp = 0;
+     foreach ($jobseeker->experiences as $exp) {
+          if ($exp->starts_from && $exp->end_to) {
+               $start = \Carbon\Carbon::parse($exp->starts_from);
+               $end = \Carbon\Carbon::parse($exp->end_to);
+               $totalExp += $start->diffInDays($end);
+          }
+     }
+
+     $yearsExp = floor($totalExp / 365);
+     $jobseeker->total_experience = $yearsExp . ' years';
+
+     // Experience filter
+     if ($request->filled('experience') && !in_array('all', $request->experience)) {
+          $match = false;
+          if (in_array('fresher', $request->experience) && $yearsExp <= 3) $match = true;
+          if (in_array('experienced', $request->experience) && $yearsExp > 3) $match = true;
+          if (!$match) return false;
+     }
+
+     // Education filter
+     if ($request->filled('education')) {
+          $eduMatch = $jobseeker->educations->pluck('high_education')->intersect($request->education)->isNotEmpty();
+          if (!$eduMatch) return false;
+     }
+
+     // Gender filter
+     if ($request->filled('gender') && !in_array('all', $request->gender)) {
+          $filterGenders = array_map('strtolower', $request->gender);
+          $jobseekerGender = strtolower($jobseeker->gender);
+          if (!in_array($jobseekerGender, $filterGenders)) {
+               return false;
+          }
+     }
+
+     // Certificate filter
+     if ($request->filled('certificate') && !in_array('all', $request->certificate)) {
+          $certificateCount = $jobseeker->skills->count();
+          $match = false;
+          if (in_array('0-5', $request->certificate) && $certificateCount >= 0 && $certificateCount <= 5) $match = true;
+          if (in_array('5+', $request->certificate) && $certificateCount > 5) $match = true;
+          if (in_array('not-certified', $request->certificate) && $certificateCount == 0) $match = true;
+          if (!$match) return false;
+     }
+
+     return true;
+     }
+
+
+
+
 
 
 }
