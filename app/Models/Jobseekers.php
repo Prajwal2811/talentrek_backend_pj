@@ -28,6 +28,8 @@ class Jobseekers extends Authenticatable
         'city',
         'address',
         'password',
+        'pin_code',
+        'country',
         'pass',
         'role',
         'otp',

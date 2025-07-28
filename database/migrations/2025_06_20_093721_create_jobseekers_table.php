@@ -24,7 +24,9 @@ return new class extends Migration
             $table->string('phone_number')->nullable();     // e.g., 9876543210
             $table->date('date_of_birth')->nullable();
             $table->string('city')->nullable();         // e.g., city or state
-            $table->text('address')->nullable();
+            $table->string('address')->nullable();
+            $table->string('pin_code')->nullable();
+            $table->text('country')->nullable();
             $table->string('password')->nullable();
             $table->string('pass')->nullable();
             $table->string('role')->nullable();             // optional role field

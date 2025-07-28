@@ -30,6 +30,25 @@
             $material->batches = DB::table('training_batches')
                 ->where('training_material_id', $material->id)
                 ->get();
+
+            $material->rating = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->avg('ratings');
+
+            $material->rating_count = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->count();
+
+            $material->reviews = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->select('ratings', 'reviews')
+                ->get();    
         }
     }
 
@@ -131,131 +150,57 @@
                     </div>
                 </aside>
 
-            <main 
-                x-data="courseApp()" 
-                x-init="init()" 
-                @filter-change.window="updateFilters($event)" 
-                class="w-3/4"
-                >
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-xl font-semibold">Courses</h1>
-                    <span class="text-sm text-gray-500">
-                    showing <span x-text="filteredCourses.length"></span> total results
-                    </span>
-                </div>
+                <main class="w-3/4 mx-auto">
 
-                <!-- Search input -->
-                <div class="mb-4 relative">
-                    <input
-                    type="text"
-                    placeholder="Search here..."
-                    class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12"
-                    x-model="searchTerm"
-                    @input.debounce.300ms="filterCourses()"
-                    />
-                    <button
-                    type="button"
-                    class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                    aria-label="Search"
-                    @click="filterCourses()"
-                    >
-                    <!-- Search Icon SVG -->
-                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
-                    </svg>
-                    </button>
-                </div>
-
-                <!-- Course cards -->
-                <template x-for="course in paginatedCourses" :key="course.id">
-                    <div class="flex border rounded-md overflow-hidden shadow-sm mb-4 course-card">
-                    <img :src="course.image" alt="Course" class="w-1/4 object-cover" />
-                    <div class="p-4 flex-1">
-                        <a href="{{route('training-detail')}}">
-                            <h2 class="font-semibold text-lg text-gray-800 course-title" x-text="course.title"></h2>
-                        </a>
-                        <p class="text-sm text-gray-600 mt-1" x-text="course.description"></p>
-                        <div class="flex items-center mt-2 space-x-2">
-                        <div class="flex text-yellow-500 text-sm">
-                            <template x-for="i in 5" :key="i">
-                            <i
-                                :class="i <= Math.floor(course.rating) ? 'ph ph-star-fill' : 'ph ph-star'"
-                            ></i>
-                            </template>
-                        </div>
-                        <span class="text-sm text-gray-500" x-text="`(${course.rating}/5)`"></span>
-                        <span class="text-sm text-gray-700 font-medium">Rating</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-700 space-x-6 mt-4">
-                        <div class="flex items-center space-x-1">
-                            <img :src="course.instructorImage" alt="Instructor" class="rounded-full w-6 h-6" />
-                            <span x-text="course.instructor"></span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i class="ph ph-play-circle text-blue-500"></i><span x-text="course.lessons + ' lessons'"></span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i class="ph ph-clock text-blue-500"></i><span x-text="course.duration"></span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i class="ph ph-trend-up text-blue-500"></i><span x-text="course.level"></span>
-                        </div>
-                        </div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-xl font-semibold">Courses</h1>
+                        <span class="text-sm text-gray-500">
+                            Showing <span id="total-results">0</span> total results
+                        </span>
                     </div>
-                    <div class="flex flex-col justify-center items-end p-4 w-32 text-right">
-                        <span class="text-gray-400 line-through text-sm" x-text="course.originalPrice"></span>
-                        <span class="text-xl font-semibold text-gray-800" x-text="course.discountedPrice"></span>
-                    </div>
-                    </div>
-                </template>
-              
 
-                <!-- Load Alpine.js (if not already loaded) -->
-                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-                <!-- Wrapper with Alpine Pagination Logic -->
-                <div x-data="coursePagination()" x-init="init()">
-                    <div class="container py-4">
-                        <h2 class="mb-4">All Courses</h2>
-
+                    <!-- Course List -->
+                    <div id="course-list">
                         @foreach($trainers as $trainer)
                             @foreach($trainer->materials as $material)
-                            <a href="{{ route('course.details', $material->id) }}" class="text-decoration-none text-dark">
-
-                                <div class="course-item d-flex bg-white border rounded shadow-sm mb-4 overflow-hidden" style="height: 220px;">
-                                    {{-- Thumbnail --}}
+                                <div class="course-item flex border rounded-md overflow-hidden shadow-sm mb-4 bg-white">
+                                    <!-- Thumbnail -->
                                     <div style="min-width: 250px; max-width: 250px; overflow: hidden;">
                                         <img src="{{ asset($material->thumbnail_file_path) }}"
                                             alt="Thumbnail"
-                                            class="img-fluid h-100 w-100 object-cover"
-                                            style="object-fit: cover;">
+                                            class="h-full w-full object-cover" />
                                     </div>
 
-                                    {{-- Details --}}
-                                    <div class="flex-grow-1 p-4 d-flex flex-column justify-content-between">
+                                    <!-- Details -->
+                                    <div class="p-4 flex-1 flex flex-col justify-between">
                                         <div>
-                                            <h5 class="fw-bold mb-1">{{ $material->training_title }}</h5>
-                                            <p class="text-muted mb-2" style="font-size: 0.95rem;">{{ $material->training_sub_title }}</p>
-                                            <p class="mb-2"><span class="text-warning">★</span> (4/5) <strong>Rating</strong></p>
+                                            <a href="{{ route('course.details', $material->id) }}">
+                                                <h2 class="font-semibold text-lg text-gray-800">{{ $material->training_title }}</h2>
+                                            </a>
+                                            <p class="text-sm text-gray-600 mt-1">{{ $material->training_sub_title }}</p>
+                                            @php
+                                                $avgRating = round($material->rating ?? 0, 1); // rounded to 1 decimal place
+                                                $filledStars = floor($avgRating); // for star display
+                                            @endphp
+
+                                            <p class="mt-1 text-yellow-500">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
+                                                @endfor
+                                                <span class="text-gray-700 font-medium ml-2">({{ $avgRating }}/5)</span>
+                                            </p>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-3 text-muted small flex-wrap">
-                                            {{-- Trainer --}}
-                                            <div class="d-flex align-items-center me-3">
-                                                <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/? name=' . urlencode($trainer->name) }}" 
-                                                        alt="{{ $trainer->name }}" 
-                                                        class="w-7 h-7 rounded-full mr-2">
-                                                {{ $trainer->name }}
-                                            </div>
 
-                                            {{-- Lessons --}}
-                                            <div class="me-3">
-                                                📘 {{ count($material->documents) }} lessons
+                                        <div class="flex items-center text-sm text-gray-700 space-x-6 mt-4 flex-wrap">
+                                            <div class="flex items-center space-x-1">
+                                                <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/?name=' . urlencode($trainer->name) }}"
+                                                    alt="{{ $trainer->name }}"
+                                                    class="rounded-full w-6 h-6" />
+                                                <span>{{ $trainer->name }}</span>
                                             </div>
-
-                                            {{-- Duration --}}
-                                            <div class="me-3">
+                                            <div class="flex items-center space-x-1">📘 {{ count($material->documents) }} lessons</div>
+                                            <div class="flex items-center space-x-1">
                                                 ⏱️ 
                                                 @php
                                                     $totalHours = 0;
@@ -265,131 +210,86 @@
                                                         $totalHours += ($end - $start) / 3600;
                                                     }
                                                 @endphp
-                                                {{ $totalHours }}hrs
+                                                {{ $totalHours }} hrs
                                             </div>
-
-                                            {{-- Level --}}
-                                            <div>
-                                                📈 {{ $material->training_level ?? 'Beginner' }}
-                                            </div>
-
-                                            {{-- Session Type --}}
-                                            <div>
-                                                🎥 {{ !empty($material->session_type) ? $material->session_type : 'Recorded' }}
-                                            </div>
-                                            
+                                            <div>📈 {{ $material->training_level ?? 'Beginner' }}</div>
+                                            <div>🎥 {{ $material->session_type ?? 'Recorded' }}</div>
                                         </div>
                                     </div>
 
-                                    {{-- Price --}}
-                                    <div class="d-flex flex-column justify-content-center align-items-end p-4" style="min-width: 120px;">
-                                        <div class="text-muted text-decoration-line-through">
+                                    <!-- Price -->
+                                    <div class="flex flex-col justify-center items-end p-4 w-32 text-right">
+                                        <span class="text-gray-400 line-through text-sm">
                                             SAR {{ number_format($material->training_price, 0) }}
-                                        </div>
-                                        <div class="fw-bold fs-5 text-dark">
+                                        </span>
+                                        <span class="text-xl font-semibold text-gray-800">
                                             SAR {{ number_format($material->training_offer_price, 0) }}
-                                        </div>
+                                        </span>
                                     </div>
                                 </div>
-                            </a>    
                             @endforeach
                         @endforeach
                     </div>
 
-                    <!-- Pagination controls -->
-                    <div class="flex justify-center items-center space-x-2 mt-6">
-                        <button
-                            class="px-3 py-1 rounded border"
-                            :disabled="currentPage === 1"
-                            @click="prevPage"
-                        >
-                            Previous
-                        </button>
-
-                        <template x-for="page in totalPages" :key="page">
-                            <button
-                                class="px-3 py-1 rounded border"
-                                :class="{'bg-blue-500 text-white': currentPage === page}"
-                                @click="goToPage(page)"
-                            >
-                                <span x-text="page"></span>
-                            </button>
-                        </template>
-
-                        <button
-                            class="px-3 py-1 rounded border"
-                            :disabled="currentPage === totalPages"
-                            @click="nextPage"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Alpine Pagination Logic -->
-                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-                <script>
-                    document.addEventListener("DOMContentLoaded", function () {
-                        const items = document.querySelectorAll('.course-item');
-                        const perPage = 5;
-                        const totalPages = Math.ceil(items.length / perPage);
-                        let currentPage = 1;
-
-                        const paginationContainer = document.getElementById('pagination');
-
-                        function showPage(page) {
-                            currentPage = page;
-                            let start = (page - 1) * perPage;
-                            let end = start + perPage;
-
-                            items.forEach((item, index) => {
-                                item.style.display = (index >= start && index < end) ? 'flex' : 'none';
-                            });
-
-                            renderPagination();
-                        }
-
-                        function renderPagination() {
-                            paginationContainer.innerHTML = '';
-
-                            // Previous Button
-                            let prev = document.createElement('button');
-                            prev.innerText = 'Previous';
-                            prev.className = 'px-3 py-1 rounded border';
-                            prev.disabled = currentPage === 1;
-                            prev.onclick = () => showPage(currentPage - 1);
-                            paginationContainer.appendChild(prev);
-
-                            // Page Numbers
-                            for (let i = 1; i <= totalPages; i++) {
-                                let btn = document.createElement('button');
-                                btn.innerText = i;
-                                btn.className = 'px-3 py-1 rounded border mx-1';
-                                if (i === currentPage) {
-                                    btn.classList.add('bg-blue-500', 'text-white');
-                                }
-                                btn.onclick = () => showPage(i);
-                                paginationContainer.appendChild(btn);
-                            }
-
-                            // Next Button
-                            let next = document.createElement('button');
-                            next.innerText = 'Next';
-                            next.className = 'px-3 py-1 rounded border';
-                            next.disabled = currentPage === totalPages;
-                            next.onclick = () => showPage(currentPage + 1);
-                            paginationContainer.appendChild(next);
-                        }
-
-                        showPage(1);
-                    });
-                </script>
-
-
-
+                    <!-- Pagination -->
+                    <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
 
                 </main>
+
+                <!-- JS Pagination Script -->
+                <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const items = document.querySelectorAll('.course-item');
+                    const perPage = 10;
+                    let currentPage = 1;
+                    const totalPages = Math.ceil(items.length / perPage);
+                    const pagination = document.getElementById('pagination-controls');
+                    document.getElementById('total-results').textContent = items.length;
+
+                    function showPage(page) {
+                        const start = (page - 1) * perPage;
+                        const end = start + perPage;
+
+                        items.forEach((item, index) => {
+                            item.style.display = (index >= start && index < end) ? 'flex' : 'none';
+                        });
+
+                        renderPagination(page);
+                    }
+
+                    function renderPagination(page) {
+                        pagination.innerHTML = '';
+
+                        // Prev button
+                        const prevBtn = document.createElement('button');
+                        prevBtn.textContent = 'Previous';
+                        prevBtn.className = 'px-3 py-1 rounded border';
+                        prevBtn.disabled = page === 1;
+                        prevBtn.onclick = () => showPage(page - 1);
+                        pagination.appendChild(prevBtn);
+
+                        // Page numbers
+                        for (let i = 1; i <= totalPages; i++) {
+                            const btn = document.createElement('button');
+                            btn.textContent = i;
+                            btn.className = `px-3 py-1 rounded border ${i === page ? 'bg-blue-500 text-white' : ''}`;
+                            btn.onclick = () => showPage(i);
+                            pagination.appendChild(btn);
+                        }
+
+                        // Next button
+                        const nextBtn = document.createElement('button');
+                        nextBtn.textContent = 'Next';
+                        nextBtn.className = 'px-3 py-1 rounded border';
+                        nextBtn.disabled = page === totalPages;
+                        nextBtn.onclick = () => showPage(page + 1);
+                        pagination.appendChild(nextBtn);
+                    }
+
+                    showPage(currentPage);
+                });
+                </script>
+
 
 
                 @php
