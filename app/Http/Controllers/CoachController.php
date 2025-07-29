@@ -277,11 +277,15 @@ class CoachController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:coaches,email,' . $coach->id,
             'phone_number' => 'required|unique:coaches,phone_number,' . $coach->id,
             'dob' => 'required|date',
+            'phone_code' => 'required',
+            'address' => 'required',
             'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'national_id' => [
                 'required',
                 'min:10',
@@ -322,6 +326,7 @@ class CoachController extends Controller
         ], [
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
+            'name.regex' => 'The name should contain only letters and single spaces.',
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
@@ -364,8 +369,12 @@ class CoachController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
+            'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
+            'address' => $validated['address'],
             'city' => $validated['city'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
         ]);
 
@@ -539,12 +548,15 @@ class CoachController extends Controller
         $coach = auth()->guard('coach')->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:coaches,email,' . $coach->id,
-            'phone' => 'required|string|max:15',
-            'dob' => 'nullable|date',
-            'national_id' => 'nullable|string|max:15',
-            'location' => 'nullable|string|max:255',
+            'phone' => 'required|digits:9',
+            'dob' => 'required|date',
+            'national_id' => 'required|string|max:15',
+            'city' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'about_coach' => 'nullable|string',
         ]);
 
@@ -554,7 +566,10 @@ class CoachController extends Controller
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
-            'city' => $validated['location'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'country' => $validated['country'] ?? null,
+            'pin_code' => $validated['pin_code'] ?? null,
             'about_coach' => $validated['about_coach'] ?? null,
         ]);
 

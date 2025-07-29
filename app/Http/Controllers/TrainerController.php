@@ -232,11 +232,15 @@ class TrainerController extends Controller
         $trainer = Trainers::findOrFail($trainerId);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:trainers,email,' . $trainer->id,
             'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
+            'phone_code' => 'required',
             'dob' => 'required|date',
+            'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'national_id' => [
                 'required',
                 'min:10',
@@ -271,6 +275,7 @@ class TrainerController extends Controller
             [
                 // Custom error messages
                 'name.required' => 'Please enter your full name.',
+                'name.regex' => 'The name should contain only letters and single spaces.',
                 'email.required' => 'Email is required.',
                 'email.email' => 'Please provide a valid email address.',
                 'email.unique' => 'This email is already registered.',
@@ -278,7 +283,10 @@ class TrainerController extends Controller
                 'phone_number.unique' => 'This phone number is already in use.',
                 'dob.required' => 'Please enter your date of birth.',
                 'dob.date' => 'Invalid date format for date of birth.',
-                'city.required' => 'Please enter your address.',
+                'address.required' => 'Please enter your address.',
+                'city.required' => 'Please enter your city.',
+                'country.required' => 'Please enter your country.',
+                'pin_code.required' => 'Please enter your pin code.',
                 'national_id.required' => 'Please enter your national ID.',
                 'national_id.min' => 'National ID must be at least 10 digits.',
 
@@ -318,9 +326,13 @@ class TrainerController extends Controller
             $trainer->update([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'phone_code' => $validated['phone_code'],
                 'phone_number' => $validated['phone_number'],
                 'date_of_birth' => $validated['dob'],
+                'address' => $validated['address'],
                 'city' => $validated['city'],
+                'country' => $validated['country'],
+                'pin_code' => $validated['pin_code'],
                 'national_id' => $validated['national_id'],
             ]);
 
@@ -361,8 +373,9 @@ class TrainerController extends Controller
             // File uploads
             $uploadTypes = [
                 'resume' => 'resume',
-                'profile_picture' => 'profile_picture',
+                'profile_picture' => 'trainer_profile_picture',
                 'training_certificate' => 'training_certificate',
+
             ];
 
             foreach ($uploadTypes as $field => $docType) {
@@ -1155,11 +1168,14 @@ class TrainerController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $user->id,
-            'phone' => 'required|digits:10',
+            'phone' => 'required|digits:9',
             'dob' => 'required|date',
-            'location' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'national_id' => [
                 'required',
                 'min:10',
@@ -1181,15 +1197,16 @@ class TrainerController extends Controller
             ],
         ], [
             'name.required' => 'Please enter your name.',
+            'name.regex' => 'The name should contain only letters and single spaces.',
             'email.required' => 'Please enter your email.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
             'phone.required' => 'Please enter your phone number.',
-            'phone.digits' => 'Phone number must be 10 digits.',
+            'phone.digits' => 'Phone number must be 9 digits.',
             'dob.required' => 'Please enter your date of birth.',
             'dob.date' => 'Please enter a valid date of birth.',
-            'location.required' => 'Please enter your location.',
-            'location.string' => 'Location must be a valid string.',
+            'address.required' => 'Please enter your address.',
+            'address.string' => 'Location must be a valid string.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
         ]);
@@ -1200,7 +1217,10 @@ class TrainerController extends Controller
             'email' => $validated['email'],
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'],
-            'city' => $validated['location'],
+            'address' => $validated['address'],
+            'city' => $validated['city'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
         ]);
 
@@ -1394,7 +1414,7 @@ class TrainerController extends Controller
         // Map your input keys to doc_type values
         $uploadTypes = [
             'resume' => 'resume',
-            'profile_picture' => 'profile_picture',
+            'profile_picture' => 'trainer_profile_picture',
             'training_certificate' => 'training_certificate',
         ];
 

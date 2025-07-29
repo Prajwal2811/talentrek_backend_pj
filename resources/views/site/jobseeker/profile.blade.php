@@ -470,6 +470,22 @@ $skills = $user->skills->first();
                                             @enderror
                                         </div>
 
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Country <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" placeholder="Enter country" name="country"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->country ?? '' }}"/>
+                                            @error('country')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="pin_code" placeholder="Enter pin_code" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->pin_code ?? '' }}"/>
+                                            @error('pin_code')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
                                         <div class="md:col-span-2 flex justify-end gap-4 mt-4">
                                             <button 
                                                 type="button"

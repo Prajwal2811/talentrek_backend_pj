@@ -232,11 +232,15 @@ class MentorController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
             'phone_number' => 'required|unique:mentors,phone_number,' . $mentor->id,
             'dob' => 'required|date',
+            'phone_code' => 'required',
             'city' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'national_id' => [
                 'required',
                 'min:10',
@@ -282,8 +286,12 @@ class MentorController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
+            'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
+            'address' => $validated['address'],
             'city' => $validated['city'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
         ]);
 
@@ -789,12 +797,15 @@ class MentorController extends Controller
         $mentor = auth()->guard('mentor')->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
-            'phone' => 'required|string|max:15',
-            'dob' => 'nullable|date',
-            'national_id' => 'nullable|string|max:15',
-            'location' => 'nullable|string|max:255',
+            'phone' => 'required|digits:9',
+            'dob' => 'required|date',
+            'national_id' => 'required|string|max:15',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'about_mentor' => 'nullable|string',
         ]);
 
@@ -804,7 +815,10 @@ class MentorController extends Controller
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
-            'city' => $validated['location'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'country' => $validated['country'] ?? null,
+            'pin_code' => $validated['pin_code'] ?? null,
             'about_mentor' => $validated['about_mentor'] ?? null,
         ]);
 
