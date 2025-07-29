@@ -12,9 +12,6 @@ class Mentors extends Authenticatable
 
     protected $table = 'mentors';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'email',

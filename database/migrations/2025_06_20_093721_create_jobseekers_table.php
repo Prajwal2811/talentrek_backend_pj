@@ -29,7 +29,7 @@ return new class extends Migration
             $table->text('country')->nullable();
             $table->string('password')->nullable();
             $table->string('pass')->nullable();
-            $table->string('role')->nullable();             // optional role field
+            $table->string('role')->default('jobseeker');            // optional role field
             $table->string('otp')->nullable();            
             $table->string('status')->default('active');          
             $table->string('admin_status')->nullable();            

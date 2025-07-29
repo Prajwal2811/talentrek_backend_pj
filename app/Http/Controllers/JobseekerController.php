@@ -2594,4 +2594,41 @@ class JobseekerController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Item removed']);
     }
 
+
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
+
+            if (!$jobseeker) {
+                // Auto-register new jobseeker
+                $jobseeker = Jobseekers::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'status' => 'active', // or 'pending' if you require manual approval
+                    'password' => bcrypt(Str::random(16)), // Random placeholder password
+                    'email_verified_at' => now(),
+                    // other fields if needed
+                ]);
+            }
+
+            if ($jobseeker->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('jobseeker.sign-in');
+            }
+
+            Auth::guard('jobseeker')->login($jobseeker);
+            return redirect()->intended(route('jobseeker.dashboard'));
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed. Please try again.');
+        }
+
+        return redirect()->route('jobseeker.sign-in');
+    }
 }

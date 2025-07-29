@@ -559,84 +559,132 @@
                                 }
                             </script>
                             <script>feather.replace();</script>
-                            @php
-                                $mentorships = \App\Models\BookingSession::with([
-                                                    'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
-                                                ])->where('jobseeker_id', $jobseeker->id)
-                                                ->where('user_type', 'mentor')
-                                                ->whereHas('mentor.profilePicture')
-                                                ->get();
 
-                                // echo "<pre>"; print_r($mentorships); 
-                            @endphp
-                            <div class="card">
-                                <div class="header">
-                                    <h2>Jobseeker Mentorship</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-lg-12">
 
-                                                @php $firstMentor = true; @endphp
 
-                                                @foreach($mentorships as $mentorship)
-                                                    @php
-                                                        $mentor = $mentorship->mentor;
-                                                        $image = $mentor->profilePicture?->path ?? asset('images/default-avatar.png');
-                                                        $rating = $mentor->reviews->avg('ratings') ?? 0;
-                                                        $rounded = round($rating);
-                                                        $filledStars = str_repeat('★ ', $rounded);
-                                                        $emptyStars = str_repeat('☆ ', 5 - $rounded);
-                                                        $role = $mentor->experiences->first()?->role ?? 'Mentor';
-                                                    @endphp
+                            
 
-                                                    <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm {{ $firstMentor ? '' : 'moreMentor d-none' }}">
-                                                        <img src="{{ asset($image) }}" alt="Mentor Image"
-                                                            class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">{{ $mentor->name }}</h5>
-                                                            <p class="text-muted mb-2">{{ $role }}</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">{!! $filledStars . $emptyStars !!}</span>
-                                                                <span class="text-muted">({{ number_format($rating, 1) }}/5 Rating)</span>
+                        @php
+                            $mentorships = \App\Models\BookingSession::with([
+                                'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
+                            ])
+                            ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->where('user_type', 'mentor')
+                            ->whereHas('mentor.profilePicture')
+                            ->get();
+                        @endphp
+
+                        <div class="card">
+                            <div class="header">
+                                <h2>Jobseeker Mentorship</h2>
+                            </div>
+                            <div class="body">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+
+                                            @foreach ($mentorships as $index => $session)
+                                                @php
+                                                    $mentor = $session->mentor;
+                                                    $reviews = $mentor?->reviews ?? collect();
+                                                    $experiences = $mentor?->experiences ?? collect();
+                                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                                    $totalReviews = $reviews->count();
+                                                    $roundedRating = round($averageRating);
+                                                    $stars = str_repeat('★ ', $roundedRating) . str_repeat('☆ ', 5 - $roundedRating);
+                                                    $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                                    $designation = $currentExp?->job_role ?? 'No designation available';
+                                                    $zoomLink = $session->zoom_join_url ?? null;
+                                                    $slotMode = $session->slot_mode;
+                                                    $address = $mentor?->address ?? 'Address not available';
+                                                    $image = $mentor?->profilePicture?->document_path ?? asset('default-avatar.png');
+                                                @endphp
+
+                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
+                                                    <img src="{{ $image }}" alt="Mentor Image"
+                                                        class="img-fluid rounded"
+                                                        style="width: 200px; height: 140px; object-fit: cover;">
+                                                    <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div>
+                                                                <h5 class="fw-bold mb-1">{{ $mentor?->name }}</h5>
+                                                                <p class="text-muted mb-2">{{ $designation }}</p>
+                                                                <div class="d-flex align-items-center mb-2">
+                                                                    <span class="text-warning me-2">{!! $stars !!}</span>
+                                                                    <span class="text-muted">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                @if ($slotMode === 'online' && $zoomLink)
+                                                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal{{ $index }}">Join Meet</button>
+                                                                @elseif ($slotMode === 'offline')
+                                                                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal{{ $index }}">View Address</button>
+                                                                @else
+                                                                    <p class="text-danger small mt-1">Link not available</p>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                    @php $firstMentor = false; @endphp
-                                                @endforeach
 
-                                                @if($mentorships->count() > 1)
-                                                    <!-- View More Button -->
-                                                    <div class="text-center mt-4">
-                                                        <button class="btn btn-primary" id="toggleButton" onclick="toggleMentors()">View More</button>
+                                                {{-- Zoom Modal --}}
+                                                @if ($slotMode === 'online' && $zoomLink)
+                                                    <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">Join Zoom Meeting with {{ $mentor->name }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p>Click the link below to join:</p>
+                                                                    <a href="{{ $zoomLink }}" target="_blank" class="text-primary text-break">{{ $zoomLink }}</a>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 @endif
 
-                                            </div>
+                                                {{-- Address Modal --}}
+                                                @if ($slotMode === 'offline')
+                                                    <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">{{ $mentor->name }}'s Address</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p class="text-dark">{{ $address }}</p>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+
                                         </div>
                                     </div>
                                 </div>
-
-                                <script>
-                                    function toggleMentors() {
-                                        const moreMentors = document.querySelectorAll(".moreMentor");
-                                        const button = document.getElementById("toggleButton");
-
-                                        const isHidden = moreMentors[0]?.classList.contains("d-none");
-
-                                        moreMentors.forEach(mentor => {
-                                            mentor.classList.toggle("d-none");
-                                        });
-
-                                        button.textContent = isHidden ? "View Less" : "View More";
-                                    }
-                                </script>
                             </div>
+                        </div>
 
-
+                            @php
+                                $assessments = \App\Models\BookingSession::with([
+                                            'assessor.reviews', 'assessor.profilePicture', 'assessor.experiences'
+                                        ])->where('jobseeker_id', $jobseeker->id)
+                                        ->where('user_type', 'assessor')
+                                        ->get();
+                                echo "<pre>"; print_r($assessments); 
+                            @endphp
 
                             <div class="card">
                                 <div class="header">
@@ -644,107 +692,116 @@
                                 </div>
                                 <div class="body">
                                     <div class="col-lg-12">
+                                        @foreach ($assessments as $index => $session)
+                                            @php
+                                                $assessor = $session->assessor;
+                                                $reviews = $assessor?->reviews ?? collect();
+                                                $experiences = $assessor?->experiences ?? collect();
+                                                $averageRating = $reviews->avg('ratings') ?? 0;
+                                                $totalReviews = $reviews->count();
+                                                $roundedRating = round($averageRating);
+                                                $stars = str_repeat('★ ', $roundedRating) . str_repeat('☆ ', 5 - $roundedRating);
+                                                $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                                $designation = $currentExp?->job_role ?? 'No designation available';
+                                                $zoomLink = $session->zoom_join_url ?? null;
+                                                $slotMode = $session->slot_mode;
+                                                $address = $assessor?->address ?? 'Address not available';
+                                                $image = $assessor?->profilePicture?->document_path ?? asset('default-avatar.png');
+                                            @endphp
 
-                                        <!-- Quiz Card 1 -->
-                                        <div class="card d-flex flex-row p-3 mb-3 shadow-sm">
-                                            <img src="../images/gallery/finished-quiz.png" alt="Quiz Thumbnail"
-                                                class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                <div>
-                                                    <h5 class="fw-bold mb-1">Graphic Design Advanced Quiz</h5>
-                                                    <p class="text-muted mb-2">Test your skills in layout, typography,
-                                                        and color theory.</p>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between mt-3">
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                            class="rounded-circle me-2" style="width: 35px;">
+                                            <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
+                                                <img src="{{ $image }}" alt="Assessor Image"
+                                                    class="img-fluid rounded"
+                                                    style="width: 200px; height: 140px; object-fit: cover;">
+                                                <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start">
                                                         <div>
-                                                            <div class="fw-semibold">Julia Maccarthy</div>
-                                                            <small class="text-muted">Quiz By</small>
+                                                            <h5 class="fw-bold mb-1">{{ $session->name }}</h5>
+                                                            <p class="text-muted mb-2">{{ $designation }}</p>
+                                                            <div class="d-flex align-items-center mb-2">
+                                                                <span class="text-warning me-2">{!! $stars !!}</span>
+                                                                <span class="text-muted">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            @if ($slotMode === 'online' && $zoomLink)
+                                                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal{{ $index }}">Join Meet</button>
+                                                            @elseif ($slotMode === 'offline')
+                                                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal{{ $index }}">View Address</button>
+                                                            @else
+                                                                <p class="text-danger small mt-1">Link not available</p>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <!-- Hidden More Quizzes -->
-                                        <div id="moreAssessments" class="d-none">
-
-                                            <!-- Quiz Card 2 -->
-                                            <div class="card d-flex flex-row p-3 mb-3 shadow-sm">
-                                                <img src="../images/gallery/graphic-design.png" alt="Quiz Thumbnail"
-                                                    class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">Web Design Basics Quiz</h5>
-                                                        <p class="text-muted mb-2">Evaluate your understanding of HTML,
-                                                            CSS, and responsiveness.</p>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="John"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <div>
-                                                                <div class="fw-semibold">John Smith</div>
-                                                                <small class="text-muted">Quiz By</small>
+                                            {{-- Zoom Modal --}}
+                                            @if ($slotMode === 'online' && $zoomLink)
+                                                <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Join Zoom Meeting with {{ $assessor->name }}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p>Click the link below to join:</p>
+                                                                <a href="{{ $zoomLink }}" target="_blank" class="text-primary text-break">{{ $zoomLink }}</a>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            @endif
 
-                                            <!-- Quiz Card 3 -->
-                                            <div class="card d-flex flex-row p-3 mb-3 shadow-sm">
-                                                <img src="../images/gallery/ui-ux.png" alt="Quiz Thumbnail"
-                                                    class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">UI/UX Fundamentals Quiz</h5>
-                                                        <p class="text-muted mb-2">Check your knowledge on user flow,
-                                                            wireframes, and design thinking.</p>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="Sara"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <div>
-                                                                <div class="fw-semibold">Sara Lee</div>
-                                                                <small class="text-muted">Quiz By</small>
+                                            {{-- Address Modal --}}
+                                            @if ($slotMode === 'offline')
+                                                <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">{{ $assessor->name }}'s Address</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p class="text-dark">{{ $address }}</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            @endif
+                                        @endforeach
+
+
+
+                                        @if ($assessments->count() > 1)
+                                            <div class="text-center mt-4">
+                                                <button class="btn btn-primary" onclick="toggleAssessments()" id="toggleButton">View More</button>
                                             </div>
-
-                                        </div>
-
-                                        <!-- View More Button -->
-                                        <div class="text-center mt-4">
-                                            <button class="btn btn-primary" onclick="toggleAssessments()"
-                                                id="toggleButton">View More</button>
-                                        </div>
-
+                                        @endif
                                     </div>
                                 </div>
-                                <!-- Toggle Script -->
-                                <script>
-                                    function toggleAssessments() {
-                                        const moreAssessments = document.getElementById('moreAssessments');
-                                        const btn = document.getElementById('toggleButton');
-
-                                        if (moreAssessments.classList.contains('d-none')) {
-                                            moreAssessments.classList.remove('d-none');
-                                            btn.textContent = 'View Less';
-                                        } else {
-                                            moreAssessments.classList.add('d-none');
-                                            btn.textContent = 'View More';
-                                        }
-                                    }
-                                </script>
                             </div>
+
+                            <!-- Toggle Script -->
+                            <script>
+                                function toggleAssessments() {
+                                    const items = document.querySelectorAll('.extra-assessment');
+                                    const btn = document.getElementById('toggleButton');
+
+                                    items.forEach(el => el.classList.toggle('d-none'));
+
+                                    btn.textContent = btn.textContent === 'View More' ? 'View Less' : 'View More';
+                                }
+                            </script>
+
 
 
 

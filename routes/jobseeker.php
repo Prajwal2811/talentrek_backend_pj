@@ -35,6 +35,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		
 
 
+		Route::get('jobseeker/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
+		Route::get('jobseeker/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
 
 		
 		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');

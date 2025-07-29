@@ -92,11 +92,6 @@ Route::get('coach-booking-success', function () {
 
 
 
-Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle'])->name('google.redirect');
-Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
-
-
-
 
 Route::get('/zoom-users', function () {
     $accessToken = Http::asForm()

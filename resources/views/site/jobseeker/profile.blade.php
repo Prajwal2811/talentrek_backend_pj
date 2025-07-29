@@ -51,7 +51,6 @@ $skills = $user->skills->first();
                         <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
                             Buy subscription
                         </button>
-
                     </div>
 
                     <div class="border rounded-lg p-4 shadow-sm text-center">
