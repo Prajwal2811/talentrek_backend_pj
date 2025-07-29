@@ -93,7 +93,10 @@
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
-                                                <select class="w-1/3 border rounded-l-md p-2 mt-1"><option>+91</option></select>
+                                                <select class="w-1/3 border rounded-l-md p-2" name="phone_code">
+                                                    <option value="+966">+966</option>
+                                                    <option value="+971">+971</option>
+                                                </select>
                                                 <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number', $phone)}}" readonly/>
                                                 
                                             </div>
@@ -134,8 +137,34 @@
                                             <label class="block mb-1 text-sm font-medium mt-3">
                                                 Address <span style="color: red; font-size: 17px;">*</span>
                                             </label>
-                                            <textarea name="city" class="w-full border rounded-md p-2 mt-1" placeholder="Enter address">{{ old('city') }}</textarea>
+                                            <textarea name="address" class="w-full border rounded-md p-2 mt-1" placeholder="Enter address">{{ old('address') }}</textarea>
+                                            @error('address')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
+                                                placeholder="City or State" value="{{ old('city') }}" />
                                             @error('city')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="country" class="w-full border rounded-md p-2 mt-1"
+                                                placeholder="Select state" value="{{ old('country') }}" />
+                                            @error('country')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="pin_code" class="w-full border rounded-md p-2 mt-1"
+                                                placeholder="Enter pin code" value="{{ old('pin_code') }}" />
+                                            @error('pin_code')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>

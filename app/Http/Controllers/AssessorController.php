@@ -279,11 +279,15 @@ class AssessorController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:assessors,email,' . $assessor->id,
             'phone_number' => 'required|unique:assessors,phone_number,' . $assessor->id,
+            'phone_code' => 'required',
             'dob' => 'required|date',
+            'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'national_id' => [
                 'required',
                 'min:10',
@@ -325,6 +329,7 @@ class AssessorController extends Controller
         ], [
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
+            'name.regex' => 'The name should contain only letters and single spaces.',
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
@@ -367,8 +372,12 @@ class AssessorController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
+            'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
+            'address' => $validated['address'],
             'city' => $validated['city'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
         ]);
 
@@ -508,12 +517,15 @@ class AssessorController extends Controller
         $assessor = auth()->guard('assessor')->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:assessors,email,' . $assessor->id,
-            'phone' => 'required|string|max:15',
-            'dob' => 'nullable|date',
-            'national_id' => 'nullable|string|max:15',
-            'location' => 'nullable|string|max:255',
+            'phone' => 'required|digits:9',
+            'dob' => 'required|date',
+            'national_id' => 'required|string|max:15',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|string|max:255',
             'about_assessor' => 'nullable|string',
         ]);
 
@@ -523,7 +535,10 @@ class AssessorController extends Controller
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
-            'city' => $validated['location'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'country' => $validated['country'] ?? null,
+            'pin_code' => $validated['pin_code'] ?? null,
             'about_assessor' => $validated['about_assessor'] ?? null,
         ]);
 

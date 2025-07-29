@@ -112,9 +112,12 @@ class JobseekerController extends Controller
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $jobseeker->id,
             'phone_number' => 'required|unique:jobseekers,phone_number,' . $jobseeker->id,
+            'phone_code' => 'required|string',
             'dob' => 'required|date',
             'city' => 'required|string|max:255',
             'address' => 'required|string|max:500',
+            'country' => 'required|string|max:500',
+            'pin_code' => 'required|string|max:500',
             'gender' => 'required|string|in:Male,Female,Other',
 
             // National ID
@@ -170,6 +173,8 @@ class JobseekerController extends Controller
             'dob.required' => 'Please select your date of birth.',
             'dob.date' => 'Date of birth must be a valid date.',
             'city.required' => 'Please enter your city.',
+            'country.required' => 'Please enter your country.',
+            'pin_code.required' => 'Please enter your pin code.',
             'address.required' => 'Please enter your address.',
             'gender.required' => 'Please select your gender.',
             'gender.in' => 'Gender must be Male, Female, or Other.',
@@ -218,9 +223,12 @@ class JobseekerController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
+            'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
             'city' => $validated['city'],
             'address' => $validated['address'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'gender' => $validated['gender'],
             'national_id' => $validated['national_id'],
         ]);
@@ -514,13 +522,15 @@ class JobseekerController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $user->id,
             'gender' => 'required|string|in:Male,Female,Other',
-            'phone_number' => 'required|digits:10',
+            'phone_number' => 'required|digits:9',
             'dob' => 'required|date',
             'city' => 'required|string|max:255',
             'address' => 'required|string|max:500',
+            'country' => 'required|string|max:500',
+            'pin_code' => 'required|string|max:500',
             'national_id' => [
                 'required',
                 'min:10',
@@ -551,7 +561,7 @@ class JobseekerController extends Controller
             'gender.in' => 'Gender must be Male, Female, or Other.',
 
             'phone_number.required' => 'The phone number is required.',
-            'phone_number.digits' => 'The phone number must be exactly 10 digits.',
+            'phone_number.digits' => 'The phone number must be exactly 9 digits.',
 
             'dob.required' => 'The date of birth is required.',
             'dob.date' => 'Please enter a valid date of birth.',
@@ -576,6 +586,8 @@ class JobseekerController extends Controller
             'date_of_birth' => $validated['dob'],
             'city' => $validated['city'],
             'address' => $validated['address'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'gender' => $validated['gender'],
             'national_id' => $validated['national_id'],
         ]);
@@ -1808,7 +1820,7 @@ class JobseekerController extends Controller
 
         ->where('user_id', $userId)
         ->where('user_type', 'trainer')
-        ->where('doc_type', 'profile_picture') // ✅ important fix here
+        ->where('doc_type', 'trainer_profile_picture')
         ->orderByDesc('id')
         ->first();
 
@@ -1993,7 +2005,7 @@ class JobseekerController extends Controller
         $profile = DB::table('additional_info')
             ->where('user_id', $userId)
             ->where('user_type', 'trainer')
-            ->where('doc_type', 'profile') // ✅ important fix here
+            ->where('doc_type', 'trainer_profile_picture')
             ->orderByDesc('id')
             ->first();
 
