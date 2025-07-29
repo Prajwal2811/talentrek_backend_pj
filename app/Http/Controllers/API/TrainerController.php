@@ -261,8 +261,8 @@ class TrainerController extends Controller
                     'user_type'    => 'trainer',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => $exp['start_date'],
-                    'end_to'       => $exp['end_date']
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => date('Y-m-d',strtotime($exp['end_date']))
                 ]);
             }
 
@@ -303,7 +303,7 @@ class TrainerController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'trainer_profile_picture')
                     ->first();
 
                 if (!$existingProfile) {
@@ -314,7 +314,7 @@ class TrainerController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $trainer->id,
                         'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -399,7 +399,7 @@ class TrainerController extends Controller
                                         <div class="header">
                                             <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
                                         </div>
-                                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+                                        <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
 
                                         <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
@@ -419,8 +419,8 @@ class TrainerController extends Controller
                                     </div>
                                 </body>
                                 </html>
-                                ', function ($message) use ($jobseeker) {
-                                    $message->to($jobseeker->email)
+                                ', function ($message) use ($trainer) {
+                                    $message->to($trainer->email)
                                             ->subject('Welcome to Talentrek – Registration Successful');
                                 });
             } else {

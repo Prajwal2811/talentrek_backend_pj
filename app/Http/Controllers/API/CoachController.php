@@ -261,8 +261,8 @@ class CoachController extends Controller
                     'user_type'    => 'coach',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => $exp['start_date'],
-                    'end_to'       => $exp['end_date']
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => date('Y-m-d',strtotime($exp['end_date']))
                 ]);
             }
 
@@ -303,7 +303,7 @@ class CoachController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 if (!$existingProfile) {
@@ -314,7 +314,7 @@ class CoachController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $trainer->id,
                         'user_type'     => 'coach',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'coach_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);

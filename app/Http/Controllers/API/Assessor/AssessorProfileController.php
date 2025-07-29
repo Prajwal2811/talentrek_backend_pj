@@ -112,7 +112,7 @@ class AssessorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'assessor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'assessor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -130,7 +130,7 @@ class AssessorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $Trainers->id,
                         'user_type'     => 'assessor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -186,7 +186,7 @@ class AssessorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'assessor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'assessor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -204,7 +204,7 @@ class AssessorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'assessor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -260,7 +260,7 @@ class AssessorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'assessor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'assessor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -276,7 +276,7 @@ class AssessorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'assessor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -339,7 +339,7 @@ class AssessorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'assessor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'assessor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -357,7 +357,7 @@ class AssessorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'assessor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -463,7 +463,7 @@ class AssessorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'assessor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $profileFileName),
                     ]);

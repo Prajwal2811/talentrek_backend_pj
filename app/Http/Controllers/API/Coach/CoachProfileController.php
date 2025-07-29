@@ -128,8 +128,8 @@ class CoachProfileController extends Controller
                     // Create new record
                     AdditionalInfo::create([
                         'user_id'       => $Trainers->id,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'coach',
+                        'doc_type'      => 'coach_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -202,8 +202,8 @@ class CoachProfileController extends Controller
                     // Create new record
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'coach',
+                        'doc_type'      => 'coach_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -274,8 +274,8 @@ class CoachProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'coach',
+                        'doc_type'      => 'coach_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -355,8 +355,8 @@ class CoachProfileController extends Controller
                     // Create new record
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'coach',
+                        'doc_type'      => 'coach_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -407,7 +407,7 @@ class CoachProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
+                        'user_type'     => 'coach',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -434,7 +434,7 @@ class CoachProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
+                        'user_type'     => 'coach',
                         'doc_type'      => 'training_certificate',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -461,8 +461,8 @@ class CoachProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'coach',
+                        'doc_type'      => 'coach_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $profileFileName),
                     ]);

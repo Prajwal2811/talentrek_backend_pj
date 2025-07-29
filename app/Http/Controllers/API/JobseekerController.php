@@ -251,8 +251,8 @@ class JobseekerController extends Controller
                     'user_type'    => 'jobseeker',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => $exp['start_date'],
-                    'end_to'       => $exp['end_date']
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => date('Y-m-d',strtotime($exp['end_date']))
                 ]);
             }
 
