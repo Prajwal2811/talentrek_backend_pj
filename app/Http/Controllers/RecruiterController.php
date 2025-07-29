@@ -84,7 +84,7 @@ class RecruiterController extends Controller
      {
           $validated = $request->validate([
                'company_id' => 'required|exists:recruiters_company,id',
-               'name' => 'required|string|max:255',
+               'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'email' => 'required|email|unique:recruiters,email',
                'national_id' => [
                     'required',
@@ -99,7 +99,7 @@ class RecruiterController extends Controller
                          }
                     },
                ],
-               'company_name' => 'required|string',
+               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'company_website' => 'required|url',
                'company_city' => 'required|string|max:255',
                'company_address' => 'required|string|max:500',
@@ -116,12 +116,14 @@ class RecruiterController extends Controller
                'company_id.required' => 'Company ID is required.',
                'company_id.exists' => 'Selected company does not exist.',
                'name.required' => 'Name is required.',
+               'name.regex' => 'The full name should contain only letters and single spaces.',
                'email.required' => 'Email is required.',
                'email.email' => 'Enter a valid email address.',
                'email.unique' => 'This email is already in use.',
                'national_id.required' => 'National ID is required.',
                'national_id.min' => 'National ID must be at least 10 characters.',
                'company_name.required' => 'Company name is required.',
+               'company_name.regex' => 'The company name should contain only letters and single spaces.',
                'company_website.required' => 'Company website is required.',
                'company_website.url' => 'Enter a valid URL.',
                'company_city.required' => 'Company city is required.',
@@ -573,7 +575,7 @@ class RecruiterController extends Controller
 
           $validated = $request->validate([
                // Company fields
-               'company_name' => 'required|string|max:255',
+               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'company_phone_number' => 'required|digits:10',
                'business_email' => [
                     'required',
@@ -585,7 +587,7 @@ class RecruiterController extends Controller
                'company_website' => 'nullable|url',
 
                // Recruiter fields
-               'name' => 'required|string|max:255',
+               'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'email' => [
                     'required',
                     'email',
@@ -610,6 +612,7 @@ class RecruiterController extends Controller
            [
                // Custom messages for Company fields
                'company_name.required' => 'The company name is required.',
+               'company_name.regex' => 'The name should contain only letters and single spaces.',
                'company_phone_number.required' => 'The company phone number is required.',
                'company_phone_number.digits' => 'The phone number must be exactly 10 digits.',
                'business_email.required' => 'The business email is required.',
@@ -622,6 +625,7 @@ class RecruiterController extends Controller
 
                // Custom messages for Recruiter fields
                'name.required' => 'The recruiter name is required.',
+               'name.regex' => 'The name should contain only letters and single spaces.',
                'email.required' => 'The recruiter email is required.',
                'email.email' => 'The recruiter email must be a valid email address.',
                'email.unique' => 'The recruiter email has already been taken.',

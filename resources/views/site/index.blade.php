@@ -10,7 +10,7 @@
         $profile = DB::table('additional_info')
             ->where('user_id', $trainer->id)
             ->where('user_type', 'trainer')
-            ->where('doc_type', 'profile_picture')
+            ->where('doc_type', 'trainer_profile_picture')
             ->first();
 
         $trainer->profile_picture = $profile ? $profile->document_path : null;

@@ -84,7 +84,7 @@
                             </div>
 
                             <!-- Steps Content -->
-                            <form class="space-y-6" action="{{ route('jobseeker.registration.store') }}" method="POST" enctype="multipart/form-data">
+                            <form class="space-y-6" id="multiStepForm" action="{{ route('jobseeker.registration.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <!-- Step 1: Personal Info -->
                                 <div id="step-1" class="">
@@ -126,8 +126,10 @@
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex">
-                                                <select class="w-1/3 border rounded-l-md p-2 mt-1">
-                                                    <option>+966</option>
+                                                <select name="phone_code" class="w-1/3 border rounded-l-md p-2 mt-1">
+                                                    <option value="+966">+966</option>
+                                                    <option value="+971">+971</option>
+                                                    <!-- Add more country codes if needed -->
                                                 </select>
                                                 <input name="phone_number" placeholder="Enter Phone number" type="tel"
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
@@ -188,18 +190,18 @@
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Select state" value="{{ old('address') }}" />
-                                        @error('address')
+                                        <input type="text" name="country" class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Select state" value="{{ old('country') }}" />
+                                        @error('country')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Enter pin code" value="{{ old('city') }}" />
-                                        @error('city')
+                                        <input type="text" name="pin_code" class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Enter pin code" value="{{ old('pin_code') }}" />
+                                        @error('pin_code')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
@@ -290,7 +292,7 @@
                                                             <option value="{{ $year }}" {{ old("graduate_year.$i") == $year ? 'selected' : '' }}>{{ $year }}</option>
                                                         @endforeach
                                                         <option value="2010-2014" {{ old("graduate_year.$i") == '2010-2014' ? 'selected' : '' }}>2010-2014</option>
-                                                        <option value="before_2010" {{ old("graduate_year.$i") == 'before_2010' ? 'selected' : '' }}>
+                                                        <option value="2010" {{ old("graduate_year.$i") == '    2010' ? 'selected' : '' }}>
                                                             Before 2010</option>
                                                     </select>
                                                     @error("graduate_year.$i")
@@ -660,8 +662,10 @@
 
                                 </div>
                             </form>
+                            
                         </div>
 
+                        
 
 
                         <!-- </div> -->
@@ -673,6 +677,8 @@
         </div>
 
         @include('site.jobseeker.componants.footer')
+ 
+
 
         <script>
             // Function to handle education add/remove
@@ -811,3 +817,54 @@
                 });
             });
         </script>
+
+
+<!-- Step 2: jQuery Validation Plugin -->
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+<!-- Step 3: Your custom script -->
+<script>
+    $(document).ready(function () {
+        const form = $('#multiStepForm');
+
+        form.validate({
+            rules: {
+                name: "required",
+                gender: "required",
+                dob: "required",
+                national_id: "required",
+                address: "required",
+                city: "required",
+                country: "required",
+                pin_code: "required"
+            },
+            messages: {
+                name: "Full name is required",
+                gender: "Please select gender",
+                dob: "Date of birth is required",
+                national_id: "National ID is required",
+                address: "Address is required",
+                city: "City is required",
+                country: "Country is required",
+                pin_code: "Pin code is required"
+            },
+            errorElement: 'p',
+            errorPlacement: function (error, element) {
+                error.addClass('text-red-600 text-sm mt-1');
+                error.insertAfter(element);
+            }
+        });
+
+        window.showStep = function (step) {
+            if (!form.valid()) return;
+
+            for (let i = 1; i <= 5; i++) {
+                $(`#step-${i}`).addClass('hidden');
+                $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white');
+            }
+
+            $(`#step-${step}`).removeClass('hidden');
+            $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
+        }
+    });
+</script>
