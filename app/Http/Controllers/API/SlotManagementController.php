@@ -49,9 +49,9 @@ class SlotManagementController extends Controller
                 $slotErrors["slot.$index.end_time"] = ['End time must be after or equal to start time.'];
             }
 
-            if ($startTime->gt(now())) {
-                $slotErrors["slot.$index.start_time"] = ['Start time cannot be in the future.'];
-            }
+            // if ($startTime->gt(now())) {
+            //     $slotErrors["slot.$index.start_time"] = ['Start time cannot be in the future.'];
+            // }
 
             // Check if the slot already exists
             $exists = BookingSlot::where('user_id', $request->user_id)
@@ -59,15 +59,15 @@ class SlotManagementController extends Controller
                 ->where('slot_mode', $request->slot_mode)
                 ->where('start_time', $startTime->format('H:i:s'))
                 ->where('end_time', $endTime->format('H:i:s'))
-                ->exists();
-
-            if ($exists) {
-                $slotErrors["slot.$index"] = ['This slot already exists for the given user.'];
+                ->get();
+           
+            if ($exists->count() > 0) {
+                return response()->json(['status'  => false,'errors' => 'Some of the slots already exist in your sessions please check.'], 200);               
             }
         }
 
         if (!empty($slotErrors)) {
-            return response()->json(['status'  => false,'errors' => 'Some of the slots already exist for the given user.'], 200);
+            return response()->json(['status'  => false,'errors' => 'Please check your session time formates.'], 200);
         }
         if ($validator->errors()->any()) {
             return response()->json(['status'  => false,'errors' => $validator->errors()], 200);

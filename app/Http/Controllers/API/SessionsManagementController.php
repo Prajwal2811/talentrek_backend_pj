@@ -23,21 +23,115 @@ class SessionsManagementController extends Controller
         return view('home');
     }
 
+    public function totalBookedSessionsCountsForMCA(Request $request)
+    {
+        try {  
+            // Common base query
+            $baseQuery = BookingSession::select(
+                'id', 'jobseeker_id', 'user_type', 'user_id',
+                'booking_slot_id', 'slot_mode', 'slot_date',
+                'zoom_meeting_id', 'zoom_join_url', 'zoom_start_url'
+            )->where('user_id', $request->user_id)
+            ->where('user_type', $request->type)
+            ->where('status', 'confirmed');
+
+            // Clone the base query for each group
+            $totalSessions = (clone $baseQuery)->get();
+            $todaysSessions = (clone $baseQuery)->whereDate('slot_date', '=', Carbon::today())->get();
+            $upcomingSessions = (clone $baseQuery)->whereDate('slot_date', '=', Carbon::today())->get();
+            //$completedSessions = (clone $baseQuery)->whereDate('slot_date', '=', Carbon::today())->get();
+            $pendingSessions = collect();
+            $completedSessions = collect();
+            $ongoingSessions = collect();
+
+            foreach ($todaysSessions as $session) {
+                // Parse slot time
+                if (!empty($session->slot_mode) && strpos($session->slot_mode, '-') !== false) {
+                    [$startTimeStr, $endTimeStr] = array_map('trim', explode('-', $session->slot_mode));
+
+                    // Combine date + time
+                    $startDateTime = Carbon::parse($session->slot_date . ' ' . $startTimeStr);
+                    $endDateTime = Carbon::parse($session->slot_date . ' ' . $endTimeStr);
+
+                    if ($now->lt($startDateTime)) {
+                        $pendingSessions->push($session); // Not started yet
+                    } elseif ($now->gt($endDateTime)) {
+                        $completedSessions->push($session); // Already ended
+                    } else {
+                        $ongoingSessions->push($session); // In progress
+                    }
+                } else {
+                    $pendingSessions->push($session); // Fallback: assume pending
+                }
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Session summary for ' . $request->type,
+                'data' => [
+                    'totalSessions' => $totalSessions->count(),
+                    'todaysSessions' => $todaysSessions->count(),
+                    'pendingSessions' => $upcomingSessions->count(),
+                    'completedSessions' => $completedSessions->count(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
     public function upcomingBookedSessionsForMCA(Request $request)
     {
         try {
-            // Fetch Trainers personal information
-           
+                // Fetch Trainers personal information
+                $relationships = [];
+                $type = $request->type;
+                if ($type === 'mentor') {
+                    $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+                } elseif ($type === 'assessor') {
+                    $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+                } elseif ($type === 'coach') {
+                    $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+                }
 
-            $upcomingSessions = BookingSession::where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
+                $upcomingSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
                 ->whereDate('slot_date', '>=', Carbon::today())
                 ->orderBy('slot_date', 'asc')
-                ->get();            
+                ->get()
+                ->map(function ($item) use ($type) {
+                    $relationName = 'jobseeker'; // mentors, assessors, coaches
+                    $expRelation = $type === 'mentor' ? 'jobseekerWorkExperience' : ($type === 'assessor' ? 'jobseekerWorkExperience' : 'jobseekerWorkExperience');
+                    $infoRelation = $type === 'mentor' ? 'jobseekerAdditionalInfo' : ($type === 'assessor' ? 'jobseekerAdditionalInfo' : 'jobseekerAdditionalInfo');
+
+                    $profilePicture = 'profile_picture';
+
+
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                    $mostRecentExp = $item->$expRelation->sortByDesc(function ($exp) {
+                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
+                    })->first();
+                    $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                    $item->userName = $item->$relationName->name ?? null;
+                    $image = '' ;
+                    foreach($item->$infoRelation as $jobseekerAdditionalInfos){
+                        if($jobseekerAdditionalInfos->doc_type == $profilePicture){
+                            $image = $jobseekerAdditionalInfos->document_path ;
+                        }                
+                    }
+                    $item->image = $image ?? null;
+                    $item->startTime =  date('H:i A',strtotime($item->bookingSlot->start_time)) ?? null;
+                    $item->endTime =  date('H:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+                    $item->slotStartEndTime =  date('H:i A',strtotime($item->bookingSlot->start_time)).' - '.date('H:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+                    unset($item->$relationName, $item->$expRelation,$item->bookingSlot,$item->$infoRelation);
+                    return $item;
+                });            
 
             // Return combined response
             return response()->json([
                     'status' => true,
-                    'message' => 'Upcoming session list for.'.$request->type,
+                    'message' => 'Upcoming session list for '.$request->type,
                     'data' => $upcomingSessions
                 ]);   
 
@@ -51,9 +145,42 @@ class SessionsManagementController extends Controller
     public function cancelledBookedSessionsForMCA(Request $request)
     {
         try {
-            $cancelledSessions = BookingSession::where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'cancelled')
+            $relationships = [];
+            $type = $request->type;
+            if ($type === 'mentor') {
+                $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+            } elseif ($type === 'assessor') {
+                $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+            } elseif ($type === 'coach') {
+                $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+            }
+            $cancelledSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'cancelled')
                 ->orderBy('slot_date', 'asc')
-                ->get();            
+                ->get()->map(function ($item) use ($type) {
+                    $relationName = 'jobseeker'; // mentors, assessors, coaches
+                    $expRelation = $type === 'mentor' ? 'jobseekerWorkExperience' : ($type === 'assessor' ? 'jobseekerWorkExperience' : 'jobseekerWorkExperience');
+                    $infoRelation = $type === 'mentor' ? 'jobseekerAdditionalInfo' : ($type === 'assessor' ? 'jobseekerAdditionalInfo' : 'jobseekerAdditionalInfo');
+
+                    $profilePicture = 'profile_picture';
+
+
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                    $mostRecentExp = $item->$expRelation->sortByDesc(function ($exp) {
+                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
+                    })->first();
+                    $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                    $item->userName = $item->$relationName->name ?? null;
+                    $image = '' ;
+                    foreach($item->$infoRelation as $jobseekerAdditionalInfos){
+                        if($jobseekerAdditionalInfos->doc_type == $profilePicture){
+                            $image = $jobseekerAdditionalInfos->document_path ;
+                        }                
+                    }
+                    $item->image = $image ?? null;
+                    unset($item->$infoRelation);
+                    unset($item->$relationName, $item->$expRelation,$item->bookingSlot);
+                    return $item;
+                });             
 
             // Return combined response
             return response()->json([
@@ -71,10 +198,42 @@ class SessionsManagementController extends Controller
     public function completedBookedSessionsForMCA(Request $request)
     {
         try {
-            $confirmedSessions = BookingSession::where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
+            $relationships = [];
+            $type = $request->type;
+            if ($type === 'mentor') {
+                $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+            } elseif ($type === 'assessor') {
+                $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+            } elseif ($type === 'coach') {
+                $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
+            }
+            $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
                 ->whereDate('slot_date', '<', Carbon::today())                
                 ->orderBy('slot_date', 'asc')
-                ->get();            
+                ->get()->map(function ($item) use ($type) {
+                    $relationName = 'jobseeker'; // mentors, assessors, coaches
+                    $expRelation = $type === 'mentor' ? 'jobseekerWorkExperience' : ($type === 'assessor' ? 'jobseekerWorkExperience' : 'jobseekerWorkExperience');
+                    $infoRelation = $type === 'mentor' ? 'jobseekerAdditionalInfo' : ($type === 'assessor' ? 'jobseekerAdditionalInfo' : 'jobseekerAdditionalInfo');
+
+                    $profilePicture = 'profile_picture';
+
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                    $mostRecentExp = $item->$expRelation->sortByDesc(function ($exp) {
+                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
+                    })->first();
+                    $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                    $item->userName = $item->$relationName->name ?? null;
+                    $image = '' ;
+                    foreach($item->$infoRelation as $jobseekerAdditionalInfos){
+                        if($jobseekerAdditionalInfos->doc_type == $profilePicture){
+                            $image = $jobseekerAdditionalInfos->document_path ;
+                        }                
+                    }
+                    $item->image = $image ?? null;
+                    unset($item->$infoRelation);
+                    unset($item->$relationName, $item->$expRelation,$item->bookingSlot);
+                    return $item;
+                });             
 
             // Return combined response
             return response()->json([

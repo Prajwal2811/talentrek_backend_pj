@@ -139,7 +139,7 @@ class MentorSlotManagementController  extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $Trainers->id,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -213,7 +213,7 @@ class MentorSlotManagementController  extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -285,7 +285,7 @@ class MentorSlotManagementController  extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -366,7 +366,7 @@ class MentorSlotManagementController  extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -417,7 +417,7 @@ class MentorSlotManagementController  extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
+                        'user_type'     => 'mentor',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -444,7 +444,7 @@ class MentorSlotManagementController  extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
+                        'user_type'     => 'mentor',
                         'doc_type'      => 'training_certificate',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -455,8 +455,8 @@ class MentorSlotManagementController  extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('user_type', 'mentor')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -471,8 +471,8 @@ class MentorSlotManagementController  extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'mentor',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $profileFileName),
                     ]);

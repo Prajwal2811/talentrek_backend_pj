@@ -137,7 +137,7 @@ class MentorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $Trainers->id,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -211,7 +211,7 @@ class MentorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -283,7 +283,7 @@ class MentorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -364,7 +364,7 @@ class MentorProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'mentor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -415,7 +415,7 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
+                        'user_type'     => 'mentor',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -442,7 +442,7 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
+                        'user_type'     => 'mentor',
                         'doc_type'      => 'training_certificate',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -469,8 +469,8 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'user_type'     => 'mentor',
+                        'doc_type'      => 'mentor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $profileFileName),
                     ]);

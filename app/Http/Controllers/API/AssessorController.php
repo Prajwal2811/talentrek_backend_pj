@@ -183,8 +183,8 @@ class AssessorController extends Controller
         DB::beginTransaction();
         try {
             // Check if jobseeker exists (based on email and mobile)
-            $trainer = Assessors::where('company_email', $request->email)
-                ->where('company_phone_number', $request->mobile)
+            $trainer = Assessors::where('email', $request->email)
+                ->where('phone_number', $request->mobile)
                 ->first();
 
             if (!$trainer) {
@@ -303,7 +303,7 @@ class AssessorController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
                     ->where('user_type', 'assessor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'assessor_profile_picture')
                     ->first();
 
                 if (!$existingProfile) {
@@ -314,7 +314,7 @@ class AssessorController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $trainer->id,
                         'user_type'     => 'assessor',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -345,11 +345,11 @@ class AssessorController extends Controller
             
             DB::commit();
 
-            $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+            $contactMethod = $request->email ? 'email' : 'phone_number';
             $contactValue = $request->$contactMethod;
 
             // Send OTP (Email or SMS)
-            if ($contactMethod === 'company_email') {
+            if ($contactMethod === 'email') {
                 // Send confirmation email
                 // Mail::html('
                 //                 <!DOCTYPE html>

@@ -219,5 +219,6 @@ Route::post('/calenderUnavailableDates', [SlotManagementController::class, 'cale
 Route::post('/upcomingBookedSessions', [SessionsManagementController::class, 'upcomingBookedSessionsForMCA']);
 Route::post('/cancelledBookedSessions', [SessionsManagementController::class, 'cancelledBookedSessionsForMCA']);
 Route::post('/completedBookedSessions', [SessionsManagementController::class, 'completedBookedSessionsForMCA']);
+Route::post('/totalBookedSessions', [SessionsManagementController::class, 'totalBookedSessionsCountsForMCA']);
 
 Route::post('/reviewsDetailsById', [ReviewManagementController::class, 'reviewsDetailsByMCAIds']);

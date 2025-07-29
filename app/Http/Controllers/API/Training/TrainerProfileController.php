@@ -130,7 +130,7 @@ class TrainerProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $Trainers->id,
                         'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -204,7 +204,7 @@ class TrainerProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -276,7 +276,7 @@ class TrainerProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -357,7 +357,7 @@ class TrainerProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -463,7 +463,7 @@ class TrainerProfileController extends Controller
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
                         'user_type'     => 'trainer',
-                        'doc_type'      => 'profile_picture',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $profileFileName),
                     ]);
