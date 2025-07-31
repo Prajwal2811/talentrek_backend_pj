@@ -87,14 +87,510 @@
                     <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" alt="Curved Bottom" class="w-full h-auto" />
                 </div>
             </div>
+<!-- CHAT MODULE CSS START -->
+<style>
+    /* CSS */
+    .chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 70px;
+    display: flex;
+    align-items: center;
+    z-index: 10000; /* ⬅️ Make sure it's higher than chatBox or chatModal */
+        cursor: pointer;
+    }
 
-          
-       
+    .chat-label {
+    background-color: white;
+    padding: 10px 20px;              /* increased padding */
+    border-radius: 25px;             /* more rounded */
+    font-weight: bold;
+    font-size: 18px;                 /* larger text */
+    margin-right: 8px;              /* more spacing */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 2;
+    }
+
+    .chat-icon {
+    background-color: #e36a42;
+    color: white;
+    padding: 12px;                   /* more inner space */
+    border-radius: 50% 50% 0% 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;                    /* larger icon bubble */
+    width: 50px;
+    font-size: 22px;                 /* larger icon */
+    position: relative;
+    z-index: 1;
+    }
+
+    /* Chat Modal */
+    .chat-modal {
+    position: fixed;
+    bottom: 90px;
+    right: 30px;
+    width: 360px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    overflow: hidden;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+    min-height: 400px;
+    }
+
+    .hidden {
+    display: none;
+    }
+
+    /* Tabs */
+    .chat-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    }
+
+    .chat-tabs button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+    font-weight: 600;
+    cursor: pointer;
+    color: #555;
+    }
+
+    .chat-tabs button.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    }
+
+    /* Chat List Area */
+    .chat-lists {
+    overflow-y: auto;
+    flex: 1;
+    }
+
+    /* Each Chat User */
+    .chat-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    }
+
+    .chat-user img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    }
+
+    .chat-text {
+    flex: 1;
+    margin-left: 10px;
+    overflow: hidden;
+    }
+
+    .chat-name {
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+    .chat-message {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+    .chat-time {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    margin-left: 8px;
+    }
+
+</style>
+<style>
+    .chat-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        font-size: 18px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        cursor: pointer;
+        z-index: 9999;
+    }
+
+    .chat-modal {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .chat-tabs {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+        background: #f6f6f6;
+    }
+
+    .chat-tabs button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .chat-tabs button.active {
+        background: #007bff;
+        color: white;
+    }
+
+    .chat-lists {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .chat-user {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .chat-user img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .chat-text {
+        flex: 1;
+    }
+
+    .chat-name {
+        font-weight: 600;
+    }
+
+    .chat-message {
+        font-size: 13px;
+        color: #777;
+    }
+
+    .chat-time {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+</style>
+<style>
+    .chat-box {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); /* ⬅️ Stronger shadow */
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+
+    .chat-box.hidden {
+        display: none;
+    }
+
+    .chat-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .chat-header img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .chat-name {
+        font-weight: bold;
+    }
+
+    .chat-subtext {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 8px 12px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .incoming {
+        background-color: #e0e0e0;
+        align-self: flex-start; /* Align to left */
+        border-bottom-left-radius: 0;
+    }
+
+    .outgoing {
+        background-color: #d1e7dd;
+        align-self: flex-end;   /* Align to right */
+        border-bottom-right-radius: 0;
+    }
+
+
+    .chat-input {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+
+    .chat-input input {
+        flex-grow: 1;
+        border: none;
+        padding: 10px;
+        outline: none;
+    }
+
+    .chat-input button {
+        padding: 10px 15px;
+        border: none;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+
+    .chat-header i {
+        font-size: 18px;
+        cursor: pointer;
+        margin-right: 6px;
+    }
+
+    .chat-modal.hidden {
+        display: none;
+    }
+</style>
+<!-- CHAT MODULE CSS END -->
+
             <!-- Training Programs Section -->
             <section class="py-16 bg-white relative">
+               
+                <!-- Font Awesome CDN -->
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+                <!-- Chat Button -->
+                <div class="chat-button" onclick="toggleChatModal()">
+                    <div class="chat-label">Chat</div>
+                    <div class="chat-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                </div>
+
+                <!-- Chat Modal -->
+                <div id="chatModal" class="chat-modal hidden">
+                    <div class="chat-tabs">
+                        <button onclick="showTab('trainer')" class="active">Trainer</button>
+                        <button onclick="showTab('mentor')">Mentor</button>
+                        <button onclick="showTab('coach')">Coach</button>
+                        <button onclick="showTab('assessor')">Assessor</button>
+                    </div>
+
+                    <!-- Chat Lists -->
+                    <div class="chat-lists">
+                        <!-- Trainer Tab -->
+                        <div id="trainer" class="tab-content active">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/women/1.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Trainer Julia</div>
+                                    <div class="chat-message">Trainer message sample</div>
+                                </div>
+                                <div class="chat-time">07:00 PM</div>
+                            </div>
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/men/1.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Trainer John</div>
+                                    <div class="chat-message">Another trainer message</div>
+                                </div>
+                                <div class="chat-time">06:40 PM</div>
+                            </div>
+                        </div>
+
+                        <!-- Mentor Tab -->
+                        <div id="mentor" class="tab-content">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/men/2.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Mentor David</div>
+                                    <div class="chat-message">Mentor message sample</div>
+                                </div>
+                                <div class="chat-time">06:00 PM</div>
+                            </div>
+                        </div>
+
+                        <!-- Coach Tab -->
+                        <div id="coach" class="tab-content">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/women/3.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Coach Lucy</div>
+                                    <div class="chat-message">Coach message sample</div>
+                                </div>
+                                <div class="chat-time">05:30 PM</div>
+                            </div>
+                        </div>
+
+                        <!-- Assessor Tab -->
+                        <div id="assessor" class="tab-content">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/men/4.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Assessor Mike</div>
+                                    <div class="chat-message">Assessor message sample</div>
+                                </div>
+                                <div class="chat-time">04:45 PM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Window Box -->
+                <div id="chatBox" class="chat-box hidden">
+                    <div class="chat-header">
+                        <i class="fa-solid fa-arrow-left" onclick="backToChatList()"></i>
+                        <img id="chatProfile" src="" />
+                        <div>
+                            <div id="chatName" class="chat-name">Name</div>
+                            <div id="chatSubtext" class="chat-subtext">Lorem ipsum sit dolor amet</div>
+                        </div>
+                        <div id="chatTime" class="chat-time">00:00 PM</div>
+                    </div>
+                    <div class="chat-body">
+                        <div class="message incoming">Hello, How was your lecture</div>
+                        <div class="message outgoing">Very easy to understand</div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" placeholder="Write your message here ....." />
+                        <button><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+
+                <script>
+                    // Toggle modal open/close
+                    function toggleChatModal() {
+                        const modal = document.getElementById("chatModal");
+                        const chatBox = document.getElementById("chatBox");
+                        modal.classList.toggle("hidden");
+                        chatBox.classList.add("hidden"); // always close chat when opening modal
+                    }
+
+                    // Tab switcher
+                    function showTab(tabId) {
+                        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                        document.getElementById(tabId).classList.add('active');
+
+                        document.querySelectorAll('.chat-tabs button').forEach(btn => btn.classList.remove('active'));
+                        const activeBtn = Array.from(document.querySelectorAll('.chat-tabs button')).find(btn => btn.textContent.toLowerCase() === tabId);
+                        if (activeBtn) activeBtn.classList.add('active');
+                    }
+
+                    // Open chat with clicked user
+                    document.querySelectorAll('.chat-user').forEach(user => {
+                        user.addEventListener('click', function () {
+                            const imgSrc = this.querySelector('img').src;
+                            const name = this.querySelector('.chat-name').textContent;
+                            const message = this.querySelector('.chat-message').textContent;
+                            const time = this.querySelector('.chat-time').textContent;
+
+                            document.getElementById('chatProfile').src = imgSrc;
+                            document.getElementById('chatName').textContent = name;
+                            document.getElementById('chatSubtext').textContent = message;
+                            document.getElementById('chatTime').textContent = time;
+
+                            // Hide list modal, show chat box
+                            document.getElementById('chatModal').classList.add('hidden');
+                            document.getElementById('chatBox').classList.remove('hidden');
+                        });
+                    });
+
+                    // Back to chat list
+                    function backToChatList() {
+                        document.getElementById('chatBox').classList.add('hidden');
+                        document.getElementById('chatModal').classList.remove('hidden');
+                    }
+                </script>
+
+
+
+
+
+
+
+
                 <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold text-black">Training Programs</h2>
-                <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    <h2 class="text-3xl font-bold text-black">Training Programs</h2>
+                    <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                 </div>
 
                 <div class="relative max-w-[1300px] mx-auto px-4">
@@ -543,7 +1039,7 @@
             </style>
 
 
-            <script>
+            <!-- <script>
                 const swiper = new Swiper(".mySwiper", {
                     slidesPerView: 1,
                     spaceBetween: 20,
@@ -586,7 +1082,7 @@
                 font-size: 0.95rem;
                 margin-top: 5px;
                 }
-            </style>
+            </style> -->
            
 
 
