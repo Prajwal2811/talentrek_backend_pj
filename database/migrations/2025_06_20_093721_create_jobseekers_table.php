@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();     // e.g., 9876543210
             $table->date('date_of_birth')->nullable();
             $table->string('city')->nullable();         // e.g., city or state
+            $table->string('state')->nullable();         // e.g., city or state
             $table->string('address')->nullable();
             $table->string('pin_code')->nullable();
             $table->text('country')->nullable();

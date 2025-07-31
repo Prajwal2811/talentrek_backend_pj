@@ -611,14 +611,24 @@ $coach = Auth()->user();
                                                     @error('city')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
-                                                </div><!-- City -->
+                                                </div>
+                                                <!-- State -->
+                                                <div class="mt-3">
+                                                    <label class="block font-medium mb-1">State</label>
+                                                    <input type="text" name="state" value="{{ $coach->state }}" class="w-full border rounded px-3 py-2" />
+                                                    @error('state')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                                <!-- City -->
                                                 <div class="mt-3">
                                                     <label class="block font-medium mb-1">Country</label>
                                                     <input type="text" name="country" value="{{ $coach->country }}" class="w-full border rounded px-3 py-2" />
                                                     @error('country')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
-                                                </div><!-- City -->
+                                                </div>
+                                                <!-- City -->
                                                 <div class="mt-3">
                                                     <label class="block font-medium mb-1">Pin code</label>
                                                     <input type="text" name="pin_code" value="{{ $coach->pin_code }}" class="w-full border rounded px-3 py-2" />

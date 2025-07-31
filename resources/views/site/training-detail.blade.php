@@ -197,8 +197,117 @@
                 </script>
 
 
+                <!-- <script src="//unpkg.com/alpinejs" defer></script>
+                <h2 class="text-lg font-bold mb-4">E learning</h2>
+                <div x-data="{ open: false, videoUrl: '' }">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        @foreach ($material->documents as $key => $doc)
+                            <div class="bg-white shadow rounded overflow-hidden cursor-pointer"
+                                @click="open = true; videoUrl = '{{ $doc->file_path }}'">
+                                
+                                <div class="relative">
+                                   
+                                    <img src="https://img.icons8.com/ios-filled/100/000000/video.png"
+                                        alt="Video Preview"
+                                        class="w-full h-40 object-cover bg-gray-200" />
+
+                                    
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="bg-black bg-opacity-50 rounded-full p-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M14.752 11.168l-6.518-3.896A1 1 0 007 8.104v7.792a1 1 0 001.234.97l6.518-1.696A1 1 0 0015 14.168V12a1 1 0 00-.248-.832z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 text-center text-sm font-medium">
+                                    {{ $doc->training_title }} - Chapter {{ $key + 1 }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                   
+                    <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                        <div class="bg-white rounded-lg shadow-lg max-w-3xl w-full relative">
+                            
+                            <button @click="open = false; videoUrl = ''"
+                                class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-1 z-50">
+                                ✖
+                            </button>
+
+                            
+                            <template x-if="videoUrl">
+                                <video x-bind:src="videoUrl" controls autoplay class="w-full h-[500px] object-contain"></video>
+                            </template>
+                        </div>
+                    </div>
+                </div> -->
+                 
+                <script src="//unpkg.com/alpinejs" defer></script>
+                <h2 class="text-lg font-bold mb-4">E learning</h2>
+                <div x-data="{ showPopup: false }">
+                    <!-- Grid of Videos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        @foreach ($material->documents as $key => $doc)
+                            <div class="bg-white shadow rounded overflow-hidden cursor-pointer"
+                                @click="showPopup = true">
+
+                                <div class="relative">
+                                    <img src="https://img.icons8.com/ios-filled/100/000000/video.png"
+                                        alt="Video Preview"
+                                        class="w-full h-40 object-cover bg-gray-200" />
+
+                                    <!-- Play Button Overlay -->
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="bg-black bg-opacity-50 rounded-full p-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M14.752 11.168l-6.518-3.896A1 1 0 007 8.104v7.792a1 1 0 001.234.97l6.518-1.696A1 1 0 0015 14.168V12a1 1 0 00-.248-.832z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 text-center text-sm font-medium">
+                                    {{ $doc->training_title }} - Chapter {{ $key + 1 }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Subscription Popup Modal -->
+                    <div x-show="showPopup" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Unlock this premium content</h3>
+                            <p class="text-sm text-gray-600 mb-6">
+                                This video is available for premium members only.<br>
+                                Upgrade your plan to access exclusive learning material.
+                            </p>
+                            <div class="flex justify-center gap-4">
+                                <button @click="showPopup = false"
+                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Close</button>
+                                <a href="/subscribe"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                                    Upgrade Plan
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <style>
+                    [x-cloak] { display: none !important; }
+                </style>     
+
+
+
+
               <!-- Reviews -->
-              <section class="tab-content" data-tab-content="reviews">
+              <section class="tab-content mt-5" data-tab-content="reviews">
                 <h2 class="text-2xl font-bold mb-6">Reviews</h2>
 
                 <!-- Rating Summary -->
@@ -474,6 +583,8 @@
 
             </div>
           </main>
+
+    
 
          <!-- jQuery -->
           <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

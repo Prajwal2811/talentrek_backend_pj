@@ -25,6 +25,7 @@ class Trainers extends Authenticatable
         'date_of_birth',
         'address',
         'city',
+        'state',
         'country',
         'pin_code',
         'national_id',

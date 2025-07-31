@@ -3,10 +3,10 @@
 <body>
 
 
-@php
-    $business_email = session('business_email');
-    $company_phone_number = session('company_phone_number');
-@endphp
+    @php
+        $business_email = session('business_email');
+        $company_phone_number = session('company_phone_number');
+    @endphp
    
 
     <div class="loading-area">
@@ -21,73 +21,73 @@
 	@include('site.componants.navbar')
      
         
-            <div class="page-content">
-                <div class="section-full site-bg-white">
-                    <div class="container-fluid mt-3">
-                        <div class="row">
-                            <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
-                                @if (session()->has('success'))
-                                    <div class="alert alert-success alert-dismissible fade show" id="successAlert">
-                                        <strong>Success!</strong> {{ session('success') }}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
-                                @if (session()->has('error'))
-                                    <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
-                                        <strong>Oops!</strong> {{ session('error') }}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
-                                @if ($errors->has('error'))
-                                    <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
-                                        <strong>Oops!</strong> {{ $errors->first('error') }}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                            
-                            <!-- Success message alert -->
-                            <div id="success-message" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
-                                <strong>Success!</strong> <span class="message-text"></span>
+    <div class="page-content">
+        <div class="section-full site-bg-white">
+            <div class="container-fluid mt-3">
+                <div class="row">
+                    <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
+                        @if (session()->has('success'))
+                            <div class="alert alert-success alert-dismissible fade show" id="successAlert">
+                                <strong>Success!</strong> {{ session('success') }}
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-
-                            <!-- Error message alert -->
-                            <div id="error-message" class="col-12 ml-auto mr-auto text-center alert alert-danger alert-dismissible fade show" style="display: none;">
-                                <strong>Oops!</strong> <span class="message-text"></span>
+                        @endif
+                    </div>
+                    <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
+                        @if (session()->has('error'))
+                            <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
+                                <strong>Oops!</strong> {{ session('error') }}
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                        </div>
+                        @endif
+                    </div>
+                    <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
+                        @if ($errors->has('error'))
+                            <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
+                                <strong>Oops!</strong> {{ $errors->first('error') }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                    
+                    <!-- Success message alert -->
+                    <div id="success-message" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
+                        <strong>Success!</strong> <span class="message-text"></span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
 
-                        <script>
-                            // Automatically hide alerts after 3 seconds
-                            setTimeout(() => {
-                                const successAlert = document.getElementById('successAlert');
-                                const errorAlert = document.getElementById('errorAlert');
+                    <!-- Error message alert -->
+                    <div id="error-message" class="col-12 ml-auto mr-auto text-center alert alert-danger alert-dismissible fade show" style="display: none;">
+                        <strong>Oops!</strong> <span class="message-text"></span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
 
-                                if (successAlert) {
-                                    successAlert.classList.add('fade');
-                                    setTimeout(() => successAlert.remove(), 500); // Remove from DOM after fade
-                                }
-                                if (errorAlert) {
-                                    errorAlert.classList.add('fade');
-                                    setTimeout(() => errorAlert.remove(), 500); // Remove from DOM after fade
-                                }
-                            }, 3000);
-                        </script>
-                    <div class="row">
-                        <div class="col-xl-12 col-lg-12 col-md-12">
+                <script>
+                    // Automatically hide alerts after 3 seconds
+                    setTimeout(() => {
+                        const successAlert = document.getElementById('successAlert');
+                        const errorAlert = document.getElementById('errorAlert');
+
+                        if (successAlert) {
+                            successAlert.classList.add('fade');
+                            setTimeout(() => successAlert.remove(), 500); // Remove from DOM after fade
+                        }
+                        if (errorAlert) {
+                            errorAlert.classList.add('fade');
+                            setTimeout(() => errorAlert.remove(), 500); // Remove from DOM after fade
+                        }
+                    }, 3000);
+                </script>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12">
                         <div class="max-w-4xl mx-auto p-8 mt-5">
                             <!-- Stepper -->
                             <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 mb-10">
@@ -103,12 +103,12 @@
                                 <span class="text-xs mt-1 text-center">Additional<br />Information</span>
                             </div>
                             </div>
-                            <form class="space-y-6" action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
+                            <form class="space-y-6" id="multiStepForm"  action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ session('company_id') }}">
 
                                 <!-- Step 1: Company Information -->
-                                <div id="step-1">
+                                <div id="step-1" class="step">
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">Company name <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="company_name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter company name" value="{{old('company_name')}}"/>
@@ -154,21 +154,20 @@
                                                 <label class="block mb-1 text-sm font-medium mt-3">Company phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
                                                     <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code" required>
-                                                        <option value="">Country</option>
-                                                        <option value="+1">🇺🇸 United States (+1)</option>
-                                                        <option value="+91">🇮🇳 India (+91)</option>
-                                                        <option value="+44">🇬🇧 United Kingdom (+44)</option>
-                                                        <option value="+61">🇦🇺 Australia (+61)</option>
-                                                        <option value="+81">🇯🇵 Japan (+81)</option>
-                                                        <option value="+49">🇩🇪 Germany (+49)</option>
-                                                        <option value="+33">🇫🇷 France (+33)</option>
-                                                        <option value="+86">🇨🇳 China (+86)</option>
-                                                        <option value="+971">🇦🇪 UAE (+971)</option>
-                                                        <option value="+92">🇵🇰 Pakistan (+92)</option>
-                                                        <option value="+880">🇧🇩 Bangladesh (+880)</option>
-                                                        <option value="+94">🇱🇰 Sri Lanka (+94)</option>
-                                                        <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
-                                                        <option value="+7">🇷🇺 Russia (+7)</option>
+                                                        <option value="+966">(+966) 🇸🇦 Saudi Arabia</option>
+                                                        <option value="+1">(+1) 🇺🇸 United States</option>
+                                                        <option value="+91">(+91) 🇮🇳 India</option>
+                                                        <option value="+44">(+44) 🇬🇧 United Kingdom</option>
+                                                        <option value="+61">(+61) 🇦🇺 Australia</option>
+                                                        <option value="+81">(+81) 🇯🇵 Japan</option>
+                                                        <option value="+49">(+49) 🇩🇪 Germany</option>
+                                                        <option value="+33">(+33) 🇫🇷 France</option>
+                                                        <option value="+86">(+86) 🇨🇳 China</option>
+                                                        <option value="+971">(+971) 🇦🇪 UAE</option>
+                                                        <option value="+92">(+92) 🇵🇰 Pakistan</option>
+                                                        <option value="+880">(+880) 🇧🇩 Bangladesh</option>
+                                                        <option value="+94">(+94) 🇱🇰 Sri Lanka</option>
+                                                        <option value="+7">(+7) 🇷🇺 Russia</option>
                                                     </select>
 
                                                     <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="Enter phone number"  value="{{ old('company_phone_number', $company_phone_number) }}" readonly/>
@@ -227,11 +226,11 @@
                                                 Next
                                             </button>
                                         </div>
-                                  
+                                
                                 </div>
 
                                 <!-- Step 2: Additional Information -->
-                                <div id="step-2" class="hidden">
+                                <div id="step-2" class="step hidden">
                                         <div>
                                             <h2 class="font-semibold mb-2">Recruiter details:</h2>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -293,7 +292,7 @@
                                                 <div class="flex flex-col gap-2">
                                                     <label class="block mb-1 text-sm font-medium mt-3">Company Registration Documents <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
-                                                        <input type="file" name="registration_documents[]" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple />
+                                                        <input type="file" name="registration_documents" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple />
                                                     </div>
                                                     @if ($errors->has('registration_documents'))
                                                         @foreach ($errors->get('registration_documents') as $message)
@@ -336,38 +335,134 @@
 
                                 document.addEventListener('DOMContentLoaded', () => showStep(1));
                             </script>
-                        </div>
+                            
                         </div>
                     </div>
-                    </div>
                 </div>
-                </div>
+            </div>
+        </div>
+    </div>
 
 
+    <script src="{{ asset('asset/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('asset/js/popper.min.js') }}"></script>
+    <script src="{{ asset('asset/js/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('asset/js/magnific-popup.min.js') }}"></script>
+    <script src="{{ asset('asset/js/waypoints.min.js') }}"></script>
+    <script src="{{ asset('asset/js/counterup.min.js') }}"></script>
+    <script src="{{ asset('asset/js/waypoints-sticky.min.js') }}"></script>
+    <script src="{{ asset('asset/js/isotope.pkgd.min.js') }}"></script>
+    <script src="{{ asset('asset/js/imagesloaded.pkgd.min.js') }}"></script>
+    <script src="{{ asset('asset/js/owl.carousel.min.js') }}"></script>
+    <script src="{{ asset('asset/js/theia-sticky-sidebar.js') }}"></script>
+    <script src="{{ asset('asset/js/lc_lightbox.lite.js') }}"></script>
+    <script src="{{ asset('asset/js/bootstrap-select.min.js') }}"></script>
+    <script src="{{ asset('asset/js/dropzone.js') }}"></script>
+    <script src="{{ asset('asset/js/jquery.scrollbar.js') }}"></script>
+    <script src="{{ asset('asset/js/bootstrap-datepicker.js') }}"></script>
+    <script src="{{ asset('asset/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('asset/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('asset/js/chart.js') }}"></script>
+    <script src="{{ asset('asset/js/bootstrap-slider.min.js') }}"></script>
+    <script src="{{ asset('asset/js/swiper-bundle.min.js') }}"></script>
+    <script src="{{ asset('asset/js/custom.js') }}"></script>
+    <script src="{{ asset('asset/js/switcher.js') }}"></script>
 
-<script src="{{ asset('asset/js/jquery-3.6.0.min.js') }}"></script>
-<script src="{{ asset('asset/js/popper.min.js') }}"></script>
-<script src="{{ asset('asset/js/bootstrap.min.js') }}"></script>
-<script src="{{ asset('asset/js/magnific-popup.min.js') }}"></script>
-<script src="{{ asset('asset/js/waypoints.min.js') }}"></script>
-<script src="{{ asset('asset/js/counterup.min.js') }}"></script>
-<script src="{{ asset('asset/js/waypoints-sticky.min.js') }}"></script>
-<script src="{{ asset('asset/js/isotope.pkgd.min.js') }}"></script>
-<script src="{{ asset('asset/js/imagesloaded.pkgd.min.js') }}"></script>
-<script src="{{ asset('asset/js/owl.carousel.min.js') }}"></script>
-<script src="{{ asset('asset/js/theia-sticky-sidebar.js') }}"></script>
-<script src="{{ asset('asset/js/lc_lightbox.lite.js') }}"></script>
-<script src="{{ asset('asset/js/bootstrap-select.min.js') }}"></script>
-<script src="{{ asset('asset/js/dropzone.js') }}"></script>
-<script src="{{ asset('asset/js/jquery.scrollbar.js') }}"></script>
-<script src="{{ asset('asset/js/bootstrap-datepicker.js') }}"></script>
-<script src="{{ asset('asset/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('asset/js/dataTables.bootstrap5.min.js') }}"></script>
-<script src="{{ asset('asset/js/chart.js') }}"></script>
-<script src="{{ asset('asset/js/bootstrap-slider.min.js') }}"></script>
-<script src="{{ asset('asset/js/swiper-bundle.min.js') }}"></script>
-<script src="{{ asset('asset/js/custom.js') }}"></script>
-<script src="{{ asset('asset/js/switcher.js') }}"></script>
 
+    <!-- jQuery Validate -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+    <!-- all step field click on next button-->
+    <script>
+        $(document).ready(function () {
+            const form = $('#multiStepForm');
+
+            // Initialize validation
+            form.validate({
+                ignore: [],
+                rules: {
+                    // Step 1
+                    company_name: "required",
+                    company_website: "required",
+                    company_city: "required",
+                    company_address: "required",
+                    business_email: "required",
+                    company_phone_number: "required",
+                    no_of_employee: "required",
+                    industry_type: "required",
+                    registration_number: "required",
+
+                    // Step 2
+                    name: "required",
+                    email: "required",
+                    national_id: "required",
+                    company_profile: "required",
+                    registration_documents: "required"
+                },
+                messages: {
+                    // Step 1
+                    company_name: "Company name is required",
+                    company_website: "Company website is required",
+                    company_city: "Company city is required",
+                    company_address: "Company address is required",
+                    business_email: "Business email is required",
+                    company_phone_number: "Company phone number is required",
+                    no_of_employee: "Number of employees is required",
+                    industry_type: "Industry type is required",
+                    registration_number: "Registration number is required",
+
+                    // Step 2
+                    name: "Recruiter's name is required",
+                    email: "Recruiter's email is required",
+                    national_id: "National ID is required",
+                    company_profile: "Upload company profile",
+                    registration_documents: "Upload registration documents"
+                },
+                errorElement: 'p',
+                errorPlacement: function (error, element) {
+                    error.addClass('text-red-600 text-sm mt-1');
+                    error.insertAfter(element);
+                }
+            });
+
+            // Step show function with validation
+            window.showStep = function (step) {
+                const currentStep = $('.step:visible');
+                let valid = true;
+
+                currentStep.find('input, select, textarea').each(function () {
+                    if (!$(this).valid()) {
+                        valid = false;
+                    }
+                });
+
+                if (!valid) return;
+
+                // Hide all steps and show current step
+                for (let i = 1; i <= 2; i++) {
+                    $(`#step-${i}`).addClass('hidden');
+                    $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white border-blue-600');
+                    $(`#step-${i}-circle`).addClass('bg-white text-blue-600');
+                }
+
+                $(`#step-${step}`).removeClass('hidden');
+                $(`#step-${step}-circle`).addClass('bg-blue-600 text-white border-blue-600');
+                $(`#step-${step}-circle`).removeClass('bg-white text-blue-600');
+            };
+
+            // Handle next button click
+            $('.next-btn').on('click', function () {
+                const nextStep = parseInt($(this).data('next-step'));
+                showStep(nextStep);
+            });
+
+            // Handle previous button click (optional)
+            $('.prev-btn').on('click', function () {
+                const prevStep = parseInt($(this).data('prev-step'));
+                showStep(prevStep);
+            });
+
+        });
+    </script>
 </body>
 </html>

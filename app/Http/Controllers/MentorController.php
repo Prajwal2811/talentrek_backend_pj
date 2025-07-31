@@ -238,9 +238,10 @@ class MentorController extends Controller
             'dob' => 'required|date',
             'phone_code' => 'required',
             'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'country' => 'required|string|max:255',
-            'pin_code' => 'required|string|max:255',
+            'pin_code' => 'required|digits:5',
             'national_id' => [
                 'required',
                 'min:10',
@@ -266,7 +267,7 @@ class MentorController extends Controller
             'job_role.*' => 'required|string',
             'organization.*' => 'required|string',
             'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date',
+            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
 
             'training_skills' => 'required|string',
             'area_of_interest' => 'required|string',
@@ -277,6 +278,43 @@ class MentorController extends Controller
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+        ],[
+            // ✅ Custom messages
+            'name.required' => 'Please enter your full name.',
+            'name.regex' => 'The name should contain only letters and single spaces.',
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already taken.',
+            'phone_number.required' => 'Please enter your phone number.',
+            'phone_number.unique' => 'This phone number is already taken.',
+            'dob.required' => 'Please enter your date of birth.',
+            'city.required' => 'Please enter your city.',
+            'state.required' => 'Please enter your state.',
+            'national_id.required' => 'Please enter your national ID.',
+            'national_id.min' => 'National ID must be at least 10 characters.',
+
+            'high_education.*.required' => 'Please enter your highest education.',
+            'institution.*.required' => 'Please enter the institution name.',
+            'graduate_year.*.required' => 'Please enter your graduation year.',
+            'job_role.*.required' => 'Please enter your job role.',
+            'organization.*.required' => 'Please enter the organization name.',
+            'starts_from.*.required' => 'Please enter the start date.',
+            'end_to.*.required' => 'Please enter the end date.',
+
+            'training_skills.required' => 'Please enter your training skills.',
+            'area_of_interest.required' => 'Please enter your area of interest.',
+            'job_category.required' => 'Please select your job category.',
+            'website_link.required' => 'Please enter your website link.',
+            'website_link.url' => 'Please enter a valid website URL.',
+            'portfolio_link.required' => 'Please enter your portfolio link.',
+            'portfolio_link.url' => 'Please enter a valid portfolio URL.',
+
+            'resume.required' => 'Please upload your resume.',
+            'resume.mimes' => 'Resume must be a file of type: pdf, doc, docx.',
+            'profile_picture.required' => 'Please upload your profile picture.',
+            'profile_picture.image' => 'Profile picture must be an image.',
+            'training_certificate.required' => 'Please upload your training certificate.',
+            'training_certificate.mimes' => 'Training certificate must be a file of type: pdf, doc, docx.',
         ]);
 
         DB::beginTransaction();
@@ -290,6 +328,7 @@ class MentorController extends Controller
             'date_of_birth' => $validated['dob'],
             'address' => $validated['address'],
             'city' => $validated['city'],
+            'state' => $validated['state'],
             'country' => $validated['country'],
             'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
@@ -804,8 +843,9 @@ class MentorController extends Controller
             'national_id' => 'required|string|max:15',
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
-            'pin_code' => 'required|string|max:255',
+            'pin_code' => 'required|digits:5',
             'about_mentor' => 'nullable|string',
         ]);
 
@@ -817,6 +857,7 @@ class MentorController extends Controller
             'national_id' => $validated['national_id'] ?? null,
             'address' => $validated['address'] ?? null,
             'city' => $validated['city'] ?? null,
+            'state' => $validated['state'] ?? null,
             'country' => $validated['country'] ?? null,
             'pin_code' => $validated['pin_code'] ?? null,
             'about_mentor' => $validated['about_mentor'] ?? null,
