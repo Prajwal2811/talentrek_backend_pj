@@ -87,7 +87,7 @@
                             <form class="space-y-6" id="multiStepForm" action="{{ route('jobseeker.registration.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <!-- Step 1: Personal Info -->
-                                <div id="step-1" class="">
+                                <div id="step-1" class="step">
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
@@ -171,19 +171,32 @@
                                     </div>
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Address <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="address" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Street, Area, ZIP" value="{{ old('address') }}" />
+                                        <label class="block mb-1 text-sm font-medium mt-3">
+                                            Address <span style="color: red; font-size: 17px;">*</span>
+                                        </label>
+                                        <textarea name="address" rows="3"
+                                            class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Street, Area">{{ old('address') }}</textarea>
                                         @error('address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
 
+
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="City or State" value="{{ old('city') }}" />
+                                            placeholder="Select city " value="{{ old('city') }}" />
                                         @error('city')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block mb-1 text-sm font-medium mt-3">State <span style="color: red; font-size: 17px;">*</span></label>
+                                        <input type="text" name="state" class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Select state" value="{{ old('state') }}" />
+                                        @error('state')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
@@ -191,7 +204,7 @@
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="country" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Select state" value="{{ old('country') }}" />
+                                            placeholder="Select country" value="{{ old('country') }}" />
                                         @error('country')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -199,8 +212,15 @@
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="pin_code" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Enter pin code" value="{{ old('pin_code') }}" />
+                                        <input type="text" name="pin_code"
+                                            class="w-full border rounded-md p-2 mt-1"
+                                            placeholder="Enter pin code"
+                                            value="{{ old('pin_code') }}"
+                                            maxlength="5"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                            inputmode="numeric" />
+
+
                                         @error('pin_code')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -214,7 +234,7 @@
                                 </div>
 
                                 <!-- Step 2: Education -->
-                                <div id="step-2" class="hidden">
+                                <div id="step-2" class="step hidden">
 
                                     <!-- Container for multiple education entries -->
                                     @php
@@ -324,7 +344,7 @@
                                 </div>
 
                                 <!-- Step 3: Work Experience -->
-                                <div id="step-3" class="hidden">
+                                <div id="step-3" class="step hidden">
 
                                     <!-- Container for multiple work experience entries -->
                                     @php
@@ -432,7 +452,7 @@
                                         <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
                                     </div>
 
-                                    <script>
+                                    <!-- <script>
                                         const workContainer = document.getElementById('work-container');
                                         const addWorkBtn = document.getElementById('add-work');
 
@@ -465,7 +485,7 @@
                                                 entry.remove();
                                             }
                                         });
-                                    </script>
+                                    </script> -->
 
 
                                     <div class="col-span-2 flex justify-between">
@@ -479,7 +499,7 @@
 
 
                                 <!-- Step 4: Skills -->
-                                <div id="step-4" class="hidden">
+                                <div id="step-4" class="step hidden">
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
@@ -548,7 +568,7 @@
                                 </div>
 
                                 <!-- Step 5: Additional Information -->
-                                <div id="step-5" class="hidden">
+                                <div id="step-5" class="step hidden">
 
                                     <!-- CV Template Download -->
                                     <div>
@@ -677,177 +697,433 @@
         </div>
 
         @include('site.jobseeker.componants.footer')
- 
 
+<!-- Multiple educations  -->
+<!-- <script>
+    // Function to handle education add/remove
+    const educationContainer = document.getElementById('education-container');
+    const addEducationBtn = document.getElementById('add-education');
 
-        <script>
-            // Function to handle education add/remove
-            const educationContainer = document.getElementById('education-container');
-            const addEducationBtn = document.getElementById('add-education');
+    addEducationBtn.addEventListener('click', () => {
+        const firstEntry = educationContainer.querySelector('.education-entry');
+        const clone = firstEntry.cloneNode(true);
 
-            addEducationBtn.addEventListener('click', () => {
-                const firstEntry = educationContainer.querySelector('.education-entry');
-                const clone = firstEntry.cloneNode(true);
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
 
-                clone.querySelectorAll('input').forEach(input => input.value = '');
-                clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
 
-                clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+        clone.querySelector('.remove-education').style.display = 'block';
 
-                clone.querySelector('.remove-education').style.display = 'block';
+        educationContainer.appendChild(clone);
+    });
 
-                educationContainer.appendChild(clone);
+    educationContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-education')) {
+            const entry = e.target.closest('.education-entry');
+            entry.remove();
+        }
+    });
+</script> -->     
+<!-- <script>
+    const educationContainer = document.getElementById('education-container');
+    const addEducationBtn = document.getElementById('add-education');
+
+    addEducationBtn.addEventListener('click', () => {
+        const firstEntry = educationContainer.querySelector('.education-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear inputs and selects
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+
+        // Show remove button
+        clone.querySelector('.remove-education').style.display = 'block';
+
+        // Append clone
+        educationContainer.appendChild(clone);
+
+        // Wait a moment and apply validation rules to new inputs
+        setTimeout(() => {
+            const container = $(clone);
+
+            container.find('select[name="high_education[]"]').rules('add', {
+                required: true,
+                messages: { required: "Please select qualification" }
             });
+            container.find('select[name="field_of_study[]"]').rules('add', {
+                required: true,
+                messages: { required: "Please select field of study" }
+            });
+            container.find('input[name="institution[]"]').rules('add', {
+                required: true,
+                messages: { required: "Institution name is required" }
+            });
+            container.find('select[name="graduate_year[]"]').rules('add', {
+                required: true,
+                messages: { required: "Graduation year is required" }
+            });
+        }, 100); // ensure DOM render before applying rules
+    });
 
-            educationContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-education')) {
-                    const entry = e.target.closest('.education-entry');
-                    entry.remove();
+    educationContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-education')) {
+            const entry = e.target.closest('.education-entry');
+            entry.remove();
+        }
+    });
+</script> -->
+<script>
+    const educationContainer = document.getElementById('education-container');
+
+    function updateQualificationOptions() {
+        // Get all selected values
+        const selectedValues = Array.from(educationContainer.querySelectorAll('select[name="high_education[]"]'))
+            .map(select => select.value)
+            .filter(val => val !== '');
+
+        // Get all qualification selects
+        const allSelects = educationContainer.querySelectorAll('select[name="high_education[]"]');
+
+        allSelects.forEach(select => {
+            const currentValue = select.value;
+
+            // Show all options first
+            Array.from(select.options).forEach(option => {
+                if (option.value !== "") {
+                    option.style.display = "block";
                 }
             });
-        </script>
-        
-        <script>
-            function showStep(step) {
-                for (let i = 1; i <= 5; i++) {
-                    document.getElementById(`step-${i}`).classList.add('hidden');
-                    document.getElementById(`step-${i}-circle`).classList.remove('bg-blue-600', 'text-white');
+
+            // Now hide already selected values in other selects
+            selectedValues.forEach(value => {
+                if (value !== currentValue) {
+                    const optionToHide = select.querySelector(`option[value="${value}"]`);
+                    if (optionToHide) optionToHide.style.display = "none";
                 }
-                document.getElementById(`step-${step}`).classList.remove('hidden');
-                document.getElementById(`step-${step}-circle`).classList.add('bg-blue-600', 'text-white');
+            });
+        });
+    }
+
+    // Initial call
+    updateQualificationOptions();
+
+    // Add change event listener to update dropdowns when any value is selected
+    educationContainer.addEventListener('change', (e) => {
+        if (e.target.name === "high_education[]") {
+            updateQualificationOptions();
+        }
+    });
+
+    // When you add new education entry, make sure to call updateQualificationOptions after adding it
+    const addEducationBtn = document.getElementById('add-education');
+    addEducationBtn.addEventListener('click', () => {
+        const firstEntry = educationContainer.querySelector('.education-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear values
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+
+        // Show remove button
+        clone.querySelector('.remove-education').style.display = 'block';
+
+        // Append clone
+        educationContainer.appendChild(clone);
+
+        // Apply validation rules if needed
+        setTimeout(() => {
+            const container = $(clone);
+            container.find('select[name="high_education[]"]').rules('add', {
+                required: true,
+                messages: { required: "Please select qualification" }
+            });
+            container.find('select[name="field_of_study[]"]').rules('add', {
+                required: true,
+                messages: { required: "Please select field of study" }
+            });
+            container.find('input[name="institution[]"]').rules('add', {
+                required: true,
+                messages: { required: "Institution name is required" }
+            });
+            container.find('select[name="graduate_year[]"]').rules('add', {
+                required: true,
+                messages: { required: "Graduation year is required" }
+            });
+
+            updateQualificationOptions(); // <=== Important
+        }, 100);
+    });
+
+    // Remove entry
+    educationContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-education')) {
+            const entry = e.target.closest('.education-entry');
+            entry.remove();
+            updateQualificationOptions(); // <=== Important
+        }
+    });
+</script>
+<!-- Multiple exprience  -->    
+<script>
+    const workContainer = document.getElementById('work-container');
+    const addWorkBtn = document.getElementById('add-work');
+
+    addWorkBtn.addEventListener('click', () => {
+        const firstEntry = workContainer.querySelector('.work-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Reset fields
+        clone.querySelectorAll('input').forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+                input.disabled = false;
+            } else {
+                input.value = '';
+                input.readOnly = false;
+                input.disabled = false;
             }
-        </script>
-        <script>
-            $(document).ready(function () {
-                $('#dob').datepicker({
-                    format: 'yyyy-mm-dd',
-                    endDate: new Date(),
-                    autoclose: true,
-                    todayHighlight: true
-                });
-                    function initializeDatePickers() {
-                    $('.datepicker-start, .datepicker-end').datepicker({
-                        format: 'yyyy-mm-dd',
-                        endDate: new Date(),
-                        autoclose: true,
-                        todayHighlight: true
-                    });
-                }
+        });
 
-                initializeDatePickers();
+        // Remove old validation errors
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+        clone.querySelector('.remove-work').style.display = 'block';
 
-                $('#add-work').on('click', function () {
-                    
-                    initializeDatePickers(); 
-                });
+        workContainer.appendChild(clone);
+        Alpine.initTree(clone);
+
+        // Add validation rules
+        setTimeout(() => {
+            const container = $(clone);
+
+            container.find('input[name="job_title[]"]').rules('add', {
+                required: true,
+                messages: { required: "Job title is required" }
             });
-       
-            document.addEventListener('alpine:init', () => {
-                Alpine.effect(() => {
-                    setTimeout(() => {
-                        $('.datepicker-end:not(:disabled)').datepicker(); // or flatpickr()
-                    }, 100);
-                });
+            container.find('input[name="company_name[]"]').rules('add', {
+                required: true,
+                messages: { required: "Company name is required" }
             });
-
-        </script>
-        <!-- Alpine.js v3 CDN -->
-        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <script>
-            $(document).ready(function () {
-                var $submitBtn = $('#submitBtn');
-                var $form = $('form');
-                var $checkbox = $('#termsCheckbox'); // Make sure this is the actual ID of your checkbox
-
-                function toggleSubmitButton() {
-                    if ($checkbox.is(':checked')) {
-                        $submitBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
-                    } else {
-                        $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
-                    }
-                }
-
-                // Always run this on page load (including error reloads)
-                toggleSubmitButton();
-
-                // On checkbox click, enable/disable submit
-                $checkbox.on('change', function () {
-                    toggleSubmitButton();
-                });
-
-                // Prevent multiple submits
-                $form.on('submit', function (e) {
-                    if ($submitBtn.prop('disabled')) {
-                        e.preventDefault();
-                        return;
-                    }
-
-                    $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
-                });
+            container.find('input[name="start_date[]"]').rules('add', {
+                required: true,
+                messages: { required: "Start date is required" }
             });
-        </script>
-        <!-- Natioanl id and gender logic code -->
-        <script>
-            $(document).ready(function () {
-                function validateNationalIdInput() {
-                    const gender = $('#gender').val();
-                    const value = $('#national_id').val();
+            container.find('input[name="end_date[]"]').rules('add', {
+                required: true,
+                messages: { required: "End date is required" }
+            });
+        }, 100);
+    });
 
-                    if (gender === 'Male') {
-                        if (value && !value.startsWith('1')) {
-                            $('#national_id').val('');
-                        }
-                    } else if (gender === 'Female') {
-                        if (value && !value.startsWith('2')) {
-                            $('#national_id').val('');
-                        }
-                    }
-                }
+    workContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-work')) {
+            const entry = e.target.closest('.work-entry');
+            entry.remove();
+        }
+    });
 
-                $('#gender').on('change', function () {
-                    const selectedGender = $(this).val();
+</script>
+<!-- multiple Tabs - steps   -->
+<script>
+    function showStep(step) {
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`step-${i}`).classList.add('hidden');
+            document.getElementById(`step-${i}-circle`).classList.remove('bg-blue-600', 'text-white');
+        }
+        document.getElementById(`step-${step}`).classList.remove('hidden');
+        document.getElementById(`step-${step}-circle`).classList.add('bg-blue-600', 'text-white');
+    }
+</script>
+<!-- Datapicker  -->
+<script>
+    $(document).ready(function () {
+        $('#dob').datepicker({
+            format: 'yyyy-mm-dd',
+            endDate: new Date(),
+            autoclose: true,
+            todayHighlight: true
+        });
+            function initializeDatePickers() {
+            $('.datepicker-start, .datepicker-end').datepicker({
+                format: 'yyyy-mm-dd',
+                endDate: new Date(),
+                autoclose: true,
+                todayHighlight: true
+            });
+        }
 
-                    // Clear National ID field when gender is changed
+        initializeDatePickers();
+
+        $('#add-work').on('click', function () {
+            
+            initializeDatePickers(); 
+        });
+    });
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.effect(() => {
+            setTimeout(() => {
+                $('.datepicker-end:not(:disabled)').datepicker(); // or flatpickr()
+            }, 100);
+        });
+    });
+
+</script>
+<!-- Alpine.js v3 CDN -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var $submitBtn = $('#submitBtn');
+        var $form = $('form');
+        var $checkbox = $('#termsCheckbox'); // Make sure this is the actual ID of your checkbox
+
+        function toggleSubmitButton() {
+            if ($checkbox.is(':checked')) {
+                $submitBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+            } else {
+                $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            }
+        }
+
+        // Always run this on page load (including error reloads)
+        toggleSubmitButton();
+
+        // On checkbox click, enable/disable submit
+        $checkbox.on('change', function () {
+            toggleSubmitButton();
+        });
+
+        // Prevent multiple submits
+        $form.on('submit', function (e) {
+            if ($submitBtn.prop('disabled')) {
+                e.preventDefault();
+                return;
+            }
+
+            $submitBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+        });
+    });
+</script>
+<!-- Natioanl id and gender logic code -->
+<script>
+    $(document).ready(function () {
+        function validateNationalIdInput() {
+            const gender = $('#gender').val();
+            const value = $('#national_id').val();
+
+            if (gender === 'Male') {
+                if (value && !value.startsWith('1')) {
                     $('#national_id').val('');
+                }
+            } else if (gender === 'Female') {
+                if (value && !value.startsWith('2')) {
+                    $('#national_id').val('');
+                }
+            }
+        }
 
-                    // Attach input event for validation
-                    $('#national_id').off('input').on('input', function () {
-                        validateNationalIdInput();
-                    });
-                });
+        $('#gender').on('change', function () {
+            const selectedGender = $(this).val();
+
+            // Clear National ID field when gender is changed
+            $('#national_id').val('');
+
+            // Attach input event for validation
+            $('#national_id').off('input').on('input', function () {
+                validateNationalIdInput();
             });
-        </script>
+        });
+    });
+</script>
 
 
 <!-- Step 2: jQuery Validation Plugin -->
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-
-<!-- Step 3: Your custom script -->
+<!-- all step field click on next button-->
 <script>
     $(document).ready(function () {
         const form = $('#multiStepForm');
 
         form.validate({
+            ignore: [],
             rules: {
+                // Step 1 - Personal Info
                 name: "required",
                 gender: "required",
                 dob: "required",
                 national_id: "required",
                 address: "required",
                 city: "required",
+                state: "required",
                 country: "required",
-                pin_code: "required"
+                pin_code: "required",
+
+                // Step 2 - Education
+                'high_education[]': { required: true },
+                'field_of_study[]': { required: true },
+                'institution[]': { required: true },
+                'graduate_year[]': { required: true },
+
+                // Step 3 - Work Experience
+                'job_role[]': { required: true },
+                'organization[]': { required: true },
+                'starts_from[]': { required: true },
+                'end_to[]': {
+                    required: function (element) {
+                        const parent = $(element).closest('.work-entry');
+                        const isWorking = parent.find('.currently-working-checkbox').prop('checked');
+                        return !isWorking;
+                    }
+                },
+
+                // Step 4 - Skills & Interest
+                skills: "required",
+                interest: "required",
+                job_category: "required",
+
+                // Step 5 - Uploads & Terms
+                resume: "required",
+                profile_picture: "required",
+               
             },
+
             messages: {
+                // Step 1
                 name: "Full name is required",
                 gender: "Please select gender",
                 dob: "Date of birth is required",
                 national_id: "National ID is required",
                 address: "Address is required",
                 city: "City is required",
+                state: "State is required",
                 country: "Country is required",
-                pin_code: "Pin code is required"
+                pin_code: "Pin code is required",
+
+                // Step 2
+                'high_education[]': "Please select qualification",
+                'field_of_study[]': "Please select field of study",
+                'institution[]': "Institution name is required",
+                'graduate_year[]': "Graduation year is required",
+
+                // Step 3
+                'job_role[]': "Job title is required",
+                'organization[]': "Organization is required",
+                'starts_from[]': "Start date is required",
+                'end_to[]': "End date is required unless currently working",
+
+                // Step 4
+                skills: "Please enter your skills",
+                interest: "Please select an area of interest",
+                job_category: "Job category is required",
+
+                // Step 5
+                resume: "Please upload your resume",
+                profile_picture: "Please upload a profile picture",
+               
             },
+
             errorElement: 'p',
             errorPlacement: function (error, element) {
                 error.addClass('text-red-600 text-sm mt-1');
@@ -855,8 +1131,18 @@
             }
         });
 
+        // Step navigation with validation check
         window.showStep = function (step) {
-            if (!form.valid()) return;
+            const currentStep = $('.step:visible');
+            let valid = true;
+
+            currentStep.find('input, select, textarea').each(function () {
+                if (!$(this).valid()) {
+                    valid = false;
+                }
+            });
+
+            if (!valid) return;
 
             for (let i = 1; i <= 5; i++) {
                 $(`#step-${i}`).addClass('hidden');
@@ -865,6 +1151,13 @@
 
             $(`#step-${step}`).removeClass('hidden');
             $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
-        }
+        };
+
     });
+</script>
+
+
+<script src="https://unpkg.com/feather-icons"></script>
+<script>
+  feather.replace(); 
 </script>

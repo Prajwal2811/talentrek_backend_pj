@@ -45,7 +45,8 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::delete('/delete', [RecruiterController::class, 'deleteAccount'])->name('recruiter.destroy');
 
 		Route::get('/filter-jobseekers', [RecruiterController::class, 'filterJobseekers'])->name('recruiter.filter.jobseekers');
-
+		
+		Route::get('/admin-support', [RecruiterController::class, 'showAdminSupportForm'])->name('recruiter.admin.support');
 
 	});
 });

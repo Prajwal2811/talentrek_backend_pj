@@ -20,6 +20,7 @@ class Mentors extends Authenticatable
         'date_of_birth',
         'address',
         'city',
+        'state',
         'country',
         'pin_code',
         'password',

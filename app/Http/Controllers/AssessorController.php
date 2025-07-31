@@ -286,8 +286,9 @@ class AssessorController extends Controller
             'dob' => 'required|date',
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
-            'pin_code' => 'required|string|max:255',
+            'pin_code' => 'required|digits:5',
             'national_id' => [
                 'required',
                 'min:10',
@@ -337,6 +338,7 @@ class AssessorController extends Controller
             'phone_number.unique' => 'This phone number is already taken.',
             'dob.required' => 'Please enter your date of birth.',
             'city.required' => 'Please enter your city.',
+            'state.required' => 'Please enter your state.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
 
@@ -376,6 +378,7 @@ class AssessorController extends Controller
             'date_of_birth' => $validated['dob'],
             'address' => $validated['address'],
             'city' => $validated['city'],
+            'state' => $validated['state'],
             'country' => $validated['country'],
             'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
@@ -524,8 +527,9 @@ class AssessorController extends Controller
             'national_id' => 'required|string|max:15',
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
-            'pin_code' => 'required|string|max:255',
+            'pin_code' => 'required|digits:5',
             'about_assessor' => 'nullable|string',
         ]);
 
@@ -537,6 +541,7 @@ class AssessorController extends Controller
             'national_id' => $validated['national_id'] ?? null,
             'address' => $validated['address'] ?? null,
             'city' => $validated['city'] ?? null,
+            'state' => $validated['state'] ?? null,
             'country' => $validated['country'] ?? null,
             'pin_code' => $validated['pin_code'] ?? null,
             'about_assessor' => $validated['about_assessor'] ?? null,

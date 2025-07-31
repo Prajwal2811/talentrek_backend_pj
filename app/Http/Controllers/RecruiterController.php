@@ -50,6 +50,10 @@ class RecruiterController extends Controller
      {
           return view('site.recruiter.reset-password'); 
      }
+     public function showAdminSupportForm()
+     {
+          return view('site.recruiter.admin-support'); 
+     }
      public function postRegistration(Request $request)
      {
           $validated = $request->validate([
