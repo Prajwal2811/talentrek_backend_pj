@@ -66,20 +66,20 @@
 
                                     <!-- Steps Content -->
 
-                                <form class="space-y-6" action="{{ route('assessor.registration.store') }}" method="POST" enctype="multipart/form-data">
+                                <form class="space-y-6" id="multiStepForm" action="{{ route('assessor.registration.store') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <!-- Step 1: Personal Info -->
-                                    <div id="step-1" class="">
+                                    <div id="step-1" class="step">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Full name</label>
-                                            <input type="text" name="name" class="w-full border rounded-md p-2" placeholder="Enter full name" value="{{old('name')}}"/>
+                                            <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter full name" value="{{old('name')}}"/>
                                             @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Email</label>
-                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2" value="{{old('email', $email)}}" readonly/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Email <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
                                             @error('email')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -87,13 +87,13 @@
                                         
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium">Phone number</label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
-                                                <select class="w-1/3 border rounded-l-md p-2" name="phone_code">
+                                                <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
                                                     <option value="+966">+966</option>
                                                     <option value="+971">+971</option>
                                                 </select>
-                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number', $phone)}}" readonly/>
+                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2 mt-1" value="{{old('phone_number', $phone)}}" readonly/>
                                                 
                                             </div>
                                             @error('phone_number')
@@ -101,8 +101,8 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Date of birth</label>
-                                            <input type="date" name="dob" class="w-full border rounded-md p-2" value="{{old('dob')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="date" name="dob" class="w-full border rounded-md p-2 mt-1" value="{{old('dob')}}"/>
                                             @error('dob')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -110,7 +110,7 @@
                                         </div>
                                         <div class="grid grid-cols-2 gap-6 mt-3">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <span class="text-xs text-blue-600">
                                                     National ID should start with 1 for male and 2 for female.
                                                 </span>
@@ -141,8 +141,17 @@
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="City or State" value="{{ old('city') }}" />
+                                                placeholder="Select city" value="{{ old('city') }}" />
                                             @error('city')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block mb-1 text-sm font-medium mt-3">State <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="state" class="w-full border rounded-md p-2 mt-1"
+                                                placeholder="Select state" value="{{ old('state') }}" />
+                                            @error('state')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
@@ -150,7 +159,7 @@
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="country" class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="Select state" value="{{ old('country') }}" />
+                                                placeholder="Select country" value="{{ old('country') }}" />
                                             @error('country')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -158,20 +167,25 @@
 
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="pin_code" class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="Enter pin code" value="{{ old('pin_code') }}" />
+                                            <input type="text" name="pin_code"
+                                                class="w-full border rounded-md p-2 mt-1"
+                                                placeholder="Enter pin code"
+                                                value="{{ old('pin_code') }}"
+                                                maxlength="5"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                                inputmode="numeric" />
                                             @error('pin_code')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div class="flex justify-end">
-                                            <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                            <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">Next</button>
                                         </div>
                                     
                                     </div>
 
                                     <!-- Step 2: Education -->
-                                    <div id="step-2" class="hidden">
+                                    <div id="step-2" class="step hidden">
                                         @php
                                             $educationData = old('high_education') ?? [null];
                                         @endphp
@@ -180,7 +194,7 @@
                                             @foreach($educationData as $i => $value)
                                             <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"">
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select highest qualification</option>
                                                         @foreach(['high_school', 'diploma', 'bachelor', 'master', 'phd'] as $option)
@@ -193,7 +207,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of study <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select field of study</option>
                                                         @foreach(['engineering', 'science', 'commerce', 'arts', 'medicine', 'law', 'education', 'management', 'other'] as $field)
@@ -206,7 +220,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i") }}" placeholder="Enter Institution name">
                                                     @error("institution.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -214,7 +228,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
                                                         <option value="">Select year of passing</option>
                                                         @for($year = now()->year; $year >= 2000; $year--)
@@ -242,10 +256,8 @@
                                         </div>
                                     </div>
 
-
-
                                     <!-- Step 3: Work Experience -->
-                                    <div id="step-3" class="hidden">
+                                    <div id="step-3" class="step hidden">
                                        @php
                                         $workCount = count(old('job_role', [null]));
                                         @endphp
@@ -380,21 +392,18 @@
                                         </div>
                                     </div>
                                     
-                               
-
-
                                     <!-- Step 4: Skills -->
-                                    <div id="step-4" class="hidden">
+                                    <div id="step-4" class="step hidden">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Skills</label>
-                                            <input type="text" name="training_skills" class="w-full border rounded-md p-2" placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{old('training_skills')}}"/>
+                                            <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="training_skills" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{old('training_skills')}}"/>
                                             @error('training_skills')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Area Of Interest</label>
-                                            <select name="area_of_interest" class="w-full border rounded-md p-2">
+                                            <label class="block mb-1 text-sm font-medium mt-3">Area Of Interest <span style="color: red; font-size: 17px;">*</span></label>
+                                            <select name="area_of_interest" class="w-full border rounded-md p-2 mt-1">
                                                 <option value="">-- Select Area of Interest --</option>
                                                 @foreach($categories as $category)
                                                     <option value="{{ $category->category }}" {{ old('area_of_interest') == $category->category ? 'selected' : '' }}>
@@ -408,8 +417,8 @@
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Job Category</label>
-                                            <input type="text" name="job_category" class="w-full border rounded-md p-2"
+                                            <label class="block mb-1 text-sm font-medium mt-3">Job Category <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                                 placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{ old('job_category') }}" />
                                             @error('job_category')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -418,39 +427,38 @@
 
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Website Link</label>
-                                            <input type="url" name="website_link" class="w-full border rounded-md p-2" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Website Link</label>
+                                            <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
                                             @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Portfolio Link</label>
-                                            <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link</label>
+                                            <input type="url" name="portfolio_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}"/>
                                             @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div class="flex justify-between">
-                                            <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md">
+                                            <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md mt-3">
                                                 Back
                                             </button>
-                                            <button type="button" onclick="showStep(5)" class="bg-blue-700 text-white px-6 py-2 rounded-md">
+                                            <button type="button" onclick="showStep(5)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
                                                 Next
                                             </button>
                                         </div>
                                    
                                     </div>
 
-
                                     <!-- Step 5: Additional Information -->
-                                    <div id="step-5" class="hidden">
+                                    <div id="step-5" class="step hidden">
                                    
                                         <!-- Upload Resume -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload resume</label>
+                                            <label class="block text-sm font-medium mb-1">Upload resume <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex gap-2 items-center">
-                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm" />
+                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm mt-1" />
                                             </div>
                                             @error('resume')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -459,9 +467,9 @@
 
                                         <!-- Upload Profile Picture -->
                                         <div>
-                                        <label class="block text-sm font-medium mb-1">Upload profile picture</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm" />
+                                            <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm mt-1" />
                                         </div>
                                         @error('profile_picture')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -469,16 +477,16 @@
                                         </div>
 
                                         <div>
-                                        <label class="block text-sm font-medium mb-1">Upload training certificate</label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">Upload training certificate <span style="color: red; font-size: 17px;">*</span></label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm" />
+                                            <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm mt-1" />
                                         </div>
                                         @error('training_certificate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         </div>
 
-                                        <div class="text-sm">
+                                        <div class="text-sm mt-3">
                                             <label class="flex items-start gap-2">
                                             <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}></input>
                                             <span>
@@ -506,81 +514,235 @@
                                     </div>
                                 </form> 
                             </div>
-                                <script>
-                                    // === Education Section ===
-                                    const educationContainer = document.getElementById('education-container');
-                                    const addEducationBtn = document.getElementById('add-education');
-
-                                    addEducationBtn.addEventListener('click', () => {
-                                        const firstEntry = educationContainer.querySelector('.education-entry');
-                                        if (!firstEntry) return;
-
-                                        const clone = firstEntry.cloneNode(true);
-
-                                        // Clear all inputs and selects
-                                        clone.querySelectorAll('input').forEach(input => input.value = '');
-                                        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-
-                                        // Show remove button
-                                        const removeBtn = clone.querySelector('.remove-education');
-                                        if (removeBtn) removeBtn.style.display = 'block';
-
-                                        educationContainer.appendChild(clone);
-                                    });
-
-                                    educationContainer.addEventListener('click', (e) => {
-                                        if (e.target.classList.contains('remove-education')) {
-                                            const entry = e.target.closest('.education-entry');
-                                            if (entry) entry.remove();
-                                        }
-                                    });
-
-                                    // === Work Experience Section ===
-                                    const workContainer = document.getElementById('work-container');
-                                    const addWorkBtn = document.getElementById('add-work');
-
-                                    addWorkBtn.addEventListener('click', () => {
-                                        const firstEntry = workContainer.querySelector('.work-entry');
-                                        if (!firstEntry) return;
-
-                                        const clone = firstEntry.cloneNode(true);
-
-                                        // Clear all inputs
-                                        clone.querySelectorAll('input').forEach(input => input.value = '');
-
-                                        // Show remove button
-                                        const removeBtn = clone.querySelector('.remove-work');
-                                        if (removeBtn) removeBtn.style.display = 'block';
-
-                                        workContainer.appendChild(clone);
-                                    });
-
-                                    workContainer.addEventListener('click', (e) => {
-                                        if (e.target.classList.contains('remove-work')) {
-                                            const entry = e.target.closest('.work-entry');
-                                            if (entry) entry.remove();
-                                        }
-                                    });
-                                </script>
-
-                                <script>
-                                    function showStep(step) {
-                                    for (let i = 1; i <= 5; i++) {
-                                        document.getElementById(`step-${i}`).classList.add('hidden');
-                                        document.getElementById(`step-${i}-circle`).classList.remove('bg-blue-600', 'text-white');
-                                    }
-                                    document.getElementById(`step-${step}`).classList.remove('hidden');
-                                    document.getElementById(`step-${step}-circle`).classList.add('bg-blue-600', 'text-white');
-                                    }
-                                </script>
-
+                      
                                 <!-- </div> -->
                             </div>
                         </div>
                     </div>
-
-                    
  	        </div>
+
+
+<!-- <script>
+    // === Education Section ===
+    const educationContainer = document.getElementById('education-container');
+    const addEducationBtn = document.getElementById('add-education');
+
+    addEducationBtn.addEventListener('click', () => {
+        const firstEntry = educationContainer.querySelector('.education-entry');
+        if (!firstEntry) return;
+
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear all inputs and selects
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+
+        // Show remove button
+        const removeBtn = clone.querySelector('.remove-education');
+        if (removeBtn) removeBtn.style.display = 'block';
+
+        educationContainer.appendChild(clone);
+    });
+
+    educationContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-education')) {
+            const entry = e.target.closest('.education-entry');
+            if (entry) entry.remove();
+        }
+    });
+</script>
+<script>
+    // === Work Experience Section ===
+    const workContainer = document.getElementById('work-container');
+    const addWorkBtn = document.getElementById('add-work');
+
+    addWorkBtn.addEventListener('click', () => {
+        const firstEntry = workContainer.querySelector('.work-entry');
+        if (!firstEntry) return;
+
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear all inputs
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+
+        // Show remove button
+        const removeBtn = clone.querySelector('.remove-work');
+        if (removeBtn) removeBtn.style.display = 'block';
+
+        workContainer.appendChild(clone);
+    });
+
+    workContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-work')) {
+            const entry = e.target.closest('.work-entry');
+            if (entry) entry.remove();
+        }
+    });
+</script> -->
+
+<!-- multiple Education -->
+<script>
+    const educationContainer = document.getElementById('education-container');
+
+    function updateQualificationOptions() {
+        // Get all selected values
+        const selectedValues = Array.from(educationContainer.querySelectorAll('select[name="high_education[]"]'))
+            .map(select => select.value)
+            .filter(val => val !== '');
+
+        // Get all qualification selects
+        const allSelects = educationContainer.querySelectorAll('select[name="high_education[]"]');
+
+        allSelects.forEach(select => {
+            const currentValue = select.value;
+
+            // Show all options first
+            Array.from(select.options).forEach(option => {
+                if (option.value !== "") {
+                    option.style.display = "block";
+                }
+            });
+
+            // Now hide already selected values in other selects
+            selectedValues.forEach(value => {
+                if (value !== currentValue) {
+                    const optionToHide = select.querySelector(`option[value="${value}"]`);
+                    if (optionToHide) optionToHide.style.display = "none";
+                }
+            });
+        });
+    }
+
+    // Initial call
+    updateQualificationOptions();
+
+    // Add change event listener to update dropdowns when any value is selected
+    educationContainer.addEventListener('change', (e) => {
+        if (e.target.name === "high_education[]") {
+            updateQualificationOptions();
+        }
+    });
+
+    // When you add new education entry, make sure to call updateQualificationOptions after adding it
+    const addEducationBtn = document.getElementById('add-education');
+    addEducationBtn.addEventListener('click', () => {
+        const firstEntry = educationContainer.querySelector('.education-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Clear values
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+
+        // Show remove button
+        clone.querySelector('.remove-education').style.display = 'block';
+
+        // Append clone
+        educationContainer.appendChild(clone);
+
+        // Apply validation rules if needed
+        setTimeout(() => {
+            const container = $(clone);
+            container.find('select[name="high_education[]"]').rules('add', {
+                required: true,
+                messages: { required: "Please select qualification" }
+            });
+            container.find('select[name="field_of_study[]"]').rules('add', {
+                required: true,
+                messages: { required: "Please select field of study" }
+            });
+            container.find('input[name="institution[]"]').rules('add', {
+                required: true,
+                messages: { required: "Institution name is required" }
+            });
+            container.find('select[name="graduate_year[]"]').rules('add', {
+                required: true,
+                messages: { required: "Graduation year is required" }
+            });
+
+            updateQualificationOptions(); // <=== Important
+        }, 100);
+    });
+
+    // Remove entry
+    educationContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-education')) {
+            const entry = e.target.closest('.education-entry');
+            entry.remove();
+            updateQualificationOptions(); // <=== Important
+        }
+    });
+</script>
+<!-- Multiple exprience  -->    
+<script>
+    const workContainer = document.getElementById('work-container');
+    const addWorkBtn = document.getElementById('add-work');
+
+    addWorkBtn.addEventListener('click', () => {
+        const firstEntry = workContainer.querySelector('.work-entry');
+        const clone = firstEntry.cloneNode(true);
+
+        // Reset fields
+        clone.querySelectorAll('input').forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+                input.disabled = false;
+            } else {
+                input.value = '';
+                input.readOnly = false;
+                input.disabled = false;
+            }
+        });
+
+        // Remove old validation errors
+        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
+        clone.querySelector('.remove-work').style.display = 'block';
+
+        workContainer.appendChild(clone);
+        Alpine.initTree(clone);
+
+        // Add validation rules
+        setTimeout(() => {
+            const container = $(clone);
+
+            container.find('input[name="job_title[]"]').rules('add', {
+                required: true,
+                messages: { required: "Job title is required" }
+            });
+            container.find('input[name="company_name[]"]').rules('add', {
+                required: true,
+                messages: { required: "Company name is required" }
+            });
+            container.find('input[name="start_date[]"]').rules('add', {
+                required: true,
+                messages: { required: "Start date is required" }
+            });
+            container.find('input[name="end_date[]"]').rules('add', {
+                required: true,
+                messages: { required: "End date is required" }
+            });
+        }, 100);
+    });
+
+    workContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-work')) {
+            const entry = e.target.closest('.work-entry');
+            entry.remove();
+        }
+    });
+
+</script>
+
+<script>
+    function showStep(step) {
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById(`step-${i}`).classList.add('hidden');
+        document.getElementById(`step-${i}-circle`).classList.remove('bg-blue-600', 'text-white');
+    }
+    document.getElementById(`step-${step}`).classList.remove('hidden');
+    document.getElementById(`step-${step}-circle`).classList.add('bg-blue-600', 'text-white');
+    }
+</script>            
 
  <script>
     const checkbox = document.getElementById('termsCheckbox');
@@ -679,6 +841,127 @@
                 });
             }, 100);
         });
+    });
+</script>
+
+<!-- Step 2: jQuery Validation Plugin -->
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<!-- all step field click on next button-->
+<script>
+    $(document).ready(function () {
+        const form = $('#multiStepForm');
+
+        form.validate({
+            ignore: [],
+            rules: {
+                // Step 1 - Personal Info
+                name: "required",
+                gender: "required",
+                dob: "required",
+                national_id: "required",
+                address: "required",
+                city: "required",
+                state: "required",
+                country: "required",
+                pin_code: "required",
+
+                // Step 2 - Education
+                'high_education[]': { required: true },
+                'field_of_study[]': { required: true },
+                'institution[]': { required: true },
+                'graduate_year[]': { required: true },
+
+                // Step 3 - Work Experience
+                'job_role[]': { required: true },
+                'organization[]': { required: true },
+                'starts_from[]': { required: true },
+                'end_to[]': {
+                    required: function (element) {
+                        const parent = $(element).closest('.work-entry');
+                        const isWorking = parent.find('.currently-working-checkbox').prop('checked');
+                        return !isWorking;
+                    }
+                },
+
+                // Step 4 - Skills & Interest
+                training_skills: "required",
+                area_of_interest: "required",
+                job_category: "required",
+                
+
+                // Step 5 - Uploads & Terms
+                resume: "required",
+                profile_picture: "required",
+                training_certificate: "required",
+                
+            },
+
+            messages: {
+                // Step 1
+                name: "Full name is required",
+                gender: "Please select gender",
+                dob: "Date of birth is required",
+                national_id: "National ID is required",
+                address: "Address is required",
+                city: "City is required",
+                state: "State is required",
+                country: "Country is required",
+                pin_code: "Pin code is required",
+
+                // Step 2
+                'high_education[]': "Please select qualification",
+                'field_of_study[]': "Please select field of study",
+                'institution[]': "Institution name is required",
+                'graduate_year[]': "Graduation year is required",
+
+                // Step 3
+                'job_role[]': "Job title is required",
+                'organization[]': "Organization is required",
+                'starts_from[]': "Start date is required",
+                'end_to[]': "End date is required unless currently working",
+
+                // Step 4
+                training_skills: "Please enter your skills",
+                area_of_interest: "Please select an area of interest",
+                job_category: "Job category is required",
+                
+
+                // Step 5
+                resume: "Please upload your resume",
+                profile_picture: "Please upload a profile picture",
+                training_certificate: "Please upload a training certificate",
+            
+            },
+
+            errorElement: 'p',
+            errorPlacement: function (error, element) {
+                error.addClass('text-red-600 text-sm mt-1');
+                error.insertAfter(element);
+            }
+        });
+
+        // Step navigation with validation check
+        window.showStep = function (step) {
+            const currentStep = $('.step:visible');
+            let valid = true;
+
+            currentStep.find('input, select, textarea').each(function () {
+                if (!$(this).valid()) {
+                    valid = false;
+                }
+            });
+
+            if (!valid) return;
+
+            for (let i = 1; i <= 5; i++) {
+                $(`#step-${i}`).addClass('hidden');
+                $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white');
+            }
+
+            $(`#step-${step}`).removeClass('hidden');
+            $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
+        };
+
     });
 </script>
 

@@ -26,6 +26,7 @@ class Jobseekers extends Authenticatable
         'date_of_birth',
         'national_id',
         'city',
+        'state',
         'address',
         'password',
         'pin_code',
