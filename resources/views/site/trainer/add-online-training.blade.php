@@ -22,7 +22,6 @@
 
             <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                 <h2 class="text-xl font-semibold mb-6">Online/Offline Course</h2>
-
                 <form action="{{ route('trainer.training.online.save.data') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 

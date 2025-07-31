@@ -683,7 +683,7 @@
                                         ])->where('jobseeker_id', $jobseeker->id)
                                         ->where('user_type', 'assessor')
                                         ->get();
-                                echo "<pre>"; print_r($assessments); 
+                                // echo "<pre>"; print_r($assessments); 
                             @endphp
 
                             <div class="card">
