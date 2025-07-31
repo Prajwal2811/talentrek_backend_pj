@@ -1782,7 +1782,7 @@ class JobseekerController extends Controller
         $material->documents = DB::table('training_materials_documents')
             ->where('training_material_id', $material->id)
             ->get();
-
+       
         $material->batches = DB::table('training_batches')
             ->where('training_material_id', $material->id)
             ->get();
