@@ -661,15 +661,18 @@ class RecruiterController extends Controller
           $validated = $request->validate([
                'company_profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
                'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-          ], [
+               ], [
+               // Custom messages for company_profile
                'company_profile.file' => 'The company profile must be a valid file.',
                'company_profile.mimes' => 'The company profile must be a file of type: jpg, jpeg, png.',
                'company_profile.max' => 'The company profile must not be greater than 2MB.',
 
+               // Custom messages for register_document
                'register_document.file' => 'The registration document must be a valid file.',
                'register_document.mimes' => 'The registration document must be a file of type: pdf, doc, docx.',
                'register_document.max' => 'The registration document must not be greater than 2MB.',
           ]);
+
 
           foreach (['company_profile', 'register_document'] as $type) {
                if ($request->hasFile($type)) {
@@ -680,11 +683,7 @@ class RecruiterController extends Controller
 
                     \App\Models\AdditionalInfo::updateOrCreate(
                          ['user_id' => $userId, 'doc_type' => $type],
-                         [
-                              'document_path' => $path,
-                              'document_name' => $fileName,
-                              'user_type' => 'recruiter', // Ensures recruiter type is stored
-                         ]
+                         ['document_path' => $path, 'document_name' => $fileName]
                     );
                }
           }
@@ -694,7 +693,6 @@ class RecruiterController extends Controller
                'message' => 'Company documents updated successfully!',
           ]);
      }
-
 
 
 
@@ -730,18 +728,13 @@ class RecruiterController extends Controller
 
      public function deleteAccount()
      {
-     $user = auth()->user(); 
+          $recruiterId = auth()->id();
+          // dd($recruiterId);exit;
+          RecruiterCompany::where('id', $recruiterId)->delete();
+          Recruiters::where('company_id', $recruiterId)->delete();
+          auth()->logout();
 
-     $companyId = $user->id; 
-     $recruiterId = $user->recruiter_id;
-
-     RecruiterCompany::where('id', $companyId)->delete();
-     Recruiters::where('id', $recruiterId)->delete();
-
-     auth()->logout();
-
-     return redirect()->route('recruiter.login')->with('success', 'Your account has been deleted successfully.');
+          return redirect()->route('recruiter.login')->with('success', 'Your account has been deleted successfully.');
      }
-
 
 }

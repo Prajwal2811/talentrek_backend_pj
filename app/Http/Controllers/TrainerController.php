@@ -9,7 +9,7 @@ use App\Models\Trainers;
 use App\Models\TrainingExperience;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
-use App\Models\Additionalinfo;
+use App\Models\AdditionalInfo;
 use App\Models\TrainerAssessment;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentOption;
@@ -1220,21 +1220,8 @@ class TrainerController extends Controller
                     }
                 },
             ],
-        ], [
-            'name.required' => 'Please enter your name.',
-            'email.required' => 'Please enter your email.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.unique' => 'This email is already taken.',
-            'phone.required' => 'Please enter your phone number.',
-            'phone.digits' => 'Phone number must be 10 digits.',
-            'dob.required' => 'Please enter your date of birth.',
-            'dob.date' => 'Please enter a valid date of birth.',
-            'location.required' => 'Please enter your location.',
-            'location.string' => 'Location must be a valid string.',
-            'national_id.required' => 'Please enter your national ID.',
-            'national_id.min' => 'National ID must be at least 10 characters.',
-        ]);
 
+        ]);
 
         $user->update([
             'name' => $validated['name'],
@@ -1261,20 +1248,7 @@ class TrainerController extends Controller
             'field_of_study.*' => 'required|string|max:255',
             'institution.*' => 'required|string|max:255',
             'graduate_year.*' => 'required|string|max:255', 
-        ], [
-            'high_education.*.required' => 'Please enter your highest education.',
-            'high_education.*.string' => 'Education must be a valid string.',
-            
-            'field_of_study.*.required' => 'Please enter your field of study.',
-            'field_of_study.*.string' => 'Field of study must be a valid string.',
-            
-            'institution.*.required' => 'Please enter the name of the institution.',
-            'institution.*.string' => 'Institution name must be a valid string.',
-            
-            'graduate_year.*.required' => 'Please enter your graduation year.',
-            'graduate_year.*.string' => 'Graduation year must be a valid string.',
         ]);
-
 
         $incomingIds = $request->input('education_id', []);
 
@@ -1319,21 +1293,7 @@ class TrainerController extends Controller
             'starts_from.*' => 'required|date',
             'end_to.*' => 'nullable|date',
             'currently_working' => 'nullable|array',
-        ], [
-            'job_role.*.required' => 'Please enter your job role.',
-            'job_role.*.string' => 'Job role must be a valid string.',
-            
-            'organization.*.required' => 'Please enter your organization name.',
-            'organization.*.string' => 'Organization name must be a valid string.',
-            
-            'starts_from.*.required' => 'Please enter your start date.',
-            'starts_from.*.date' => 'Start date must be a valid date.',
-            
-            'end_to.*.date' => 'End date must be a valid date.',
-            
-            'currently_working.array' => 'Currently working must be an array of values.',
         ]);
-
 
         $workIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
@@ -1428,31 +1388,24 @@ class TrainerController extends Controller
     public function updateAdditionalInfo(Request $request)
     {
         $userId = auth()->id();
-
-        // Map your input keys to doc_type values
-        $uploadTypes = [
-            'resume' => 'resume',
-            'profile_picture' => 'profile_picture',
-            'training_certificate' => 'training_certificate',
-        ];
-
-        // Validation rules for each input field
+        
+        // Validate all 3 possible uploads
         $validated = $request->validate([
             'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'profile_picture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        // Loop through each input and save the uploaded file
-        foreach ($uploadTypes as $inputName => $docType) {
-            if ($request->hasFile($inputName)) {
-                $file = $request->file($inputName);
-                $fileName = $docType . '_' . time() . '.' . $file->getClientOriginalExtension();
+        // Loop over each type
+        foreach (['resume', 'profile', 'training_certificate'] as $type) {
+            if ($request->hasFile($type)) {
+                $file = $request->file($type);
+                $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads'), $fileName);
                 $path = asset('uploads/' . $fileName);
 
                 AdditionalInfo::updateOrCreate(
-                    ['user_id' => $userId, 'user_type' => 'trainer', 'doc_type' => $docType],
+                    ['user_id' => $userId, 'user_type' => 'trainer', 'doc_type' => $type],
                     ['document_path' => $path, 'document_name' => $fileName]
                 );
             }
@@ -1463,7 +1416,6 @@ class TrainerController extends Controller
             'message' => 'Trainer documents updated successfully!'
         ]);
     }
-
 
 
     public function deleteAdditionalFile($type)

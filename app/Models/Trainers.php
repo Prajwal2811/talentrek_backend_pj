@@ -76,12 +76,4 @@ class Trainers extends Authenticatable
         return $this->hasMany(TrainingBatch::class, 'trainer_id');
        
     }
-
-
-    public function profilePicture()
-    {
-        return $this->hasOne(AdditionalInfo::class, 'user_id')
-                    ->where('user_type', 'trainer')
-                    ->where('doc_type', 'trainer_profile_picture');
-    }
 }

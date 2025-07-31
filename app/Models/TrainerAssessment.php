@@ -30,7 +30,7 @@ class TrainerAssessment extends Model
 
     public function trainer()
     {
-        return $this->belongsTo(Trainers::class, 'trainer_id');
+        return $this->belongsTo(Trainers::class, 'trainer_id'); // Assuming trainers are users
     }
 
     public function course()

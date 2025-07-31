@@ -59,9 +59,9 @@ class SlotManagementController extends Controller
                 ->where('slot_mode', $request->slot_mode)
                 ->where('start_time', $startTime->format('H:i:s'))
                 ->where('end_time', $endTime->format('H:i:s'))
-                ->get();
-           
-            if ($exists->count() > 0) {
+                ->exists();
+
+             if ($exists->count() > 0) {
                 return response()->json(['status'  => false,'errors' => 'Some of the slots already exist in your sessions please check.'], 200);               
             }
         }

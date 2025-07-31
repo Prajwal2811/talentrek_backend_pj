@@ -46,7 +46,6 @@ class JobseekerTrainingMaterialPurchase extends Model
         return $this->belongsTo(PaymentHistory::class, 'payment_id');
     }
 
-    
 
 
 }

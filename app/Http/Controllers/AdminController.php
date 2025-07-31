@@ -224,9 +224,9 @@ class AdminController extends Controller
                                                         ->where('payments_history.payment_status', 'paid')
                                                         ->sum('amount_paid');
 
-        $mentorSessionCount = BookingSession::where('user_type', 'mentor')->count();
-        $coachSessionCount = BookingSession::where('user_type', 'coach')->count();
-        $assessorSessionCount = BookingSession::where('user_type', 'assessor')->count();
+        // $mentorSessionCount = Bookings::where('type', 'mentor')->count();
+        // $coachSessionCount = Bookings::where('type', 'coach')->count();
+        // $assessorSessionCount = Bookings::where('type', 'assessor')->count();
 
 
         $roleCounts = [
@@ -255,6 +255,8 @@ class AdminController extends Controller
             Trainers::whereMonth('created_at', $month)->whereYear('created_at', $currentYear)->count()
         );
 
+
+        
         return view('admin.dashboard', [
             'jobseekerCount'        => $jobseekerCount,
             'recruiterCount'        => $recruiterCount,
@@ -264,9 +266,9 @@ class AdminController extends Controller
             'mentorCount'           => $mentorCount,
             'assessorCount'         => $assessorCount,
             'materialSales'         => $materialSales,
-            'mentorSessionCount'    => $mentorSessionCount,
-            'coachSessionCount'     => $coachSessionCount,
-            'assessorSessionCount'  => $assessorSessionCount,
+            // 'mentorSessionCount'    => $mentorSessionCount,
+            // 'coachSessionCount'     => $coachSessionCount,
+            // 'assessorSessionCount'  => $assessorSessionCount,
             'roleCounts'            => $roleCounts,
             'jobseekerData' => $jobseekerData,
             'recruiterData' => $recruiterData,

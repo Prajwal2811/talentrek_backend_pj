@@ -22,10 +22,10 @@ class AssessmentOption extends Model
         'correct_option' => 'boolean',
     ];
 
-    // public function options()
-    // {
-    //     return $this->hasOne(AssessmentOption::class, 'question_id');
-    // }
+    public function options()
+    {
+        return $this->hasOne(AssessmentOption::class, 'question_id');
+    }
 
     public function assessment()
     {
@@ -36,11 +36,6 @@ class AssessmentOption extends Model
     public function trainer()
     {
         return $this->belongsTo(Trainers::class, 'trainer_id');
-    }
-
-    public function question()
-    {
-        return $this->belongsTo(AssessmentQuestion::class, 'question_id');
     }
 }
 
