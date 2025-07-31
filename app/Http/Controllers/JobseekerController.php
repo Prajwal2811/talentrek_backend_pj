@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Session;
+use Illuminate\Support\Facades\Log;
 use App\Models\Jobseekers;
 use App\Models\Recruiters;
 use App\Models\Trainers;
@@ -18,6 +19,7 @@ use App\Models\Mentors;
 use App\Models\TrainerAssessment;
 use App\Models\Assessors;
 use App\Models\Coach;
+use App\Models\Admin;
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -321,6 +323,41 @@ class JobseekerController extends Controller
                     'doc_type' => 'profile_picture',
                     'document_name' => $profileName,
                     'document_path' => asset('uploads/' . $fileNameToStoreProfile),
+                ]);
+            }
+        }
+
+
+
+        // If no admin is assigned, assign an available admin
+        if (!$jobseeker->assigned_admin) {
+            // Example logic: pick any available admin (you can change the logic as needed)
+            $availableAdmin = Admin::where('status', 'active')->inRandomOrder()->first();
+
+            if ($availableAdmin) {
+                $jobseeker->assigned_admin = $availableAdmin->id;
+                $jobseeker->save();
+
+                // Log the assignment
+                Log::info('Jobseeker automatically assigned to admin during update', [
+                    'jobseeker' => [
+                        'id' => $jobseeker->id,
+                        'name' => $jobseeker->name,
+                        'email' => $jobseeker->email,
+                    ],
+                    'assigned_to_admin' => [
+                        'id' => $availableAdmin->id,
+                        'name' => $availableAdmin->name,
+                        'email' => $availableAdmin->email,
+                        'role' => $availableAdmin->role,
+                    ],
+                    'assigned_by' => [
+                        'id' => auth()->id() ?? null,
+                        'name' => auth()->user()?->name ?? 'System',
+                        'email' => auth()->user()?->email ?? 'system',
+                        'role' => auth()->user()?->role ?? 'unknown',
+                    ],
+                    'time' => now()
                 ]);
             }
         }
@@ -2118,7 +2155,7 @@ class JobseekerController extends Controller
             return redirect()->route('course.details', $material->id)->with('success', 'Course purchased successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Course purchase failed: ' . $e->getMessage());
+            Log::error('Course purchase failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Something went wrong while processing your purchase.');
         }
     }
