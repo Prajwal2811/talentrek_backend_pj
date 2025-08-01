@@ -13,7 +13,6 @@ use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Mail;
 class JobseekerController extends Controller
 {
@@ -45,11 +44,11 @@ class JobseekerController extends Controller
             'data' => [
                 'id' => $jobseeker->id,
                 'name' => $jobseeker->name,
-                'email' => $jobseeker->email
+                'email' => $jobseeker->email,
+                'is_registered' => $trainer->is_registered,
+                'mobile' => $jobseeker->phone_number,
             ]
         ]);
-
-
     }
 
 
@@ -327,7 +326,7 @@ class JobseekerController extends Controller
                 'name'         => $request->name,
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
-                'date_of_birth'=> $request->date_of_birth,
+                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
                 'city'         => $request->location,
                 'address'      => $request->address,
                 'is_registered'=> true, // you should add this column to your table
@@ -352,8 +351,8 @@ class JobseekerController extends Controller
                     'user_type'    => 'jobseeker',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
-                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? null : date('Y-m-d', strtotime($exp['end_date']))
+                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
+                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
                 ]);
             }
 

@@ -55,6 +55,7 @@ class AssessorController extends Controller
                 'id' => $trainer->id,
                 'name' => $trainer->name,
                 'email' => $trainer->company_email,
+                'is_registered' => $trainer->is_registered,
                 'userType' => 'Assessor'
             ]
         ]);
@@ -336,7 +337,7 @@ class AssessorController extends Controller
                 'name'         => $request->name,
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
-                'date_of_birth'=> $request->date_of_birth,
+                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
                 'city'         => $request->location,
                 'address'      => $request->address,
                 'is_registered'=> true, // you should add this column to your table
@@ -361,8 +362,8 @@ class AssessorController extends Controller
                     'user_type'    => 'assessor',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => $exp['start_date'],
-                    'end_to'       => $exp['end_date']
+                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
+                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
                 ]);
             }
 

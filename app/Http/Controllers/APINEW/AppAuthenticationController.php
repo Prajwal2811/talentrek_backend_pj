@@ -122,7 +122,6 @@ class AppAuthenticationController extends Controller
                 'name' => $user->name,
 
                 'email' => $user->email,
-                'is_registered' => $trainer->is_registered,
 
                 'type' => $request->type,
 

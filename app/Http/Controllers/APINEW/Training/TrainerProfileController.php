@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\API\Mentor;
+namespace App\Http\Controllers\API\Training;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+
 use App\Models\Api\TrainingExperience;
-use App\Models\Api\Mentors;
+use App\Models\Api\Trainers;
 use App\Models\Api\EducationDetails;
 use App\Models\Api\WorkExperience;
 use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\AdditionalInfo;
 use DB;
 use Carbon\Carbon;
-class MentorProfileController extends Controller
+class TrainerProfileController extends Controller
 {
     use ApiResponse;
     
@@ -21,14 +21,14 @@ class MentorProfileController extends Controller
         return view('home');
     }
 
-    public function mentorProfileById($id)
+    public function trainersProfileById($id)
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Mentors::select('*')->where('id', $id)->first();
+            $TrainersPersonal = Trainers::select('*')->where('id', $id)->first();
            
             if (!$TrainersPersonal) {
-                return $this->errorResponse('Mentor not found.', 404);
+                return $this->errorResponse('Trainer not found.', 404);
             }
 
             // Fetch related data
@@ -37,7 +37,7 @@ class MentorProfileController extends Controller
                 'institution', 'graduate_year'
             )
             ->where('user_id', $id)
-            ->where('user_type', 'mentor')
+            ->where('user_type', 'trainer')
             ->get();
 
             $TrainersWorkExp = WorkExperience::select(
@@ -45,11 +45,12 @@ class MentorProfileController extends Controller
                 'starts_from', 'end_to'
             )
             ->where('user_id', $id)
-            ->where('user_type', 'mentor')
+            ->where('user_type', 'trainer')
             ->get();
 
-            $Trainerskill = TrainingExperience::select('id','user_id','training_skills','area_of_interest','job_category','website_link','portfolio_link')
+            $Trainerskill = TrainingExperience::select('*')
             ->where('user_id', $id)
+            ->where('user_type', 'trainer')
             ->get();
 
             $TrainersAdditionalInfo = AdditionalInfo::select(
@@ -57,24 +58,17 @@ class MentorProfileController extends Controller
                 'document_name', 'document_path'
             )
             ->where('user_id', $id)
-            ->where('user_type', 'mentor')
+            ->where('user_type', 'trainer')
             ->get();
 
-            $image = '' ;
-            foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
-                if($TrainersAdditionalInfos->doc_type == 'profile_picture'){
-                    $image = $TrainersAdditionalInfos->image ;
-                }                
-            }
-
             // Return combined response
-            return $this->successWithCmsResponse([
-                'MentorPersonal'       => $TrainersPersonal,
-                'MentorEducation'      => $TrainersEducation,
-                'MentorWorkExp'        => $TrainersWorkExp,
-                'MentorSkill'          => $Trainerskill,
-                'MentorAdditionalInfo' => $TrainersAdditionalInfo,
-            ], ['image' => $image],'Mentor profile fetched successfully.');
+            return $this->successResponse([
+                'TrainersPersonal'       => $TrainersPersonal,
+                'TrainersEducation'      => $TrainersEducation,
+                'TrainersWorkExp'        => $TrainersWorkExp,
+                'Trainerskill'          => $Trainerskill,
+                'TrainersAdditionalInfo' => $TrainersAdditionalInfo,
+            ], 'Trainer profile fetched successfully.');
 
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
@@ -85,53 +79,18 @@ class MentorProfileController extends Controller
 
     public function updatePersonalInfoDetails(Request $request)
     {
-        // $request->validate([
-        //     'name'         => 'required|string|max:255',
-        //     'gender'       => 'required|in:Male,Female,Other',
-        //     'date_of_birth'=> 'required|date|before:today',
-        //     'location'     => 'required|string|max:255',
-        //     'address'      => 'required|string|max:500',
-        //     'profile_picture'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        //     'mentor_id' => 'required'            
-        // ]);
-
-        $data = $request->all();
-        $rules = [
-            'name' => 'required|string',
-            'gender' => 'required|in:Male,Female,Other',
-            'location' => 'required|string',
-            'address' => 'required|string',
-            'mentor_id' => 'required',
-        ];        
-        $rules["date_of_birth"] = [
-            'required',
-            'date_format:d/m/Y',
-            function ($attribute, $value, $fail) {
-                try {
-                    $date = Carbon::createFromFormat('d/m/Y', $value);
-                    
-                    if ($date->isToday() || $date->isFuture()) {
-                        $fail("The date of birth must be a date before today.");
-                    }
-                } catch (\Exception $e) {
-                    $fail("The date of birth must be a valid date in d/m/Y format.");
-                }
-            },
-        ]; 
-
-        $validator = Validator::make($data, $rules);
-
-        // Return only the first error
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 200);
-        }
+        $request->validate([
+            'name'         => 'required|string|max:255',
+            'gender'       => 'required|in:Male,Female,Other',
+            'date_of_birth'=> 'required|date|before:today',
+            'location'     => 'required|string|max:255',
+            'address'      => 'required|string|max:500',
+            'trainers_id' => 'required'            
+        ]);
 
         try {
-            $TrainersId = $request->mentor_id;
-            $Trainers = Mentors::where('id', $TrainersId)->first();
+            $TrainersId = $request->trainers_id;
+            $Trainers = Trainers::where('id', $TrainersId)->first();
 
             if (!$Trainers) {
                 return response()->json([
@@ -144,7 +103,7 @@ class MentorProfileController extends Controller
             $Trainers->update([
                 'name'         => $request->name,
                 'gender'       => $request->gender,
-                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
+                'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
             ]);
@@ -152,7 +111,7 @@ class MentorProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -170,8 +129,8 @@ class MentorProfileController extends Controller
                     // Create new record
                     AdditionalInfo::create([
                         'user_id'       => $Trainers->id,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_type'     => 'trainer',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -193,38 +152,18 @@ class MentorProfileController extends Controller
     public function updateEducationInfoDetails(Request $request)
     {
         // Validate registration fields
-        $data = $request->all();
-        $rules = [
+        $request->validate([
+            // Education
             'education' => 'required|array|min:1',
             'education.*.high_education' => 'required|string|max:255',
             'education.*.field_of_study' => 'required|string|max:255',
             'education.*.institution' => 'required|string|max:255',
             'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
-            'mentor_id' => 'required'
-        ];   // Validate registration fields
-
-        // $request->validate([
-        //     // Education
-        //     'education' => 'required|array|min:1',
-        //     'education.*.high_education' => 'required|string|max:255',
-        //     'education.*.field_of_study' => 'required|string|max:255',
-        //     'education.*.institution' => 'required|string|max:255',
-        //     'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
-        //     'jobseeker_id' => 'required'
-        // ]);
-
-        $validator = Validator::make($data, $rules);
-
-        // Return only the first error
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 200);
-        }
+            'trainers_id' => 'required'
+        ]);
 
         try {
-            $TrainersId = $request->mentor_id;
+            $TrainersId = $request->trainers_id;
             $EducationDetails = EducationDetails::where('user_id', $TrainersId)->get();
 
             if ($EducationDetails) {
@@ -235,7 +174,7 @@ class MentorProfileController extends Controller
             foreach ($request->education as $edu) {
                 EducationDetails::create([
                     'user_id'         => $TrainersId,
-                    'user_type'       => 'mentor',
+                    'user_type'       => 'trainer',
                     'high_education'  => $edu['high_education'],
                     'field_of_study'  => $edu['field_of_study'],
                     'institution'     => $edu['institution'],
@@ -246,7 +185,7 @@ class MentorProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -264,8 +203,8 @@ class MentorProfileController extends Controller
                     // Create new record
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_type'     => 'trainer',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -288,73 +227,17 @@ class MentorProfileController extends Controller
     {
         try {
             // Validate registration fields
-            // $request->validate([
-            //     // Experience
-            //     'experience' => 'nullable|array',
-            //     'experience.*.job_role' => 'required|string|max:255',
-            //     'experience.*.organization' => 'required|string|max:255',
-            //     'experience.*.start_date' => 'required|date|before_or_equal:today',
-            //     'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
-            //     'mentor_id' => 'required'
-            // ]);
+            $request->validate([
+                // Experience
+                'experience' => 'nullable|array',
+                'experience.*.job_role' => 'required|string|max:255',
+                'experience.*.organization' => 'required|string|max:255',
+                'experience.*.start_date' => 'required|date|before_or_equal:today',
+                'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
+                'trainers_id' => 'required'
+            ]);
 
-            $data = $request->all();
-            $rules = [
-                'mentor_id' => 'required'
-            ]; 
-           
-            if (!empty($data['experience'])) {
-                foreach ($data['experience'] as $index => $exp) {
-                    $rules["experience.$index.job_role"] = 'required|string';
-                    $rules["experience.$index.organization"] = 'required|string';
-                    $rules["experience.$index.start_date"] = [
-                        'required',
-                        'date_format:d/m/Y',
-                        function ($attribute, $value, $fail) {
-                            $date = Carbon::createFromFormat('d/m/Y', $value);
-                            if ($date->isFuture()) {
-                                $fail("$attribute should not be a future date.");
-                            }
-                        },
-                    ];
-                    if($data['experience'][$index]['end_date'] != 'work here'){
-                        $rules["experience.$index.end_date"] = [
-                            'required',
-                            'date_format:d/m/Y',
-                            function ($attribute, $value, $fail) use ($exp,$index) {
-                                $end = Carbon::createFromFormat('d/m/Y', $value);
-                                $start = isset($exp['start_date']) ? Carbon::createFromFormat('d/m/Y', $exp['start_date']) : null;
-
-                                if ($end->isFuture()) {
-                                    $fail("Experience " . ($index + 1) . " end date should not be a future date.");
-                                }
-
-                                if ($start && $end->lessThan($start)) {
-                                    $fail("Experience " . ($index + 1) . " end date should not be earlier than start date.");
-                                }
-                            },
-                        ];
-                    }
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The experience details must be required.'
-                ], 200);
-            }
-
-            $validator = Validator::make($data, $rules);
-
-            // Return only the first error
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first()
-                ], 200);
-            }
-
-
-            $TrainersId = $request->mentor_id;
+            $TrainersId = $request->trainers_id;
             $WorkExperience = WorkExperience::where('user_id', $TrainersId)->get();
 
             if ($WorkExperience) {
@@ -365,18 +248,18 @@ class MentorProfileController extends Controller
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
                     'user_id'      => $TrainersId,
-                    'user_type'    => 'mentor',
+                    'user_type'    => 'trainer',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
-                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
+                    'starts_from'  => $exp['start_date'],
+                    'end_to'       => $exp['end_date']
                 ]);
             }
 
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -392,8 +275,8 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_type'     => 'trainer',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -416,43 +299,25 @@ class MentorProfileController extends Controller
     {
         try {
             // Validate registration fields
-            $data = $request->all();
-            $rules = [
-                'skills' => 'required|string',
-                'interest' => 'required|string',
-                'job_category' => 'required|string',
+            $request->validate([
+                // TrainingMaterialsDocument and links
+                'training_material_id' => 'required|string',
+                'training_title' => 'nullable|string',
+                'job_category' => 'nullable|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
-                'mentor_id' => 'required'
-            ];  
-            $validator = Validator::make($data, $rules);
+                'trainers_id' => 'required'
+            ]);
 
-            // Return only the first error
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first()
-                ], 200);
-            }
-            // $request->validate([
-            //     // TrainingMaterialsDocument and links
-            //     'interest' => 'required|string',
-            //     'skills' => 'nullable|string',
-            //     'job_category' => 'nullable|string',
-            //     'website_link' => 'nullable|url',
-            //     'portfolio_link' => 'nullable|url',
-            //     'mentor_id' => 'required'
-            // ]);
-
-            $TrainersId = $request->mentor_id;
+            $TrainersId = $request->trainers_id;
             $TrainingMaterialsDocument = TrainingExperience::where('user_id', $TrainersId)->first();
 
             if (!$TrainingMaterialsDocument) {
                 TrainingExperience::create([
-                    'user_id'   => $request->mentor_id,
-                    'user_type'   => 'mentor',
-                    'training_skills'         => $request->skills,
-                    'area_of_interest'       => $request->interest,
+                    'user_id'   => $trainer->id,
+                    'user_type'   => 'trainer',
+                    'skills'         => $request->skills,
+                    'interest'       => $request->interest,
                     'job_category'   => $request->job_category,
                     'website_link'   => $request->website_link,
                     'portfolio_link' => $request->portfolio_link
@@ -460,10 +325,10 @@ class MentorProfileController extends Controller
             } else {
                 // Update the Trainers basic info
                 $TrainingMaterialsDocument->update([
-                    'user_id'   => $request->mentor_id,
-                    'user_type'   => 'mentor',
-                    'training_skills'         => $request->skills,
-                    'area_of_interest'       => $request->interest,
+                    'user_id'   => $trainer->id,
+                    'user_type'   => 'trainer',
+                    'skills'         => $request->skills,
+                    'interest'       => $request->interest,
                     'job_category'   => $request->job_category,
                     'website_link'   => $request->website_link,
                     'portfolio_link' => $request->portfolio_link
@@ -473,7 +338,7 @@ class MentorProfileController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'profile_picture')
                     ->first();
 
@@ -491,15 +356,15 @@ class MentorProfileController extends Controller
                     // Create new record
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_type'     => 'trainer',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
                 }
             }
 
-            return $this->successResponse(null, 'Skills details updated successfully.');
+            return $this->successResponse(null, 'TrainingMaterialsDocument details updated successfully.');
 
         } catch (\Exception $e) {
             return response()->json([
@@ -515,34 +380,19 @@ class MentorProfileController extends Controller
     {
         try {
             // Validate registration fields
-            $data = $request->all();
-            $rules = [
+            $request->validate([
+                // Files
                 'resume'          => 'nullable|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-                'mentor_id'    => 'required'
-            ];  
-            $validator = Validator::make($data, $rules);
+                'Trainers_id'    => 'required'
+            ]);
 
-            // Return only the first error
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first()
-                ], 200);
-            }
-            // $request->validate([
-            //     // Files
-            //     'resume'          => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            //     'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            //     'mentor_id'    => 'required'
-            // ]);
-
-            $TrainersId = $request->mentor_id;
+            $TrainersId = $request->Trainers_id;
 
             // Upload Resume
             if ($request->hasFile('resume')) {
                 $existingResume = AdditionalInfo::where('user_id', $TrainersId)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'trainer')
                     ->where('doc_type', 'resume')
                     ->first();
 
@@ -558,7 +408,7 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'mentor',
+                        'user_type'     => 'trainer',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -585,7 +435,7 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'mentor',
+                        'user_type'     => 'trainer',
                         'doc_type'      => 'training_certificate',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $resumeFileName),
@@ -612,8 +462,8 @@ class MentorProfileController extends Controller
                 } else {
                     AdditionalInfo::create([
                         'user_id'       => $TrainersId,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_type'     => 'trainer',
+                        'doc_type'      => 'trainer_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $profileFileName),
                     ]);

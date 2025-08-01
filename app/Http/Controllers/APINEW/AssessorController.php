@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Mentors;
+use App\Models\Assessors;
 use App\Models\EducationDetail;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
@@ -15,7 +15,7 @@ use App\Models\AdditionalInfo;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Mail;
-class MentorController extends Controller
+class AssessorController extends Controller
 {
     public function signIn(Request $request)
     {
@@ -26,7 +26,7 @@ class MentorController extends Controller
         ]);
 
         // Find the jobseeker by email
-        $trainer = Mentors::where('email', $request->email)->first();
+        $trainer = Assessors::where('company_email', $request->email)->first();
         $hashedPassword = Hash::make('password123');
 
 
@@ -50,12 +50,12 @@ class MentorController extends Controller
         return response()->json([
             'status' => true,
             'iSRegistered' => $iSRegistered,
-            'message' => 'Mentor login successful',
+            'message' => 'Assessors login successful',
             'data' => [
                 'id' => $trainer->id,
                 'name' => $trainer->name,
-                'email' => $trainer->email,
-                'userType' => 'Mentor'
+                'email' => $trainer->company_email,
+                'userType' => 'Assessor'
             ]
         ]);
 
@@ -67,15 +67,15 @@ class MentorController extends Controller
         try {
             // Validation
             $request->validate([
-                'email' => 'required|email|unique:mentors,email',
-                'mobile' => 'required|string|unique:mentors,phone_number|regex:/^[0-9]{10}$/',
+                'email' => 'required|email|unique:assessors,company_email',
+                'mobile' => 'required|string|unique:assessors,company_phone_number|regex:/^[0-9]{10}$/',
                 'password' => 'required|string|min:6|confirmed',
             ]);
 
             // Create jobseeker
-            $jobseeker = Mentors::create([
-                'email' => $request->email,
-                'phone_number' => $request->mobile,
+            $jobseeker = Assessors::create([
+                'company_email' => $request->email,
+                'company_phone_number' => $request->mobile,
                 'password' => Hash::make($request->password),
                 'pass' => $request->password, // Optional: for development only
             ]);
@@ -156,8 +156,8 @@ class MentorController extends Controller
                 'message' => 'Registration successful',
                 'data' => [
                     'id' => $jobseeker->id,
-                    'email' => $jobseeker->email,
-                    'mobile' => $jobseeker->phone_number,
+                    'email' => $jobseeker->company_email,
+                    'mobile' => $jobseeker->company_phone_number,
                     'via' => $contactMethod,
                 ]
             ]);
@@ -183,7 +183,7 @@ class MentorController extends Controller
         DB::beginTransaction();
         try {
             // Check if jobseeker exists (based on email and mobile)
-            $trainer = Mentors::where('email', $request->email)
+            $trainer = Assessors::where('email', $request->email)
                 ->where('phone_number', $request->mobile)
                 ->first();
 
@@ -195,150 +195,48 @@ class MentorController extends Controller
             }
 
             // Validate registration fields
-            // $request->validate([
-            //     'name'         => 'required|string|max:255',
-            //     'country_code' => 'required|string|max:5',
-            //     'gender'       => 'required|in:Male,Female,Other',
-            //     'date_of_birth'=> 'required|date|before:today',
-            //     'location'     => 'required|string|max:255',
-            //     'address'      => 'required|string|max:500',
-            //     //'password'     => 'required|string|min:6|confirmed',
+            $request->validate([
+                'name'         => 'required|string|max:255',
+                'country_code' => 'required|string|max:5',
+                'gender'       => 'required|in:Male,Female,Other',
+                'date_of_birth'=> 'required|date|before:today',
+                'location'     => 'required|string|max:255',
+                'address'      => 'required|string|max:500',
+                //'password'     => 'required|string|min:6|confirmed',
 
-            //     // Education
-            //     'education' => 'required|array|min:1',
-            //     'education.*.high_education' => 'required|string|max:255',
-            //     'education.*.field_of_study' => 'required|string|max:255',
-            //     'education.*.institution' => 'required|string|max:255',
-            //     'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
+                // Education
+                'education' => 'required|array|min:1',
+                'education.*.high_education' => 'required|string|max:255',
+                'education.*.field_of_study' => 'required|string|max:255',
+                'education.*.institution' => 'required|string|max:255',
+                'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
 
-            //     // Experience
-            //     'experience' => 'nullable|array',
-            //     'experience.*.job_role' => 'required|string|max:255',
-            //     'experience.*.organization' => 'required|string|max:255',
-            //     'experience.*.start_date' => 'required|date|before_or_equal:today',
-            //     'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
+                // Experience
+                'experience' => 'nullable|array',
+                'experience.*.job_role' => 'required|string|max:255',
+                'experience.*.organization' => 'required|string|max:255',
+                'experience.*.start_date' => 'required|date|before_or_equal:today',
+                'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
 
-            //     // Skills and links
-            //     'skills' => 'nullable|string',
-            //     'interest' => 'nullable|string',
-            //     'job_category' => 'nullable|string',
-            //     'website_link' => 'nullable|url',
-            //     'portfolio_link' => 'nullable|url',
-
-            //     // Files
-            //     'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            //     'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            //     'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',                
-            // ]);
-
-            $data = $request->all();
-
-            $rules = [
-                'name' => 'required|string',
-                'country_code' => 'required|string',
-                'gender' => 'required|in:Male,Female,Other',
-                //'date_of_birth' => 'required',
-                'location' => 'required|string',
-                'address' => 'required|string',
-                'skills' => 'required|string',
-                'interest' => 'required|string',
-                'job_category' => 'required|string',
+                // Skills and links
+                'skills' => 'nullable|string',
+                'interest' => 'nullable|string',
+                'job_category' => 'nullable|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
+
+                // Files
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-                'profile_picture' => 'required|file|image|max:2048',
-                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            ];
-
-           
-           $rules["date_of_birth"] = [
-                'required',
-                'date_format:d/m/Y',
-                function ($attribute, $value, $fail) {
-                    try {
-                        $date = Carbon::createFromFormat('d/m/Y', $value);
-                        
-                        if ($date->isToday() || $date->isFuture()) {
-                            $fail("The date of birth must be a date before today.");
-                        }
-                    } catch (\Exception $e) {
-                        $fail("The date of birth must be a valid date in d/m/Y format.");
-                    }
-                },
-            ];                
-
-            // Add dynamic validation for education
-            if (!empty($data['education'])) {
-                foreach ($data['education'] as $index => $edu) {
-                    $rules["education.$index.high_education"] = 'required|string';
-                    $rules["education.$index.field_of_study"] = 'required|string';
-                    $rules["education.$index.institution"] = 'required|string';
-                    $rules["education.$index.graduate_year"] = ['required', 'digits:4', 'integer', 'max:' . now()->year];
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The education details must be required.'
-                ], 200);
-            }
-
-            // Add dynamic validation for experience
-            if (!empty($data['experience'])) {
-                foreach ($data['experience'] as $index => $exp) {
-                    $rules["experience.$index.job_role"] = 'required|string';
-                    $rules["experience.$index.organization"] = 'required|string';
-                    $rules["experience.$index.start_date"] = [
-                        'required',
-                        'date_format:d/m/Y',
-                        function ($attribute, $value, $fail) {
-                            $date = Carbon::createFromFormat('d/m/Y', $value);
-                            if ($date->isFuture()) {
-                                $fail("$attribute should not be a future date.");
-                            }
-                        },
-                    ];
-                    if($data['experience'][$index]['end_date'] != 'work here'){
-                        $rules["experience.$index.end_date"] = [
-                            'required',
-                            'date_format:d/m/Y',
-                            function ($attribute, $value, $fail) use ($exp,$index) {
-                                $end = Carbon::createFromFormat('d/m/Y', $value);
-                                $start = isset($exp['start_date']) ? Carbon::createFromFormat('d/m/Y', $exp['start_date']) : null;
-
-                                if ($end->isFuture()) {
-                                    $fail("Experience $index + 1 end date should not be a future date.");
-                                }
-
-                                if ($start && $end->lessThan($start)) {
-                                    $fail("Experience " . ($index + 1) . " end date should not be earlier than start date.");
-                                }
-                            },
-                        ];
-                    }
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The experience details must be required.'
-                ], 200);
-            }
-
-            $validator = Validator::make($data, $rules);
-
-            // Return only the first error
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first()
-                ], 200);
-            }
+                'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                //'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',                
+            ]);
 
             // Update the jobseeker basic info
             $trainer->update([
                 'name'         => $request->name,
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
-                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
+                'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
                 'is_registered'=> true, // you should add this column to your table
@@ -348,7 +246,7 @@ class MentorController extends Controller
             foreach ($request->education as $edu) {
                 EducationDetails::create([
                     'user_id'         => $trainer->id,
-                    'user_type'       => 'mentor',
+                    'user_type'       => 'assessor',
                     'high_education'  => $edu['high_education'],
                     'field_of_study'  => $edu['field_of_study'],
                     'institution'     => $edu['institution'],
@@ -360,20 +258,20 @@ class MentorController extends Controller
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
                     'user_id'      => $trainer->id,
-                    'user_type'    => 'mentor',
+                    'user_type'    => 'assessor',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
-                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
+                    'starts_from'  => $exp['start_date'],
+                    'end_to'       => $exp['end_date']
                 ]);
             }
 
             // Save skills and interests
             TrainingExperience::create([
                 'user_id'   => $trainer->id,
-                'user_type'   => 'mentor',
-                'training_skills'  => $request->skills,
-                'area_of_interest' => $request->interest,
+                'user_type'   => 'assessor',
+                'training_skills'         => $request->skills,
+                'area_of_interest'       => $request->interest,
                 'job_category'   => $request->job_category,
                 'website_link'   => $request->website_link,
                 'portfolio_link' => $request->portfolio_link
@@ -382,7 +280,7 @@ class MentorController extends Controller
             // Upload Resume
             if ($request->hasFile('resume')) {
                 $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'assessor')
                     ->where('doc_type', 'resume')
                     ->first();
 
@@ -393,7 +291,7 @@ class MentorController extends Controller
 
                     AdditionalInfo::create([
                         'user_id'       => $trainer->id,
-                        'user_type'     => 'mentor',
+                        'user_type'     => 'assessor',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $fileNameToStoreResume),
@@ -404,8 +302,8 @@ class MentorController extends Controller
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'mentor')
-                    ->where('doc_type', 'mentor_profile_picture')
+                    ->where('user_type', 'assessor')
+                    ->where('doc_type', 'assessor_profile_picture')
                     ->first();
 
                 if (!$existingProfile) {
@@ -415,8 +313,8 @@ class MentorController extends Controller
 
                     AdditionalInfo::create([
                         'user_id'       => $trainer->id,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_type'     => 'assessor',
+                        'doc_type'      => 'assessor_profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
@@ -426,7 +324,7 @@ class MentorController extends Controller
             // Upload Resume
             if ($request->hasFile('training_certificate')) {
                 $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'mentor')
+                    ->where('user_type', 'assessor')
                     ->where('doc_type', 'training_certificate')
                     ->first();
 
@@ -437,7 +335,7 @@ class MentorController extends Controller
 
                     AdditionalInfo::create([
                         'user_id'       => $trainer->id,
-                        'user_type'     => 'mentor',
+                        'user_type'     => 'assessor',
                         'doc_type'      => 'training_certificate',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $fileNameToStoreResume),
@@ -536,8 +434,8 @@ class MentorController extends Controller
                 'message' => 'Registration completed successfully.',
                 'data'    => [
                     'id'     => $trainer->id,
-                    'email'  => $trainer->email,
-                    'mobile' => $trainer->phone_number,
+                    'email'  => $trainer->company_email,
+                    'mobile' => $trainer->company_phone_number,
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -561,8 +459,8 @@ class MentorController extends Controller
     public function forgetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:mentors,email',
-            'phone_number' => 'nullable|string|exists:mentors,phone_number',
+            'email' => 'nullable|email|exists:assessors,company_email',
+            'phone_number' => 'nullable|string|exists:assessors,company_phone_number',
         ]);
 
         if ($validator->fails()) {
@@ -576,11 +474,11 @@ class MentorController extends Controller
         $otp = rand(100000, 999999);
 
         // Use either email or phone
-        $contactMethod = $request->email ? 'email' : 'phone_number';
-        $contactValue = $request->$contactMethod;
+        $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+        $contactValue = $request->email;
 
         // Store OTP
-        DB::table('mentors')->updateOrInsert(
+        DB::table('assessors')->updateOrInsert(
             [$contactMethod => $contactValue],
             [
                 'otp' => $otp,
@@ -588,7 +486,7 @@ class MentorController extends Controller
         );
 
         // Send OTP (Email or SMS)
-        if ($contactMethod === 'email') {
+        if ($contactMethod === 'company_email') {
             // Mail::html('
             //         <!DOCTYPE html>
             //         <html lang="en">
@@ -668,8 +566,8 @@ class MentorController extends Controller
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:mentors,email',
-            'phone_number' => 'nullable|string|exists:mentors,phone_number',
+            'email' => 'nullable|email|exists:assessors,company_email',
+            'phone_number' => 'nullable|string|exists:assessors,company_phone_number',
             'otp' => 'required|digits:6',
         ]);
 
@@ -680,12 +578,12 @@ class MentorController extends Controller
             ], 201);
         }
 
-        $contactMethod = $request->email ? 'email' : 'phone_number';
-        $contactValue = $request->$contactMethod;
+        $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+        $contactValue = $request->email;
         $otp = $request->otp;
 
         // Fetch the jobseeker record
-        $jobseeker = DB::table('mentors')
+        $jobseeker = DB::table('assessors')
             ->where($contactMethod, $contactValue)
             ->where('otp', $otp)
             ->first();
@@ -706,8 +604,8 @@ class MentorController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:mentor,email',
-            'phone_number' => 'nullable|string|exists:mentor,phone_number',
+            'email' => 'nullable|email|exists:assessors,company_email',
+            'phone_number' => 'nullable|string|exists:assessors,company_phone_number',
             'new_password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -718,10 +616,10 @@ class MentorController extends Controller
             ], 201);
         }
 
-        $contactMethod = $request->email ? 'email' : 'phone_number';
-        $contactValue = $request->$contactMethod;
+        $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+        $contactValue = $request->email;
 
-        $jobseeker = DB::table('mentors')
+        $jobseeker = DB::table('assessors')
             ->where($contactMethod, $contactValue)
             ->first();
 
@@ -732,7 +630,7 @@ class MentorController extends Controller
         }
 
         // Update password
-        DB::table('mentors')
+        DB::table('assessors')
             ->where($contactMethod, $contactValue)
             ->update([
                 'password' => Hash::make($request->new_password),
@@ -740,7 +638,7 @@ class MentorController extends Controller
             ]);
 
         // ✅ Send password reset confirmation email
-        if ($contactMethod === 'email') {
+        if ($contactMethod === 'company_email') {
             // Mail::html('
             //     <!DOCTYPE html>
             //     <html lang="en">

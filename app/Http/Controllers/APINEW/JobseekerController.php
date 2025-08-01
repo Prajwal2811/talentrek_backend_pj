@@ -6,16 +6,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Mentors;
+use App\Models\Jobseekers;
 use App\Models\EducationDetail;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
-use App\Models\TrainingExperience;
+use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Mail;
-class MentorController extends Controller
+class JobseekerController extends Controller
 {
     public function signIn(Request $request)
     {
@@ -26,54 +26,45 @@ class MentorController extends Controller
         ]);
 
         // Find the jobseeker by email
-        $trainer = Mentors::where('email', $request->email)->first();
-        $hashedPassword = Hash::make('password123');
-
+        $jobseeker = Jobseekers::where('email', $request->email)->first();
 
         // Check if user exists and password matches
-        if (!$trainer || !Hash::check($request->password, $trainer->password)) {
+        if (!$jobseeker || !Hash::check($request->password, $jobseeker->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials.'
             ], 401);
         }
 
-        if ($trainer->status != 'active') {
-            return response()->json([
-                'status' => false,
-                'message' => 'User is inactive or pending approval. Please contact the administrator'
-            ], 401);
-        }
-
-        $iSRegistered = $trainer->status !== null;
+        $iSRegistered = $jobseeker->status !== null;
 
         return response()->json([
             'status' => true,
             'iSRegistered' => $iSRegistered,
-            'message' => 'Mentor login successful',
+            'message' => 'Login successful',
             'data' => [
-                'id' => $trainer->id,
-                'name' => $trainer->name,
-                'email' => $trainer->email,
-                'userType' => 'Mentor'
+                'id' => $jobseeker->id,
+                'name' => $jobseeker->name,
+                'email' => $jobseeker->email
             ]
         ]);
 
 
     }
 
+
     public function signUp(Request $request)
     {
         try {
             // Validation
             $request->validate([
-                'email' => 'required|email|unique:mentors,email',
-                'mobile' => 'required|string|unique:mentors,phone_number|regex:/^[0-9]{10}$/',
+                'email' => 'required|email|unique:jobseekers,email',
+                'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{10}$/',
                 'password' => 'required|string|min:6|confirmed',
             ]);
 
             // Create jobseeker
-            $jobseeker = Mentors::create([
+            $jobseeker = Jobseekers::create([
                 'email' => $request->email,
                 'phone_number' => $request->mobile,
                 'password' => Hash::make($request->password),
@@ -183,11 +174,11 @@ class MentorController extends Controller
         DB::beginTransaction();
         try {
             // Check if jobseeker exists (based on email and mobile)
-            $trainer = Mentors::where('email', $request->email)
+            $jobseeker = Jobseekers::where('email', $request->email)
                 ->where('phone_number', $request->mobile)
                 ->first();
 
-            if (!$trainer) {
+            if (!$jobseeker) {
                 return response()->json([
                     'status'  => false,
                     'message' => 'Please complete signup before registration.'
@@ -228,7 +219,6 @@ class MentorController extends Controller
             //     // Files
             //     'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             //     'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            //     'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',                
             // ]);
 
             $data = $request->all();
@@ -247,7 +237,6 @@ class MentorController extends Controller
                 'portfolio_link' => 'nullable|url',
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'required|file|image|max:2048',
-                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
             ];
 
            
@@ -334,11 +323,11 @@ class MentorController extends Controller
             }
 
             // Update the jobseeker basic info
-            $trainer->update([
+            $jobseeker->update([
                 'name'         => $request->name,
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
-                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
+                'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
                 'is_registered'=> true, // you should add this column to your table
@@ -347,8 +336,8 @@ class MentorController extends Controller
             // Save education
             foreach ($request->education as $edu) {
                 EducationDetails::create([
-                    'user_id'         => $trainer->id,
-                    'user_type'       => 'mentor',
+                    'user_id'         => $jobseeker->id,
+                    'user_type'       => 'jobseeker',
                     'high_education'  => $edu['high_education'],
                     'field_of_study'  => $edu['field_of_study'],
                     'institution'     => $edu['institution'],
@@ -359,21 +348,20 @@ class MentorController extends Controller
             // Save experience
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
-                    'user_id'      => $trainer->id,
-                    'user_type'    => 'mentor',
+                    'user_id'      => $jobseeker->id,
+                    'user_type'    => 'jobseeker',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
-                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? null : date('Y-m-d', strtotime($exp['end_date']))
                 ]);
             }
 
             // Save skills and interests
-            TrainingExperience::create([
-                'user_id'   => $trainer->id,
-                'user_type'   => 'mentor',
-                'training_skills'  => $request->skills,
-                'area_of_interest' => $request->interest,
+            Skills::create([
+                'jobseeker_id'   => $jobseeker->id,
+                'skills'         => $request->skills,
+                'interest'       => $request->interest,
                 'job_category'   => $request->job_category,
                 'website_link'   => $request->website_link,
                 'portfolio_link' => $request->portfolio_link
@@ -381,8 +369,8 @@ class MentorController extends Controller
 
             // Upload Resume
             if ($request->hasFile('resume')) {
-                $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'mentor')
+                $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
+                    ->where('user_type', 'jobseeker')
                     ->where('doc_type', 'resume')
                     ->first();
 
@@ -392,8 +380,8 @@ class MentorController extends Controller
                     $request->file('resume')->move('uploads/', $fileNameToStoreResume);
 
                     AdditionalInfo::create([
-                        'user_id'       => $trainer->id,
-                        'user_type'     => 'mentor',
+                        'user_id'       => $jobseeker->id,
+                        'user_type'     => 'jobseeker',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $fileNameToStoreResume),
@@ -403,9 +391,9 @@ class MentorController extends Controller
 
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
-                $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'mentor')
-                    ->where('doc_type', 'mentor_profile_picture')
+                $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
+                    ->where('user_type', 'jobseeker')
+                    ->where('doc_type', 'profile_picture')
                     ->first();
 
                 if (!$existingProfile) {
@@ -414,37 +402,15 @@ class MentorController extends Controller
                     $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
 
                     AdditionalInfo::create([
-                        'user_id'       => $trainer->id,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'mentor_profile_picture',
+                        'user_id'       => $jobseeker->id,
+                        'user_type'     => 'jobseeker',
+                        'doc_type'      => 'profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
                 }
             }
 
-            // Upload Resume
-            if ($request->hasFile('training_certificate')) {
-                $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'mentor')
-                    ->where('doc_type', 'training_certificate')
-                    ->first();
-
-                if (!$existingResume) {
-                    $resumeName = $request->file('training_certificate')->getClientOriginalName();
-                    $fileNameToStoreResume = 'training_certificate_' . time() . '.' . $request->file('training_certificate')->getClientOriginalExtension();
-                    $request->file('training_certificate')->move('uploads/', $fileNameToStoreResume);
-
-                    AdditionalInfo::create([
-                        'user_id'       => $trainer->id,
-                        'user_type'     => 'mentor',
-                        'doc_type'      => 'training_certificate',
-                        'document_name' => $resumeName,
-                        'document_path' => asset('uploads/' . $fileNameToStoreResume),
-                    ]);
-                }
-            }
-            
             DB::commit();
 
             $contactMethod = $request->email ? 'email' : 'phone_number';
@@ -535,9 +501,9 @@ class MentorController extends Controller
                 'status'  => true,
                 'message' => 'Registration completed successfully.',
                 'data'    => [
-                    'id'     => $trainer->id,
-                    'email'  => $trainer->email,
-                    'mobile' => $trainer->phone_number,
+                    'id'     => $jobseeker->id,
+                    'email'  => $jobseeker->email,
+                    'mobile' => $jobseeker->phone_number,
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -561,8 +527,8 @@ class MentorController extends Controller
     public function forgetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:mentors,email',
-            'phone_number' => 'nullable|string|exists:mentors,phone_number',
+            'email' => 'nullable|email|exists:jobseekers,email',
+            'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
         ]);
 
         if ($validator->fails()) {
@@ -580,7 +546,7 @@ class MentorController extends Controller
         $contactValue = $request->$contactMethod;
 
         // Store OTP
-        DB::table('mentors')->updateOrInsert(
+        DB::table('jobseekers')->updateOrInsert(
             [$contactMethod => $contactValue],
             [
                 'otp' => $otp,
@@ -589,69 +555,69 @@ class MentorController extends Controller
 
         // Send OTP (Email or SMS)
         if ($contactMethod === 'email') {
-            // Mail::html('
-            //         <!DOCTYPE html>
-            //         <html lang="en">
-            //         <head>
-            //             <meta charset="UTF-8">
-            //             <title>Password Reset OTP</title>
-            //             <style>
-            //                 body {
-            //                     background-color: #f6f8fa;
-            //                     font-family: Arial, sans-serif;
-            //                     padding: 20px;
-            //                     margin: 0;
-            //                     color: #333;
-            //                 }
-            //                 .container {
-            //                     background-color: #ffffff;
-            //                     padding: 30px;
-            //                     max-width: 500px;
-            //                     margin: 20px auto;
-            //                     border-radius: 8px;
-            //                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            //                 }
-            //                 .otp-box {
-            //                     font-size: 24px;
-            //                     font-weight: bold;
-            //                     background-color: #f0f4ff;
-            //                     padding: 15px;
-            //                     text-align: center;
-            //                     border: 1px dashed #007bff;
-            //                     border-radius: 6px;
-            //                     margin: 20px 0;
-            //                     color: #007bff;
-            //                 }
-            //                 .footer {
-            //                     font-size: 12px;
-            //                     text-align: center;
-            //                     margin-top: 30px;
-            //                     color: #888;
-            //                 }
-            //             </style>
-            //         </head>
-            //         <body>
-            //             <div class="container">
-            //                 <h2>Password Reset Request</h2>
-            //                 <p>Hello,</p>
-            //                 <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+            Mail::html('
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Password Reset OTP</title>
+                        <style>
+                            body {
+                                background-color: #f6f8fa;
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                                margin: 0;
+                                color: #333;
+                            }
+                            .container {
+                                background-color: #ffffff;
+                                padding: 30px;
+                                max-width: 500px;
+                                margin: 20px auto;
+                                border-radius: 8px;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            }
+                            .otp-box {
+                                font-size: 24px;
+                                font-weight: bold;
+                                background-color: #f0f4ff;
+                                padding: 15px;
+                                text-align: center;
+                                border: 1px dashed #007bff;
+                                border-radius: 6px;
+                                margin: 20px 0;
+                                color: #007bff;
+                            }
+                            .footer {
+                                font-size: 12px;
+                                text-align: center;
+                                margin-top: 30px;
+                                color: #888;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h2>Password Reset Request</h2>
+                            <p>Hello,</p>
+                            <p>We received a request to reset your password. Use the OTP below to proceed:</p>
 
-            //                 <div class="otp-box">' . $otp . '</div>
+                            <div class="otp-box">' . $otp . '</div>
 
-            //                 <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+                            <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
 
-            //                 <p>Thanks,<br><strong>The Talentrek Team</strong></p>
-            //             </div>
+                            <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                        </div>
 
-            //             <div class="footer">
-            //                 &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-            //             </div>
-            //         </body>
-            //         </html>
-            //         ', function ($message) use ($contactValue) {
-            //             $message->to($contactValue)
-            //                     ->subject('Your Password Reset OTP – Talentrek');
-            //         });
+                        <div class="footer">
+                            &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                        </div>
+                    </body>
+                    </html>
+                    ', function ($message) use ($contactValue) {
+                        $message->to($contactValue)
+                                ->subject('Your Password Reset OTP – Talentrek');
+                    });
 
         } else {
             // Send SMS - Simulate (Integrate with Twilio, Msg91, etc.)
@@ -668,8 +634,8 @@ class MentorController extends Controller
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:mentors,email',
-            'phone_number' => 'nullable|string|exists:mentors,phone_number',
+            'email' => 'nullable|email|exists:jobseekers,email',
+            'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
             'otp' => 'required|digits:6',
         ]);
 
@@ -685,7 +651,7 @@ class MentorController extends Controller
         $otp = $request->otp;
 
         // Fetch the jobseeker record
-        $jobseeker = DB::table('mentors')
+        $jobseeker = DB::table('jobseekers')
             ->where($contactMethod, $contactValue)
             ->where('otp', $otp)
             ->first();
@@ -706,8 +672,8 @@ class MentorController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:mentor,email',
-            'phone_number' => 'nullable|string|exists:mentor,phone_number',
+            'email' => 'nullable|email|exists:jobseekers,email',
+            'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
             'new_password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -721,7 +687,7 @@ class MentorController extends Controller
         $contactMethod = $request->email ? 'email' : 'phone_number';
         $contactValue = $request->$contactMethod;
 
-        $jobseeker = DB::table('mentors')
+        $jobseeker = DB::table('jobseekers')
             ->where($contactMethod, $contactValue)
             ->first();
 
@@ -732,7 +698,7 @@ class MentorController extends Controller
         }
 
         // Update password
-        DB::table('mentors')
+        DB::table('jobseekers')
             ->where($contactMethod, $contactValue)
             ->update([
                 'password' => Hash::make($request->new_password),
@@ -741,53 +707,53 @@ class MentorController extends Controller
 
         // ✅ Send password reset confirmation email
         if ($contactMethod === 'email') {
-            // Mail::html('
-            //     <!DOCTYPE html>
-            //     <html lang="en">
-            //     <head>
-            //         <meta charset="UTF-8">
-            //         <title>Password Reset Confirmation</title>
-            //         <style>
-            //             body {
-            //                 font-family: Arial, sans-serif;
-            //                 background-color: #f4f6f9;
-            //                 margin: 0;
-            //                 padding: 20px;
-            //                 color: #333;
-            //             }
-            //             .container {
-            //                 background: #fff;
-            //                 padding: 30px;
-            //                 border-radius: 8px;
-            //                 max-width: 600px;
-            //                 margin: auto;
-            //                 box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            //             }
-            //             .footer {
-            //                 text-align: center;
-            //                 font-size: 12px;
-            //                 color: #888;
-            //                 margin-top: 20px;
-            //             }
-            //         </style>
-            //     </head>
-            //     <body>
-            //         <div class="container">
-            //             <h2>Password Reset Successfully</h2>
-            //             <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
-            //             <p>Your password has been successfully updated for your Talentrek account.</p>
-            //             <p>If you didn\'t initiate this change, please contact our support team immediately.</p>
-            //             <p>Stay safe,<br><strong>The Talentrek Team</strong></p>
-            //         </div>
-            //         <div class="footer">
-            //             &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-            //         </div>
-            //     </body>
-            //     </html>
-            // ', function ($message) use ($jobseeker) {
-            //     $message->to($jobseeker->email)
-            //             ->subject('Your Talentrek Password Has Been Reset');
-            // });
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Password Reset Confirmation</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f6f9;
+                            margin: 0;
+                            padding: 20px;
+                            color: #333;
+                        }
+                        .container {
+                            background: #fff;
+                            padding: 30px;
+                            border-radius: 8px;
+                            max-width: 600px;
+                            margin: auto;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                        }
+                        .footer {
+                            text-align: center;
+                            font-size: 12px;
+                            color: #888;
+                            margin-top: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Password Reset Successfully</h2>
+                        <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+                        <p>Your password has been successfully updated for your Talentrek account.</p>
+                        <p>If you didn\'t initiate this change, please contact our support team immediately.</p>
+                        <p>Stay safe,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+                    <div class="footer">
+                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+                </body>
+                </html>
+            ', function ($message) use ($jobseeker) {
+                $message->to($jobseeker->email)
+                        ->subject('Your Talentrek Password Has Been Reset');
+            });
         }
 
         return response()->json([

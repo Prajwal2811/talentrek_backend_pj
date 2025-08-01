@@ -38,12 +38,12 @@ class TrainerController extends Controller
             ], 401);
         }
 
-        // if ($trainer->status != 'active') {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'User is inactive or pending approval. Please contact the administrator'
-        //     ], 401);
-        // }
+        if ($trainer->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'User is inactive or pending approval. Please contact the administrator'
+            ], 401);
+        }
 
         $iSRegistered = $trainer->status !== null;
 
@@ -55,8 +55,6 @@ class TrainerController extends Controller
                 'id' => $trainer->id,
                 'name' => $trainer->name,
                 'email' => $trainer->email,
-                'mobile' => $trainer->phone_number,
-                'is_registered' => $trainer->is_registered,
                 'userType' => 'Trainer'
             ]
         ]);
@@ -197,149 +195,48 @@ class TrainerController extends Controller
             }
 
             // Validate registration fields
-            // $request->validate([
-            //     'name'         => 'required|string|max:255',
-            //     'country_code' => 'required|string|max:5',
-            //     'gender'       => 'required|in:Male,Female,Other',
-            //     'date_of_birth'=> 'required|date|before:today',
-            //     'location'     => 'required|string|max:255',
-            //     'address'      => 'required|string|max:500',
-            //     //'password'     => 'required|string|min:6|confirmed',
+            $request->validate([
+                'name'         => 'required|string|max:255',
+                'country_code' => 'required|string|max:5',
+                'gender'       => 'required|in:Male,Female,Other',
+                'date_of_birth'=> 'required|date|before:today',
+                'location'     => 'required|string|max:255',
+                'address'      => 'required|string|max:500',
+                //'password'     => 'required|string|min:6|confirmed',
 
-            //     // Education
-            //     'education' => 'required|array|min:1',
-            //     'education.*.high_education' => 'required|string|max:255',
-            //     'education.*.field_of_study' => 'required|string|max:255',
-            //     'education.*.institution' => 'required|string|max:255',
-            //     'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
+                // Education
+                'education' => 'required|array|min:1',
+                'education.*.high_education' => 'required|string|max:255',
+                'education.*.field_of_study' => 'required|string|max:255',
+                'education.*.institution' => 'required|string|max:255',
+                'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
 
-            //     // Experience
-            //     'experience' => 'nullable|array',
-            //     'experience.*.job_role' => 'required|string|max:255',
-            //     'experience.*.organization' => 'required|string|max:255',
-            //     'experience.*.start_date' => 'required|date|before_or_equal:today',
-            //     'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
+                // Experience
+                'experience' => 'nullable|array',
+                'experience.*.job_role' => 'required|string|max:255',
+                'experience.*.organization' => 'required|string|max:255',
+                'experience.*.start_date' => 'required|date|before_or_equal:today',
+                'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
 
-            //     // Skills and links
-            //     'skills' => 'nullable|string',
-            //     'interest' => 'nullable|string',
-            //     'job_category' => 'nullable|string',
-            //     'website_link' => 'nullable|url',
-            //     'portfolio_link' => 'nullable|url',
-
-            //     // Files
-            //     'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            //     'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            //     'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',                
-            // ]);
-            $data = $request->all();
-
-            $rules = [
-                'name' => 'required|string',
-                'country_code' => 'required|string',
-                'gender' => 'required|in:Male,Female,Other',
-                //'date_of_birth' => 'required',
-                'location' => 'required|string',
-                'address' => 'required|string',
-                'skills' => 'required|string',
-                'interest' => 'required|string',
-                'job_category' => 'required|string',
+                // Skills and links
+                'skills' => 'nullable|string',
+                'interest' => 'nullable|string',
+                'job_category' => 'nullable|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
+
+                // Files
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-                'profile_picture' => 'required|file|image|max:2048',
-                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048', 
-            ];
-
-           
-           $rules["date_of_birth"] = [
-                'required',
-                'date_format:d/m/Y',
-                function ($attribute, $value, $fail) {
-                    try {
-                        $date = Carbon::createFromFormat('d/m/Y', $value);
-                        
-                        if ($date->isToday() || $date->isFuture()) {
-                            $fail("The date of birth must be a date before today.");
-                        }
-                    } catch (\Exception $e) {
-                        $fail("The date of birth must be a valid date in d/m/Y format.");
-                    }
-                },
-            ];                
-
-            // Add dynamic validation for education
-            if (!empty($data['education'])) {
-                foreach ($data['education'] as $index => $edu) {
-                    $rules["education.$index.high_education"] = 'required|string';
-                    $rules["education.$index.field_of_study"] = 'required|string';
-                    $rules["education.$index.institution"] = 'required|string';
-                    $rules["education.$index.graduate_year"] = ['required', 'digits:4', 'integer', 'max:' . now()->year];
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The education details must be required.'
-                ], 200);
-            }
-
-            // Add dynamic validation for experience
-            if (!empty($data['experience'])) {
-                foreach ($data['experience'] as $index => $exp) {
-                    $rules["experience.$index.job_role"] = 'required|string';
-                    $rules["experience.$index.organization"] = 'required|string';
-                    $rules["experience.$index.start_date"] = [
-                        'required',
-                        'date_format:d/m/Y',
-                        function ($attribute, $value, $fail) {
-                            $date = Carbon::createFromFormat('d/m/Y', $value);
-                            if ($date->isFuture()) {
-                                $fail("$attribute should not be a future date.");
-                            }
-                        },
-                    ];
-                    if($data['experience'][$index]['end_date'] != 'work here'){
-                        $rules["experience.$index.end_date"] = [
-                            'required',
-                            'date_format:d/m/Y',
-                            function ($attribute, $value, $fail) use ($exp,$index) {
-                                $end = Carbon::createFromFormat('d/m/Y', $value);
-                                $start = isset($exp['start_date']) ? Carbon::createFromFormat('d/m/Y', $exp['start_date']) : null;
-
-                                if ($end->isFuture()) {
-                                    $fail("Experience $index + 1 end date should not be a future date.");
-                                }
-
-                                if ($start && $end->lessThan($start)) {
-                                    $fail("Experience " . ($index + 1) . " end date should not be earlier than start date.");
-                                }
-                            },
-                        ];
-                    }
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The experience details must be required.'
-                ], 200);
-            }
-
-            $validator = Validator::make($data, $rules);
-
-            // Return only the first error
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first()
-                ], 200);
-            }
+                'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',                
+            ]);
 
             // Update the jobseeker basic info
             $trainer->update([
                 'name'         => $request->name,
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
-                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
+                'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
                 'is_registered'=> true, // you should add this column to your table
@@ -364,8 +261,8 @@ class TrainerController extends Controller
                     'user_type'    => 'trainer',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
-                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => date('Y-m-d',strtotime($exp['end_date']))
                 ]);
             }
 
