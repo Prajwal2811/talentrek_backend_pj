@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Validator;
 use App\Models\Api\TrainingExperience;
 use App\Models\Api\Mentors;
 use App\Models\Api\EducationDetails;
@@ -25,6 +25,19 @@ class SessionsManagementController extends Controller
 
     public function totalBookedSessionsCountsForMCA(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer', // assuming user_id should exist in `users` table
+            'type'    => 'required|string|in:trainer,mentor,coach,assessor,jobseeker', // allowed roles/types
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+
         try {  
             // Common base query
             $baseQuery = BookingSession::select(
@@ -84,6 +97,18 @@ class SessionsManagementController extends Controller
 
     public function upcomingBookedSessionsForMCA(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer', // assuming user_id should exist in `users` table
+            'type'    => 'required|string|in:trainer,mentor,coach,assessor,jobseeker', // allowed roles/types
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
         try {
                 // Fetch Trainers personal information
                 $relationships = [];
@@ -144,7 +169,19 @@ class SessionsManagementController extends Controller
 
     public function cancelledBookedSessionsForMCA(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer', // assuming user_id should exist in `users` table
+            'type'    => 'required|string|in:trainer,mentor,coach,assessor,jobseeker', // allowed roles/types
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
         try {
+            
             $relationships = [];
             $type = $request->type;
             if ($type === 'mentor') {
@@ -197,7 +234,19 @@ class SessionsManagementController extends Controller
     }
     public function completedBookedSessionsForMCA(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|integer', // assuming user_id should exist in `users` table
+            'type'    => 'required|string|in:trainer,mentor,coach,assessor,jobseeker', // allowed roles/types
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
         try {
+            
             $relationships = [];
             $type = $request->type;
             if ($type === 'mentor') {

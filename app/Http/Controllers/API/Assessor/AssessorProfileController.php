@@ -93,6 +93,25 @@ class AssessorProfileController extends Controller
             'gender' => 'required|in:Male,Female,Other',
             'location' => 'required|string',
             'address' => 'required|string',
+            'pincode' => 'required',                
+            'city' => 'required|string',                
+            'state' => 'required|string',                
+            'country' => 'required|string',
+            'national_id' => [
+                'required',
+                'min:10',
+                function ($attribute, $value, $fail) use ($jobseeker) {
+                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                    $existsInJobseekers = Jobseekers::where('national_id', $value)
+                        ->where('id', '!=', $jobseeker->id)
+                        ->exists();
+
+                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                        $fail('The national ID has already been taken.');
+                    }
+                },
+            ],
             'assessor_id' => 'required',
         ];        
         $rules["date_of_birth"] = [
@@ -137,8 +156,12 @@ class AssessorProfileController extends Controller
                 'name'         => $request->name,
                 'gender'       => $request->gender,
                 'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
-                'city'         => $request->location,
-                'address'      => $request->address,
+                'address'      => $request->location,
+                'city'         => $request->city,
+                'state'      => $request->state,
+                'country'      => $request->country,
+                'pin_code'      => $request->pincode,
+                'national_id'      => $request->national_id,
             ]);
 
             // Upload Profile Picture

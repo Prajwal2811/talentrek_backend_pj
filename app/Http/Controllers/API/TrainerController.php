@@ -20,10 +20,22 @@ class TrainerController extends Controller
     public function signIn(Request $request)
     {
         // Validate input
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+        ], [
+            'email.required' => 'Email is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 6 characters.',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ First error only
+            ], 422);
+        }
 
         // Find the jobseeker by email
         $trainer = Trainers::where('email', $request->email)->first();
@@ -68,11 +80,30 @@ class TrainerController extends Controller
     {
         try {
             // Validation
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:trainers,email',
-                'mobile' => 'required|string|unique:trainers,phone_number|regex:/^[0-9]{10}$/',
+                'mobile' => 'required|string|regex:/^[0-9]{10}$/|unique:trainers,phone_number',
                 'password' => 'required|string|min:6|confirmed',
+            ], [
+                'email.required' => 'Email is required.',
+                'email.email' => 'Please enter a valid email address.',
+                'email.unique' => 'This email is already registered.',
+                
+                'mobile.required' => 'Mobile number is required.',
+                'mobile.regex' => 'Mobile number must be 10 digits.',
+                'mobile.unique' => 'This mobile number is already registered.',
+
+                'password.required' => 'Password is required.',
+                'password.min' => 'Password must be at least 6 characters.',
+                'password.confirmed' => 'Password confirmation does not match.',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
+                ], 422);
+            }
 
             // Create jobseeker
             $jobseeker = Trainers::create([
@@ -249,6 +280,25 @@ class TrainerController extends Controller
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'required|file|image|max:2048',
                 'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048', 
+                'pincode' => 'required',                
+                'city' => 'required|string',                
+                'state' => 'required|string',                
+                'country' => 'required|string',
+                'national_id' => [
+                    'required',
+                    'min:10',
+                    function ($attribute, $value, $fail) use ($jobseeker) {
+                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                        $existsInJobseekers = Jobseekers::where('national_id', $value)
+                            ->where('id', '!=', $jobseeker->id)
+                            ->exists();
+
+                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                            $fail('The national ID has already been taken.');
+                        }
+                    },
+                ],
             ];
 
            
@@ -340,8 +390,12 @@ class TrainerController extends Controller
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
                 'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
-                'city'         => $request->location,
-                'address'      => $request->address,
+                'address'      => $request->location,
+                'city'         => $request->city,
+                'state'      => $request->state,
+                'country'      => $request->country,
+                'pin_code'      => $request->pincode,
+                'national_id'      => $request->national_id,
                 'is_registered'=> true, // you should add this column to your table
             ]);
 
@@ -564,13 +618,24 @@ class TrainerController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'nullable|email|exists:trainers,email',
             'phone_number' => 'nullable|string|exists:trainers,phone_number',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.exists' => 'This email is not registered.',
+            'phone_number.exists' => 'This phone number is not registered.',
         ]);
+
+        // Custom rule: at least one field is required
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ Show only one error
+            ], 422);
         }
 
         // Generate 6-digit OTP
@@ -672,13 +737,26 @@ class TrainerController extends Controller
             'email' => 'nullable|email|exists:Trainers,email',
             'phone_number' => 'nullable|string|exists:Trainers,phone_number',
             'otp' => 'required|digits:6',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.exists' => 'This email is not registered.',
+            'phone_number.exists' => 'This phone number is not registered.',
+            'otp.required' => 'OTP is required.',
+            'otp.digits' => 'OTP must be exactly 6 digits.',
         ]);
+
+        // Custom rule to ensure at least one contact field is provided
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ Return only the first error message
+            ], 422);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';

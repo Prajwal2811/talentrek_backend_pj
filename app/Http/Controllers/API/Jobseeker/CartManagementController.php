@@ -11,6 +11,7 @@ use App\Models\JobseekerCartItem;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
+use Illuminate\Support\Facades\Validator;
 
 class CartManagementController extends Controller
 {
@@ -24,6 +25,18 @@ class CartManagementController extends Controller
     public function addToCartByJobseeker(Request $request)
     {
         try {
+            $validator = Validator::make($request->all(), [
+                'training_material_id' => 'required|integer',
+                'jobseekerId'          => 'required|integer',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                ], 422);
+            }
+
             $id = $request->training_material_id;
             $jobseekerId = $request->jobseekerId;
 
@@ -61,58 +74,71 @@ class CartManagementController extends Controller
 
 
   public function removeCartItemByJobseeker(Request $request)
-{
-    try {
-        $id = $request->id;
-        $jobseekerId = $request->jobseekerId;
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|integer',
+                'jobseekerId'          => 'required|integer',
+            ]);
 
-        $item = JobseekerCartItem::where('id', $id)
-            ->where('jobseeker_id', $jobseekerId)
-            ->first();
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                ], 422);
+            }
 
-        if (!$item) {
-            return response()->json(['status' => false, 'message' => 'Item not found'], 404);
+            $id = $request->id;
+            $jobseekerId = $request->jobseekerId;
+
+            $item = JobseekerCartItem::where('id', $id)
+                ->where('jobseeker_id', $jobseekerId)
+                ->first();
+
+            if (!$item) {
+                return response()->json(['status' => false, 'message' => 'Item not found'], 404);
+            }
+
+            $item->delete();
+
+            return response()->json(['status' => true, 'message' => 'Item removed successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
-
-        $item->delete();
-
-        return response()->json(['status' => true, 'message' => 'Item removed successfully.']);
-    } catch (\Exception $e) {
-        return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
     }
-}
 
 
     public function viewCartItemByJobseeker($jobseekerId)
-{
-    try {
-       $items = JobseekerCartItem::with([
-            'trainer' => function ($query) {
-                $query->select('id', 'name', 'email'); // Customize fields as needed
-            },
-            'material' => function ($query) {
-                $query->select('id', 'training_title', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
+    {
+        try {
+            $items = JobseekerCartItem::with([
+                'trainer' => function ($query) {
+                    $query->select('id', 'name', 'email'); // Customize fields as needed
+                },
+                'material' => function ($query) {
+                    $query->select('id', 'training_title', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
+                }
+            ])
+            ->where('jobseeker_id', $jobseekerId)
+            ->where('status', 'pending')
+            ->get()->map(function ($item) {
+                $material = $item->material;
+                $item->final_price = (!empty($material->training_offer_price))
+                    ? $material->training_offer_price
+                    : $material->training_price;
+                return $item;
+            });
+
+            // 💰 Get sum of final_price
+            $totalPrice = $items->sum('final_price');
+            if ($items->isEmpty()) {
+                return response()->json(['status' => false, 'message' => 'No items found in cart.'], 404);
             }
-        ])
-        ->where('jobseeker_id', $jobseekerId)
-        ->where('status', 'pending')
-        ->get()->map(function ($item) {
-            $material = $item->material;
-            $item->final_price = (!empty($material->training_offer_price))
-                ? $material->training_offer_price
-                : $material->training_price;
-            return $item;
-        });
 
-        if ($items->isEmpty()) {
-            return response()->json(['status' => false, 'message' => 'No items found in cart.'], 404);
+            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','totalPrice' => $totalPrice, 'data' => $items]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.', 'data' => $items]);
-    } catch (\Exception $e) {
-        return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
     }
-}
-
 
 }

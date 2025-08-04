@@ -7,7 +7,7 @@ use App\Models\Api\Assessors;
 use App\Models\Api\AssessmentOption;
 use App\Models\Api\AssessmentJobseekerData;
 use App\Models\Api\TrainerAssessment;
-
+use Illuminate\Support\Facades\Validator;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -43,14 +43,22 @@ class AssesssorController extends Controller
 
     public function submitQuizAnswer(Request $request)
     {
-        $request->validate([
-            'training_id'    => 'required|integer',
-            'trainer_id'     => 'required|integer',
-            'jobseeker_id'   => 'required|integer',
-            'assessment_id'  => 'required|integer',
-            'question_id'    => 'required|integer',
-            'selected_answer'=> 'required|integer',
+        
+        $validator = Validator::make($request->all(), [
+            'training_id'     => 'required|integer',
+            'trainer_id'      => 'required|integer',
+            'jobseeker_id'    => 'required|integer',
+            'assessment_id'   => 'required|integer',
+            'question_id'     => 'required|integer',
+            'selected_answer' => 'required|integer',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ return only one error message
+            ], 422);
+        }
 
         // Optional: You may fetch correct_answer from the options table
         $correctAnswerId = AssessmentOption::where('question_id', $request->question_id)
@@ -83,12 +91,19 @@ class AssesssorController extends Controller
     public function quizFaqList(Request $request)
     {
         try {
-            $request->validate([
+           $validator = Validator::make($request->all(), [
                 'training_id'    => 'required|integer',
                 'trainer_id'     => 'required|integer',
                 'jobseeker_id'   => 'required|integer',
-                'assessment_id'  => 'required|integer'
+                'assessment_id'  => 'required|integer',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Show only one error message
+                ], 422);
+            }
 
             $jobseeker_id   = $request->jobseeker_id;
             $training_id    = $request->training_id;
@@ -133,12 +148,19 @@ class AssesssorController extends Controller
     public function quizNavigatorList(Request $request)
     {
         try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'training_id'    => 'required|integer',
                 'trainer_id'     => 'required|integer',
                 'jobseeker_id'   => 'required|integer',
                 'assessment_id'  => 'required|integer',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Show only one error message
+                ], 422);
+            }
 
             $jobseekerId   = $request->jobseeker_id;
             $trainingId    = $request->training_id;
@@ -182,12 +204,19 @@ class AssesssorController extends Controller
    public function quizScorecardResult(Request $request)
     {
         try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'training_id'    => 'required|integer',
                 'trainer_id'     => 'required|integer',
                 'jobseeker_id'   => 'required|integer',
                 'assessment_id'  => 'required|integer',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Show only one error message
+                ], 422);
+            }
 
             $jobseekerId  = $request->jobseeker_id;
             $trainingId   = $request->training_id;

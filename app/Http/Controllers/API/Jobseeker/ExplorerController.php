@@ -11,6 +11,7 @@ use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
+use Illuminate\Support\Facades\Validator;
 class ExplorerController extends Controller
 {
     use ApiResponse;
@@ -230,7 +231,7 @@ class ExplorerController extends Controller
     public function trainingMaterialDetailById($trainingId,$jobSeekerId)
     {
         try {
-            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
+            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
                 ->withCount('trainingMaterialDocuments')
                 ->with('trainingMaterialDocuments')
                 ->with(['trainer:id,name', 'latestWorkExperience'])
@@ -241,6 +242,25 @@ class ExplorerController extends Controller
             if ($TrainingMaterial) {
                 $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
                 $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+
+                $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
+                    $parts = explode(':', $doc->file_duration); // HH:MM:SS
+                    if (count($parts) === 3) {
+                        $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+                        return $carry + $seconds;
+                    }
+                    return $carry;
+                }, 0);
+
+                // Convert total seconds back to HH:MM:SS
+                $TrainingMaterial->total_duration = gmdate('H:i:s', $totalSeconds);
+                $hours = (int)gmdate('H', $totalSeconds);
+                $minutes = (int)gmdate('i', $totalSeconds);
+                $seconds = (int)gmdate('s', $totalSeconds);
+                $TrainingMaterial->durationInHours = $hours. ' Hr' . ($hours !== 1 ? 's' : '');
+                $TrainingMaterial->durationInMinutes = $minutes. ' Min' . ($minutes !== 1 ? 's' : '');
+                $TrainingMaterial->durationInSeconds = $seconds. ' Second' . ($seconds !== 1 ? 's' : '');
+                
                 // Optional: remove the raw field if not needed in response
                 unset($TrainingMaterial->trainer_reviews_avg_ratings);
                 unset($TrainingMaterial->trainerReviews);
@@ -448,7 +468,7 @@ class ExplorerController extends Controller
     public function submitQuizAnswer(Request $request)
     {
         try {
-            $request->validate([
+           $validator = Validator::make($request->all(), [
                 'training_id'     => 'required|integer',
                 'trainer_id'      => 'required|integer',
                 'jobseeker_id'    => 'required|integer',
@@ -456,6 +476,13 @@ class ExplorerController extends Controller
                 'question_id'     => 'required|integer',
                 'selected_answer' => 'required|integer',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Only one error shown
+                ], 422);
+            }
             // Get correct answer for the question
             $correctAnswerId = AssessmentOption::where('question_id', $request->question_id)
                 ->where('correct_option', 1)
@@ -489,13 +516,20 @@ class ExplorerController extends Controller
     public function submitReviewByJobSeeker(Request $request)
     {
         try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'jobseeker_id' => 'required|integer',
                 'user_id'      => 'required|integer',
                 'review'       => 'required|string',
                 'rating'       => 'required|integer|min:1|max:5',
-                'reviewType'   => 'required|string|in:trainer,mentor,coach,assessor,training'
+                'reviewType'   => 'required|string|in:trainer,mentor,coach,assessor,training',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
+                ], 422);
+            }
             Review::create([
                 'jobseeker_id'      => $request->jobseeker_id,
                 'user_type'         => $request->reviewType,

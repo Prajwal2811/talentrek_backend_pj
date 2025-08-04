@@ -18,7 +18,7 @@ use App\Models\Api\BookingSlot;
 use App\Models\Api\BookingSlotUnavailableDate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Validator;
 
 class MyLearningController extends Controller
 {
@@ -310,13 +310,20 @@ class MyLearningController extends Controller
     {
        try {  
             
-            $request->validate([
-                'jobSeekerId'     => 'required|integer',
-                'sessionDate'      => 'required',
-                'roleType'    => 'required',
-                'userId'   => 'required|integer',
-                'trainingMode'     => 'required'
+            $validator = Validator::make($request->all(), [
+                'jobSeekerId'   => 'required|integer',
+                'sessionDate'   => 'required|date', // Optional: validate date format
+                'roleType'      => 'required|string',
+                'userId'        => 'required|integer',
+                'trainingMode'  => 'required|string',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Shows only the first error
+                ], 422);
+            }
 
            $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
 
@@ -356,14 +363,21 @@ class MyLearningController extends Controller
     {
        
        try {
-            $request->validate([
-                'jobSeekerId'     => 'required|integer',
-                'sessionDate'      => 'required',
-                'roleType'    => 'required',
-                'userId'   => 'required|integer',
-                'trainingMode'=> 'required',
-                'slot_id'     => 'required'
+            $validator = Validator::make($request->all(), [
+                'jobSeekerId'   => 'required|integer',
+                'sessionDate'   => 'required|date',        // Optional: ensure it's a valid date
+                'roleType'      => 'required|string',
+                'userId'        => 'required|integer',
+                'trainingMode'  => 'required|string',
+                'slot_id'       => 'required|integer',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
+                ], 422);
+            }
 
             $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
 

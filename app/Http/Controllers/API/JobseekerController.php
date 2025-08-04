@@ -19,10 +19,22 @@ class JobseekerController extends Controller
     public function signIn(Request $request)
     {
         // Validate input
-        $request->validate([
+       $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+        ], [
+            'email.required' => 'Email is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 6 characters.',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ return only the first error
+            ], 422);
+        }
 
         // Find the jobseeker by email
         $jobseeker = Jobseekers::where('email', $request->email)->first();
@@ -45,7 +57,7 @@ class JobseekerController extends Controller
                 'id' => $jobseeker->id,
                 'name' => $jobseeker->name,
                 'email' => $jobseeker->email,
-                'is_registered' => $trainer->is_registered,
+                'is_registered' => $jobseeker->is_registered,
                 'mobile' => $jobseeker->phone_number,
             ]
         ]);
@@ -56,11 +68,31 @@ class JobseekerController extends Controller
     {
         try {
             // Validation
-            $request->validate([
+           $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:jobseekers,email',
                 'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{10}$/',
                 'password' => 'required|string|min:6|confirmed',
+            ], [
+                'email.required' => 'The email field is required.',
+                'email.email' => 'Please provide a valid email address.',
+                'email.unique' => 'This email is already registered.',
+
+                'mobile.required' => 'The mobile number is required.',
+                'mobile.string' => 'The mobile number must be a string.',
+                'mobile.unique' => 'This mobile number is already registered.',
+                'mobile.regex' => 'The mobile number must be exactly 10 digits.',
+
+                'password.required' => 'The password is required.',
+                'password.min' => 'The password must be at least 6 characters.',
+                'password.confirmed' => 'The password confirmation does not match.',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ return only the first error
+                ], 422);
+            }
 
             // Create jobseeker
             $jobseeker = Jobseekers::create([
@@ -236,8 +268,26 @@ class JobseekerController extends Controller
                 'portfolio_link' => 'nullable|url',
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'required|file|image|max:2048',
-            ];
+                'pincode' => 'required',                
+                'city' => 'required|string',                
+                'state' => 'required|string',                
+                'country' => 'required|string',
+                'national_id' => [
+                    'required',
+                    'min:10',
+                    function ($attribute, $value, $fail) use ($jobseeker) {
+                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                        $existsInJobseekers = Jobseekers::where('national_id', $value)
+                            ->where('id', '!=', $jobseeker->id)
+                            ->exists();
 
+                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                            $fail('The national ID has already been taken.');
+                        }
+                    },
+                ],
+            ];
            
            $rules["date_of_birth"] = [
                 'required',
@@ -327,8 +377,12 @@ class JobseekerController extends Controller
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
                 'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
-                'city'         => $request->location,
-                'address'      => $request->address,
+                'address'      => $request->location,
+                'city'         => $request->city,
+                'state'      => $request->state,
+                'country'      => $request->country,
+                'pin_code'      => $request->pincode,
+                'national_id'      => $request->national_id,
                 'is_registered'=> true, // you should add this column to your table
             ]);
 
@@ -528,13 +582,24 @@ class JobseekerController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'nullable|email|exists:jobseekers,email',
             'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.exists' => 'This email is not registered.',
+            'phone_number.exists' => 'This phone number is not registered.',
         ]);
+
+        // Custom rule: At least one of email or phone_number must be provided
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ One error only
+            ], 422);
         }
 
         // Generate 6-digit OTP
@@ -636,13 +701,26 @@ class JobseekerController extends Controller
             'email' => 'nullable|email|exists:jobseekers,email',
             'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
             'otp' => 'required|digits:6',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.exists' => 'This email is not registered.',
+            'phone_number.exists' => 'This phone number is not registered.',
+            'otp.required' => 'OTP is required.',
+            'otp.digits' => 'OTP must be exactly 6 digits.',
         ]);
+
+        // Custom rule: At least one of email or phone_number must be provided
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ Return only the first error
+            ], 422);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';
@@ -670,17 +748,31 @@ class JobseekerController extends Controller
 
     public function resetPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+       $validator = Validator::make($request->all(), [
             'email' => 'nullable|email|exists:jobseekers,email',
             'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
             'new_password' => 'required|string|min:6|confirmed',
+        ], [
+            'email.email' => 'Please enter a valid email address.',
+            'email.exists' => 'This email is not registered.',
+            'phone_number.exists' => 'This phone number is not registered.',
+            'new_password.required' => 'The new password is required.',
+            'new_password.min' => 'The new password must be at least 6 characters.',
+            'new_password.confirmed' => 'The new password confirmation does not match.',
         ]);
+
+        // Custom rule: At least one of email or phone_number must be provided
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ Only one error shown
+            ], 422);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';

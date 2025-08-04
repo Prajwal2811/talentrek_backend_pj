@@ -20,13 +20,22 @@ class AssessorController extends Controller
     public function signIn(Request $request)
     {
         // Validate input
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
+        if ($validator->fails()) {
+            // Get the first error message
+            $firstError = $validator->errors()->first();
+
+            return response()->json([
+                'status' => false,
+                'message' => $firstError,
+            ], 422);
+        }
         // Find the jobseeker by email
-        $trainer = Assessors::where('company_email', $request->email)->first();
+        $trainer = Assessors::where('email', $request->email)->first();
         $hashedPassword = Hash::make('password123');
 
 
@@ -54,7 +63,7 @@ class AssessorController extends Controller
             'data' => [
                 'id' => $trainer->id,
                 'name' => $trainer->name,
-                'email' => $trainer->company_email,
+                'email' => $trainer->email,
                 'is_registered' => $trainer->is_registered,
                 'userType' => 'Assessor'
             ]
@@ -65,18 +74,25 @@ class AssessorController extends Controller
 
     public function signUp(Request $request)
     {
+        // Validation
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|unique:assessors,email',
+            'mobile' => 'required|string|unique:assessors,phone_number|regex:/^[0-9]{10}$/',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // First error only
+            ], 422);
+        }
         try {
-            // Validation
-            $request->validate([
-                'email' => 'required|email|unique:assessors,company_email',
-                'mobile' => 'required|string|unique:assessors,company_phone_number|regex:/^[0-9]{10}$/',
-                'password' => 'required|string|min:6|confirmed',
-            ]);
 
             // Create jobseeker
             $jobseeker = Assessors::create([
-                'company_email' => $request->email,
-                'company_phone_number' => $request->mobile,
+                'email' => $request->email,
+                'phone_number' => $request->mobile,
                 'password' => Hash::make($request->password),
                 'pass' => $request->password, // Optional: for development only
             ]);
@@ -157,8 +173,8 @@ class AssessorController extends Controller
                 'message' => 'Registration successful',
                 'data' => [
                     'id' => $jobseeker->id,
-                    'email' => $jobseeker->company_email,
-                    'mobile' => $jobseeker->company_phone_number,
+                    'email' => $jobseeker->email,
+                    'mobile' => $jobseeker->phone_number,
                     'via' => $contactMethod,
                 ]
             ]);
@@ -247,6 +263,25 @@ class AssessorController extends Controller
                 'portfolio_link' => 'nullable|url',
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'required|file|image|max:2048',
+                'pincode' => 'required',                
+                'city' => 'required|string',                
+                'state' => 'required|string',                
+                'country' => 'required|string',
+                'national_id' => [
+                    'required',
+                    'min:10',
+                    function ($attribute, $value, $fail) use ($jobseeker) {
+                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
+                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
+                        $existsInJobseekers = Jobseekers::where('national_id', $value)
+                            ->where('id', '!=', $jobseeker->id)
+                            ->exists();
+
+                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                            $fail('The national ID has already been taken.');
+                        }
+                    },
+                ],
             ];
 
            
@@ -338,8 +373,12 @@ class AssessorController extends Controller
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
                 'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
-                'city'         => $request->location,
-                'address'      => $request->address,
+                'address'      => $request->location,
+                'city'         => $request->city,
+                'state'      => $request->state,
+                'country'      => $request->country,
+                'pin_code'      => $request->pincode,
+                'national_id'      => $request->national_id,
                 'is_registered'=> true, // you should add this column to your table
             ]);
 
@@ -535,8 +574,8 @@ class AssessorController extends Controller
                 'message' => 'Registration completed successfully.',
                 'data'    => [
                     'id'     => $trainer->id,
-                    'email'  => $trainer->company_email,
-                    'mobile' => $trainer->company_phone_number,
+                    'email'  => $trainer->email,
+                    'mobile' => $trainer->phone_number,
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -559,10 +598,27 @@ class AssessorController extends Controller
 
     public function forgetPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:assessors,company_email',
-            'phone_number' => 'nullable|string|exists:assessors,company_phone_number',
+       $validator = Validator::make($request->all(), [
+            'email' => 'nullable|email|exists:assessors,email',
+            'phone_number' => 'nullable|string|exists:assessors,phone_number',
+        ], [
+            'email.exists' => 'The provided email does not exist.',
+            'phone_number.exists' => 'The provided phone number does not exist.',
         ]);
+
+        // Custom validation: at least one field is required
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // Only first error
+            ], 422);
+        }
 
         if ($validator->fails()) {
             return response()->json([
@@ -575,7 +631,7 @@ class AssessorController extends Controller
         $otp = rand(100000, 999999);
 
         // Use either email or phone
-        $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+        $contactMethod = $request->email ? 'email' : 'phone_number';
         $contactValue = $request->email;
 
         // Store OTP
@@ -587,7 +643,7 @@ class AssessorController extends Controller
         );
 
         // Send OTP (Email or SMS)
-        if ($contactMethod === 'company_email') {
+        if ($contactMethod === 'email') {
             // Mail::html('
             //         <!DOCTYPE html>
             //         <html lang="en">
@@ -667,19 +723,31 @@ class AssessorController extends Controller
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:assessors,company_email',
-            'phone_number' => 'nullable|string|exists:assessors,company_phone_number',
+            'email' => 'nullable|email|exists:assessors,email',
+            'phone_number' => 'nullable|string|exists:assessors,phone_number',
             'otp' => 'required|digits:6',
+        ], [
+            'email.exists' => 'The provided email does not exist.',
+            'phone_number.exists' => 'The provided phone number does not exist.',
+            'otp.required' => 'The OTP is required.',
+            'otp.digits' => 'The OTP must be exactly 6 digits.',
         ]);
+
+        // Custom rule: Require at least one of email or phone_number
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // Only first error
+            ], 422);
         }
 
-        $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+        $contactMethod = $request->email ? 'email' : 'phone_number';
         $contactValue = $request->email;
         $otp = $request->otp;
 
@@ -704,20 +772,33 @@ class AssessorController extends Controller
 
     public function resetPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:assessors,company_email',
-            'phone_number' => 'nullable|string|exists:assessors,company_phone_number',
+       $validator = Validator::make($request->all(), [
+            'email' => 'nullable|email|exists:assessors,email',
+            'phone_number' => 'nullable|string|exists:assessors,phone_number',
             'new_password' => 'required|string|min:6|confirmed',
+        ], [
+            'email.exists' => 'The provided email does not exist.',
+            'phone_number.exists' => 'The provided phone number does not exist.',
+            'new_password.required' => 'The new password is required.',
+            'new_password.min' => 'The new password must be at least 6 characters.',
+            'new_password.confirmed' => 'The password confirmation does not match.',
         ]);
+
+        // Require at least one of email or phone_number
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->email) && empty($request->phone_number)) {
+                $validator->errors()->add('email', 'Either email or phone number is required.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 201);
+                'status' => false,
+                'message' => $validator->errors()->first(), // Only the first error
+            ], 422);
         }
 
-        $contactMethod = $request->email ? 'company_email' : 'company_phone_number';
+        $contactMethod = $request->email ? 'email' : 'phone_number';
         $contactValue = $request->email;
 
         $jobseeker = DB::table('assessors')
@@ -739,7 +820,7 @@ class AssessorController extends Controller
             ]);
 
         // ✅ Send password reset confirmation email
-        if ($contactMethod === 'company_email') {
+        if ($contactMethod === 'email') {
             // Mail::html('
             //     <!DOCTYPE html>
             //     <html lang="en">
