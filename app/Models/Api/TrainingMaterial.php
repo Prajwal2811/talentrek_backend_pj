@@ -50,7 +50,9 @@ class TrainingMaterial extends Model
     {
         return $this->hasMany(Review::class, 'trainer_material', 'id')
                     ->where('user_type', 'trainer');
-    }   
+    } 
+    
+    
 
     public function latestWorkExperience()
     {

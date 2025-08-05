@@ -7,7 +7,7 @@ use App\Models\Api\Testimonial;
 use App\Models\Api\TrainingMaterial;
 use App\Models\Api\TrainingPrograms;
 use App\Models\Api\Trainers;
-use App\Models\JobseekerCartItem;
+use App\Models\Api\JobseekerCartItem;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -117,15 +117,32 @@ class CartManagementController extends Controller
                 },
                 'material' => function ($query) {
                     $query->select('id', 'training_title', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
-                }
+                }                
             ])
+            ->withAvg('trainerReviews','ratings')
+            ->with('latestWorkExperience')
             ->where('jobseeker_id', $jobseekerId)
             ->where('status', 'pending')
             ->get()->map(function ($item) {
                 $material = $item->material;
+                $trainer = $item->trainer;
+                $latestWorkExperience = $item->latestWorkExperience;
+                $item->trainerName = $trainer->name;
+                $item->trainerEmail = $trainer->email;
+
+                $item->training_title = $material->training_title;
+                $item->training_descriptions = $material->training_descriptions;
+                $item->image = $material->image;
+                $item->training_price = $material->training_price;
+                $item->training_offer_price = $material->training_offer_price;
+                $item->designation = $latestWorkExperience->job_role ?? 'N/A';
+                
                 $item->final_price = (!empty($material->training_offer_price))
                     ? $material->training_offer_price
                     : $material->training_price;
+                // ✅ Add trainer average rating
+                $item->trainer_avg_rating = round($item->trainer_reviews_avg_ratings, 1);
+                unset($item->material, $item->trainer,$item->latestWorkExperience);
                 return $item;
             });
 
@@ -135,7 +152,7 @@ class CartManagementController extends Controller
                 return response()->json(['status' => false, 'message' => 'No items found in cart.'], 404);
             }
 
-            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','totalPrice' => $totalPrice, 'data' => $items]);
+            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','gstTax' => 5,'totalPrice' => $totalPrice, 'data' => $items]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }

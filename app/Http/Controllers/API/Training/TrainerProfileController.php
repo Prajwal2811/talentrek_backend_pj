@@ -26,7 +26,10 @@ class TrainerProfileController extends Controller
         try {
             // Fetch Trainers personal information
             $TrainersPersonal = Trainers::select('*')->where('id', $id)->first();
-           
+            $mentorPersonal = $TrainersPersonal->toArray();
+            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $mentorPersonal['date_of_birth'] = date('d/m/Y', strtotime($TrainersPersonal->date_of_birth));
+            }
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Trainer not found.', 404);
             }
@@ -63,7 +66,7 @@ class TrainerProfileController extends Controller
 
             // Return combined response
             return $this->successResponse([
-                'TrainersPersonal'       => $TrainersPersonal,
+                'TrainersPersonal'       => $mentorPersonal,
                 'TrainersEducation'      => $TrainersEducation,
                 'TrainersWorkExp'        => $TrainersWorkExp,
                 'Trainerskill'          => $Trainerskill,

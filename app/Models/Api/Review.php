@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 class Review extends Model
 {
     protected $table = 'reviews';
-
     protected $fillable = [
         'trainer_material',
         'user_type',
@@ -46,4 +45,10 @@ class Review extends Model
     {
         return $this->hasOne(Jobseekers::class, 'id', 'jobseeker_id');
     }
+
+    public function trainerReviews()
+    {
+        return $this->hasMany(Review::class, 'material_id', 'trainer_material')
+                    ->where('user_type', 'trainer');
+    } 
 }

@@ -26,7 +26,10 @@ class MentorProfileController extends Controller
         try {
             // Fetch Trainers personal information
             $TrainersPersonal = Mentors::select('*')->where('id', $id)->first();
-           
+            $TrainerPersonal = $TrainersPersonal->toArray();
+            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $TrainerPersonal['date_of_birth'] = date('d/m/Y', strtotime($TrainersPersonal->date_of_birth));
+            }
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Mentor not found.', 404);
             }
@@ -69,7 +72,7 @@ class MentorProfileController extends Controller
 
             // Return combined response
             return $this->successWithCmsResponse([
-                'MentorPersonal'       => $TrainersPersonal,
+                'MentorPersonal'       => $TrainerPersonal,
                 'MentorEducation'      => $TrainersEducation,
                 'MentorWorkExp'        => $TrainersWorkExp,
                 'MentorSkill'          => $Trainerskill,

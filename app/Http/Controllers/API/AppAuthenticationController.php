@@ -63,7 +63,7 @@ class AppAuthenticationController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'is_registered' => $trainer->is_registered,
+                'is_registered' => $user->is_registered,
                 'type' => $request->type,
             ]
         ]);

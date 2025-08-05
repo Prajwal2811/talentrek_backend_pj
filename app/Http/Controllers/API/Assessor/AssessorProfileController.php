@@ -25,8 +25,10 @@ class AssessorProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Assessors::select('*')->where('id', $id)->first();
-           
+            $TrainersPersonal = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','shortlist','avatar','about_assessor as description' ,'state', 'address','pin_code','country')->where('id', $id)->first();
+           if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $TrainersPersonal->date_of_birth = Carbon::parse($TrainersPersonal->date_of_birth)->format('d/m/Y');
+            }
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Trainer not found.', 404);
             }

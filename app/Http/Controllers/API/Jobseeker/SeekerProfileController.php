@@ -26,12 +26,12 @@ class SeekerProfileController extends Controller
             // Fetch jobseeker personal information
             $jobseekerPersonal = Jobseekers::select(
                 'id', 'name', 'email', 'gender', 'phone_code', 'phone_number',
-                'date_of_birth', 'city', 'address'
-            )->where('id', $id)->first();
-
-            // if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {
-            //     $jobseekerPersonal->date_of_birth = \Carbon\Carbon::parse($jobseekerPersonal->date_of_birth)->format('d-m-Y');
-            // }
+                'date_of_birth', 'city', 'address','state', 'address','pin_code','country' )->where('id', $id)->first();
+            
+            $JobSeekPersonal = $jobseekerPersonal->toArray();
+            if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {
+                $JobSeekPersonal['date_of_birth'] = date('d/m/Y', strtotime($jobseekerPersonal->date_of_birth));
+            }
 
 
             if (!$jobseekerPersonal) {
@@ -78,7 +78,7 @@ class SeekerProfileController extends Controller
             }
             // Return combined response
             return $this->successWithCmsResponse([
-               'jobseekerPersonal'       => $jobseekerPersonal,
+               'jobseekerPersonal'       => $JobSeekPersonal,
                 'jobseekerEducation'      => $jobseekerEducation,
                 'jobseekerWorkExp'        => $jobseekerWorkExp,
                 'jobseekerSkill'          => $jobseekerSkill,

@@ -10,7 +10,7 @@ use App\Models\Api\Trainers;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
-
+use Carbon\Carbon;
 class AppHomeController extends Controller
 {
     use ApiResponse;
@@ -85,7 +85,7 @@ class AppHomeController extends Controller
 
     public function mentorsList()
     {
-        try {
+        // try {
             $mentorsList = Mentors::select(
                 'id',
                 'name',
@@ -102,8 +102,13 @@ class AppHomeController extends Controller
             ->map(function ($item) {
                 //print_r($item->WorkExperience);
                 $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
-                    $start = \Carbon\Carbon::parse($exp->start_from);
-                    $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                    $start = Carbon::parse($exp->starts_from);
+
+                    $endRaw = strtolower(trim($exp->end_to));
+                    $end = ($endRaw === 'work here' || empty($endRaw)) 
+                        ? now() 
+                        : Carbon::parse($endRaw);
+
                     return $carry + $start->diffInDays($end);
                 }, 0);
 
@@ -112,7 +117,7 @@ class AppHomeController extends Controller
                 
                 // Get the most recent job_role based on nearest end_to (null means current)
                 $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                    return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
+                    return Carbon::parse($exp->end_to ?? now())->timestamp;
                 })->first();
 
                 $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
@@ -130,9 +135,9 @@ class AppHomeController extends Controller
             }
         
             return $this->successResponse($mentorsList, 'Mentor list fetched successfully.');
-        } catch (\Exception $e) {
-            return $this->errorResponse('An error occurred while fetching Mentor list.', 500,[]);
-        }
+        // } catch (\Exception $e) {
+        //     return $this->errorResponse('An error occurred while fetching Mentor list.', 500,[]);
+        // }
     }
 
     public function testimonialsList()

@@ -25,8 +25,13 @@ class CoachProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Coach::select('*')->where('id', $id)->first();
+            $TrainersPersonal = Coach::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_coach as description')->where('id', $id)->first();
            
+            $coachPersonal = $TrainersPersonal->toArray();
+            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $coachPersonal['date_of_birth'] = date('d/m/Y', strtotime($TrainersPersonal->date_of_birth));
+            }
+
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Coach not found.', 404);
             }
@@ -62,7 +67,7 @@ class CoachProfileController extends Controller
 
             // Return combined response
             return $this->successResponse([
-                'CoachPersonal'       => $TrainersPersonal,
+                'CoachPersonal'       => $coachPersonal,
                 'CoachEducation'      => $TrainersEducation,
                 'CoachWorkExp'        => $TrainersWorkExp,
                 'Coachskill'          => $Trainerskill,
