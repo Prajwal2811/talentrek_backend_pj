@@ -56,6 +56,7 @@ Route::prefix('authentication')->middleware('throttle:60,1')->group(function () 
     Route::post('/forget-password', [AppAuthenticationController::class, 'forgetPassword']);
     Route::post('/verify-otp', [AppAuthenticationController::class, 'verifyOtp']);
     Route::post('/reset-password', [AppAuthenticationController::class, 'resetPassword']);
+
 });
 
 Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
@@ -73,6 +74,8 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::get('/training-courses', [AppHomeController::class, 'trainingCourses']);
     Route::get('/mentors', [AppHomeController::class, 'mentorsList']);
     Route::get('/testimonials', [AppHomeController::class, 'testimonialsList']);
+
+    Route::get('/skillsAreaOfInterestList', [AppHomeController::class, 'skillsAreaOfInterestListing']);
 
     //Mentor Training Coach Assessor Review tags ['trainer','coach','assessor','mentor']
     Route::get('/trainingAssesorCoachMentorList/{tags}', [ExplorerController::class, 'index']);

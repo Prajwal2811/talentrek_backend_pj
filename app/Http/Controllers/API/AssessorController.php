@@ -270,14 +270,12 @@ class AssessorController extends Controller
                 'national_id' => [
                     'required',
                     'min:10',
-                    function ($attribute, $value, $fail) use ($jobseeker) {
-                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                        $existsInJobseekers = Jobseekers::where('national_id', $value)
-                            ->where('id', '!=', $jobseeker->id)
+                    function ($attribute, $value, $fail) use ($trainer) {
+                        $existsInAssessors = Assessors::where('national_id', $value)
+                            ->where('id', '!=', $trainer->id)
                             ->exists();
 
-                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                        if ($existsInAssessors) {
                             $fail('The national ID has already been taken.');
                         }
                     },

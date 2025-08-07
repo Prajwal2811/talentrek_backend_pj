@@ -199,7 +199,6 @@ class JobseekerController extends Controller
     }
 
 
-
     public function registration(Request $request)
     {
         DB::beginTransaction();
@@ -276,13 +275,11 @@ class JobseekerController extends Controller
                     'required',
                     'min:10',
                     function ($attribute, $value, $fail) use ($jobseeker) {
-                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
                         $existsInJobseekers = Jobseekers::where('national_id', $value)
                             ->where('id', '!=', $jobseeker->id)
                             ->exists();
 
-                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                        if ($existsInJobseekers) {
                             $fail('The national ID has already been taken.');
                         }
                     },

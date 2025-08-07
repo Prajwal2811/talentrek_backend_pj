@@ -116,9 +116,14 @@ class AppHomeController extends Controller
                 $item->total_experience_years = round($totalDays / 365, 1);
                 
                 // Get the most recent job_role based on nearest end_to (null means current)
-                $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                    return Carbon::parse($exp->end_to ?? now())->timestamp;
-                })->first();
+                $mostRecentExp = $item->WorkExperience
+                ->sortByDesc(function ($exp) {
+                    $endTo = strtolower(trim($exp->end_to));
+                    return $endTo === 'work here'
+                        ? Carbon::now()->timestamp
+                        : Carbon::parse($exp->end_to)->timestamp;
+                })
+                ->first();  
 
                 $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
 
@@ -153,4 +158,16 @@ class AppHomeController extends Controller
         }
     }
 
+    public function skillsAreaOfInterestListing()
+    {
+       try {
+            $skillsAreaOfInterestListing = TrainingPrograms::select('*')->get();
+            if ($skillsAreaOfInterestListing->isEmpty()) {
+                return $this->errorResponse('No skills area of interest list found.', 200,[]);
+            }
+            return $this->successResponse($skillsAreaOfInterestListing, 'Skills area of interest list fetched successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse('An error occurred while fetching skills area of interest list.', 500,[]);
+        }
+    }
 }
