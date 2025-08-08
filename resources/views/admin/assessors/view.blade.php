@@ -235,10 +235,12 @@
                                                 <label>Name</label>
                                                 <input readonly type="text" class="form-control" value="{{ $assessor->name }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Email address</label>
                                                 <input readonly type="text" class="form-control" value="{{ $assessor->email }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Date of birth</label>
                                                 @php
@@ -255,19 +257,47 @@
                                                 @endphp
                                                 <input readonly type="text" class="form-control" value="{{ $formattedDate }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Phone number</label>
                                                 <input readonly type="text" class="form-control" value="{{ $assessor->phone_code ? $assessor->phone_code . '-' . $assessor->phone_number : $assessor->phone_number }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
-                                                <label>Location</label>
+                                                <label>Gender</label>
+                                                <input readonly type="text" class="form-control" value="{{ ucfirst($assessor->gender) }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $assessor->city }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $assessor->state }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $assessor->country }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <input readonly type="text" class="form-control" value="{{ $assessor->address }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>PIN Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $assessor->pin_code }}">
                                             </div>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xl-8 col-lg-8 col-md-7">
                             <div class="card">
                                 <div class="header">

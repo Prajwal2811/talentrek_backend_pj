@@ -1558,7 +1558,7 @@ $skills = $user->skills->first();
                                                             </li>
                                                         @else
                                                             <li>
-                                                                <a class="dropdown-item text-blue-600" href="{{ route('training.join', $material->id ?? 0) }}">
+                                                                <a class="dropdown-item text-blue-600" href="">
                                                                     Join Training
                                                                 </a>
                                                             </li>

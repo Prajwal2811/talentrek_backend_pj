@@ -81,9 +81,11 @@
 
 
 
+
 @include('site.componants.header')
 
 <!-- CHAT MODULE CSS START -->
+
 <style>
     /* CSS */
     .chat-button {
@@ -416,6 +418,7 @@
         display: none;
     }
 </style>
+
 <style>
     /* #chatMessages {
         display: flex;
@@ -489,6 +492,43 @@
 </style>
 
 
+
+
+@include('site.componants.header')
+<body>
+    <div class="loading-area">
+        <div class="loading-box"></div>
+        <div class="loading-pic">
+            <div class="wrapper">
+                <div class="cssload-loader"></div>
+            </div>
+        </div>
+    </div>
+	<style>
+        .site-header.header-style-3.mobile-sider-drawer-menu {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: white;
+        }
+    </style>
+      @include('site.componants.navbar')
+        @php
+            $bannerContent = App\Models\CMS::where('slug', 'web_banner')->first();
+        @endphp
+        <div class="page-content">
+            <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" style="background-image: url('{{ $bannerContent->file_path }}');">
+                {{-- CMS Start form here --}}
+                    @php
+                        echo $bannerContent->description;
+                    @endphp
+                {{-- CMS end form here --}}
+                <!-- Curved bottom image -->
+                <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
+                    <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" alt="Curved Bottom" class="w-full h-auto" />
+                </div>
+            </div>
+<!-- CHAT MODULE CSS START -->
 
 
 <!-- CHAT MODULE CSS END -->

@@ -93,4 +93,6 @@ class Coach extends Authenticatable
     {
         return $this->hasMany(BookingSlot::class, 'user_id')->where('user_type', 'coach');
     }
+
+    
 }

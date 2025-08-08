@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('admin_status')->nullable();
             $table->string('inactive_reason')->nullable();
             $table->string('rejection_reason')->nullable();
+            $table->string('is_registered')->default('0');  
             $table->string('isSubscribtionBuy')->default('no');
             $table->timestamps();
 

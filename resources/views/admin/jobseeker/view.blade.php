@@ -264,14 +264,32 @@
                                                 <label>Phone number</label>
                                                 <input readonly type="text" class="form-control" value="{{ $jobseeker->phone_code ? $jobseeker->phone_code . '-' . $jobseeker->phone_number : $jobseeker->phone_number }}">
                                             </div>
+                                            
                                             <div class="col-md-12 form-group">
-                                                <label>Address</label>
-                                                <textarea readonly type="text" class="form-control">{{ $jobseeker->address }}</textarea>
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Location</label>
+                                                <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $jobseeker->city }}">
                                             </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->state }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Pin Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->pin_code }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->country }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <textarea readonly class="form-control">{{ $jobseeker->address }}</textarea>
+                                            </div>
+
+
                                         </div>
                                     </form>
                                 </div>
@@ -564,337 +582,199 @@
 
                             
 
-                        @php
+                       @php
+                            use Carbon\Carbon;
+
                             $mentorships = \App\Models\BookingSession::with([
                                 'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
-                            ])
-                            ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ])->where('jobseeker_id', $jobseeker->id)
                             ->where('user_type', 'mentor')
                             ->whereHas('mentor.profilePicture')
                             ->get();
+
+                            $assessments = \App\Models\BookingSession::with([
+                                'assessor.reviews', 'assessor.profilePicture', 'assessor.experiences'
+                            ])->where('jobseeker_id', $jobseeker->id)
+                            ->where('user_type', 'assessor')
+                            ->get();
+
+                            $coachings = \App\Models\BookingSession::with([
+                                'coach.reviews', 'coach.profilePicture', 'coach.experiences'
+                            ])->where('jobseeker_id', $jobseeker->id)
+                            ->where('user_type', 'coach')
+                            ->get();
                         @endphp
 
+                        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+                        <script>
+                            function toggleVisibility(section) {
+                                document.querySelectorAll('.' + section + '-item').forEach((el, index) => {
+                                    if (index >= 3) el.classList.toggle('d-none');
+                                });
+
+                                const button = document.getElementById('viewMoreBtn_' + section);
+                                button.innerText = button.innerText === 'View More' ? 'View Less' : 'View More';
+                            }
+                        </script>
+
+                        <!-- MENTORSHIP SECTION -->
                         <div class="card">
-                            <div class="header">
-                                <h2>Jobseeker Mentorship</h2>
-                            </div>
+                            <div class="header"><h2>Jobseeker Mentorship</h2></div>
                             <div class="body">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-lg-12">
-
-                                            @foreach ($mentorships as $index => $session)
-                                                @php
-                                                    $mentor = $session->mentor;
-                                                    $reviews = $mentor?->reviews ?? collect();
-                                                    $experiences = $mentor?->experiences ?? collect();
-                                                    $averageRating = $reviews->avg('ratings') ?? 0;
-                                                    $totalReviews = $reviews->count();
-                                                    $roundedRating = round($averageRating);
-                                                    $stars = str_repeat('★ ', $roundedRating) . str_repeat('☆ ', 5 - $roundedRating);
-                                                    $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
-                                                    $designation = $currentExp?->job_role ?? 'No designation available';
-                                                    $zoomLink = $session->zoom_join_url ?? null;
-                                                    $slotMode = $session->slot_mode;
-                                                    $address = $mentor?->address ?? 'Address not available';
-                                                    $image = $mentor?->profilePicture?->document_path ?? asset('default-avatar.png');
-                                                @endphp
-
-                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                    <img src="{{ $image }}" alt="Mentor Image"
-                                                        class="img-fluid rounded"
-                                                        style="width: 200px; height: 140px; object-fit: cover;">
-                                                    <div class="ps-4 d-flex flex-column flex-grow-1">
-                                                        <div class="d-flex justify-content-between align-items-start">
-                                                            <div>
-                                                                <h5 class="fw-bold mb-1">{{ $mentor?->name }}</h5>
-                                                                <p class="text-muted mb-2">{{ $designation }}</p>
-                                                                <div class="d-flex align-items-center mb-2">
-                                                                    <span class="text-warning me-2">{!! $stars !!}</span>
-                                                                    <span class="text-muted">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="text-end">
-                                                                @if ($slotMode === 'online' && $zoomLink)
-                                                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal{{ $index }}">Join Meet</button>
-                                                                @elseif ($slotMode === 'offline')
-                                                                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal{{ $index }}">View Address</button>
-                                                                @else
-                                                                    <p class="text-danger small mt-1">Link not available</p>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
+                                    @forelse ($mentorships as $index => $session)
+                                        @php
+                                            $mentor = $session->mentor;
+                                            $reviews = $mentor?->reviews ?? collect();
+                                            $experiences = $mentor?->experiences ?? collect();
+                                            $averageRating = $reviews->avg('ratings') ?? 0;
+                                            $totalReviews = $reviews->count();
+                                            $filledStars = floor($averageRating);
+                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                            $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                            $designation = $currentExp?->job_role ?? 'No designation available';
+                                            $slotMode = $session->slot_mode;
+                                            $zoomLink = $session->zoom_join_url;
+                                            $image = $mentor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+                                        @endphp
+                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm mentorship-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                            <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                <h5 class="fw-bold mb-1">{{ $mentor->name }}</h5>
+                                                <p class="text-muted mb-1">{{ $designation }}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
+                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
+                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
+                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
                                                 </div>
-
-
-                                                {{-- Zoom Modal --}}
                                                 @if ($slotMode === 'online' && $zoomLink)
-                                                    <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Join Zoom Meeting with {{ $mentor->name }}</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p>Click the link below to join:</p>
-                                                                    <a href="{{ $zoomLink }}" target="_blank" class="text-primary text-break">{{ $zoomLink }}</a>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
+                                                @elseif ($slotMode === 'offline')
+                                                    <p class="text-muted small mt-1">Offline session - check location</p>
+                                                @else
+                                                    <p class="text-danger small mt-1">Link not available</p>
                                                 @endif
-
-                                                {{-- Address Modal --}}
-                                                @if ($slotMode === 'offline')
-                                                    <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">{{ $mentor->name }}'s Address</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p class="text-dark">{{ $address }}</p>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            @endforeach
-
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    @empty
+                                        <div class="alert alert-info">No mentorship sessions found.</div>
+                                    @endforelse
+                                    @if ($mentorships->count() > 3)
+                                        <div class="text-center">
+                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_mentorship" onclick="toggleVisibility('mentorship')">View More</button>
+                                        </div>
+                                    @endif
+                                </div></div></div>
                             </div>
                         </div>
 
-                            @php
-                                $assessments = \App\Models\BookingSession::with([
-                                            'assessor.reviews', 'assessor.profilePicture', 'assessor.experiences'
-                                        ])->where('jobseeker_id', $jobseeker->id)
-                                        ->where('user_type', 'assessor')
-                                        ->get();
-                                // echo "<pre>"; print_r($assessments); 
-                            @endphp
-
-                            <div class="card">
-                                <div class="header">
-                                    <h2>Jobseeker Assessments</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="col-lg-12">
-                                        @foreach ($assessments as $index => $session)
-                                            @php
-                                                $assessor = $session->assessor;
-                                                $reviews = $assessor?->reviews ?? collect();
-                                                $experiences = $assessor?->experiences ?? collect();
-                                                $averageRating = $reviews->avg('ratings') ?? 0;
-                                                $totalReviews = $reviews->count();
-                                                $roundedRating = round($averageRating);
-                                                $stars = str_repeat('★ ', $roundedRating) . str_repeat('☆ ', 5 - $roundedRating);
-                                                $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
-                                                $designation = $currentExp?->job_role ?? 'No designation available';
-                                                $zoomLink = $session->zoom_join_url ?? null;
-                                                $slotMode = $session->slot_mode;
-                                                $address = $assessor?->address ?? 'Address not available';
-                                                $image = $assessor?->profilePicture?->document_path ?? asset('default-avatar.png');
-                                            @endphp
-
-                                            <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                <img src="{{ $image }}" alt="Assessor Image"
-                                                    class="img-fluid rounded"
-                                                    style="width: 200px; height: 140px; object-fit: cover;">
-                                                <div class="ps-4 d-flex flex-column flex-grow-1">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div>
-                                                            <h5 class="fw-bold mb-1">{{ $session->name }}</h5>
-                                                            <p class="text-muted mb-2">{{ $designation }}</p>
-                                                            <div class="d-flex align-items-center mb-2">
-                                                                <span class="text-warning me-2">{!! $stars !!}</span>
-                                                                <span class="text-muted">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="text-end">
-                                                            @if ($slotMode === 'online' && $zoomLink)
-                                                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal{{ $index }}">Join Meet</button>
-                                                            @elseif ($slotMode === 'offline')
-                                                                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal{{ $index }}">View Address</button>
-                                                            @else
-                                                                <p class="text-danger small mt-1">Link not available</p>
-                                                            @endif
-                                                        </div>
-                                                    </div>
+                        <!-- ASSESSMENT SECTION -->
+                        <div class="card mt-4">
+                            <div class="header"><h2>Jobseeker Assessments</h2></div>
+                            <div class="body">
+                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
+                                    @forelse ($assessments as $index => $session)
+                                        @php
+                                            $assessor = $session->assessor;
+                                            $reviews = $assessor?->reviews ?? collect();
+                                            $experiences = $assessor?->experiences ?? collect();
+                                            $averageRating = $reviews->avg('ratings') ?? 0;
+                                            $totalReviews = $reviews->count();
+                                            $filledStars = floor($averageRating);
+                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                            $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
+                                            $slotMode = $session->slot_mode;
+                                            $zoomLink = $session->zoom_join_url;
+                                            $image = $assessor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+                                        @endphp
+                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm assessment-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                            <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                <h5 class="fw-bold mb-1">{{ $assessor->name }}</h5>
+                                                <p class="text-muted mb-1">{{ $designation }}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
+                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
+                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
+                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
                                                 </div>
-                                            </div>
-
-                                            {{-- Zoom Modal --}}
-                                            @if ($slotMode === 'online' && $zoomLink)
-                                                <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Join Zoom Meeting with {{ $assessor->name }}</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <p>Click the link below to join:</p>
-                                                                <a href="{{ $zoomLink }}" target="_blank" class="text-primary text-break">{{ $zoomLink }}</a>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endif
-
-                                            {{-- Address Modal --}}
-                                            @if ($slotMode === 'offline')
-                                                <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">{{ $assessor->name }}'s Address</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <p class="text-dark">{{ $address }}</p>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
-
-
-
-                                        @if ($assessments->count() > 1)
-                                            <div class="text-center mt-4">
-                                                <button class="btn btn-primary" onclick="toggleAssessments()" id="toggleButton">View More</button>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Toggle Script -->
-                            <script>
-                                function toggleAssessments() {
-                                    const items = document.querySelectorAll('.extra-assessment');
-                                    const btn = document.getElementById('toggleButton');
-
-                                    items.forEach(el => el.classList.toggle('d-none'));
-
-                                    btn.textContent = btn.textContent === 'View More' ? 'View Less' : 'View More';
-                                }
-                            </script>
-
-
-
-
-                            <div class="card">
-                                <div class="header">
-                                    <h2>Jobseeker Coaching</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-lg-12">
-
-                                                <!-- Coach Card 1 -->
-                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                    <img src="../images/gallery/finished-quiz.png" alt="Coach Image"
-                                                        class="img-fluid rounded"
-                                                        style="width: 200px; height: 140px; object-fit: cover;">
-                                                    <div
-                                                        class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                        <h5 class="fw-bold mb-1">Julia Maccarthy</h5>
-                                                        <p class="text-muted mb-2">Career Coach</p>
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                            <span class="text-muted">(4/5 Rating)</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Hidden More Coaches -->
-                                                <div id="moreCoaches" class="d-none">
-
-                                                    <!-- Coach Card 2 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/graphic-design.png"
-                                                            alt="Coach Image" class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">John Smith</h5>
-                                                            <p class="text-muted mb-2">Leadership Consultant</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ★</span>
-                                                                <span class="text-muted">(5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Coach Card 3 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/ui-ux.png" alt="Coach Image"
-                                                            class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">Sara Lee</h5>
-                                                            <p class="text-muted mb-2">Startup Advisor</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                                <span class="text-muted">(4.5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleCoachButton"
-                                                        onclick="toggleCoaches()">View More</button>
-                                                </div>
-
+                                                @if ($slotMode === 'online' && $zoomLink)
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
+                                                @elseif ($slotMode === 'offline')
+                                                    <p class="text-muted small mt-1">Offline session - check location</p>
+                                                @else
+                                                    <p class="text-danger small mt-1">Link not available</p>
+                                                @endif
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <script>
-                                    function toggleCoaches() {
-                                        const moreCoaches = document.getElementById("moreCoaches");
-                                        const button = document.getElementById("toggleCoachButton");
-
-                                        if (moreCoaches.classList.contains("d-none")) {
-                                            moreCoaches.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            moreCoaches.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
+                                    @empty
+                                        <div class="alert alert-info">No assessment sessions found.</div>
+                                    @endforelse
+                                    @if ($assessments->count() > 3)
+                                        <div class="text-center">
+                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_assessment" onclick="toggleVisibility('assessment')">View More</button>
+                                        </div>
+                                    @endif
+                                </div></div></div>
                             </div>
+                        </div>
+
+                        <!-- COACHING SECTION -->
+                        <div class="card mt-4">
+                            <div class="header"><h2>Jobseeker Coaching</h2></div>
+                            <div class="body">
+                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
+                                    @forelse ($coachings as $index => $session)
+                                        @php
+                                            $coach = $session->coach;
+                                            $reviews = $coach?->reviews ?? collect();
+                                            $experiences = $coach?->experiences ?? collect();
+                                            $averageRating = $reviews->avg('ratings') ?? 0;
+                                            $totalReviews = $reviews->count();
+                                            $filledStars = floor($averageRating);
+                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                            $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
+                                            $slotMode = $session->slot_mode;
+                                            $zoomLink = $session->zoom_join_url;
+                                            $image = $coach?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+                                        @endphp
+                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm coaching-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                            <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                <h5 class="fw-bold mb-1">{{ $coach->name }}</h5>
+                                                <p class="text-muted mb-1">{{ $designation }}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
+                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
+                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
+                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                </div>
+                                                @if ($slotMode === 'online' && $zoomLink)
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
+                                                @elseif ($slotMode === 'offline')
+                                                    <p class="text-muted small mt-1">Offline session - check location</p>
+                                                @else
+                                                    <p class="text-danger small mt-1">Link not available</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="alert alert-info">No coaching sessions found.</div>
+                                    @endforelse
+                                    @if ($coachings->count() > 3)
+                                        <div class="text-center">
+                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_coaching" onclick="toggleVisibility('coaching')">View More</button>
+                                        </div>
+                                    @endif
+                                </div></div></div>
+                            </div>
+                        </div>
+
 
 
 

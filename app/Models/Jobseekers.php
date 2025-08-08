@@ -98,7 +98,7 @@ class Jobseekers extends Authenticatable
 
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(PaymentHistory::class);
     }
 
     public function profilePicture()

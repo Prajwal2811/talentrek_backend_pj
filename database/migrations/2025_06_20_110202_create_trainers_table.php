@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('admin_status')->nullable();            
             $table->text('inactive_reason')->nullable(); // Removed ->after('status')
             $table->text('rejection_reason')->nullable(); // Removed ->after('status') 
+            $table->string('is_registered')->default('0');  
             $table->string('isSubscribtionBuy')->default('no');           // e.g., Mumbai, Delhi
             $table->timestamps();
         });

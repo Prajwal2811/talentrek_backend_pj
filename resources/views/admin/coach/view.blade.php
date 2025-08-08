@@ -235,10 +235,12 @@
                                                 <label>Name</label>
                                                 <input readonly type="text" class="form-control" value="{{ $coach->name }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Email address</label>
                                                 <input readonly type="text" class="form-control" value="{{ $coach->email }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Date of birth</label>
                                                 @php
@@ -255,19 +257,47 @@
                                                 @endphp
                                                 <input readonly type="text" class="form-control" value="{{ $formattedDate }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Phone number</label>
                                                 <input readonly type="text" class="form-control" value="{{ $coach->phone_code ? $coach->phone_code . '-' . $coach->phone_number : $coach->phone_number }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
-                                                <label>Location</label>
+                                                <label>Gender</label>
+                                                <input readonly type="text" class="form-control" value="{{ ucfirst($coach->gender) }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $coach->city }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $coach->state }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $coach->country }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <input readonly type="text" class="form-control" value="{{ $coach->address }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>PIN Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $coach->pin_code }}">
                                             </div>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xl-8 col-lg-8 col-md-7">
                             <div class="card">
                                 <div class="header">
