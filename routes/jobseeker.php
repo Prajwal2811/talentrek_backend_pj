@@ -88,6 +88,10 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/cart/remove/{id}', [JobseekerController::class, 'remove'])->name('cart.remove');
 
 
+		 Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
+    	Route::get('/chat/messages', [JobseekerController::class, 'getMessages'])->name('jobseeker.chat.fetch');
+
+
 
 	});
 

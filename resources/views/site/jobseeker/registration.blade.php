@@ -183,32 +183,399 @@
                                     </div>
 
 
+                                    <!-- Country Dropdown -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Select city " value="{{ old('city') }}" />
-                                        @error('city')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
+                                        <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red;">*</span></label>
+                                        <select id="country" name="country" class="w-full border rounded-md p-2" onchange="loadStates()">
+                                            <option value="">Select Country</option>
+                                            <option value="saudi">Saudi Arabia</option>
+                                            <option value="india">India</option>
+                                            <option value="usa">USA</option>
+                                            <option value="canada">Canada</option>
+                                            <option value="australia">Australia</option>
+                                            <option value="uk">UK</option>
+                                            <option value="germany">Germany</option>
+                                            <option value="france">France</option>
+                                            <option value="uae">UAE</option>
+                                            <option value="japan">Japan</option>
+                                        </select>
                                     </div>
 
+                                    <!-- State Dropdown -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">State <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="state" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Select state" value="{{ old('state') }}" />
-                                        @error('state')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
+                                        <label class="block mb-1 text-sm font-medium mt-3">State <span style="color: red;">*</span></label>
+                                        <select id="state" name="state" class="w-full border rounded-md p-2" onchange="loadCities()">
+                                            <option value="">Select State</option>
+                                        </select>
                                     </div>
 
+                                    <!-- City Dropdown -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
-                                        <input type="text" name="country" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Select country" value="{{ old('country') }}" />
-                                        @error('country')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
+                                        <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red;">*</span></label>
+                                        <select id="city" name="city" class="w-full border rounded-md p-2">
+                                            <option value="">Select City</option>
+                                        </select>
                                     </div>
+
+                                    <script>
+                                    const data = {
+                                        saudi: {
+                                            "Riyadh Province": [
+                                                "Riyadh", "Al Kharj", "Wadi ad-Dawasir", "Shaqra", "Az Zulfi", "Al Majma'ah", "Al Muzahimiyah",
+                                                "Durma", "Afif", "Al Ghat", "Hotat Bani Tamim", "Al Hariq", "As Sulayyil", "Thadiq", "Huraymila"
+                                            ],
+                                            "Makkah Province": [
+                                                "Jeddah", "Mecca", "Taif", "Rabigh", "Al Lith", "Khulais", "Al Jumum", "Turubah", "Ranyah", "Al Khurma",
+                                                "Maysan", "Al Bahrah", "Adham", "Masturah"
+                                            ],
+                                            "Medina Province": [
+                                                "Medina", "Yanbu", "Badr", "Al-Ula", "Khaybar", "Al Mahd", "Al Hinakiyah", "Wadi Al-Fara", "Al Ais", "Al Ameq"
+                                            ],
+                                            "Eastern Province (Ash Sharqiyah)": [
+                                                "Dammam", "Khobar", "Dhahran", "Qatif", "Hofuf", "Jubail", "Ras Tanura", "Abqaiq", "Al Hasa", "Al Khafji",
+                                                "Safwa", "Tarout", "Al Nairyah", "Al Qaisumah", "Hafar Al-Batin", "Anak", "Al-Oyaynah", "Udhailiyah"
+                                            ],
+                                            "Asir Province": [
+                                                "Abha", "Khamis Mushait", "Bisha", "Ahad Rafidah", "Tanumah", "Sarat Abidah", "Muhayil", "Dharan Al Janub",
+                                                "Tathleeth", "Rijal Alma", "Al Namas", "Balqarn", "Al Majaridah", "Bariq"
+                                            ],
+                                            "Tabuk Province": [
+                                                "Tabuk", "Duba", "Haql", "Tayma", "Al Wajh", "Umluj", "Al Muwaileh", "Sharma", "Al Bada"
+                                            ],
+                                            "Qassim Province": [
+                                                "Buraidah", "Unaizah", "Ar Rass", "Al Mithnab", "Al Bukayriyah", "Al Badayea", "Uyun AlJiwa",
+                                                "Riyadh Al Khabra", "Al Nabhaniyah", "Dhalm"
+                                            ],
+                                            "Hail Province": [
+                                                "Hail", "Baqqa", "Al-Ghazalah", "Ash Shamli", "Turbah", "Al-Shinan", "Al Hait", "Al Hulayfah",
+                                                "Al Uwayqilah", "Al Khuttah"
+                                            ],
+                                            "Najran Province": [
+                                                "Najran", "Sharurah", "Habuna", "Badr Al Janoub", "Yadamah", "Thar", "Khubash", "Al Wadiah", "Bir Askar"
+                                            ],
+                                            "Jazan Province": [
+                                                "Jazan", "Sabya", "Abu Arish", "Samtah", "Al Darb", "Baish", "Ahad Al Masarihah", "Farasan", "Al Aridhah",
+                                                "Al Tuwal", "Fifa", "Dhamad", "Harub", "Al Harth", "Ar Rayth", "Damad"
+                                            ],
+                                            "Al Bahah Province": [
+                                                "Al Bahah", "Baljurashi", "Al Mandaq", "Al Aqiq", "Qilwah", "Al Qura", "Al-Makhwah", "Al-Hajrah"
+                                            ],
+                                            "Northern Borders Province": [
+                                                "Arar", "Rafha", "Turaif", "Al Uwayqilah", "Al Aujam"
+                                            ],
+                                            "Al Jawf Province": [
+                                                "Sakakah", "Dumat Al-Jandal", "Tabarjal", "Qurayyat", "Al Hadithah"
+                                            ]
+                                        },
+                                        india: {
+                                            "Maharashtra": [
+                                            "Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Nanded"
+                                            ],
+                                            "Gujarat": [
+                                            "Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar", "Anand", "Nadiad", "Morbi"
+                                            ],
+                                            "Delhi": [
+                                            "New Delhi", "Dwarka", "Karol Bagh", "Rohini", "Lajpat Nagar", "Saket", "Mayur Vihar", "Vasant Kunj", "Janakpuri", "Connaught Place"
+                                            ],
+                                            "Karnataka": [
+                                            "Bangalore", "Mysore", "Mangalore", "Hubli", "Belgaum", "Gulbarga", "Davangere", "Bellary", "Tumkur", "Udupi"
+                                            ],
+                                            "Tamil Nadu": [
+                                            "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Vellore", "Erode", "Thoothukudi", "Dindigul"
+                                            ],
+                                            "Uttar Pradesh": [
+                                            "Lucknow", "Kanpur", "Varanasi", "Agra", "Meerut", "Allahabad", "Ghaziabad", "Noida", "Bareilly", "Aligarh"
+                                            ],
+                                            "West Bengal": [
+                                            "Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Malda", "Kharagpur", "Bardhaman", "Haldia", "Berhampore"
+                                            ],
+                                            "Rajasthan": [
+                                            "Jaipur", "Udaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Alwar", "Sikar", "Bhilwara", "Chittorgarh"
+                                            ],
+                                            "Punjab": [
+                                            "Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur", "Moga", "Pathankot", "Firozpur"
+                                            ],
+                                            "Kerala": [
+                                            "Kochi", "Thiruvananthapuram", "Kozhikode", "Kollam", "Thrissur", "Alappuzha", "Palakkad", "Kottayam", "Kannur", "Malappuram"
+                                            ]
+                                        },
+                                        usa: {
+                                            "California": [
+                                            "Los Angeles", "San Diego", "San Jose", "San Francisco", "Fresno", "Sacramento", "Long Beach", "Oakland", "Bakersfield", "Anaheim"
+                                            ],
+                                            "Texas": [
+                                            "Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "El Paso", "Arlington", "Plano", "Corpus Christi", "Lubbock"
+                                            ],
+                                            "Florida": [
+                                            "Miami", "Orlando", "Tampa", "Jacksonville", "Tallahassee", "St. Petersburg", "Hialeah", "Fort Lauderdale", "Cape Coral", "Gainesville"
+                                            ],
+                                            "New York": [
+                                            "New York City", "Buffalo", "Rochester", "Yonkers", "Syracuse", "Albany", "New Rochelle", "Mount Vernon", "Schenectady", "Utica"
+                                            ],
+                                            "Illinois": [
+                                            "Chicago", "Springfield", "Naperville", "Peoria", "Rockford", "Joliet", "Aurora", "Elgin", "Waukegan", "Cicero"
+                                            ],
+                                            "Pennsylvania": [
+                                            "Philadelphia", "Pittsburgh", "Allentown", "Erie", "Reading", "Scranton", "Bethlehem", "Lancaster", "Harrisburg", "York"
+                                            ],
+                                            "Ohio": [
+                                            "Columbus", "Cleveland", "Cincinnati", "Toledo", "Akron", "Dayton", "Parma", "Canton", "Youngstown", "Lorain"
+                                            ],
+                                            "Georgia": [
+                                            "Atlanta", "Savannah", "Augusta", "Columbus", "Macon", "Athens", "Sandy Springs", "Roswell", "Albany", "Johns Creek"
+                                            ],
+                                            "Michigan": [
+                                            "Detroit", "Lansing", "Ann Arbor", "Grand Rapids", "Flint", "Warren", "Sterling Heights", "Dearborn", "Livonia", "Troy"
+                                            ],
+                                            "North Carolina": [
+                                            "Charlotte", "Raleigh", "Durham", "Greensboro", "Winston-Salem", "Fayetteville", "Cary", "Wilmington", "High Point", "Chapel Hill"
+                                            ]
+                                        },
+                                        canada: {
+                                            "Ontario": [
+                                            "Toronto", "Ottawa", "Hamilton", "Mississauga", "Brampton", "London", "Markham", "Kitchener", "Windsor", "Vaughan"
+                                            ],
+                                            "British Columbia": [
+                                            "Vancouver", "Victoria", "Kelowna", "Surrey", "Burnaby", "Richmond", "Abbotsford", "Coquitlam", "Nanaimo", "Kamloops"
+                                            ],
+                                            "Alberta": [
+                                            "Calgary", "Edmonton", "Red Deer", "Lethbridge", "St. Albert", "Medicine Hat", "Grande Prairie", "Airdrie", "Spruce Grove", "Leduc"
+                                            ],
+                                            "Quebec": [
+                                            "Montreal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay", "Trois-Rivières", "Terrebonne", "Saint-Jean-sur-Richelieu"
+                                            ],
+                                            "Manitoba": [
+                                            "Winnipeg", "Brandon", "Steinbach", "Thompson", "Portage la Prairie", "Selkirk", "Winkler", "Morden", "Dauphin", "Flin Flon"
+                                            ],
+                                            "Saskatchewan": [
+                                            "Saskatoon", "Regina", "Moose Jaw", "Prince Albert", "Swift Current", "North Battleford", "Yorkton", "Estevan", "Weyburn", "Martensville"
+                                            ],
+                                            "Nova Scotia": [
+                                            "Halifax", "Sydney", "Truro", "New Glasgow", "Bridgewater", "Kentville", "Amherst", "Yarmouth", "Windsor", "Antigonish"
+                                            ],
+                                            "New Brunswick": [
+                                            "Moncton", "Fredericton", "Saint John", "Bathurst", "Miramichi", "Dieppe", "Edmundston", "Campbellton", "Shediac", "Quispamsis"
+                                            ],
+                                            "Newfoundland": [
+                                            "St. John's", "Corner Brook", "Gander", "Mount Pearl", "Conception Bay South", "Paradise", "Grand Falls-Windsor", "Happy Valley-Goose Bay", "Clarenville", "Marystown"
+                                            ],
+                                            "Prince Edward Island": [
+                                            "Charlottetown", "Summerside", "Stratford", "Cornwall", "Montague", "Kensington", "Souris", "Georgetown", "Alberton", "Tignish"
+                                            ]
+                                        },
+                                        australia: {
+                                            "New South Wales": [
+                                            "Sydney", "Newcastle", "Wollongong", "Albury", "Maitland", "Wagga Wagga", "Port Macquarie", "Tamworth", "Orange", "Dubbo"
+                                            ],
+                                            "Victoria": [
+                                            "Melbourne", "Geelong", "Ballarat", "Bendigo", "Shepparton", "Mildura", "Warrnambool", "Wodonga", "Traralgon", "Wangaratta"
+                                            ],
+                                            "Queensland": [
+                                            "Brisbane", "Cairns", "Gold Coast", "Townsville", "Toowoomba", "Mackay", "Rockhampton", "Bundaberg", "Hervey Bay", "Gladstone"
+                                            ],
+                                            "Western Australia": [
+                                            "Perth", "Bunbury", "Albany", "Geraldton", "Kalgoorlie", "Broome", "Busselton", "Esperance", "Port Hedland", "Karratha"
+                                            ],
+                                            "South Australia": [
+                                            "Adelaide", "Mount Gambier", "Whyalla", "Murray Bridge", "Port Augusta", "Port Pirie", "Gawler", "Victor Harbor", "Port Lincoln", "Coober Pedy"
+                                            ],
+                                            "Tasmania": [
+                                            "Hobart", "Launceston", "Devonport", "Burnie", "Ulverstone", "New Norfolk", "Queenstown", "Sorell", "George Town", "Wynyard"
+                                            ],
+                                            "ACT": [
+                                            "Canberra", "Belconnen", "Gungahlin", "Tuggeranong", "Woden Valley", "Weston Creek", "Molonglo Valley", "Fyshwick", "Narrabundah", "Kingston"
+                                            ],
+                                            "Northern Territory": [
+                                            "Darwin", "Alice Springs", "Palmerston", "Katherine", "Nhulunbuy", "Tennant Creek", "Jabiru", "Yulara", "Howard Springs", "Batchelor"
+                                            ],
+                                            "Central Australia": [
+                                            "Yulara", "Tennant Creek", "Hermannsburg", "Kings Canyon", "Papunya", "Ti Tree", "Santa Teresa", "Docker River", "Areyonga", "Yuendumu"
+                                            ],
+                                            "Top End": [
+                                            "Katherine", "Nhulunbuy", "Jabiru", "Maningrida", "Wadeye", "Gunbalanya", "Coomalie", "Ngukurr", "Ramingining", "Beswick"
+                                            ]
+                                        },
+                                        uk: {
+                                            "England": [
+                                            "London", "Manchester", "Birmingham", "Liverpool", "Bristol", "Leicester", "Nottingham", "Coventry", "Southampton", "Reading"
+                                            ],
+                                            "Scotland": [
+                                            "Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Inverness", "Stirling", "Perth", "Paisley", "Ayr", "Motherwell"
+                                            ],
+                                            "Wales": [
+                                            "Cardiff", "Swansea", "Newport", "Wrexham", "Bangor", "Llandudno", "Barry", "Merthyr Tydfil", "Pontypridd", "Aberystwyth"
+                                            ],
+                                            "Northern Ireland": [
+                                            "Belfast", "Derry", "Lisburn", "Newry", "Armagh", "Craigavon", "Bangor", "Antrim", "Coleraine", "Enniskillen"
+                                            ],
+                                            "Kent": [
+                                            "Canterbury", "Maidstone", "Ashford", "Dartford", "Tonbridge", "Folkestone", "Tunbridge Wells", "Sevenoaks", "Gravesend", "Margate"
+                                            ],
+                                            "Essex": [
+                                            "Chelmsford", "Colchester", "Basildon", "Southend-on-Sea", "Harlow", "Brentwood", "Clacton-on-Sea", "Braintree", "Grays", "Maldon"
+                                            ],
+                                            "Surrey": [
+                                            "Guildford", "Woking", "Epsom", "Redhill", "Farnham", "Walton-on-Thames", "Camberley", "Leatherhead", "Reigate", "Godalming"
+                                            ],
+                                            "Lancashire": [
+                                            "Preston", "Blackpool", "Burnley", "Lancaster", "Blackburn", "Accrington", "Chorley", "Morecambe", "Nelson", "Fleetwood"
+                                            ],
+                                            "Devon": [
+                                            "Exeter", "Plymouth", "Torquay", "Barnstaple", "Exmouth", "Newton Abbot", "Tiverton", "Bideford", "Paignton", "Honiton"
+                                            ],
+                                            "Yorkshire": [
+                                            "Leeds", "Sheffield", "Bradford", "York", "Huddersfield", "Hull", "Wakefield", "Doncaster", "Halifax", "Harrogate"
+                                            ]
+                                        },
+                                        germany: {
+                                            "Bavaria": [
+                                            "Munich", "Nuremberg", "Augsburg", "Regensburg", "Ingolstadt", "Würzburg", "Fürth", "Erlangen", "Bayreuth", "Bamberg"
+                                            ],
+                                            "Berlin": [
+                                            "Berlin", "Charlottenburg", "Friedrichshain", "Kreuzberg", "Neukölln", "Prenzlauer Berg", "Spandau", "Steglitz", "Wedding", "Zehlendorf"
+                                            ],
+                                            "Hesse": [
+                                            "Frankfurt", "Wiesbaden", "Darmstadt", "Kassel", "Offenbach", "Hanau", "Marburg", "Gießen", "Fulda", "Rüsselsheim"
+                                            ],
+                                            "Saxony": [
+                                            "Dresden", "Leipzig", "Chemnitz", "Zwickau", "Plauen", "Görlitz", "Freiberg", "Bautzen", "Pirna", "Hoyerswerda"
+                                            ],
+                                            "Hamburg": [
+                                            "Hamburg", "Altona", "Eimsbüttel", "Wandsbek", "Harburg", "Bergedorf", "Hamburg-Mitte", "Hamburg-Nord", "Lurup", "Niendorf"
+                                            ],
+                                            "Bremen": [
+                                            "Bremen", "Bremerhaven", "Walle", "Vegesack", "Hemelingen", "Oberneuland", "Borgfeld", "Huchting", "Findorff", "Blumenthal"
+                                            ],
+                                            "Lower Saxony": [
+                                            "Hannover", "Braunschweig", "Oldenburg", "Osnabrück", "Wolfsburg", "Göttingen", "Salzgitter", "Hildesheim", "Lüneburg", "Celle"
+                                            ],
+                                            "North Rhine": [
+                                            "Cologne", "Düsseldorf", "Dortmund", "Essen", "Duisburg", "Bochum", "Wuppertal", "Bonn", "Bielefeld", "Mönchengladbach"
+                                            ],
+                                            "Saarland": [
+                                            "Saarbrücken", "Neunkirchen", "Homburg", "Völklingen", "Sankt Ingbert", "Merzig", "Saarlouis", "Blieskastel", "St. Wendel", "Lebach"
+                                            ],
+                                            "Schleswig-Holstein": [
+                                            "Kiel", "Lübeck", "Flensburg", "Neumünster", "Norderstedt", "Elmshorn", "Pinneberg", "Itzehoe", "Ahrensburg", "Bad Oldesloe"
+                                            ]
+                                        },
+                                        france: {
+                                            "Île-de-France": [
+                                            "Paris", "Versailles", "Boulogne-Billancourt", "Saint-Denis", "Nanterre", "Créteil", "Courbevoie", "Argenteuil", "Montreuil", "Vitry-sur-Seine"
+                                            ],
+                                            "Provence": [
+                                            "Marseille", "Nice", "Avignon", "Toulon", "Aix-en-Provence", "Cannes", "Antibes", "Grasse", "Hyères", "Fréjus"
+                                            ],
+                                            "Auvergne": [
+                                            "Clermont-Ferrand", "Vichy", "Le Puy-en-Velay", "Montluçon", "Aurillac", "Issoire", "Moulins", "Cusset", "Riom", "Cournon-d'Auvergne"
+                                            ],
+                                            "Nouvelle-Aquitaine": [
+                                            "Bordeaux", "Limoges", "Poitiers", "Pau", "La Rochelle", "Angoulême", "Périgueux", "Bergerac", "Bayonne", "Brive-la-Gaillarde"
+                                            ],
+                                            "Brittany": [
+                                            "Rennes", "Brest", "Quimper", "Lorient", "Vannes", "Saint-Malo", "Saint-Brieuc", "Fougères", "Concarneau", "Morlaix"
+                                            ],
+                                            "Normandy": [
+                                            "Rouen", "Caen", "Le Havre", "Cherbourg", "Évreux", "Dieppe", "Alençon", "Lisieux", "Fécamp", "Granville"
+                                            ],
+                                            "Occitanie": [
+                                            "Toulouse", "Montpellier", "Nîmes", "Perpignan", "Béziers", "Carcassonne", "Albi", "Tarbes", "Montauban", "Narbonne"
+                                            ],
+                                            "Grand Est": [
+                                            "Strasbourg", "Metz", "Nancy", "Reims", "Mulhouse", "Colmar", "Troyes", "Charleville-Mézières", "Épinal", "Haguenau"
+                                            ],
+                                            "Corsica": [
+                                            "Ajaccio", "Bastia", "Corte", "Porto-Vecchio", "Calvi", "Sartène", "Bonifacio", "Propriano", "L'Île-Rousse", "Ghisonaccia"
+                                            ],
+                                            "Centre-Val de Loire": [
+                                            "Orléans", "Tours", "Blois", "Châteauroux", "Bourges", "Chartres", "Vierzon", "Issoudun", "Dreux", "Loches"
+                                            ]
+                                        },
+                                        uae: {
+                                            "Abu Dhabi": [
+                                            "Abu Dhabi", "Al Ain", "Madinat Zayed", "Baniyas", "Shahama", "Al Wathba", "Al Mafraq", "Al Dhafra", "Al Mirfa", "Ghayathi"
+                                            ],
+                                            "Dubai": [
+                                            "Dubai", "Jebel Ali", "Hatta", "Deira", "Al Barsha", "Al Quoz", "Al Satwa", "Al Karama", "Bur Dubai", "Business Bay"
+                                            ],
+                                            "Sharjah": [
+                                            "Sharjah", "Khor Fakkan", "Dibba Al-Hisn", "Kalba", "Al Dhaid", "Al Madam", "Mleiha", "Al Bataeh", "Hamriyah", "Wasit"
+                                            ],
+                                            "Ajman": [
+                                            "Ajman", "Masfout", "Manama", "Al Nuaimia", "Al Rawda", "Al Zahra", "Al Jurf", "Al Hamidiya", "Al Rashidiya", "Helio"
+                                            ],
+                                            "Fujairah": [
+                                            "Fujairah", "Dibba Al-Fujairah", "Masafi", "Mirbah", "Qidfa", "Al Bidya", "Al Fahlain", "Al Halah", "Al Aqah", "Dadna"
+                                            ],
+                                            "Ras Al Khaimah": [
+                                            "RAK City", "Al Rams", "Khatt", "Digdaga", "Julphar", "Al Hamra", "Al Jazirah Al Hamra", "Masafi RAK", "Al Ghail", "Sha'am"
+                                            ],
+                                            "Umm Al Quwain": [
+                                            "UAQ City", "Falaj Al Mualla", "Al Rafaah", "Al Salamah", "Al Haditha", "Al Abraq", "Al Raafa", "Al Khor", "Al Maidan", "Umm Al Quwain Free Zone"
+                                            ],
+                                            "Al Dhafra": [
+                                            "Ghayathi", "Mirfa", "Liwa Oasis", "Ruwais", "Sila", "Al Sila", "Jebel Dhanna", "Al Hamra Airport", "Madinat Zayed", "Dalma Island"
+                                            ],
+                                            "Al Ain Region": [
+                                            "Al Yahar", "Sweihan", "Al Saad", "Al Khazna", "Al Hayer", "Nahel", "Remah", "Mezyad", "Al Foah", "Al Quaa"
+                                            ],
+                                            "Deira": [
+                                            "Deira", "Naif", "Al Rigga", "Al Muraqqabat", "Port Saeed", "Al Baraha", "Al Sabkha", "Hor Al Anz", "Abu Hail", "Al Khabaisi"
+                                            ]
+                                        },
+                                        japan: {
+                                            "Tokyo": ["Tokyo", "Shinjuku", "Shibuya", "Setagaya", "Toshima", "Meguro", "Koto", "Minato", "Nakano", "Bunkyo"],
+                                            "Osaka": ["Osaka", "Sakai", "Hirakata", "Toyonaka", "Takatsuki", "Moriguchi", "Ibaraki", "Izumi", "Kadoma", "Suita"],
+                                            "Kyoto": ["Kyoto", "Uji", "Kameoka", "Fukuchiyama", "Maizuru", "Nagaokakyo", "Yawata", "Muko", "Joyo", "Kizugawa"],
+                                            "Hokkaido": ["Sapporo", "Hakodate", "Asahikawa", "Obihiro", "Kushiro", "Tomakomai", "Kitami", "Muroran", "Chitose", "Iwamizawa"],
+                                            "Fukuoka": ["Fukuoka", "Kitakyushu", "Kurume", "Omuta", "Iizuka", "Tagawa", "Yukuhashi", "Nogata", "Chikushino", "Kasuga"],
+                                            "Aichi": ["Nagoya", "Toyota", "Okazaki", "Ichinomiya", "Toyohashi", "Kasugai", "Anjo", "Kariya", "Komaki", "Inazawa"],
+                                            "Hyogo": ["Kobe", "Himeji", "Amagasaki", "Nishinomiya", "Ashiya", "Akashi", "Kakogawa", "Takarazuka", "Sanda", "Itami"],
+                                            "Hiroshima": ["Hiroshima", "Kure", "Fukuyama", "Onomichi", "Mihara", "Hatsukaichi", "Shobara", "Akitakata", "Takehara", "Higashihiroshima"],
+                                            "Miyagi": ["Sendai", "Ishinomaki", "Tagajo", "Shiogama", "Kesennuma", "Natori", "Tome", "Kurihara", "Osaki", "Higashimatsushima"],
+                                            "Shizuoka": ["Shizuoka", "Hamamatsu", "Fujinomiya", "Fujieda", "Mishima", "Numazu", "Izu", "Kakegawa", "Gotemba", "Yaizu"]
+                                        }
+
+                                    };
+
+                                    function loadStates() {
+                                        const country = document.getElementById('country').value;
+                                        const stateSelect = document.getElementById('state');
+                                        const citySelect = document.getElementById('city');
+
+                                        stateSelect.innerHTML = '<option value="">Select State</option>';
+                                        citySelect.innerHTML = '<option value="">Select City</option>';
+
+                                        if (data[country]) {
+                                            Object.keys(data[country]).forEach(state => {
+                                                const option = document.createElement('option');
+                                                option.value = state;
+                                                option.textContent = state;
+                                                stateSelect.appendChild(option);
+                                            });
+                                        }
+                                    }
+
+                                    function loadCities() {
+                                        const country = document.getElementById('country').value;
+                                        const state = document.getElementById('state').value;
+                                        const citySelect = document.getElementById('city');
+
+                                        citySelect.innerHTML = '<option value="">Select City</option>';
+
+                                        if (data[country] && data[country][state]) {
+                                            data[country][state].forEach(city => {
+                                                const option = document.createElement('option');
+                                                option.value = city;
+                                                option.textContent = city;
+                                                citySelect.appendChild(option);
+                                            });
+                                        }
+                                    }
+                                    </script>
+
+
+
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>

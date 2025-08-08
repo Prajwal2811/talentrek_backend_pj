@@ -293,16 +293,11 @@ class AssessorController extends Controller
                 'required',
                 'min:10',
                 function ($attribute, $value, $fail) use ($assessor) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)->exists();
-                    $existsInMentors = Mentors::where('national_id', $value)->exists();
-                    $existsInCoach = Coach::where('national_id', $value)->exists();
                     $existsInAssessor = Assessors::where('national_id', $value)
                         ->where('id', '!=', $assessor->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers || $existsInMentors || $existsInCoach || $existsInAssessor) {
+                    if ( $existsInAssessor) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -382,6 +377,7 @@ class AssessorController extends Controller
             'country' => $validated['country'],
             'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
+            'is_registered' => 1
         ]);
 
         // Save education
