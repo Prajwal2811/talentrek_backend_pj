@@ -64,6 +64,78 @@ class JobseekerController extends Controller
         ]);
 
         // Send welcome email
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Welcome to Talentrek</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f6f8fa;
+                            margin: 0;
+                            padding: 20px;
+                            color: #333;
+                        }
+                        .container {
+                            background-color: #ffffff;
+                            padding: 30px;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            max-width: 600px;
+                            margin: auto;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            text-align: center;
+                            color: #999;
+                            margin-top: 30px;
+                        }
+                        .btn {
+                            display: inline-block;
+                            margin-top: 20px;
+                            padding: 10px 20px;
+                            background-color: #007bff;
+                            color: #fff !important;
+                            text-decoration: none;
+                            border-radius: 4px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                        </div>
+                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+
+                        <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+
+                        <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+
+                        <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
+                        <p>
+                            <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                        </p>
+
+                        <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+
+                    <div class="footer">
+                        © ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+                </body>
+                </html>
+            ', function ($message) use ($jobseeker) {
+                $message->to($jobseeker->email)
+                    ->subject('Welcome to Talentrek – Registration Successful');
+            });
         //   
 
         // Set session
@@ -236,6 +308,7 @@ class JobseekerController extends Controller
             'pin_code' => $validated['pin_code'],
             'gender' => $validated['gender'],
             'national_id' => $validated['national_id'],
+            'is_registered' => 1
         ]);
 
         // Save education details
@@ -577,13 +650,11 @@ class JobseekerController extends Controller
                 'min:10',
                 function ($attribute, $value, $fail) use ($user) {
                     if ($value != $user->national_id) {
-                        $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                        $existsInTrainers = Trainers::where('national_id', $value)->exists();
                         $existsInJobseekers = Jobseekers::where('national_id', $value)
                             ->where('id', '!=', $user->id)
                             ->exists();
 
-                        if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                        if ($existsInJobseekers) {
                             $fail('The national ID has already been taken.');
                         }
                     }
@@ -1809,7 +1880,8 @@ class JobseekerController extends Controller
     public function courseDetails($id)
     {
         $jobseeker =  auth()->guard('jobseeker')->user();
-        $jobseekerId = $jobseeker->id;
+        $jobseekerId = auth()->id();
+        
         
         $material = DB::table('training_materials')->where('id', $id)->first();
         if (!$material) {
@@ -2685,4 +2757,7 @@ class JobseekerController extends Controller
 
         return redirect()->route('jobseeker.sign-in');
     }
+
+
+
 }

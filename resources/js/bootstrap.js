@@ -32,3 +32,31 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
 //     enabledTransports: ['ws', 'wss'],
 // });
+
+
+
+import Echo from 'laravel-echo';
+
+window.Pusher = require('pusher-js');
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    // key: import.meta.env.VITE_PUSHER_APP_KEY, // or use directly like 'your-app-key'
+    key: 'local',
+    wsHost: window.location.hostname,
+    wsPort: 6001,
+    wssPort: 6001,
+    forceTLS: false,
+    encrypted: true,
+    disableStats: true,
+    enabledTransports: ['ws', 'wss'],
+});
+
+// Check connection status
+window.Echo.connector.pusher.connection.bind('connected', () => {
+    console.log('✅ WebSocket connected!');
+});
+
+window.Echo.connector.pusher.connection.bind('error', (err) => {
+    console.error('❌ WebSocket connection error:', err);
+});

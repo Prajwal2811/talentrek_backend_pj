@@ -246,13 +246,8 @@ class TrainerController extends Controller
                 'required',
                 'min:10',
                 function ($attribute, $value, $fail) use ($trainer) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
                     $existsInTrainers = Trainers::where('national_id', $value)->where('id', '!=', $trainer->id)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)->exists();
-                    $existsInMentors = Mentors::where('national_id', $value)->exists();
-                    $existsInAssessors = Assessors::where('national_id', $value)->exists();
-
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers || $existsInMentors || $existsInAssessors) {
+                    if ($existsInTrainers) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -337,6 +332,7 @@ class TrainerController extends Controller
                 'country' => $validated['country'],
                 'pin_code' => $validated['pin_code'],
                 'national_id' => $validated['national_id'],
+                'is_registered' => 1
             ]);
 
             // Save education

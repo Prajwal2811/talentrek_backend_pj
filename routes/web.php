@@ -5,6 +5,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SocialAuthController;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use App\Http\Controllers\ChatController;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -93,6 +98,7 @@ Route::get('coach-booking-success', function () {
 
 
 
+
 Route::get('/zoom-users', function () {
     $accessToken = Http::asForm()
         ->withBasicAuth(config('services.zoom.client_id'), config('services.zoom.client_secret'))
@@ -119,6 +125,37 @@ Route::get('/zoom-users', function () {
 Auth::routes();
 
 
+
+
+
+// broadcasting auth route
+Route::post('/broadcasting/auth', function() {
+    if (auth('jobseeker')->check() || auth('trainer')->check() || auth('coach')->check()) {
+        return Broadcast::auth(request());
+    }
+    return response()->json(['error' => 'Unauthenticated'], 401);
+})->middleware(['web']);
+
+
+Route::group(['middleware' => 'jobseeker.auth'], function() {
+	Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('jobseeker.chat.send');
+	Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('jobseeker.chat.fetch');
+});
+
+Route::group(['middleware' => 'trainer.auth'], function() {
+	Route::post('/trainer/chat/send', [ChatController::class, 'sendMessage'])->name('trainer.chat.send');
+	Route::get('/trainer/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.fetch');
+});
+// Route::middleware('auth:trainer')->group(function () {
+//     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.send');
+//     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('trainer.chat.fetch');
+// });
+
+
+Route::group(['middleware' => 'coach.auth'], function() {
+	Route::post('/coach/chat/send', [ChatController::class, 'sendMessage'])->name('coach.chat.send');
+	Route::get('/coach/chat/messages', [ChatController::class, 'getMessages'])->name('coach.chat.fetch');
+});
 
 
 

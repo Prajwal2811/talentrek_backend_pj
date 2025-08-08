@@ -95,10 +95,8 @@ class RecruiterController extends Controller
                     'min:10',
                     function ($attribute, $value, $fail) {
                          $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                         $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                         $existsInJobseekers = Jobseekers::where('national_id', $value)->exists();
-
-                         if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                       
+                         if ($existsInRecruiters) {
                               $fail('The national ID has already been taken in another account.');
                          }
                     },
@@ -167,6 +165,7 @@ class RecruiterController extends Controller
                     'no_of_employee' => $validated['no_of_employee'],
                     'industry_type' => $validated['industry_type'],
                     'registration_number' => $validated['registration_number'],
+                    'is_registered' => 1
                ]);
 
                // Step 2: Create recruiter
