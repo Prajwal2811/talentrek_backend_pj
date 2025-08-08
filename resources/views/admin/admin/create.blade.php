@@ -83,19 +83,22 @@
                                                 @enderror
                                             </div>
 
-                                            <!-- Module Permissions -->
+                                          <!-- Module Permissions -->
                                             <div class="form-group c_form_group col-md-12">
                                                 <label>Module Permissions</label>
                                                 <div class="row">
+
+                                                    <!-- Select All -->
+                                                    <div class="col-md-12 mb-2">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" id="selectAllPermissions" class="form-check-input">
+                                                            <label class="form-check-label" for="selectAllPermissions"><strong>Select All</strong></label>
+                                                        </div>
+                                                    </div>
+
                                                     @php
                                                         $modules = [
-                                                            // Main
                                                             'Dashboard',
-
-                                                            // User
-                                                            'User',
-
-                                                            // User Roles
                                                             'Jobseekers',
                                                             'Expat',
                                                             'Recruiters',
@@ -103,8 +106,6 @@
                                                             'Assessors',
                                                             'Coach',
                                                             'Mentors',
-
-                                                            // Site Activity
                                                             'Reviews',
                                                             'CMS',
                                                             'Subscriptions',
@@ -116,29 +117,39 @@
                                                             'Resume Format',
                                                             'Training Category',
                                                             'Testimonials',
-
-                                                            // System Log
                                                             'Logs'
                                                         ];
                                                     @endphp
 
-
-
-
-
                                                     @foreach($modules as $module)
                                                         <div class="col-md-4">
                                                             <div class="form-check">
-                                                                <input type="checkbox" name="permissions[]" value="{{ $module }}" class="form-check-input" id="perm-{{ $module }}">
-                                                                <label class="form-check-label" for="perm-{{ $module }}">{{ $module }}</label>
+                                                                <input type="checkbox" name="permissions[]" value="{{ $module }}" class="form-check-input permission-checkbox" id="perm-{{ $loop->index }}">
+                                                                <label class="form-check-label" for="perm-{{ $loop->index }}">{{ $module }}</label>
                                                             </div>
                                                         </div>
                                                     @endforeach
+
                                                 </div>
+
                                                 @error('permissions')
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function () {
+                                                    const selectAllCheckbox = document.getElementById('selectAllPermissions');
+                                                    const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
+
+                                                    // When 'Select All' is checked or unchecked
+                                                    selectAllCheckbox.addEventListener('change', function () {
+                                                        permissionCheckboxes.forEach(function (checkbox) {
+                                                            checkbox.checked = selectAllCheckbox.checked;
+                                                        });
+                                                    });
+                                                });
+                                            </script>
+
 
                                             <div class="col-md-12">
                                                 <button type="submit" class="btn btn-primary theme-bg">Create Admin</button>

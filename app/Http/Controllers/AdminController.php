@@ -37,6 +37,11 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use Carbon\Carbon;
+
+
 use DB;
 class AdminController extends Controller
 {
@@ -1500,8 +1505,9 @@ class AdminController extends Controller
 
     public function viewTrainerAssessment($id)
     {
-        $assessments = TrainerAssessment::select('trainer_assessments.*')
+        $assessments = TrainerAssessment::select('trainer_assessments.*','training_materials.*')
                                         ->where('trainer_assessments.trainer_id' , $id)
+                                        ->join('training_materials','training_materials.id','=','trainer_assessments.material_id')
                                         ->get();
         // echo "<pre>"; print_r($assessments); die;
         return view('admin.trainers.assessment.training-assessment', compact('assessments'));
@@ -1723,8 +1729,44 @@ class AdminController extends Controller
 
     public function showSubscriptions($type)
     {
-        // Example logic
-        return view('admin.subscriptions.view', ['type' => ucfirst($type)]);
+        $plans = SubscriptionPlan::where('user_type', $type)->get();
+
+        return view('admin.subscriptions.view', [
+            'type' => $type,
+            'plans' => $plans
+        ]);
+    }
+
+
+    public function subscriptionsStore(Request $request)
+    {
+        $request->validate([
+            'user_type' => 'required|in:jobseeker,recruiter,mentor,coach,assessor,expat,trainer',
+            'plans' => 'required|array|min:1',
+            'plans.*.title' => 'required|string|max:255',
+            'plans.*.price' => 'required|numeric|min:0.01',
+            'plans.*.duration_months' => 'required|integer|in:1,3,6,12',
+            'plans.*.features' => 'nullable|string',
+            'plans.*.description' => 'nullable|string',
+        ]);
+
+        // Remove existing plans
+        SubscriptionPlan::where('user_type', $request->user_type)->delete();
+
+        // Insert new plans
+        foreach ($request->plans as $plan) {
+            SubscriptionPlan::create([
+                'user_type'     => $request->user_type,
+                'title'         => $plan['title'],
+                'price'         => $plan['price'],
+                'duration_days' => $plan['duration_months'] * 30,
+                'features' => $plan['features'] ?? null,
+                'description'   => $plan['description'] ?? null,
+                'is_active'     => true,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Subscription plans updated successfully!');
     }
 
 
@@ -2354,6 +2396,44 @@ class AdminController extends Controller
         return view('admin.logs', ['logs' => $filteredLogs]);
     }
 
+
+    public function profile()
+    {
+        $user = Auth::user();
+
+        if (!in_array($user->role, ['admin', 'superadmin'])) {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('admin.profile', [
+            'user' => $user,
+            'type' => $user->role
+        ]);
+    }
+
+
+    public function updateAdminProfile(Request $request, $id)
+    {
+        $user = Admin::findOrFail($id);
+
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'required|email|max:191|unique:admins,email,' . $id,
+            'phone' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'notes' => $request->notes,
+            'status' => $request->status,
+        ]);
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
+    }
 
 
 

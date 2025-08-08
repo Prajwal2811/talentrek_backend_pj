@@ -1576,6 +1576,7 @@ class JobseekerController extends Controller
 
     public function submitMentorshipBooking(Request $request)
     {
+
         $request->validate([
             'mentor_id' => 'required|exists:mentors,id',
             'mode' => 'required|in:online,offline',

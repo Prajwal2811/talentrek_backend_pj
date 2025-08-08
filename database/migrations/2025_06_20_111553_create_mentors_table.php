@@ -38,6 +38,7 @@ return new class extends Migration
             $table->string('google_id')->nullable()->unique();
             $table->string('avatar')->nullable();
             $table->text('about_mentor')->nullable();
+            $table->string('is_registered')->default('0');  
             $table->string('isSubscribtionBuy')->default('no');        // e.g., New York, Delhi
             $table->timestamps();
         });

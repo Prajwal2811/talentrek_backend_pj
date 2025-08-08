@@ -2,17 +2,20 @@
     $user = auth()->user();
     $role = $user->role ?? null;
     $permissions = $user->permissions ?? [];
+    $headerLogo = App\Models\Setting::value('header_logo');
 @endphp
 
 <div id="left-sidebar" class="sidebar">
     <a href="javascript:void(0);" class="menu_toggle"><i class="fa fa-angle-left"></i></a>
     <div class="navbar-brand">
-        <a href="{{ route('home') }}" target="_blank">
-            <img src="{{ asset('asset/backend/images/icon.svg') }}" alt="Talentrek Logo" class="img-fluid logo">
-            <span>Talentrek</span>
-        </a>
-        <button type="button" class="btn-toggle-offcanvas btn btn-sm float-right"><i class="fa fa-close"></i></button>
-    </div>
+    <a href="{{ route('home') }}" target="_blank">
+        <img src="{{ $headerLogo }}" alt="Talentrek Logo" class="img-fluid logo" style="height: 60px; width: auto;">
+    </a>
+    <button type="button" class="btn-toggle-offcanvas btn btn-sm float-right">
+        <i class="fa fa-close"></i>
+    </button>
+</div>
+
 
     <div class="sidebar-scroll">
         <div class="user-account">
@@ -25,7 +28,13 @@
                     <strong>{{ $user->name }}</strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right account vivify flipInY">
-                    <li><a href="{{ route('admin.profile') }}"><i class="fa fa-user"></i>My Profile</a></li>
+                    <li>
+                       <a href="{{ route('admin.profile') }}">
+                            <i class="fa fa-user"></i> My Profile
+                        </a>
+
+
+                    </li>
                     <li><a href="{{ route('admin.settings') }}"><i class="fa fa-gear"></i>Settings</a></li>
                     <li class="divider"></li>
                     <li><a href="{{ route('admin.signOut') }}"><i class="fa fa-power-off"></i>Logout</a></li>
@@ -56,7 +65,7 @@
                 @endif
 
 
-                @if($role === 'superadmin' || $role === 'admin')
+                {{-- @if($role === 'superadmin' || $role === 'admin')
                     <li class="header">User</li>
                     <li class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'active' : '' }}">
                         <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>User</span></a>
@@ -69,7 +78,7 @@
                             </li>
                         </ul>
                     </li>
-                @endif
+                @endif --}}
 
                 <li class="header">User Roles</li>
 

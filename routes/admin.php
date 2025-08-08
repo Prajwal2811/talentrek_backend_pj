@@ -19,6 +19,10 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 		// Profile, Settings
 		Route::get('/profile', [AdminController::class, 'profile'])->name('admin.profile');
+		Route::post('/admin/profile/update/{id}', [AdminController::class, 'updateAdminProfile'])->name('admin.update.profile');
+
+
+
 		Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
 		Route::post('/settings/store', [AdminController::class, 'settingsUpdate'])->name('admin.settings.store');
 		Route::post('/settings/store-media', [AdminController::class, 'storeMediaLinks'])->name('admin.settings.store-media');
@@ -115,6 +119,8 @@ Route::group(['prefix' => 'admin'], function() {
         Route::middleware('admin.module:Subscriptions')->group(function () {
 		    Route::get('/subscriptions', [App\Http\Controllers\AdminController::class, 'subscriptions'])->name('admin.subscriptions');
 			Route::get('/subscription-plans/{type}', [App\Http\Controllers\AdminController::class, 'showSubscriptions'])->name('admin.subscription.subscription-plans.view');
+		    Route::post('/subscriptions-store', [App\Http\Controllers\AdminController::class, 'subscriptionsStore'])->name('admin.subscription.store');
+
 
         });
         // Languages

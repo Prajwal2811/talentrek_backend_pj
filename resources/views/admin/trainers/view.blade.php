@@ -262,6 +262,23 @@
                                                 <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $trainer->city }}">
                                             </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->state }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->country }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->address }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>PIN Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->pin_code }}">
+                                            </div>
+
                                         </div>
                                     </form>
                                 </div>

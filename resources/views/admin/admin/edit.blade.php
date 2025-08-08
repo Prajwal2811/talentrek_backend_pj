@@ -60,61 +60,91 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Module Permissions -->
+                                   <!-- Module Permissions -->
                                     <div class="form-group c_form_group col-md-12">
                                         <label>Module Permissions</label>
                                         <div class="row">
+
+                                            <!-- Select All -->
+                                            <div class="col-md-12 mb-2">
+                                                <div class="form-check">
+                                                    <input type="checkbox" id="selectAllPermissions" class="form-check-input">
+                                                    <label class="form-check-label" for="selectAllPermissions"><strong>Select All</strong></label>
+                                                </div>
+                                            </div>
+
                                             @php
                                                 $modules = [
-                                                        // Main
-                                                        'Dashboard',
-
-                                                        // User
-                                                        'User',
-
-                                                        // User Roles
-                                                        'Jobseekers',
-                                                        'Expat',
-                                                        'Recruiters',
-                                                        'Trainers',
-                                                        'Assessors',
-                                                        'Coach',
-                                                        'Mentors',
-
-                                                        // Site Activity
-                                                        'Reviews',
-                                                        'CMS',
-                                                        'Subscriptions',
-                                                        'Certification Template',
-                                                        'Payments',
-                                                        'Languages',
-                                                        'Settings',
-                                                        'Contact Support',
-                                                        'Resume Format',
-                                                        'Training Category',
-                                                        'Testimonials',
-
-                                                        // System Log
-                                                        'Logs'
-                                                    ];
+                                                    'Dashboard',
+                                                    'User',
+                                                    'Jobseekers',
+                                                    'Expat',
+                                                    'Recruiters',
+                                                    'Trainers',
+                                                    'Assessors',
+                                                    'Coach',
+                                                    'Mentors',
+                                                    'Reviews',
+                                                    'CMS',
+                                                    'Subscriptions',
+                                                    'Certification Template',
+                                                    'Payments',
+                                                    'Languages',
+                                                    'Settings',
+                                                    'Contact Support',
+                                                    'Resume Format',
+                                                    'Training Category',
+                                                    'Testimonials',
+                                                    'Logs'
+                                                ];
                                                 $adminPermissions = $admin->permissions ?? [];
                                             @endphp
 
                                             @foreach($modules as $module)
                                                 <div class="col-md-4">
                                                     <div class="form-check">
-                                                        <input type="checkbox" name="permissions[]" value="{{ $module }}"
-                                                            class="form-check-input" id="perm-{{ $module }}"
+                                                        <input type="checkbox"
+                                                            name="permissions[]"
+                                                            value="{{ $module }}"
+                                                            class="form-check-input permission-checkbox"
+                                                            id="perm-{{ Str::slug($module, '-') }}"
                                                             {{ in_array($module, $adminPermissions) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm-{{ $module }}">{{ $module }}</label>
+                                                        <label class="form-check-label" for="perm-{{ Str::slug($module, '-') }}">{{ $module }}</label>
                                                     </div>
                                                 </div>
                                             @endforeach
+
                                         </div>
+
                                         @error('permissions')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const selectAll = document.getElementById('selectAllPermissions');
+                                            const checkboxes = document.querySelectorAll('.permission-checkbox');
+
+                                            // Set initial state of "Select All" if all are already checked
+                                            function updateSelectAllState() {
+                                                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                                                selectAll.checked = allChecked;
+                                            }
+
+                                            updateSelectAllState();
+
+                                            // On Select All toggle
+                                            selectAll.addEventListener('change', function () {
+                                                checkboxes.forEach(cb => cb.checked = this.checked);
+                                            });
+
+                                            // Update Select All when individual checkbox is changed
+                                            checkboxes.forEach(cb => {
+                                                cb.addEventListener('change', updateSelectAllState);
+                                            });
+                                        });
+                                    </script>
+
 
                                     <button type="submit" class="btn btn-primary theme-bg">Update Admin</button>
                                 </form>

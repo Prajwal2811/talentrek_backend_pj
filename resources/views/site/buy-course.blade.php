@@ -372,12 +372,11 @@
                                     <span>SAR {{ number_format($total, 2) }}</span>
                                 </div>
 
-                                <a href="#">
-                                    <button
-                                        class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                        Proceed to Checkout
-                                    </button>
-                                </a>
+                                <button type="submit"
+                                    class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                    Proceed to Checkout
+                                </button>
+
                             </div>
                         </div>
 
