@@ -108,7 +108,9 @@ class AppHomeController extends Controller
                 }, 0);
 
                 $item->total_experience_days = $totalDays;
-                $item->total_experience_years = round($totalDays / 365, 1);
+                $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                 
                 // Get the most recent job_role based on nearest end_to (null means current)
                 $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {

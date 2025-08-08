@@ -122,60 +122,60 @@ class AppAuthenticationController extends Controller
             $contactValue = $request->$contactMethod;
             // Step 5: Send Email (or simulate SMS)
             if ($contactMethod === 'email') {
-                // Mail::html('
-                //     <!DOCTYPE html>
-                //     <html lang="en">
-                //     <head>
-                //         <meta charset="UTF-8">
-                //         <title>Welcome to Talentrek</title>
-                //         <style>
-                //             body {
-                //                 background-color: #f4f6f9;
-                //                 font-family: Arial, sans-serif;
-                //                 padding: 20px;
-                //                 margin: 0;
-                //             }
-                //             .email-container {
-                //                 background: #ffffff;
-                //                 max-width: 600px;
-                //                 margin: auto;
-                //                 padding: 30px;
-                //                 border-radius: 8px;
-                //                 box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                //             }
-                //             h2 {
-                //                 color: #007bff;
-                //                 margin-bottom: 20px;
-                //             }
-                //             p {
-                //                 line-height: 1.6;
-                //                 color: #333333;
-                //             }
-                //             .footer {
-                //                 margin-top: 30px;
-                //                 font-size: 12px;
-                //                 color: #888888;
-                //                 text-align: center;
-                //             }
-                //         </style>
-                //     </head>
-                //     <body>
-                //         <div class="email-container">
-                //             <h2>Welcome to Talentrek!</h2>
-                //             <p>Hello <strong>' . e($user->email) . '</strong>,</p>
-                //             <p>You have successfully signed up on <strong>Talentrek</strong> as a ' . ucfirst($request->type) . '. We\'re excited to have you with us!</p>
-                //             <p>Start exploring opportunities and grow your journey with us.</p>
-                //             <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
-                //         </div>
-                //         <div class="footer">
-                //             © ' . date('Y') . ' Talentrek. All rights reserved.
-                //         </div>
-                //     </body>
-                //     </html>
-                // ', function ($message) use ($user) {
-                //     $message->to($user->email)
-                //             ->subject('Welcome to Talentrek – Signup Successful');
-                // });
+                Mail::html('
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Welcome to Talentrek</title>
+                        <style>
+                            body {
+                                background-color: #f4f6f9;
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                                margin: 0;
+                            }
+                            .email-container {
+                                background: #ffffff;
+                                max-width: 600px;
+                                margin: auto;
+                                padding: 30px;
+                                border-radius: 8px;
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                            }
+                            h2 {
+                                color: #007bff;
+                                margin-bottom: 20px;
+                            }
+                            p {
+                                line-height: 1.6;
+                                color: #333333;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                font-size: 12px;
+                                color: #888888;
+                                text-align: center;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="email-container">
+                            <h2>Welcome to Talentrek!</h2>
+                            <p>Hello <strong>' . e($user->email) . '</strong>,</p>
+                            <p>You have successfully signed up on <strong>Talentrek</strong> as a ' . ucfirst($request->type) . '. We\'re excited to have you with us!</p>
+                            <p>Start exploring opportunities and grow your journey with us.</p>
+                            <p>Warm regards,<br><strong>The Talentrek Team</strong></p>
+                        </div>
+                        <div class="footer">
+                            © ' . date('Y') . ' Talentrek. All rights reserved.
+                        </div>
+                    </body>
+                    </html>
+                ', function ($message) use ($user) {
+                    $message->to($user->email)
+                            ->subject('Welcome to Talentrek – Signup Successful');
+                });
             } else {
                 // Simulate SMS (you can integrate Twilio, Msg91, etc.)
             }

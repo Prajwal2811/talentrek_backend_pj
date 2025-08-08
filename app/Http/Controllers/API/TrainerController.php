@@ -506,78 +506,78 @@ class TrainerController extends Controller
             // Send OTP (Email or SMS)
             if ($contactMethod === 'email') {
                 // Send confirmation email
-                // Mail::html('
-                //                 <!DOCTYPE html>
-                //                 <html lang="en">
-                //                 <head>
-                //                     <meta charset="UTF-8">
-                //                     <title>Welcome to Talentrek</title>
-                //                     <style>
-                //                         body {
-                //                             font-family: Arial, sans-serif;
-                //                             background-color: #f6f8fa;
-                //                             margin: 0;
-                //                             padding: 20px;
-                //                             color: #333;
-                //                         }
-                //                         .container {
-                //                             background-color: #ffffff;
-                //                             padding: 30px;
-                //                             border-radius: 8px;
-                //                             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                //                             max-width: 600px;
-                //                             margin: auto;
-                //                         }
-                //                         .header {
-                //                             text-align: center;
-                //                             margin-bottom: 20px;
-                //                         }
-                //                         .footer {
-                //                             font-size: 12px;
-                //                             text-align: center;
-                //                             color: #999;
-                //                             margin-top: 30px;
-                //                         }
-                //                         .btn {
-                //                             display: inline-block;
-                //                             margin-top: 20px;
-                //                             padding: 10px 20px;
-                //                             background-color: #007bff;
-                //                             color: #fff !important;
-                //                             text-decoration: none;
-                //                             border-radius: 4px;
-                //                         }
-                //                     </style>
-                //                 </head>
-                //                 <body>
-                //                     <div class="container">
-                //                         <div class="header">
-                //                             <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
-                //                         </div>
-                //                         <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
+                Mail::html('
+                                <!DOCTYPE html>
+                                <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <title>Welcome to Talentrek</title>
+                                    <style>
+                                        body {
+                                            font-family: Arial, sans-serif;
+                                            background-color: #f6f8fa;
+                                            margin: 0;
+                                            padding: 20px;
+                                            color: #333;
+                                        }
+                                        .container {
+                                            background-color: #ffffff;
+                                            padding: 30px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                            max-width: 600px;
+                                            margin: auto;
+                                        }
+                                        .header {
+                                            text-align: center;
+                                            margin-bottom: 20px;
+                                        }
+                                        .footer {
+                                            font-size: 12px;
+                                            text-align: center;
+                                            color: #999;
+                                            margin-top: 30px;
+                                        }
+                                        .btn {
+                                            display: inline-block;
+                                            margin-top: 20px;
+                                            padding: 10px 20px;
+                                            background-color: #007bff;
+                                            color: #fff !important;
+                                            text-decoration: none;
+                                            border-radius: 4px;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="header">
+                                            <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                                        </div>
+                                        <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
 
-                //                         <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+                                        <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-                //                         <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+                                        <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
 
-                //                         <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                                        <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
-                //                         <p>
-                //                             <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
-                //                         </p>
+                                        <p>
+                                            <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                                        </p>
 
-                //                         <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
-                //                     </div>
+                                        <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                                    </div>
 
-                //                     <div class="footer">
-                //                         © ' . date('Y') . ' Talentrek. All rights reserved.
-                //                     </div>
-                //                 </body>
-                //                 </html>
-                //                 ', function ($message) use ($trainer) {
-                //                     $message->to($trainer->email)
-                //                             ->subject('Welcome to Talentrek – Registration Successful');
-                //                 });
+                                    <div class="footer">
+                                        © ' . date('Y') . ' Talentrek. All rights reserved.
+                                    </div>
+                                </body>
+                                </html>
+                                ', function ($message) use ($trainer) {
+                                    $message->to($trainer->email)
+                                            ->subject('Welcome to Talentrek – Registration Successful');
+                                });
             } else {
                 // Send SMS - Simulate (Integrate with Twilio, Msg91, etc.)
                 // SmsService::send($contactValue, "Your OTP is: $otp");

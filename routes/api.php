@@ -88,6 +88,7 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
 
     //Mentor Training Coach Assessor Details By Id
     Route::get('/trainingMaterialById/{trainingId}/{jobSeekerId}', [ExplorerController::class, 'trainingMaterialDetailById']);
+    Route::get('/trainingMaterialBatchById/{trainingId}', [ExplorerController::class, 'trainingMaterialBatchDetailById']);
     Route::get('/mentorById/{mentorId}', [ExplorerController::class, 'mentorDetailById']);
     Route::get('/trainingMaterialById/{trainingId}', [ExplorerController::class, 'trainingMaterialDetailById']);
     Route::get('/mentorById/{mentorId}', [ExplorerController::class, 'mentorDetailById']);
@@ -122,6 +123,7 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::post('/addToCart', [CartManagementController::class, 'addToCartByJobseeker']);
     Route::post('/removeCartItem', [CartManagementController::class, 'removeCartItemByJobseeker']);
     Route::get('/viewCartItem/{jobseekerId}', [CartManagementController::class, 'viewCartItemByJobseeker']);
+    Route::post('/butNowSlot', [CartManagementController::class, 'butNowSlotForMCA']);
 });
 
 Route::prefix('trainer')->middleware('throttle:60,1')->group(function () {

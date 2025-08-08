@@ -51,7 +51,9 @@ class ExplorerController extends Controller
                 }, 0);
 
                 $item->total_experience_days = $totalDays;
-                $item->total_experience_years = round($totalDays / 365, 1);
+                $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                 
                 
                 $avg = $item->mentor_reviews_avg_ratings;
@@ -119,7 +121,9 @@ class ExplorerController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                     // Get the most recent job_role based on nearest end_to (null means current)
                     $mostRecentExp = $item->WorkExperience
                     ->sortByDesc(function ($exp) {
@@ -173,7 +177,9 @@ class ExplorerController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                     // Get the most recent job_role based on nearest end_to (null means current)
                     $mostRecentExp = $item->WorkExperience
                     ->sortByDesc(function ($exp) {
@@ -228,7 +234,9 @@ class ExplorerController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                    $months = floor(($totalDays % 365) / 30);
+                    $item->total_experience_years =  $years.'.'.$months ;
                     $avg = $item->coach_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)
@@ -606,6 +614,68 @@ class ExplorerController extends Controller
             return $this->errorResponse('Something went wrong while submitting the review.', 500, [
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    public function trainingMaterialBatchDetailById($trainingId)
+    {
+        try {
+            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
+                ->withCount('trainingMaterialDocuments')
+                ->with('batches')
+                ->with(['trainer:id,name', 'latestWorkExperience'])
+                ->with('trainerReviews')
+                ->withAvg('trainerReviews', 'ratings')
+                ->where('id', $trainingId)
+                ->first();
+            if ($TrainingMaterial) {
+                $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
+                $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+
+                $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
+                    $parts = explode(':', $doc->file_duration); // HH:MM:SS
+                    if (count($parts) === 3) {
+                        $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+                        return $carry + $seconds;
+                    }
+                    return $carry;
+                }, 0);
+
+                // Convert total seconds back to HH:MM:SS
+                $TrainingMaterial->total_duration = gmdate('H:i:s', $totalSeconds);
+                $hours = (int)gmdate('H', $totalSeconds);
+                $minutes = (int)gmdate('i', $totalSeconds);
+                $seconds = (int)gmdate('s', $totalSeconds);
+                $TrainingMaterial->durationInHours = $hours. ' Hr' . ($hours !== 1 ? 's' : '');
+                $TrainingMaterial->durationInMinutes = $minutes. ' Min' . ($minutes !== 1 ? 's' : '');
+                $TrainingMaterial->durationInSeconds = $seconds. ' Second' . ($seconds !== 1 ? 's' : '');
+                
+                $now = Carbon::now();
+                foreach ($TrainingMaterial->batches as $batch) {
+                    $isExpired = Carbon::parse($batch->end_date)->lt($now);
+                    $isFull = isset($batch->enrolled_count) && isset($TrainingMaterial->training_strength) &&
+                            $batch->enrolled_count >= $TrainingMaterial->training_strength;
+
+                    $batch->batchAvailable = ($isExpired || $isFull) ? false : true;
+                }
+
+                // Optional: remove the raw field if not needed in response
+                unset($TrainingMaterial->trainer_reviews_avg_ratings);
+                unset($TrainingMaterial->trainerReviews);
+
+                // Check if jobseeker purchased the training from this trainer
+                
+                unset($TrainingMaterial->trainingMaterialDocuments);
+
+            }
+            
+            return $this->successResponse($TrainingMaterial, 'Training course details with review  percentage fetched successfully.');
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -8,11 +8,12 @@ use App\Models\Api\TrainingMaterial;
 use App\Models\Api\TrainingPrograms;
 use App\Models\Api\Trainers;
 use App\Models\Api\JobseekerCartItem;
+use App\Models\Api\BookingSession;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
 use Illuminate\Support\Facades\Validator;
-
+use Carbon\Carbon;
 class CartManagementController extends Controller
 {
     use ApiResponse;
@@ -155,6 +156,80 @@ class CartManagementController extends Controller
             return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','gstTax' => 5,'totalPrice' => $totalPrice, 'data' => $items]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function butNowSlotForMCA(Request $request)
+    {
+        $data = $request->all();
+
+        $rules = [
+            'slotId' => 'required|integer',
+            'jobseekerId'  => 'required|integer',
+            'slotDate' => 'required',
+            'user_type' => 'required',
+            'user_id' => 'required|integer',
+        ];
+
+        $rules["slotDate"] = [
+            'required',
+            'date_format:d/m/Y',
+            function ($attribute, $value, $fail) {
+                try {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
+                        $fail("The date must not be in the past.");
+                    }
+                } catch (\Exception $e) {
+                    $fail("The date must be a valid date in d/m/Y format.");
+                }
+            },
+        ]; 
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }    
+
+        try {
+            
+            //$id = $request->training_material_id;
+            $jobseekerId = $request->jobseekerId;
+
+            $slotDate = Carbon::createFromFormat('d/m/Y', $request->slotDate)->format('Y-m-d') ;
+            $exists = BookingSession::where('booking_slot_id', $request->slotId)
+                ->where('slot_date', $slotDate)
+                ->where('status', 'confirmed')
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['status' => false, 'message' => 'This slot already booked by someone for this date.'], 200);
+            }
+
+            BookingSession::create([
+                'jobseeker_id' => $jobseekerId,
+                'booking_slot_id' => $request->slotId,
+                'user_id' => $request->user_id,
+                'user_type' => $request->user_type,
+                'slot_date' => $slotDate,
+                'status' => 'confirmed',
+                'slot_time' => '555',
+            ]);
+
+            return response()->json(['status' => true, 'message' => $request->user_type.' session booked successfully.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

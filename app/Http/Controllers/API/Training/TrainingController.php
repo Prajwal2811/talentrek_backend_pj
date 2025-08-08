@@ -241,6 +241,7 @@ class TrainingController extends Controller
                 'content_sections.*.start_time'  => 'required|string',
                 'content_sections.*.end_time'    => 'required|string',
                 'content_sections.*.duration'    => 'required|string',
+                'content_sections.*.duration_type'    => 'required|string',
                 'content_sections.*.strength'   => 'required|integer|min:1',
                 'content_sections.*.days'       => 'required',
             ]);
@@ -282,7 +283,7 @@ class TrainingController extends Controller
                 $training->training_offer_price = $request->training_offer_price;
                 $training->thumbnail_file_path = $thumbnailFilePath;
                 $training->thumbnail_file_name = $thumbnailFileName;
-                $training->strength = $request->strength;
+                //$training->strength = $request->strength;
             } else {
                 // Create new training
                 $training = new TrainingMaterial();
@@ -300,7 +301,7 @@ class TrainingController extends Controller
                 $training->training_objective = null;
                 $training->session_type = null;
                 $training->admin_status = 'pending';
-                $training->strength = $request->strength;
+                //$training->strength = $request->strength;
             }
             $training->save();
             
@@ -328,15 +329,28 @@ class TrainingController extends Controller
                     // Check if content section has an ID (for update)
 
                     $zoom = new ZoomService();
-
-                    $startTime = $section['batch_date'] . ' ' . $section['start_time'];
+                    $date = Carbon::createFromFormat('d/m/Y', $section['batch_date'])->format('Y-m-d');
+                    $startTime = $date . ' ' . $section['start_time'];
 
                     $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
-
-                    if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
-                        throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+ 
+                    // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                    //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+                    // }
+                    echo $durationType = $section['duration_type'] ;
+                    $duration = $section['duration'] ;
+                     $start = Carbon::parse($section['batch_date']) ;
+                    switch ($durationType) {
+                        case 'Day':                        
+                           echo "===" .$end_date =  $start->copy()->addDays($duration);
+                        case 'Month':
+                           echo  "=-----==" .$end_date =  $start->copy()->addMonths($duration);
+                        case 'Year':
+                           echo "========" . $end_date =  $start->copy()->addYears($duration);
+                        default:
+                            throw new \Exception("Invalid duration type: $durationType");
                     }
-
+                    
                     if (isset($section['id'])) {
                         $document = TrainingBatch::where('id', $section['id'])
                                     ->where('training_material_id', $training->id)
@@ -350,7 +364,7 @@ class TrainingController extends Controller
                             $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
                             $document->start_timing = date("H:i", strtotime($section['start_time']));
                             $document->end_timing   = date("H:i", strtotime($section['end_time']));
-                            $document->duration     = $section['duration'];
+                            $document->duration     = $section['duration'].' '.$section['duration_type'];
                             $document->strength     = $section['strength'];
                             $document->days     =json_encode(json_decode($section['days'], true)); // convert from stringified JSON
                             $document->save();
@@ -366,11 +380,13 @@ class TrainingController extends Controller
                     $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
                     $document->start_timing = date("H:i", strtotime($section['start_time']));
                     $document->end_timing   = date("H:i", strtotime($section['end_time']));
+                    $document->end_date   = date("Y-m-d", strtotime($end_date)) ;
+
                     $document->duration     = $section['duration'];
                     $document->strength     = $section['strength'];
                     $document->days     =json_encode(json_decode($section['days'], true)); // convert from stringified JSON
-                    $document->zoom_start_url      = $zoomMeeting['start_url'];
-                    $document->zoom_join_url        = $zoomMeeting['join_url'];
+                    $document->zoom_start_url      = '';//$zoomMeeting['start_url'];
+                    $document->zoom_join_url        = '';//$zoomMeeting['join_url'];
                     $document->save();
                 }
             }
