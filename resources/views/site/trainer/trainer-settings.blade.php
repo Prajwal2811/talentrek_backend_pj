@@ -1126,8 +1126,8 @@
 
                                                     <!-- Training Experience -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Area of Interests</label>
-                                                        <input type="text" name="training_experience" placeholder="E.g., Web Development, Teaching"
+                                                        <label class="block text-sm font-medium mb-1">Training Experience</label>
+                                                        <input type="text" name="training_experience" placeholder="training experience"
                                                             class="w-full border rounded px-3 py-2"
                                                             value="{{ old('training_experience', $trainerSkills->training_experience ?? '') }}" />
                                                         @error('training_experience')

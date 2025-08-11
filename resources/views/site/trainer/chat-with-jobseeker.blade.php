@@ -288,8 +288,6 @@
                         }
                     </script>
 
-
-
                     <!-- Alpine Script -->
                     <script>
                         function chatApp() {
@@ -342,7 +340,152 @@
                         }
                     </script>
 
+                    <!-- <script>
+                        window.trainerChat = function () {
+                            return {
+                                currentUserId: {{ auth()->guard('trainer')->id() }},
+                                currentUserType: 'trainer',
+                                newMessage: '',
+                                activeContact: null,
+                                selectedFile: null,
+                                messagePollingInterval: null,
 
+                                initEcho() {
+                                    Pusher.logToConsole = true;
+                                    window.Echo = new Echo({
+                                        broadcaster: 'pusher',
+                                        key: '18bff0f2c88aa583c6d7',
+                                        wsHost: window.location.hostname,
+                                        wsPort: 6001,
+                                        wssPort: 6001,
+                                        forceTLS: false,
+                                        encrypted: false,
+                                        enabledTransports: ['ws', 'wss'],
+                                        authEndpoint: '/broadcasting/auth',
+                                        auth: {
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                            }
+                                        }
+                                    });
+
+                                    Echo.private(`chat.trainer.${this.currentUserId}`)
+                                        .listen('.message.sent', (e) => {
+                                            if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
+                                                this.receiveMessage(e);
+                                            }
+                                        });
+                                },
+
+                                openChat(contact) {
+                                    this.activeContact = {
+                                        ...contact,
+                                        messages: [],
+                                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                    };
+                                    this.getMessages(contact.id, contact.type);
+
+                                    this.startMessagePolling();
+                                },
+
+                                startMessagePolling() {
+                                    this.messagePollingInterval = setInterval(() => {
+                                        if (this.activeContact) {
+                                            this.getMessages(this.activeContact.id, this.activeContact.type);
+                                        }
+                                    }, 5000); 
+                                },
+
+                                stopMessagePolling() {
+                                    if (this.messagePollingInterval) {
+                                        clearInterval(this.messagePollingInterval); 
+                                        this.messagePollingInterval = null;
+                                    }
+                                },
+
+                                getMessages(receiverId, receiverType) {
+                                    fetch(`/trainer/chat/messages?receiver_id=${receiverId}&receiver_type=${receiverType}`)
+                                        .then(res => res.json())
+                                        .then(messages => {
+                                            this.activeContact.messages = messages.map(msg => ({
+                                                text: msg.message,
+                                                sender: msg.sender_id == this.currentUserId ? 'me' : 'them'
+                                            }));
+                                            this.scrollToBottom();
+                                        })
+                                        .catch(err => {
+                                            console.error('Error fetching messages:', err);
+                                            alert('Could not load messages. Please try again.');
+                                        });
+                                },
+
+                                sendMessage() {
+                                    if (!this.newMessage.trim() || !this.activeContact) return;
+
+                                    const payload = {
+                                        receiver_id: this.activeContact.id,
+                                        receiver_type: this.activeContact.type,
+                                        message: this.newMessage,
+                                        _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    };
+
+                                    fetch('/trainer/chat/send', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload)
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        this.activeContact.messages.push({
+                                            text: this.newMessage,
+                                            sender: 'me'
+                                        });
+                                        this.newMessage = '';
+                                        this.scrollToBottom();
+                                    })
+                                    .catch(err => {
+                                        console.error('Send error:', err);
+                                        alert('Message sending failed.');
+                                    });
+                                },
+
+                                receiveMessage(e) {
+                                    if (this.activeContact && parseInt(this.activeContact.id) === parseInt(e.sender_id)) {
+                                        this.activeContact.messages.push({
+                                            text: e.message,
+                                            sender: 'them'
+                                        });
+                                        this.scrollToBottom();
+                                    }
+                                },
+
+                                scrollToBottom() {
+                                    this.$nextTick(() => {
+                                        const container = this.$refs.chatContainer;
+                                        if (container) {
+                                            container.scrollTop = container.scrollHeight;
+                                        }
+                                    });
+                                },
+
+                                handleFileUpload(event) {
+                                    const file = event.target.files[0];
+                                    if (file) {
+                                        this.selectedFile = file;
+                                        this.activeContact.messages.push({
+                                            text: `[File Attached: ${file.name}]`,
+                                            sender: 'me'
+                                        });
+                                    }
+                                },
+
+                                beforeDestroy() {
+                                    this.stopMessagePolling();
+                                }
+                            };
+                        }
+
+                    </script>    -->
 
                 </div>
             </main>
