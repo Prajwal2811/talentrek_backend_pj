@@ -268,9 +268,6 @@
                                     </div>
                                 </div>
                             @endif
-
-                           
-
                         </div>
 
                         <!-- Include Alpine.js -->

@@ -26,118 +26,84 @@ $skills = $user->skills->first();
 
     @include('site.componants.navbar')	
 
-    @if($user->isSubscribtionBuy  === 'no')
-        <!-- Modal -->
+    @if($user->isSubscribtionBuy === 'no')
+        @php
+            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
+            // print_r($subscriptions); die;
+        @endphp
+
+        <!-- Subscription Modal -->
         <div id="subscriptionModal"
-            class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 {{ $user->isSubscribtionBuy === 'no' ? '' : 'hidden' }}">
-            
+            class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative">
                 <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @foreach($subscriptions as $plan)
+                        <div class="border rounded-lg p-4 shadow-sm text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                            <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                @foreach(explode(',', $plan->features) as $feature)
+                                    <li>{{ trim($feature) }}</li>
+                                @endforeach
+                            </ul>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Silver Plan -->
-                    <div class="border rounded-lg p-4 shadow-sm text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                            <h4 class="font-semibold">Silver</h4>
-                            <p class="font-bold text-lg mt-1">AED 49</p>
+                            <button type="button"
+                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                data-plan-id="{{ $plan->id }}">
+                                Buy subscription
+                            </button>
                         </div>
-                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
-                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                        </ul>
-                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
-                            Buy subscription
-                        </button>
-                    </div>
-
-                    <div class="border rounded-lg p-4 shadow-sm text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                            <h4 class="font-semibold">Silver</h4>
-                            <p class="font-bold text-lg mt-1">AED 49</p>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
-                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                        </ul>
-                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
-                            Buy subscription
-                        </button>
-
-                    </div><div class="border rounded-lg p-4 shadow-sm text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                            <h4 class="font-semibold">Silver</h4>
-                            <p class="font-bold text-lg mt-1">AED 49</p>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
-                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                        </ul>
-                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
-                            Buy subscription
-                        </button>
-
-                    </div>
-
-                    
-
-                    <!-- Gold Plan -->
-                    <!-- ... other plans same as above ... -->
-
+                    @endforeach
                 </div>
             </div>
         </div>
+
         <!-- Payment Modal -->
-        <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex items-center justify-center">
+        <div id="paymentModal"
+            class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
             <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
                 <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
                 <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
 
                 <form action="{{ route('jobseeker.subscription.payment') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="plan_id" id="selectedPlanId">
 
-                    <!-- Card Number -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                        <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="1234 5678 9012 3456">
+                        <input type="text" name="card_number" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="1234 5678 9012 3456">
                     </div>
 
-                    <!-- Expiry & CVV -->
                     <div class="mb-4 flex space-x-2">
                         <div class="w-1/2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="MM/YY">
+                            <input type="text" name="expiry" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="MM/YY">
                         </div>
                         <div class="w-1/2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="123">
+                            <input type="text" name="cvv" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="123">
                         </div>
                     </div>
 
-                    <!-- Submit -->
                     <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
                         Pay Now
                     </button>
                 </form>
 
-                <!-- Close Button -->
                 <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
                     ×
                 </button>
             </div>
         </div>
 
-
         <script>
-            function openPaymentModal() {
+            function openPaymentModal(planId) {
+                document.getElementById('selectedPlanId').value = planId;
                 document.getElementById('paymentModal').classList.remove('hidden');
             }
 
@@ -145,16 +111,18 @@ $skills = $user->skills->first();
                 document.getElementById('paymentModal').classList.add('hidden');
             }
 
-            // Attach event listener to all Buy Subscription buttons
             document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.buy-subscription-btn').forEach(button => {
-                    button.addEventListener('click', openPaymentModal);
+                    button.addEventListener('click', function () {
+                        const planId = this.getAttribute('data-plan-id');
+                        openPaymentModal(planId);
+                    });
                 });
             });
         </script>
 
-
     @else
+
         <div class="page-content">
             <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset//images/banner/service page banner.png') }}');">
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>

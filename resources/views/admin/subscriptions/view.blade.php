@@ -36,7 +36,7 @@
                                 <div class="card mb-3 plan-block">
                                     <div class="card-header d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0">Subscription Plan</h5>
-                                        <button type="button" class="btn btn-danger btn-sm remove-plan {{ $i === 0 ? 'd-none' : '' }}">Remove</button>
+                                        {{-- <button type="button" class="btn btn-danger btn-sm remove-plan {{ $i === 0 ? 'd-none' : '' }}">Remove</button> --}}
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
@@ -99,9 +99,9 @@
                             </div>
 
                             <!-- Add Plan -->
-                            <div class="mb-3">
+                            {{-- <div class="mb-3">
                                 <button type="button" id="add-plan" class="btn btn-info">+ Add Another Plan</button>
-                            </div>
+                            </div> --}}
 
                             <!-- Submit -->
                             <button type="submit" class="btn btn-primary">Submit All Plans</button>

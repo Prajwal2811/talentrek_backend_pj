@@ -20,6 +20,7 @@ class CreateSubscriptionPlansTable extends Migration
         $table->json('features')->nullable(); // Feature list: ["Lorem ipsum", ...]
         $table->integer('duration_days')->nullable(); // Duration in days (optional)
         $table->boolean('is_active')->default(true); // Active/inactive subscription
+        $table->string('slug');
         $table->timestamps();
     });
 

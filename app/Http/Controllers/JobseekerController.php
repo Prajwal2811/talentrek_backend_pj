@@ -20,6 +20,8 @@ use App\Models\TrainerAssessment;
 use App\Models\Assessors;
 use App\Models\Coach;
 use App\Models\Admin;
+use App\Models\SubscriptionPlan;
+use App\Models\Subscription;
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -571,13 +573,46 @@ class JobseekerController extends Controller
 
     public function processSubscriptionPayment(Request $request)
     {
-        $jobseeker = auth()->user();
+        // Step 1: Validate incoming data
+        $request->validate([
+            'plan_id' => 'required|exists:subscription_plans,id',
+            'card_number' => 'required|string|min:12|max:19',
+            'expiry' => 'required|string',
+            'cvv' => 'required|string|min:3|max:4',
+        ]);
 
-        $jobseeker->isSubscribtionBuy = 'yes';
-        $jobseeker->save();
+        // Step 2: Find plan
+        $plan = SubscriptionPlan::findOrFail($request->plan_id);
 
-        return redirect()->route('jobseeker.profile')->with('success', 'Subscription activated successfully.');
+        // Step 3: Simulate payment process (replace with payment gateway logic)
+        DB::beginTransaction();
+        try {
+            $subscription = Subscription::create([
+                'user_id' => Auth::id(),
+                'subscription_plan_id' => $plan->id,
+                'start_date' => now(),
+                'end_date' => now()->addMonths($plan->duration_months ?? 1),
+                'price' => $plan->price,
+                'status' => 'active',
+                'payment_status' => 'paid',
+            ]);
+
+            // Mark jobseeker as having purchased a subscription
+            $jobseeker = auth()->user();
+            $jobseeker->isSubscribtionBuy = 'yes';
+            $jobseeker->save();
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Subscription purchased successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong while purchasing the subscription.');
+        }
     }
+
+
+
 
 
 
@@ -2175,6 +2210,119 @@ class JobseekerController extends Controller
             ->get();
 
         return view('site.buy-course', compact(
+            'material',
+            'user',
+            'userType',
+            'userId',
+            'average',
+            'ratingsPercent',
+            'reviews'
+        ));
+    }
+
+
+
+    public function buyTeamCourseDetails($id)
+    {
+        $material = DB::table('training_materials')->where('id', $id)->first();
+        if (!$material) {
+            abort(404, 'Course not found');
+        }
+
+        $material->documents = DB::table('training_materials_documents')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $material->batches = DB::table('training_batches')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $userType = null;
+        $userId = null;
+        $user = null;
+
+        // Detect user type and get basic info
+        if (!empty($material->trainer_id)) {
+            $userType = 'trainer';
+            $userId = $material->trainer_id;
+            $user = DB::table('trainers')->where('id', $userId)->first();
+        } elseif (!empty($material->mentor_id)) {
+            $userType = 'mentor';
+            $userId = $material->mentor_id;
+            $user = DB::table('mentors')->where('id', $userId)->first();
+        } elseif (!empty($material->coach_id)) {
+            $userType = 'coach';
+            $userId = $material->coach_id;
+            $user = DB::table('coaches')->where('id', $userId)->first();
+        } elseif (!empty($material->assessor_id)) {
+            $userType = 'assessor';
+            $userId = $material->assessor_id;
+            $user = DB::table('assessors')->where('id', $userId)->first();
+        }
+
+        if (!$userType || !$userId || !$user) {
+            abort(404, 'User info not found');
+        }
+
+        // Fetch profile picture from talentrek_additional_info
+        $profile = DB::table('additional_info')
+            ->where('user_id', $userId)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'trainer_profile_picture')
+            ->orderByDesc('id')
+            ->first();
+
+        $material->user_name = $user->name ?? '';
+        $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
+
+        // Ratings and reviews
+        $total = DB::table('reviews')
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->count();
+
+        $average = $total > 0
+            ? round(DB::table('reviews')
+                ->where('user_type', $userType)
+                ->where('user_id', $userId)
+                ->when($userType === 'trainer', function ($q) use ($material) {
+                    $q->where('trainer_material', $material->id);
+                })
+                ->avg('ratings'), 1)
+            : 0;
+
+        $ratings = DB::table('reviews')
+            ->select('ratings', DB::raw('COUNT(*) as count'))
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->groupBy('ratings')
+            ->pluck('count', 'ratings');
+
+        $ratingsPercent = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = $ratings[$i] ?? 0;
+            $ratingsPercent[$i] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+        }
+
+        $reviews = DB::table('reviews as r')
+            ->join('jobseekers as j', 'r.jobseeker_id', '=', 'j.id')
+            ->select('r.*', 'j.name as jobseeker_name')
+            ->where('r.user_type', $userType)
+            ->where('r.user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('r.trainer_material', $material->id);
+            })
+            ->latest('r.created_at')
+            ->limit(10)
+            ->get();
+
+        return view('site.buy-course-for-team', compact(
             'material',
             'user',
             'userType',
