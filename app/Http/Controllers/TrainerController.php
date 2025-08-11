@@ -704,7 +704,7 @@ class TrainerController extends Controller
             'content_sections.*.strength'   => 'required|integer|min:1',
             'content_sections.*.days'       => 'required',
         ]);
-
+        
         DB::beginTransaction();
 
         try {
@@ -717,7 +717,7 @@ class TrainerController extends Controller
                 $file->move(public_path('uploads'), $thumbnailFileName);
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
-
+ 
             // Insert course
             $trainingId = DB::table('training_materials')->insertGetId([
                 'trainer_id'             => $trainer->id,
@@ -735,19 +735,19 @@ class TrainerController extends Controller
                 'created_at'             => now(),
                 'updated_at'             => now(),
             ]);
-
+        
             // Insert batches
             foreach ($request->input('content_sections', []) as $section) {
                 $zoom = new ZoomService();
 
                 $startTime = $section['batch_date'] . ' ' . $section['start_time'];
-
+               
                 $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
-
+              
                 if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
                     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
                 }
-
+   
                 DB::table('training_batches')->insert([
                     'trainer_id'           => $trainer->id,
                     'training_material_id' => $trainingId,

@@ -85,7 +85,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::post('/add-to-cart/{id}', [JobseekerController::class, 'addToCart'])->name('jobseeker.addtocart');
 
-		Route::post('/cart/remove/{id}', [JobseekerController::class, 'remove'])->name('cart.remove');
+		// Route::post('/cart/remove/{id}', [JobseekerController::class, 'remove'])->name('cart.remove');
+		Route::post('/cart/remove/{id}', [JobseekerController::class, 'removeCartItem'])->name('cart.remove');
 
 
 		 Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');

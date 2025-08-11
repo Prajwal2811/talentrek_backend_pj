@@ -491,9 +491,6 @@
 
 </style>
 
-
-
-
 @include('site.componants.header')
 <!-- CHAT MODULE CSS END -->
 <body>
