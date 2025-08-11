@@ -1897,8 +1897,11 @@ class JobseekerController extends Controller
             ->where('training_material_id', $material->id)
             ->get();
 
-        $cartItems = DB::table('jobseeker_cart_items')
-            ->where('jobseeker_id', $jobseekerId)
+        // $cartItems = DB::table('jobseeker_cart_items')
+        //     ->where('jobseeker_id', $jobseekerId)
+        //     ->pluck('material_id')
+        //     ->toArray();    
+        $cartItems = JobseekerCartItem::where('jobseeker_id', auth('jobseeker')->id())
             ->pluck('material_id')
             ->toArray();    
         //print_r( $cartItems);exit;
@@ -2706,12 +2709,12 @@ class JobseekerController extends Controller
     }
 
 
-   public function removeCartItem($id)
+    public function removeCartItem($id)
     {
         $item = JobseekerCartItem::where('id', $id)
             ->where('jobseeker_id', auth('jobseeker')->id())
             ->first();
-
+   
         if (!$item) {
             return response()->json(['status' => 'error', 'message' => 'Item not found'], 404);
         }

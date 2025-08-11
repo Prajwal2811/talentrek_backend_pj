@@ -622,18 +622,70 @@ class MentorController extends Controller
         ]);
     }
 
+    // public function updateSlotTime(Request $request)
+    // {
+    //     $request->validate([
+    //         'id' => 'required|exists:booking_slots,id',
+    //         'start_time' => 'required',
+    //         'end_time' => 'required|after:start_time',
+    //     ]);
+
+    //     // Convert to 24-hour format
+    //     $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
+    //     $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+
+    //     $slot = BookingSlot::findOrFail($request->id);
+    //     $slot->update([
+    //         'start_time' => $startTime,
+    //         'end_time' => $endTime,
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Slot time updated successfully.',
+    //         'slot' => $slot,
+    //     ]);
+    // }
     public function updateSlotTime(Request $request)
     {
         $request->validate([
             'id' => 'required|exists:booking_slots,id',
             'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'end_time' => 'required',
         ]);
 
         // Convert to 24-hour format
         $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
         $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
 
+        // ✅ Check same start and end time
+        if ($startTime === $endTime) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Start time and end time cannot be the same.',
+            ], 422);
+        }
+
+        // ✅ Check if another slot overlaps
+        $exists = BookingSlot::where('id', '!=', $request->id)
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->whereBetween('start_time', [$startTime, $endTime])
+                ->orWhereBetween('end_time', [$startTime, $endTime])
+                ->orWhere(function ($q2) use ($startTime, $endTime) {
+                    $q2->where('start_time', '<=', $startTime)
+                        ->where('end_time', '>=', $endTime);
+                });
+            })
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This time slot is already selected.',
+            ], 422);
+        }
+
+        // ✅ Update slot if no error
         $slot = BookingSlot::findOrFail($request->id);
         $slot->update([
             'start_time' => $startTime,
@@ -646,6 +698,9 @@ class MentorController extends Controller
             'slot' => $slot,
         ]);
     }
+
+
+
 
 
     public function deleteSlot(Request $request)

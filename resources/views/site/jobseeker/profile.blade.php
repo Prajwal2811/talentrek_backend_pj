@@ -1311,7 +1311,7 @@ $skills = $user->skills->first();
                                 <div class="lg:col-span-2 space-y-4">
                                     @forelse($cartItems as $item)
                                         @php $material = $item->material; @endphp
-                                        <div class="flex border rounded-lg p-4 gap-4">
+                                        <div class="cart-item flex border rounded-lg p-4 gap-4">
                                             <!-- Image and Remove -->
                                             <div class="flex flex-col items-start gap-2">
                                                 <img src="{{ $material->thumbnail_file_path }}" alt="Course" class="w-48 h-48 object-cover rounded" />
@@ -1415,56 +1415,57 @@ $skills = $user->skills->first();
                         </div>
 
 
+
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                         <script>
-                            document.addEventListener('DOMContentLoaded', function () {
+                            $(document).ready(function () {
                                 let itemToRemoveId = null;
-                                let removeBtnElement = null;
+                                let $clickedButton = null;
 
-                                // Open confirmation modal
-                                document.querySelectorAll('.remove-item').forEach(button => {
-                                    button.addEventListener('click', function () {
-                                        itemToRemoveId = this.dataset.id;
-                                        removeBtnElement = this;
-                                        document.getElementById('removeConfirmModal').classList.remove('hidden');
-                                    });
+                                $('.remove-item').on('click', function () {
+                                    itemToRemoveId = $(this).data('id');
+                                    $clickedButton = $(this);
+                                    $('#removeConfirmModal').removeClass('hidden');
                                 });
 
-                                // Cancel removal
-                                document.getElementById('cancelRemove').addEventListener('click', function () {
+                                $('#cancelRemove').on('click', function () {
                                     itemToRemoveId = null;
-                                    removeBtnElement = null;
-                                    document.getElementById('removeConfirmModal').classList.add('hidden');
+                                    $clickedButton = null;
+                                    $('#removeConfirmModal').addClass('hidden');
                                 });
 
-                                // Confirm removal
-                                document.getElementById('confirmRemove').addEventListener('click', function () {
+                                $('#confirmRemove').on('click', function () {
                                     if (!itemToRemoveId) return;
 
-                                    fetch(`/cart/remove/${itemToRemoveId}`, {
-                                        method: 'POST',
+                                    $.ajax({
+                                        url: "{{ route('cart.remove', ':id') }}".replace(':id', itemToRemoveId),
+                                        type: 'POST',
                                         headers: {
-                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                            'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        },
+                                        success: function (response) {
+                                            if (response.status === 'success') {
+                                                $('#removeConfirmModal').addClass('hidden');
+                                                $clickedButton.closest('.cart-item').remove();
+
+                                                // Optional: if no cart items left, show "Your cart is empty."
+                                                if ($('.cart-item').length === 0) {
+                                                    $('.lg\\:col-span-2').html('<p class="text-gray-500">Your cart is empty.</p>');
+                                                }
+
+                                            } else {
+                                                alert(response.message || 'Remove failed');
+                                            }
+                                        },
+                                        error: function () {
+                                            alert('Something went wrong');
                                         }
-                                    })
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        if (data.status === 'success') {
-                                            const itemContainer = removeBtnElement.closest('.flex.border.rounded-lg.p-4');
-                                            itemContainer.remove();
-                                            document.getElementById('removeConfirmModal').classList.add('hidden');
-                                            location.reload(); // optional
-                                        } else {
-                                            alert(data.message || 'Failed to remove item');
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.error(err);
-                                        alert('Something went wrong!');
                                     });
                                 });
                             });
-                            </script>
+                        </script>
+
+
 
 
 
