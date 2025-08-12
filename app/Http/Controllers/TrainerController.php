@@ -579,7 +579,7 @@ class TrainerController extends Controller
             'training_level' => 'required|string',
             'training_price' => 'required|numeric',
             'training_offer_price' => 'required|numeric',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            // 'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
             'content_sections' => 'array',
             'content_sections.*.title' => 'required|string|max:255',
@@ -694,7 +694,7 @@ class TrainerController extends Controller
             'training_level'         => 'required|string|in:Beginner,Intermediate,Advanced',
             'training_price'         => 'required|numeric|min:0',
             'training_offer_price'   => 'required|numeric|min:0',
-            'thumbnail'              => 'nullable|image|max:2048',
+           
 
             'content_sections.*.batch_no'   => 'required|string|max:255',
             'content_sections.*.batch_date' => 'required|date',
@@ -739,14 +739,14 @@ class TrainerController extends Controller
             // Insert batches
             foreach ($request->input('content_sections', []) as $section) {
                 $zoom = new ZoomService();
-
+                
                 $startTime = $section['batch_date'] . ' ' . $section['start_time'];
                
-                $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
-              
-                if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
-                    throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
-                }
+                //$zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+             
+                // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+                // }
    
                 DB::table('training_batches')->insert([
                     'trainer_id'           => $trainer->id,
@@ -759,8 +759,8 @@ class TrainerController extends Controller
                     'duration'             => $section['duration'],
                     'strength'             => $section['strength'],
                     'days'                 => json_encode(json_decode($section['days'], true)), // convert from stringified JSON
-                    'zoom_start_url'       => $zoomMeeting['start_url'],
-                    'zoom_join_url'        => $zoomMeeting['join_url'],
+                    // 'zoom_start_url'       => $zoomMeeting['start_url'],
+                    // 'zoom_join_url'        => $zoomMeeting['join_url'],
                     'created_at'           => now(),
                     'updated_at'           => now(),
                 ]);
@@ -821,121 +821,227 @@ class TrainerController extends Controller
     }
 
 
+    // public function updateRecordedTraining(Request $request, $id)
+    // {
+    //     $data = $request->validate([
+    //         'training_title' => 'required|string|max:255',
+    //         'training_sub_title' => 'required|string|max:255',
+    //         'training_descriptions' => 'nullable|string',
+    //         'training_category' => 'required|string',
+    //         'training_level' => 'required|string',
+    //         'training_price' => 'required|numeric',
+    //         'training_offer_price' => 'required|numeric',
+    //         // 'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+    //         'content_sections' => 'array',
+    //         'content_sections.*.title' => 'required|string|max:255',
+    //         'content_sections.*.description' => 'required|string',
+    //         'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
+    //         'content_sections.*.file_duration' => 'required|string|max:255',
+
+    //     ], [
+    //         // Optional custom messages (if needed)
+    //         'training_title.required' => 'Please enter the training title.',
+    //         'training_sub_title.required' => 'Please enter the training subtitle.',
+    //         'training_category.required' => 'Please select a training category.',
+    //         'training_level.required' => 'Please select the training level.',
+    //         'training_price.required' => 'Please enter the training price.',
+    //         'training_offer_price.required' => 'Please enter the offer price.',
+    //         'content_sections.*.title.required' => 'Please enter the section title.',
+    //         'content_sections.*.description.required' => 'Please enter the section description.',
+    //         'content_sections.*.file_duration.required' => 'Please enter the section file_duration.',
+    //     ], [
+    //         //    Custom attribute names
+    //         'training_title' => 'Training Title',
+    //         'training_sub_title' => 'Training Subtitle',
+    //         'training_descriptions' => 'Training Description',
+    //         'training_category' => 'Training Category',
+    //         'training_level' => 'Training Level',
+    //         'training_price' => 'Training Price',
+    //         'training_offer_price' => 'Training Offer Price',
+    //         'thumbnail' => 'Thumbnail Image',
+
+    //         'content_sections' => 'Content Sections',
+    //         'content_sections.*.title' => 'Section Title',
+    //         'content_sections.*.description' => 'Section Description',
+    //         'content_sections.*.file' => 'Section File',
+    //         'content_sections.*.file_duration' => 'Section file_duration',
+    //     ]);
+
+    //     $training = TrainingMaterial::findOrFail($id);
+    //     $training->fill($data);
+
+    //     if ($request->hasFile('thumbnail')) {
+    //         $file = $request->file('thumbnail');
+    //         $name = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+    //         $file->move(public_path('uploads'), $name);
+    //         $training->thumbnail_file_name = $name;
+    //         $training->thumbnail_file_path = asset('uploads/' . $name);
+    //     }
+
+    //     $training->save();
+
+    //     if (!empty($data['content_sections']) && is_array($data['content_sections'])) {
+    //         $existingIds = TrainingMaterialsDocument::where('training_material_id', $id)->pluck('id')->toArray();
+    //         $requestIds = [];
+
+    //         foreach ($data['content_sections'] as $section) {
+    //             if (!empty($section['document_id'])) {
+    //                 $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
+    //                     ->where('training_material_id', $training->id)
+    //                     ->first();
+
+    //                 if ($doc) {
+    //                     $doc->training_title = $section['title'];
+    //                     $doc->description = $section['description'];
+
+    //                     if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+    //                         $file = $section['file'];
+    //                         $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+    //                         $path = $file->storeAs('uploads', $name, 'public');
+    //                         $doc->file_name = $name;
+    //                         $doc->file_path = asset('storage/' . $path);
+    //                     } else {
+    //                         //  Preserve existing file if no new upload
+    //                         $doc->file_name = $section['existing_file_name'] ?? $doc->file_name;
+    //                         $doc->file_path = $section['existing_file_path'] ?? $doc->file_path;
+    //                     }
+
+    //                     $doc->save();
+    //                     $requestIds[] = $doc->id;
+    //                 }
+    //             }
+    //             else {
+    //                 $doc = new TrainingMaterialsDocument();
+    //                 $doc->training_material_id = $training->id;
+    //                 $doc->trainer_id = auth()->id();
+    //                 $doc->training_title = $section['title'];
+    //                 $doc->description = $section['description'];
+
+    //                 if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
+    //                     $file = $section['file'];
+    //                     $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
+    //                     $path = $file->storeAs('uploads', $name, 'public');
+    //                     $doc->file_name = $name;
+    //                     $doc->file_path = asset('storage/' . $path);
+    //                 } else {
+    //                     //  Preserve old file (if passed by hidden input — useful when editing a just-added section)
+    //                     $doc->file_name = $section['existing_file_name'] ?? null;
+    //                     $doc->file_path = $section['existing_file_path'] ?? null;
+    //                 }
+
+    //                 $doc->save();
+    //                 $requestIds[] = $doc->id;
+    //             }
+
+    //         }
+
+    //         $toDelete = array_diff($existingIds, $requestIds);
+    //         if (!empty($toDelete)) {
+    //             TrainingMaterialsDocument::whereIn('id', $toDelete)->delete();
+    //         }
+    //     }
+
+    //     return redirect()->route('training.list')->with('success', 'Recorded training course updated successfully!');
+    // }
+
     public function updateRecordedTraining(Request $request, $id)
     {
-        $data = $request->validate([
-            'training_title' => 'required|string|max:255',
-            'training_sub_title' => 'required|string|max:255',
+        $trainer = auth()->user();
+
+        // ✅ Main training details ka validation
+        $request->validate([
+            'training_title'        => 'required|string|max:255',
+            'training_sub_title'    => 'required|string|max:255',
             'training_descriptions' => 'nullable|string',
-            'training_category' => 'required|string',
-            'training_level' => 'required|string',
-            'training_price' => 'required|numeric',
-            'training_offer_price' => 'required|numeric',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-
-            'content_sections' => 'array',
-            'content_sections.*.title' => 'required|string|max:255',
-            'content_sections.*.description' => 'required|string',
-            'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
-            'content_sections.*.file_duration' => 'required|string|max:255',
-
+            'training_category'     => 'required|string',
+            'training_level'        => 'required|string',
+            'training_price'        => 'required|numeric',
+            'training_offer_price'  => 'required|numeric',
         ], [
-            // Optional custom messages (if needed)
-            'training_title.required' => 'Please enter the training title.',
-            'training_sub_title.required' => 'Please enter the training subtitle.',
-            'training_category.required' => 'Please select a training category.',
-            'training_level.required' => 'Please select the training level.',
-            'training_price.required' => 'Please enter the training price.',
-            'training_offer_price.required' => 'Please enter the offer price.',
-            'content_sections.*.title.required' => 'Please enter the section title.',
-            'content_sections.*.description.required' => 'Please enter the section description.',
-            'content_sections.*.file_duration.required' => 'Please enter the section file_duration.',
-        ], [
-            //    Custom attribute names
-            'training_title' => 'Training Title',
-            'training_sub_title' => 'Training Subtitle',
-            'training_descriptions' => 'Training Description',
-            'training_category' => 'Training Category',
-            'training_level' => 'Training Level',
-            'training_price' => 'Training Price',
-            'training_offer_price' => 'Training Offer Price',
-            'thumbnail' => 'Thumbnail Image',
-
-            'content_sections' => 'Content Sections',
-            'content_sections.*.title' => 'Section Title',
-            'content_sections.*.description' => 'Section Description',
-            'content_sections.*.file' => 'Section File',
-            'content_sections.*.file_duration' => 'Section file_duration',
+            'training_title.required'        => 'Please enter the training title.',
+            'training_sub_title.required'    => 'Please enter the training subtitle.',
+            'training_category.required'     => 'Please select a training category.',
+            'training_level.required'        => 'Please select the training level.',
+            'training_price.required'        => 'Please enter the training price.',
+            'training_offer_price.required'  => 'Please enter the offer price.',
         ]);
 
         $training = TrainingMaterial::findOrFail($id);
-        $training->fill($data);
 
+        // ✅ Thumbnail update
         if ($request->hasFile('thumbnail')) {
             $file = $request->file('thumbnail');
-            $name = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads'), $name);
-            $training->thumbnail_file_name = $name;
-            $training->thumbnail_file_path = asset('uploads/' . $name);
+            $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $thumbnailFileName);
+            $training->thumbnail_file_name = $thumbnailFileName;
+            $training->thumbnail_file_path = asset('uploads/' . $thumbnailFileName);
         }
 
-        $training->save();
+        // ✅ Update main details
+        $training->update([
+            'training_title'        => $request->training_title,
+            'training_sub_title'    => $request->training_sub_title,
+            'training_descriptions' => $request->training_descriptions,
+            'training_category'     => $request->training_category,
+            'training_level'        => $request->training_level,
+            'training_price'        => $request->training_price,
+            'training_offer_price'  => $request->training_offer_price,
+        ]);
 
-        if (!empty($data['content_sections']) && is_array($data['content_sections'])) {
+        // ✅ Content sections update/create
+        if ($request->has('content_sections')) {
             $existingIds = TrainingMaterialsDocument::where('training_material_id', $id)->pluck('id')->toArray();
             $requestIds = [];
 
-            foreach ($data['content_sections'] as $section) {
+            foreach ($request->content_sections as $index => $section) {
+                // 🔹 File fetch from Laravel file bag
+                $uploadedFile = $request->file("content_sections.$index.file");
+
                 if (!empty($section['document_id'])) {
-                    $doc = TrainingMaterialsDocument::where('id', $section['document_id'])
-                        ->where('training_material_id', $training->id)
-                        ->first();
-
+                    // 🔹 Update existing record
+                    $doc = TrainingMaterialsDocument::find($section['document_id']);
                     if ($doc) {
-                        $doc->training_title = $section['title'];
-                        $doc->description = $section['description'];
+                        $doc->training_title = $section['title'] ?? $doc->training_title;
+                        $doc->description    = $section['description'] ?? $doc->description;
+                        $doc->file_duration  = $section['file_duration'] ?? $doc->file_duration;
 
-                        if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
-                            $file = $section['file'];
-                            $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
-                            $path = $file->storeAs('uploads', $name, 'public');
-                            $doc->file_name = $name;
-                            $doc->file_path = asset('storage/' . $path);
-                        } else {
-                            //  Preserve existing file if no new upload
-                            $doc->file_name = $section['existing_file_name'] ?? $doc->file_name;
-                            $doc->file_path = $section['existing_file_path'] ?? $doc->file_path;
+                        if ($uploadedFile) {
+                            $fileName = 'section_' . time() . '_' . $index . '.' . $uploadedFile->getClientOriginalExtension();
+                            $uploadedFile->move(public_path('uploads'), $fileName);
+                            $doc->file_name = $fileName;
+                            $doc->file_path = asset('uploads/' . $fileName);
                         }
 
                         $doc->save();
                         $requestIds[] = $doc->id;
                     }
-                }
-                else {
-                    $doc = new TrainingMaterialsDocument();
-                    $doc->training_material_id = $training->id;
-                    $doc->trainer_id = auth()->id();
-                    $doc->training_title = $section['title'];
-                    $doc->description = $section['description'];
-
-                    if (!empty($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
-                        $file = $section['file'];
-                        $name = 'section_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
-                        $path = $file->storeAs('uploads', $name, 'public');
-                        $doc->file_name = $name;
-                        $doc->file_path = asset('storage/' . $path);
-                    } else {
-                        //  Preserve old file (if passed by hidden input — useful when editing a just-added section)
-                        $doc->file_name = $section['existing_file_name'] ?? null;
-                        $doc->file_path = $section['existing_file_path'] ?? null;
+                } else {
+                    // 🔹 Create new record
+                    $filePath = null;
+                    $fileName = null;
+                    if ($uploadedFile) {
+                        $fileName = 'section_' . time() . '_' . $index . '.' . $uploadedFile->getClientOriginalExtension();
+                        $uploadedFile->move(public_path('uploads'), $fileName);
+                        $filePath = asset('uploads/' . $fileName);
                     }
 
-                    $doc->save();
-                    $requestIds[] = $doc->id;
+                    $docId = DB::table('training_materials_documents')->insertGetId([
+                        'trainer_id'           => $trainer->id,
+                        'training_material_id' => $training->id,
+                        'training_title'       => $section['title'] ?? null,
+                        'description'          => $section['description'] ?? null,
+                        'file_path'            => $filePath,
+                        'file_name'            => $fileName,
+                        'file_duration'        => $section['file_duration'] ?? null,
+                        'created_at'           => now(),
+                        'updated_at'           => now(),
+                    ]);
+                    $requestIds[] = $docId;
                 }
-
             }
 
+            // ✅ Delete removed sections
             $toDelete = array_diff($existingIds, $requestIds);
             if (!empty($toDelete)) {
                 TrainingMaterialsDocument::whereIn('id', $toDelete)->delete();
@@ -944,6 +1050,9 @@ class TrainerController extends Controller
 
         return redirect()->route('training.list')->with('success', 'Recorded training course updated successfully!');
     }
+
+
+
 
 
     public function editOnlineTraining($id)
@@ -994,7 +1103,7 @@ class TrainerController extends Controller
         'training_level'         => 'required|string',
         'training_price'         => 'required|numeric',
         'training_offer_price'   => 'required|numeric',
-        'thumbnail'              => 'nullable|image|max:2048',
+        // 'thumbnail'              => 'nullable|image|max:2048',
 
         'content_sections.*.batch_no'   => 'required|string|max:255',
         'content_sections.*.batch_date' => 'required|date',

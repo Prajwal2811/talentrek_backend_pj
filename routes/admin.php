@@ -96,7 +96,11 @@ Route::group(['prefix' => 'admin'], function() {
         });
         // Mentor Module
         Route::middleware('admin.module:Mentors')->group(function () {
+<<<<<<< HEAD
 		    Route::get('/mentor', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentor');
+=======
+		    Route::get('/mentor', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentors');
+>>>>>>> 184d885bd1e4271762d6346ff1b08ab1c17874c7
             Route::get('/mentor/{id}/view', [App\Http\Controllers\AdminController::class, 'viewMentor'])->name('admin.mentor.view');
             Route::get('/mentor/{id}/booking-session', [App\Http\Controllers\AdminController::class, 'viewBookingSession'])->name('admin.mentor.booking-session');
             Route::post('/mentor/changeStatus', [App\Http\Controllers\AdminController::class, 'mentorChangeStatus'])->name('admin.mentor.changeStatus');	

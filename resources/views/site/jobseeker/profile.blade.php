@@ -1490,9 +1490,11 @@ $skills = $user->skills->first();
                                                         ->where('jobseeker_id', auth()->user()->id)
                                                         ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
                                                         ->get();
+                           
                             $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
-                                                                        ->where('user_id', auth()->user()->id)
-                                                                        ->first();                            
+                            ->where('user_id', auth()->user()->id)
+                            ->first();
+                                                                 
                         @endphp
                         <!-- Training Tab -->
                         <div x-show="tab === 'training'" x-cloak>
@@ -1684,7 +1686,9 @@ $skills = $user->skills->first();
                                         <div class="flex items-center justify-between mt-4 text-sm text-gray-700">
                                         <!-- Instructor -->
                                         <div class="flex items-center space-x-2">
-                                            <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}" class="w-6 h-6 rounded-full">
+                                            <img src="{{ $trainerImage->document_path ?? asset('default-avatar.png') }}" 
+                                                alt="{{ $trainerName }}" 
+                                                class="w-6 h-6 rounded-full">
                                             <span>{{ $trainerName }}</span>
                                         </div>
 

@@ -158,10 +158,11 @@
                                                         </div>
                                                     @endif
                                                 </td>
-                                                <td class="p-2 border text-sm text-gray-600">
-                                                    {{ $section['file_duration'] ?? '' }}
-                                                    <input type="hidden" name="content_sections[{{ $i }}][file_duration]" value="{{ $section['file_duration'] ?? '' }}">
-                                                </td>
+                                                <td class="p-2 border text-sm text-gray-600 text-center align-middle">
+                                                {{ $section['file_duration'] ?? '' }}
+                                                <input type="hidden" name="content_sections[{{ $i }}][file_duration]" value="{{ $section['file_duration'] ?? '' }}">
+                                            </td>
+
                                                 <td class="p-2 border text-center">
                                                     <input type="hidden" name="content_sections[{{ $i }}][document_id]" value="{{ $section['document_id'] ?? '' }}">
                                                     <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
@@ -275,6 +276,9 @@
                         });
                     });
                 </script>
+
+
+
                 <script>
                     document.addEventListener("DOMContentLoaded", function () {
                         const addBtn = document.getElementById('addContentBtn');
@@ -285,6 +289,7 @@
                         // Start from existing count
                         let index = tableBody.querySelectorAll('tr').length;
 
+                        // ✅ Add new row
                         addBtn.addEventListener('click', function (e) {
                             e.preventDefault();
 
@@ -311,6 +316,10 @@
                                     <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
                                     <input type="file" name="content_sections[${index}][file]" style="display:none" />
                                 </td>
+                                <td class="p-2 border text-center duration-cell">
+                                    --
+                                    <input type="hidden" name="content_sections[${index}][file_duration]" value="">
+                                </td>
                                 <td class="p-2 border text-center">
                                     <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -327,26 +336,64 @@
                             updateSerialNumbers();
                         });
 
+                        // ✅ Handle clicks for Upload & Delete buttons (delegation)
                         tableBody.addEventListener('click', (e) => {
                             if (e.target.closest('.delete-btn')) {
                                 e.target.closest('tr').remove();
                                 updateSerialNumbers();
-                            } else if (e.target.closest('.upload-btn')) {
+                            } 
+                            else if (e.target.closest('.upload-btn')) {
                                 const btn = e.target.closest('.upload-btn');
                                 const fileInput = btn.nextElementSibling;
                                 fileInput.click();
                             }
                         });
 
+                        // ✅ Handle file selection for BOTH existing & new rows
                         tableBody.addEventListener('change', (e) => {
                             if (e.target.type === 'file') {
                                 const fileInput = e.target;
-                                const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
+                                const file = fileInput.files[0];
                                 const btn = fileInput.previousElementSibling;
-                                btn.textContent = fileName;
+
+                                if (!file) {
+                                    return;
+                                }
+
+                                // File size limit check (20MB)
+                                if (file.size > 20 * 1024 * 1024) {
+                                    alert("File size must be less than or equal to 20MB.");
+                                    fileInput.value = '';
+                                    btn.textContent = 'Upload File';
+                                    return;
+                                }
+
+                                btn.textContent = file.name;
+
+                                // Calculate video duration
+                                const video = document.createElement('video');
+                                video.preload = 'metadata';
+                                video.onloadedmetadata = function () {
+                                    window.URL.revokeObjectURL(video.src);
+                                    const durationInSeconds = video.duration;
+
+                                    const minutes = Math.floor(durationInSeconds / 60);
+                                    const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
+                                    const formatted = `${minutes}:${seconds}`;
+
+                                    const tr = fileInput.closest('tr');
+                                    const durationCell = tr.querySelector('.duration-cell');
+                                    durationCell.innerHTML = `
+                                        ${formatted}
+                                        <input type="hidden" name="${fileInput.name.replace('[file]', '[file_duration]')}" value="${formatted}">
+                                    `;
+                                };
+
+                                video.src = URL.createObjectURL(file);
                             }
                         });
 
+                        // ✅ Serial number updater
                         function updateSerialNumbers() {
                             [...tableBody.rows].forEach((row, i) => {
                                 row.cells[0].textContent = i + 1;
@@ -354,6 +401,10 @@
                         }
                     });
                 </script>
+
+
+
+
             </div>
         </div>
     </div>
