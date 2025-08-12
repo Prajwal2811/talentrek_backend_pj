@@ -655,6 +655,7 @@
                     <!-- Laravel Echo -->
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
                 <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+                <meta name="csrf-token" content="{{ csrf_token() }}">
 
                 <script>
                     Pusher.logToConsole = true;
@@ -670,12 +671,14 @@
                         encrypted: false,
                         enabledTransports: ['ws', 'wss'],
                         authEndpoint: '/broadcasting/auth',
+                        withCredentials: true,  // Ensure cookies are sent with the request
                         auth: {
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                             }
                         }
                     });
+
                 </script>
 
 
@@ -683,8 +686,9 @@
                    
                     const currentUserId = {{ auth()->guard('jobseeker')->id() }};
                     const currentUserType = 'jobseeker'; 
-                    // console.log(currentUserId);
-                    Echo.private(`chat.jobseeker.${currentUserId}`)
+                    //console.log(currentUserId);
+                    // Echo.private(`chat.jobseeker.${currentUserId}`)
+                    Echo.channel('chat.jobseeker')
                         .error((err) => {
                             console.error('Subscription error:', err);
                         })

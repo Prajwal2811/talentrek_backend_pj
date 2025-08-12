@@ -129,12 +129,17 @@ Auth::routes();
 
 
 // broadcasting auth route
-Route::post('/broadcasting/auth', function() {
+
+Route::post('/broadcasting/auth', function () {
+    // Check if any of the guards are authenticated
     if (auth('jobseeker')->check() || auth('trainer')->check() || auth('coach')->check()) {
         return Broadcast::auth(request());
     }
+
+    // If not authenticated, return 401 Unauthorized error
     return response()->json(['error' => 'Unauthenticated'], 401);
 })->middleware(['web']);
+
 
 
 Route::group(['middleware' => 'jobseeker.auth'], function() {
@@ -146,11 +151,6 @@ Route::group(['middleware' => 'trainer.auth'], function() {
 	Route::post('/trainer/chat/send', [ChatController::class, 'sendMessage'])->name('trainer.chat.send');
 	Route::get('/trainer/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.fetch');
 });
-// Route::middleware('auth:trainer')->group(function () {
-//     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.send');
-//     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('trainer.chat.fetch');
-// });
-
 
 Route::group(['middleware' => 'coach.auth'], function() {
 	Route::post('/coach/chat/send', [ChatController::class, 'sendMessage'])->name('coach.chat.send');

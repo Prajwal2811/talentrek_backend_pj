@@ -18,10 +18,27 @@
         ->get();
     //     echo "<pre>";
     // print_r($jobseekersList);exit;
+    $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'trainer_profile_picture')
+        ->where('user_id', auth()->user()->id)
+        ->first();
+    //  echo "<pre>";
+    //  print_r($trainerImage);exit;                                                
 ?>
 
 @include('site.componants.header')
+<style>
+    /* Chrome, Safari, Edge, Opera */
+    .scroll-hidden::-webkit-scrollbar {
+        display: none;
+    }
 
+    /* Firefox */
+    .scroll-hidden {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+</style>
 <body>
 
     <div class="loading-area">
@@ -47,7 +64,9 @@
                 <div x-data="trainerChat()" x-init="initEcho()" class="grid grid-cols-3 gap-4 h-[calc(100vh-100px)] p-4">
     
                     <!-- ✅ Contacts Sidebar -->
-                    <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1">
+                    <!-- <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1"> -->
+                    <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1 h-[calc(100vh-150px)]">
+
                         @foreach ($jobseekersList as $jobseeker)
                             @php $avatar = $jobseeker->profile_picture ?? 'https://via.placeholder.com/100'; @endphp
 
@@ -72,9 +91,8 @@
                     </div>
 
                     <!-- ✅ Chat Panel -->
-                    <div class="bg-white rounded-lg shadow col-span-2 flex flex-col h-full">
+                    <div class="bg-white rounded-lg shadow overflow-y-auto col-span-2 scroll-hidden flex flex-col h-full h-[calc(100vh-150px)]">
                         
-                        <!-- ✅ If contact selected -->
                         <!-- ✅ If contact selected -->
                         <template x-if="activeContact">
                             <div class="flex flex-col h-full">
@@ -89,12 +107,13 @@
                                 </div>
 
                                 <!-- Messages -->
-                                <div class="flex-1 p-4 space-y-3 overflow-y-auto bg-white h-[calc(100vh-280px)]" x-ref="chatContainer">
+                                <div class="flex-1 p-4 space-y-3 overflow-y-auto bg-white h-[calc(100vh-280px)] scroll-hidden" x-ref="chatContainer">
+
                                     <template x-for="(message, i) in activeContact.messages" :key="i">
                                         <div class="flex items-end gap-2" 
                                             :class="message.sender === 'me' ? 'justify-end' : 'justify-start'">
-                                            
-                                            <!-- Avatar (left side) -->
+
+                                            <!-- Left side avatar (jobseeker) -->
                                             <img 
                                                 x-show="message.sender !== 'me'" 
                                                 :src="activeContact.avatar" 
@@ -110,14 +129,15 @@
                                                 x-text="message.text">
                                             </div>
 
-                                            <!-- Avatar (right side for 'me') -->
+                                            <!-- Right side avatar (trainer) -->
                                             <img 
                                                 x-show="message.sender === 'me'" 
-                                                src="{{ auth()->user()->profile_picture ?? 'https://via.placeholder.com/40' }}" 
+                                                :src="trainerImage" 
                                                 class="w-8 h-8 rounded-full object-cover" 
-                                                alt="Me">
+                                                alt="Trainer">
                                         </div>
                                     </template>
+
 
                                 </div>
 
@@ -189,12 +209,27 @@
                                         }
                                     });
 
-                                    Echo.private(`chat.trainer.${this.currentUserId}`)
+                                    // Echo.private(`chat.trainer.${this.currentUserId}`)
+                                    // Echo.channel('chat.trainer')
+                                    //     .listen('.message.sent', (e) => {
+                                    //         if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
+                                    //             this.receiveMessage(e);
+                                    //         }
+                                    //     });
+                                    Echo.channel('chat.trainer')
+                                        .error((err) => {
+                                            console.error('Subscription error:', err);
+                                        })
                                         .listen('.message.sent', (e) => {
                                             if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
                                                 this.receiveMessage(e);
+                                                this.scrollToBottom();
                                             }
+                                        })
+                                        .listen('.message.deleted', (e) => {
+                                            $(`#message-${e.messageId}`).remove();
                                         });
+
                                 },
 
                                 openChat(contact) {
@@ -292,7 +327,8 @@
                     <script>
                         function chatApp() {
                             return {
-                                contacts: [], // not used because we're passing full object directly
+                                trainerImage: "{{ $trainerImage->document_path ?? 'https://via.placeholder.com/40' }}", // ✅ trainer ki profile
+                                contacts: [],
                                 activeContact: null,
                                 newMessage: '',
                                 selectedFile: null,
@@ -339,6 +375,7 @@
                             };
                         }
                     </script>
+
 
                     <!-- <script>
                         window.trainerChat = function () {

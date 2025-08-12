@@ -22,7 +22,12 @@ trivial to integrate with web services.
 - Middleware system allows you to augment and compose client behavior.
 
 ```php
-$client = new \GuzzleHttp\Client();
+$client = new \GuzzleHttp\Client( 
+  [
+    'verify' => false, 
+    
+  ]
+ );
 $response = $client->request('GET', 'https://api.github.com/repos/guzzle/guzzle');
 
 echo $response->getStatusCode(); // 200
