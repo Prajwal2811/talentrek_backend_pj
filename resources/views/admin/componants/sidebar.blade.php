@@ -90,7 +90,7 @@
                         'Trainers' => ['route' => 'admin.trainers', 'icon' => 'fa-chalkboard-teacher'],
                         'Assessors' => ['route' => 'admin.assessors', 'icon' => 'fa-check-circle'],
                         'Coach' => ['route' => 'admin.coach', 'icon' => 'fa-user-check'],
-                        'Mentors' => ['route' => 'admin.mentors', 'icon' => 'fa-user-graduate'],
+                        'Mentors' => ['route' => 'admin.mentor', 'icon' => 'fa-user-graduate'],
                     ];
                 @endphp
 

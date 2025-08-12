@@ -11,7 +11,6 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::view('/forgot-password', 'admin.forgot-password')->name('admin.forgot-password');
 		Route::post('/admin/login', [App\Http\Controllers\AdminController::class, 'authenticate'])->name('admin.auth');
 		Route::post('/admin/send-reset-link', [App\Http\Controllers\AdminController::class, 'sendResetPassword'])->name('admin.send-reset-link');
-	
 	});
 	
 	Route::group(['middleware' => 'admin.auth'], function () {
@@ -97,7 +96,7 @@ Route::group(['prefix' => 'admin'], function() {
         });
         // Mentor Module
         Route::middleware('admin.module:Mentors')->group(function () {
-		    Route::get('/mentors', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentors');
+		    Route::get('/mentor', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentor');
             Route::get('/mentor/{id}/view', [App\Http\Controllers\AdminController::class, 'viewMentor'])->name('admin.mentor.view');
             Route::get('/mentor/{id}/booking-session', [App\Http\Controllers\AdminController::class, 'viewBookingSession'])->name('admin.mentor.booking-session');
             Route::post('/mentor/changeStatus', [App\Http\Controllers\AdminController::class, 'mentorChangeStatus'])->name('admin.mentor.changeStatus');	

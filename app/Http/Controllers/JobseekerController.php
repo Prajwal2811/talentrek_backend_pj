@@ -21,7 +21,7 @@ use App\Models\Assessors;
 use App\Models\Coach;
 use App\Models\Admin;
 use App\Models\SubscriptionPlan;
-use App\Models\Subscription;
+use App\Models\PurchasedSubscription;
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
 use App\Models\JobseekerTrainingMaterialPurchase;
@@ -573,7 +573,6 @@ class JobseekerController extends Controller
 
     public function processSubscriptionPayment(Request $request)
     {
-        // Step 1: Validate incoming data
         $request->validate([
             'plan_id' => 'required|exists:subscription_plans,id',
             'card_number' => 'required|string|min:12|max:19',
@@ -581,35 +580,43 @@ class JobseekerController extends Controller
             'cvv' => 'required|string|min:3|max:4',
         ]);
 
-        // Step 2: Find plan
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
 
-        // Step 3: Simulate payment process (replace with payment gateway logic)
         DB::beginTransaction();
         try {
-            $subscription = Subscription::create([
-                'user_id' => Auth::id(),
+            $jobseeker = auth('jobseeker')->user();
+            // echo "done"; exit; 
+            PurchasedSubscription::create([
+                'user_id' => $jobseeker->id,
+                'user_type' => 'jobseeker',
                 'subscription_plan_id' => $plan->id,
                 'start_date' => now(),
-                'end_date' => now()->addMonths($plan->duration_months ?? 1),
+                'end_date' => now()->addDays($plan->duration_days),
                 'price' => $plan->price,
                 'status' => 'active',
                 'payment_status' => 'paid',
             ]);
-
-            // Mark jobseeker as having purchased a subscription
-            $jobseeker = auth()->user();
-            $jobseeker->isSubscribtionBuy = 'yes';
-            $jobseeker->save();
+            // echo "done"; exit; 
+            // $jobseeker->isSubscribtionBuy = 'yes';
+            // $jobseeker->save();
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Subscription purchased successfully!');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Subscription purchased successfully!'
+            ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Something went wrong while purchasing the subscription.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while purchasing the subscription.'
+            ], 500);
         }
     }
+
+
 
 
 
