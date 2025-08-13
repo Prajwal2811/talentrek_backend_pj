@@ -32,37 +32,89 @@ class ChatController extends Controller
 {
 
     // ✅ Send a message
+    // public function sendMessage(Request $request)
+    // {
+    //     $sender = $this->getSender();
+
+    //     $message = Message::create([
+    //         'sender_id' => $sender['id'],
+    //         'sender_type' => $sender['type'],
+    //         'receiver_id' => $request->receiver_id,
+    //         'receiver_type' => $request->receiver_type,
+    //         'message' => $request->message,
+    //         'type' => 1
+    //     ]);
+
+    //     broadcast(new MessageSent($message))->toOthers();
+
+    //     return response()->json([
+    //         'id' => $message->id,
+    //         'sender_id' => $message->sender_id,
+    //         'sender_type' => $message->sender_type,
+    //         'message' => $message->message,
+    //         'created_at' => $message->created_at->toDateTimeString()
+    //     ]);
+    // }
+
+      
     public function sendMessage(Request $request)
     {
         $sender = $this->getSender();
 
-        $message = Message::create([
-            'sender_id' => $sender['id'],
-            'sender_type' => $sender['type'],
-            'receiver_id' => $request->receiver_id,
-            'receiver_type' => $request->receiver_type,
-            'message' => $request->message,
-            'type' => 1
-        ]);
+        $data = [
+            'sender_id'    => $sender['id'],
+            'sender_type'  => $sender['type'],
+            'receiver_id'  => $request->receiver_id,
+            'receiver_type'=> $request->receiver_type,
+            'type'         => 1, // default text
+            'message'      => $request->message
+        ];
+
+        // ✅ Agar file hai to upload karein
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+
+            // Custom uploads folder
+            $filename = 'profile_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $filename);
+
+            // URL banake save kare
+            $data['message'] = url('uploads/' . $filename);
+            $data['type'] = 2; // File
+        }
+
+        $message = Message::create($data);
 
         broadcast(new MessageSent($message))->toOthers();
 
         return response()->json([
-            'id' => $message->id,
-            'sender_id' => $message->sender_id,
+            'id'          => $message->id,
+            'sender_id'   => $message->sender_id,
             'sender_type' => $message->sender_type,
-            'message' => $message->message,
-            'created_at' => $message->created_at->toDateTimeString()
+            'message'     => $message->message,
+            'type'        => $message->type,
+            'created_at'  => $message->created_at->toDateTimeString()
         ]);
     }
 
+
+
     private function getSender()
     {
-        if (auth()->guard('jobseeker')->check()) {
+        if (auth()->guard('jobseeker')->check()) 
+        {
             return ['id' => auth()->guard('jobseeker')->id(), 'type' => 'jobseeker'];
-        } elseif (auth()->guard('trainer')->check()) {
+        } 
+        elseif (auth()->guard('trainer')->check()) 
+        {
             return ['id' => auth()->guard('trainer')->id(), 'type' => 'trainer'];
-        } elseif (auth()->guard('coach')->check()) {
+        } 
+        elseif (auth()->guard('mentor')->check()) 
+        {
+            return ['id' => auth()->guard('mentor')->id(), 'type' => 'mentor'];
+        } 
+        elseif (auth()->guard('coach')->check()) 
+        {
             return ['id' => auth()->guard('coach')->id(), 'type' => 'coach'];
         }
 

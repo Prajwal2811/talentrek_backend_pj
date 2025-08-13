@@ -152,6 +152,11 @@ Route::group(['middleware' => 'trainer.auth'], function() {
 	Route::get('/trainer/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.fetch');
 });
 
+Route::group(['middleware' => 'mentor.auth'], function() {
+	Route::post('/mentor/chat/send', [ChatController::class, 'sendMessage'])->name('mentor.chat.send');
+	Route::get('/mentor/chat/messages', [ChatController::class, 'getMessages'])->name('mentor.chat.fetch');
+});
+
 Route::group(['middleware' => 'coach.auth'], function() {
 	Route::post('/coach/chat/send', [ChatController::class, 'sendMessage'])->name('coach.chat.send');
 	Route::get('/coach/chat/messages', [ChatController::class, 'getMessages'])->name('coach.chat.fetch');

@@ -25,8 +25,12 @@ class MessageSent implements ShouldBroadcast
     {
         $channels = ['chat.jobseeker'];
 
-        if ($this->message->receiver_type == 'trainer') {
+        if ($this->message->receiver_type == 'mentor') {
             $channels[] = 'chat.trainer';
+        }
+
+        if ($this->message->receiver_type == 'mentor') {
+            $channels[] = 'chat.mentor';
         }
 
         return array_map(function($channel) {

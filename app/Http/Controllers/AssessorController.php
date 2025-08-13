@@ -251,7 +251,105 @@ class AssessorController extends Controller
 
     public function showAssessorDashboard()
     {
-        return view('site.assessor.assessor-dashboard');    
+       $sessions = BookingSession::select(
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
+            ->get()
+            ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
+                return [
+                    'session_id' => $session->session_id,
+                    'name' => $session->name,
+                    'role' => $latestExperience->job_role ?? 'N/A', 
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
+                    'status' => $session->status,
+                ];
+            })
+            ->groupBy('status');
+
+        // echo "<pre>";    
+        // print_r( $sessions);exit; 
+       
+        $today = \Carbon\Carbon::today()->format('Y-m-d');
+   
+        $todayCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->whereDate('jobseeker_saved_booking_session.slot_date', $today)
+            ->count();
+           
+        $upcomingCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->where('jobseeker_saved_booking_session.status', 'pending')
+            ->count();
+            
+        // ✅ Properly formatted cancelled sessions for modal use
+        $cancelled = BookingSession::select(
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->where('jobseeker_saved_booking_session.status', 'cancelled')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
+            ->get()
+            ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
+                return [
+                    'session_id' => $session->session_id,
+                    'name' => $session->name,
+                    'role' => $latestExperience->job_role ?? 'N/A',
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
+                    'status' => $session->status,
+                ];
+            });
+        // echo "<pre>";    
+        // print_r($cancelled);exit; 
+
+        return view('site.assessor.assessor-dashboard', [
+            'upcoming' => $sessions['pending'] ?? [],
+            'completed' => $sessions['completed'] ?? [],
+            'cancelled' => $cancelled,
+            'todayCount' => $todayCount,
+            'upcomingCount' => $upcomingCount,
+        ]);   
     }
 
     public function logoutAssessor(Request $request)

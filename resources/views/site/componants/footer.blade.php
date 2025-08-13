@@ -64,6 +64,7 @@
                             <li><a href="#" class="hover:text-blue-600">Help Center</a></li>
                             <li><a href="#" class="hover:text-blue-600">Terms of Use</a></li>
                             <li><a href="#" class="hover:text-blue-600">Privacy Policy</a></li>
+                            <li>Contact : +966558819908</li>
                         </ul>
                     </div>
 

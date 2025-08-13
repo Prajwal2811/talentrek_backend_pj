@@ -1315,7 +1315,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -1359,9 +1366,17 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
+        
 
         $interval = CarbonInterval::days($totalDays)->cascade();
         $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
@@ -1400,9 +1415,17 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
+
 
         $interval = CarbonInterval::days($totalDays)->cascade();
         $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
@@ -1443,7 +1466,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -2675,7 +2705,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -2732,7 +2769,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 

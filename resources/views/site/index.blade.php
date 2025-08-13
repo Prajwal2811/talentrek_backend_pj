@@ -50,7 +50,7 @@
     }
 
     $jobseekerId = auth()->guard('jobseeker')->id();
-    
+    //All Trainer chat list with perticular jobseeker
     $trainersList = DB::table('jobseeker_training_material_purchases as p')
         ->join('trainers as t', 'p.trainer_id', '=', 't.id')
         ->leftJoin('additional_info as ai', function($join) {
@@ -66,20 +66,26 @@
         )
         ->distinct()
         ->get();
+     //All Mentor chat list with perticular jobseeker
+    $mentorsList = DB::table('jobseeker_saved_booking_session as p')
+    ->join('mentors as m', 'p.user_id', '=', 'm.id')
+    ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'm.id')
+                ->where('ai.user_type', '=', 'mentor')
+                ->where('ai.doc_type', '=', 'mentor_profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            'm.id as user_id', 
+            'm.name as mentor_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+    ->get();
+    // echo "<pre>";
+    // print_r($mentorsList);exit;
 
 ?>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @include('site.componants.header')
@@ -420,22 +426,10 @@
 </style>
 
 <style>
-    /* #chatMessages {
-        display: flex;
-        flex-direction: column;
-        height: 400px;
-        overflow-y: auto;
-        border: 1px solid #ccc;
-        padding: 10px;
-        background-color: #f9f9f9;
-    } */
 
     #chatMessages {
         display: flex;
         flex-direction: column;
-        /* ❌ remove height & overflow here */
-        /* height: 400px; */
-        /* overflow-y: auto; */
         padding: 10px;
         background-color: #f9f9f9;
     }
@@ -448,13 +442,12 @@
 
     .chat-body-box {
         overflow-y: scroll;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none; 
+        -ms-overflow-style: none;  
 
-        scroll-behavior: smooth; /* Optional: for smooth scrolling */
+        scroll-behavior: smooth;
     }
 
-    /* For Chrome, Safari, and Edge (WebKit browsers) */
     .chat-body-box::-webkit-scrollbar {
         display: none;
     }
@@ -490,8 +483,6 @@
 
 
 </style>
-
-@include('site.componants.header')
 <!-- CHAT MODULE CSS END -->
 <body>
     <div class="loading-area">
@@ -557,7 +548,6 @@
                         <div id="trainer" class="tab-content active">
                             @foreach($trainersList as $trainer)
                                 <div class="chat-user" onclick="openChat({{ $trainer->trainer_id }}, 'trainer', '{{ $trainer->trainer_name }}', '{{ $trainer->profile_picture ?? asset('images/default-profile.png') }}')">
->
                                     <img src="{{ $trainer->profile_picture ?? asset('images/default-profile.png') }}" />
                                     <div class="chat-text">
                                         <div class="chat-name">{{ $trainer->trainer_name }}</div>
@@ -571,14 +561,16 @@
 
                         <!-- Mentor Tab -->
                         <div id="mentor" class="tab-content">
-                            <div class="chat-user">
-                                <img src="https://randomuser.me/api/portraits/men/2.jpg" />
-                                <div class="chat-text">
-                                    <div class="chat-name">Mentor David</div>
-                                    <div class="chat-message">Mentor message sample</div>
+                            @foreach($mentorsList as $mentor)
+                                <div class="chat-user" onclick="openChat({{ $mentor->user_id }}, 'mentor', '{{ $mentor->mentor_name }}', '{{ $mentor->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $mentor->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $mentor->mentor_name }}</div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
-                                <div class="chat-time">06:00 PM</div>
-                            </div>
+                            @endforeach
                         </div>
 
                         <!-- Coach Tab -->
@@ -646,9 +638,66 @@
                         <input type="hidden" id="receiver_id">
                         <input type="hidden" id="receiver_type">
 
+                        <!-- Text input -->
                         <input type="text" id="message" placeholder="Write your message here ....." />
-                        <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+
+                        <!-- File select button -->
+                        <label for="fileInput" class="file-label">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </label>
+                        <input type="file" id="fileInput" style="display: none;" />
+
+                        <!-- Send button -->
+                        <button id="sendBtn" class="send-btn">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
                     </div>
+
+                    <style>
+                    .chat-input {
+                        display: flex;
+                        align-items: center;
+                        padding: 8px;
+                        background: #fff;
+                        border-top: 1px solid #ddd;
+                    }
+
+                    .chat-input input[type="text"] {
+                        flex: 1;
+                        padding: 10px 12px;
+                        border: 1px solid #ccc;
+                        border-radius: 20px;
+                        outline: none;
+                    }
+
+                    .file-label {
+                        cursor: pointer;
+                        font-size: 18px;
+                        color: #555;
+                        padding: 0 8px;
+                    }
+
+                    .file-label:hover {
+                        color: #000;
+                    }
+
+                    .send-btn {
+                        background: #007bff;
+                        border: none;
+                        color: #fff;
+                        padding: 10px 14px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        margin-left: 4px;
+                        font-size: 16px;
+                    }
+
+                    .send-btn:hover {
+                        background: #0069d9;
+                    }
+                    </style>
+
+
                 </div>
 
                 <!-- ========================================== -->
@@ -703,44 +752,96 @@
                         });
 
                     
+                    // $('#sendBtn').on('click', function () {
+                    //     const receiverId = $('#receiver_id').val();
+                    //     const receiverType = $('#receiver_type').val();
+                    //     const messageText = $('#message').val().trim();
+
+                    //     if (!messageText) return;
+
+                    //     $.ajax({
+                    //         url: '/chat/send',
+                    //         method: 'POST',
+                    //         data: {
+                    //             receiver_id: receiverId,
+                    //             receiver_type: receiverType,
+                    //             message: messageText,
+                    //             _token: $('meta[name="csrf-token"]').attr('content')
+                    //         },
+                    //         success: function (res) {
+                    //             $('#message').val('');
+
+                    //             if (res && res.id) {
+                    //                 appendMessage({
+                    //                     id: res.id,
+                    //                     sender_id: res.sender_id,
+                    //                     sender_type: res.sender_type,
+                    //                     message: res.message,
+                    //                     created_at: res.created_at
+                    //                 });
+                    //                 getMessages(receiverId, receiverType);
+                    //             } else {
+                    //                 console.error('Unexpected response:', res);
+                    //             }
+                    //         },
+                    //         error: function (xhr, status, error) {
+                    //             console.error('Send error:', error);
+                    //             alert('Message sending failed.');
+                    //         }
+                    //     });
+                    // });
+
+                    // Jab file select ho, uska naam input me dikhao
+                    $('#fileInput').on('change', function () {
+                        const file = this.files[0];
+                        if (file) {
+                            $('#message').val(file.name); // File ka naam text field me
+                        }
+                    });
+
+                    // ✅ Send button click - Text + File ek hi request me jayenge
                     $('#sendBtn').on('click', function () {
                         const receiverId = $('#receiver_id').val();
                         const receiverType = $('#receiver_type').val();
                         const messageText = $('#message').val().trim();
+                        const file = $('#fileInput')[0].files[0];
 
-                        if (!messageText) return;
+                        if (!messageText && !file) return; // Dono empty to kuch mat karo
+
+                        const formData = new FormData();
+                        formData.append('receiver_id', receiverId);
+                        formData.append('receiver_type', receiverType);
+                        formData.append('message', messageText);
+                        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+                        if (file) {
+                            formData.append('file', file);
+                        }
 
                         $.ajax({
-                            url: '/chat/send',
+                            url: '/chat/send', // 🔹 Backend me merged function ka route
                             method: 'POST',
-                            data: {
-                                receiver_id: receiverId,
-                                receiver_type: receiverType,
-                                message: messageText,
-                                _token: $('meta[name="csrf-token"]').attr('content')
-                            },
+                            data: formData,
+                            processData: false,
+                            contentType: false,
                             success: function (res) {
                                 $('#message').val('');
+                                $('#fileInput').val('');
 
                                 if (res && res.id) {
-                                    appendMessage({
-                                        id: res.id,
-                                        sender_id: res.sender_id,
-                                        sender_type: res.sender_type,
-                                        message: res.message,
-                                        created_at: res.created_at
-                                    });
-                                    getMessages(receiverId, receiverType);
+                                    appendMessage(res);
+                                    scrollToBottom();
                                 } else {
                                     console.error('Unexpected response:', res);
                                 }
                             },
-                            error: function (xhr, status, error) {
-                                console.error('Send error:', error);
+                            error: function (xhr) {
+                                console.error('Send error:', xhr.responseText);
                                 alert('Message sending failed.');
                             }
                         });
                     });
+
 
                     
                     function getMessages(receiverId, receiverType) {
@@ -755,17 +856,80 @@
                     }
 
                 
+                    // function appendMessage(msg) {
+                    //     const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+
+                    //     const msgHtml = `
+                    //         <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
+                    //             ${msg.message}
+                    //         </div>
+                    //     `;
+                    //     $('#chatMessages').append(msgHtml);
+                    //     //scrollToBottom();
+                    // }
                     function appendMessage(msg) {
                         const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+                        let content = '';
+
+                        if (msg.type == 2) {
+                            // Clean path & get extension
+                            let cleanPath = msg.message.split('?')[0].split('#')[0];
+                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                            let ext = fileName.split('.').pop().toLowerCase();
+
+                            let iconPath = '';
+                            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                // Directly show image
+                                content = `<img src="${msg.message}" style="max-width:125px; border-radius:6px;" />`;
+                            } else {
+                                // Select icon based on file type
+                                if (ext === 'pdf') {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png'; // PDF icon
+                                } else if (ext === 'doc' || ext === 'docx') {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png'; // Word icon
+                                } else {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png'; // Generic file
+                                }
+
+                                // File card
+                                content = `
+                                    <a href="${msg.message}" target="_blank" class="file-message" style="
+                                        display: flex;
+                                        align-items: center;
+                                        background: white;
+                                        border: 2px solid #1e90ff;
+                                        border-radius: 10px;
+                                        padding: 8px 12px;
+                                        text-decoration: none;
+                                        color: black;
+                                        font-weight: bold;
+                                        max-width: 250px;
+                                        gap: 10px;
+                                    ">
+                                        <img src="${iconPath}" style="width: 30px; height: 30px;">
+                                        <span style="
+                                            white-space: nowrap;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                        ">${fileName}</span>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            // Text message
+                            content = msg.message;
+                        }
 
                         const msgHtml = `
                             <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
-                                ${msg.message}
+                                ${content}
                             </div>
                         `;
                         $('#chatMessages').append(msgHtml);
-                        //scrollToBottom();
                     }
+
+
+
 
                     function openChat(receiverId, receiverType, receiverName, receiverProfile) {
                         $('#receiver_id').val(receiverId);
@@ -1278,25 +1442,6 @@
             </script>
 
 
-            <style>
-                .stats-section {
-                background-color: #0047AB; /* Blue background */
-                color: white;
-                padding: 60px 0;
-                text-align: center;
-                }
-
-                .stats-number {
-                color: orange;
-                font-size: 2rem;
-                font-weight: bold;
-                }
-
-                .stats-description {
-                font-size: 0.95rem;
-                margin-top: 5px;
-                }
-            </style>
 
 
             <!-- <script>
@@ -1357,5 +1502,35 @@
                 </div>
             </section>
         </div>
+
+
+
+
+
+
+<style>
+    .stats-section {
+    background-color: #0047AB; /* Blue background */
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+    }
+
+    .stats-number {
+    color: orange;
+    font-size: 2rem;
+    font-weight: bold;
+    }
+
+    .stats-description {
+    font-size: 0.95rem;
+    margin-top: 5px;
+    }
+</style>
+
+
+
+
+
 
 @include('site.componants.footer')
