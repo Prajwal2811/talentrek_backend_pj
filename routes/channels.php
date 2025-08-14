@@ -27,7 +27,9 @@ Broadcast::channel('chat.trainer.{id}', function ($trainer, $id) {
     return auth()->guard('trainer')->check() && $trainer->id == $id;
 });
 
-
+Broadcast::channel('chat.mentor.{id}', function ($mentor, $id) {
+    return auth()->guard('mentor')->check() && $mentor->id == $id;
+});
 // Broadcast::channel('chat.{id}', function ($user, $id) {
 //     return (int) $user->id === (int) $id;
 // }, ['guards' => ['jobseeker', 'trainer', 'coach']]);

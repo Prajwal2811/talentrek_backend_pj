@@ -1,6 +1,39 @@
+<?php
+    $mentorId = auth()->guard('mentor')->id();
+
+    $jobseekersList = DB::table('jobseeker_saved_booking_session as p')
+        ->join('jobseekers as j', 'p.jobseeker_id', '=', 'j.id')
+        ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'j.id')
+                ->where('ai.user_type', 'jobseeker')
+                ->where('ai.doc_type', 'profile_picture');
+        })
+        ->where('p.user_id', $mentorId)
+        ->where('p.user_type', 'mentor')
+        ->where('p.status', 'confirmed')
+        ->where('p.admin_status', 'approved')
+        ->select(
+            'j.id as jobseeker_id',
+            'j.name as jobseeker_name',
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+        ->get();
+
+
+    // echo "<pre>";
+    // print_r( $jobseekersList);exit;
+
+    $mentorImage = App\Models\AdditionalInfo::where('doc_type', 'mentor_profile_picture')
+        ->where('user_id', auth()->user()->id)
+        ->first();
+
+    
+?>
+
+
+
 @include('site.componants.header')
-
-
 <body>
 
     <div class="loading-area">
@@ -22,215 +55,536 @@
             <div class="flex-1 flex flex-col">
                 @include('site.mentor.componants.navbar')
 
-            <main class="p-6 " x-data="chatApp()">
-                <h2 class="text-2xl font-semibold mb-6">Message</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[70vh]">
-                    <!-- Contacts Sidebar -->
-                    <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1">
-                    <template x-for="(contact, index) in contacts" :key="index">
-                        <div 
-                        class="border-b p-4 flex items-center gap-3 hover:bg-gray-50 cursor-pointer"
-                        :class="activeContact?.name === contact.name ? 'bg-gray-100' : ''"
-                        @click="selectContact(contact)"
-                        >
-                        <img :src="contact.avatar" class="w-10 h-10 rounded-full object-cover" alt="User">
-                        <div class="flex-1">
-                            <h4 class="font-semibold text-sm" x-text="contact.name"></h4>
-                            <p class="text-xs text-gray-500 truncate" x-text="contact.lastMessage"></p>
-                        </div>
-                        <div class="text-xs text-gray-400" x-text="contact.time"></div>
-                        </div>
-                    </template>
-                    </div>
+                <main class="p-6 " x-data="chatApp()">
+                    <h2 class="text-2xl font-semibold mb-6">Message</h2>
+                    <div x-data="mentorChat()" x-init="initEcho()" class="grid grid-cols-3 gap-4 h-[calc(100vh-100px)] p-4">
+        
+                        <!-- ✅ Contacts Sidebar -->
+                        <!-- <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1"> -->
+                        <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1 h-[calc(100vh-150px)]">
 
-                    <!-- Right Panel (Chat or Framework Message) -->
-                    <div class="bg-white rounded-lg shadow col-span-2 flex flex-col h-full">
-                    <!-- IF contact is selected, show chat window -->
-                    <template x-if="activeContact">
-                        <div class="flex flex-col h-full">
-                        <!-- Header -->
-                        <div class="border-b p-4 flex items-center gap-3">
-                            <img :src="activeContact.avatar" class="w-10 h-10 rounded-full object-cover" alt="User">
-                            <div>
-                            <h4 class="font-semibold text-sm" x-text="activeContact.name"></h4>
-                            <p class="text-xs text-gray-500" x-text="activeContact.status"></p>
-                            </div>
+                            @foreach ($jobseekersList as $jobseeker)
+                                @php $avatar = $jobseeker->profile_picture ?? 'https://via.placeholder.com/100'; @endphp
+
+                                <div 
+                                    class="border-b p-4 flex items-center gap-3 hover:bg-gray-50 cursor-pointer"
+                                    @click="openChat({ 
+                                        id: {{ $jobseeker->jobseeker_id }}, 
+                                        name: '{{ addslashes($jobseeker->jobseeker_name) }}', 
+                                        type: 'jobseeker',
+                                        avatar: '{{ $avatar }}', 
+                                        status: 'Online' 
+                                    })">
+
+                                    <img src="{{ $avatar }}" class="w-10 h-10 rounded-full object-cover" alt="User">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-sm">{{ $jobseeker->jobseeker_name }}</h4>
+                                        <p class="text-xs text-gray-500 truncate">Click to start chat...</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">{{ now()->format('h:i A') }}</div>
+                                </div>
+                            @endforeach
                         </div>
 
-                        <!-- Messages -->
-                    <!-- Messages -->
-<div class="flex-1 p-4 space-y-3 overflow-y-auto h-[calc(100vh-280px)]" x-ref="chatContainer">
+                        <!-- ✅ Chat Panel -->
+                        <div class="bg-white rounded-lg shadow overflow-y-auto col-span-2 scroll-hidden flex flex-col h-full h-[calc(100vh-150px)]">
+                            
+                            <!-- ✅ If contact selected -->
+                            <template x-if="activeContact">
+                                <div class="flex flex-col h-full">
+                                    <!-- Header -->
+                                    <div class="border-b p-4 flex items-center gap-3 bg-gray-50">
+                                        <img :src="activeContact.avatar" class="w-10 h-10 rounded-full object-cover" alt="User">
+                                        <div>
+                                            <h4 class="font-semibold text-sm" x-text="activeContact.name"></h4>
+                                            <p class="text-xs text-gray-500" x-text="activeContact.status"></p>
+                                        </div>
+                                        <div class="ml-auto text-xs text-gray-400" x-text="activeContact.time"></div>
+                                    </div>
 
-                            <template x-for="(message, i) in activeContact.messages" :key="i">
-                                <div :class="message.sender === 'me' ? 'flex justify-end' : ''">
-                                <div class="max-w-sm bg-gray-100 text-sm p-2 rounded-md" x-text="message.text"></div>
+                                    <!-- Messages -->
+                                    <!-- Messages -->
+                                    <div class="flex-1 p-4 space-y-3 overflow-y-auto bg-white h-[calc(100vh-280px)] scroll-hidden"
+                                        x-ref="chatContainer"
+                                        x-init="$watch('activeContact?.messages', () => { scrollToBottom(); })">
+
+                                        <template x-for="(message, i) in activeContact?.messages || []" :key="i">
+                                            <div class="flex items-end gap-2" :class="message.sender === 'me' ? 'justify-end' : 'justify-start'">
+
+                                                <!-- Left avatar -->
+                                                <img x-show="message.sender !== 'me'" :src="activeContact.avatar"
+                                                    class="w-8 h-8 rounded-full object-cover" alt="User">
+
+                                                <!-- Message -->
+                                                <div :class="message.sender === 'me'
+                                                            ? 'bg-blue-600 text-white rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
+                                                            : 'bg-gray-200 text-gray-800 rounded-br-lg rounded-tr-lg rounded-tl-2xl'"
+                                                    class="p-2 text-sm max-w-[70%] break-words shadow-md"
+                                                    x-html="message.html">
+                                                </div>
+
+                                                <!-- Right avatar -->
+                                                <img x-show="message.sender === 'me'" :src="mentorImage"
+                                                    class="w-8 h-8 rounded-full object-cover" alt="Mentor">
+                                            </div>
+                                        </template>
+                                    </div>
+
+
+                                    <!-- Input -->
+                                    <div class="p-4 border-t flex items-center gap-3 bg-gray-50">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Write your message here ....." 
+                                            class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            x-model="newMessage"
+                                            @keyup.enter="sendMessage"
+                                        />
+
+                                        <label class="cursor-pointer bg-gray-200 p-2 rounded-full hover:bg-gray-300">
+                                            <i class="fas fa-paperclip text-gray-600"></i>
+                                            <input type="file" class="hidden" @change="handleFileUpload" />
+                                        </label>
+
+                                        <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition" @click="sendMessage">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </template>
-                        </div>
-                        <!-- Message Input -->
-                        <div class="p-4 border-t flex items-center gap-3">
-    <!-- Message Input -->
-    <input 
-        type="text" 
-        placeholder="Write your message here ....." 
-        class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none"
-        x-model="newMessage"
-        @keyup.enter="sendMessage"
-    />
 
-    <!-- File Input Button -->
-    <label class="cursor-pointer bg-gray-200 p-2 rounded-full hover:bg-gray-300">
-        <i class="fas fa-paperclip"></i>
-        <input 
-            type="file" 
-            class="hidden"
-            @change="handleFileUpload"
-        />
-    </label>
 
-    <!-- Send Button -->
-    <button class="bg-blue-600 text-white p-2 rounded-full" @click="sendMessage">
-        <i class="fas fa-paper-plane"></i>
-    </button>
-</div>
+                            <!-- ✅ Welcome Message (if no contact selected) -->
+                            <template x-if="!activeContact">
+                                <div class="flex flex-col items-center justify-center flex-1 text-center text-gray-500 px-6">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png" class="w-24 h-24 mb-6 opacity-50" />
+                                    <h3 class="text-lg font-semibold mb-2">Welcome to the Mentor Chat Panel</h3>
+                                    <p class="text-sm text-gray-400">Select a contact from the left panel to view and send messages.</p>
+                                </div>
+                            </template>
 
                         </div>
-                    </template>
 
-                    <!-- ELSE show framework message -->
-                    <!-- Default Chat Framework -->
-                    <template x-if="!activeContact">
-                        <div class="flex flex-col items-center justify-center flex-1 text-center text-gray-500 px-6">
-                            <img src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png" alt="Chat Illustration" class="w-24 h-24 mb-6 opacity-50" />
-                            <h3 class="text-lg font-semibold mb-2">Welcome to the Chat Panel</h3>
-                            <p class="text-sm text-gray-400">
-                            Select a contact from the left panel to view and send messages.
-                            </p>
+                        
+                        
+                        <!-- Laravel Echo & Alpine.js Script -->
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
+                        <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 
-                            <div class="mt-8 text-left w-full max-w-md">
-                            <h4 class="text-sm font-semibold mb-3 text-gray-600">Chat Features:</h4>
-                            <ul class="text-sm text-gray-500 list-disc pl-5 space-y-2">
-                                <li>Real-time messaging</li>
-                                <li>Smart contact selection</li>
-                                <li>Message history preview</li>
-                                <li>Responsive & clean layout</li>
-                            </ul>
-                            </div>
-                        </div>
-                    </template>
+                        <style>
+                            .file-message {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #1e90ff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    max-width: 250px;
+    gap: 10px;
+}
+
+.file-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+                        </style>
+
+                        <script>
+                            window.mentorChat = function () {
+                                return {
+                                    mentorImage: "{{ $mentorImage->document_path ?? 'https://via.placeholder.com/40' }}",
+                                    currentUserId: {{ auth()->guard('mentor')->id() }},
+                                    currentUserType: 'mentor',
+                                    newMessage: '',
+                                    activeContact: null,
+                                    selectedFile: null,
+
+                                    initEcho() {
+                                        window.Echo = new Echo({
+                                            broadcaster: 'pusher',
+                                            key: '18bff0f2c88aa583c6d7',
+                                            wsHost: window.location.hostname,
+                                            wsPort: 6001,
+                                            forceTLS: false,
+                                            enabledTransports: ['ws', 'wss'],
+                                            authEndpoint: '/broadcasting/auth',
+                                            auth: {
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                                }
+                                            }
+                                        });
+
+                                        Echo.channel('chat.mentor')
+                                            .listen('.message.sent', (e) => {
+                                                if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
+                                                    this.receiveMessage(e);
+                                                }
+                                            });
+                                    },
+
+                                    openChat(contact) {
+                                        this.activeContact = { ...contact, messages: [] };
+                                        this.getMessages(contact.id, contact.type);
+                                    },
+
+                                    getMessages(receiverId, receiverType) {
+                                        fetch(`/mentor/chat/messages?receiver_id=${receiverId}&receiver_type=${receiverType}`)
+                                            .then(res => res.json())
+                                            .then(messages => {
+                                                this.activeContact.messages = messages.map(msg => ({
+                                                    html: this.formatMessage(msg.message, msg.type),
+                                                    sender: msg.sender_id == this.currentUserId ? 'me' : 'them'
+                                                }));
+                                                this.scrollToBottom();
+                                            });
+                                    },
+
+                                    sendMessage() {
+                                        if (!this.newMessage.trim() && !this.selectedFile) return;
+
+                                        let formData = new FormData();
+                                        formData.append('receiver_id', this.activeContact.id);
+                                        formData.append('receiver_type', this.activeContact.type);
+                                        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                                        formData.append('message', this.newMessage.trim());
+
+                                        if (this.selectedFile) {
+                                            formData.append('file', this.selectedFile);
+                                        }
+
+                                        fetch('/mentor/chat/send', {
+                                            method: 'POST',
+                                            body: formData
+                                        })
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            this.activeContact.messages.push({
+                                                html: this.formatMessage(data.file_url || data.message, data.type),
+                                                sender: 'me'
+                                            });
+                                            this.newMessage = '';
+                                            this.selectedFile = null;
+                                            this.$refs.fileInput.value = '';
+                                            this.scrollToBottom();
+                                        });
+                                    },
+
+                                    receiveMessage(e) {
+                                        if (this.activeContact && parseInt(this.activeContact.id) === parseInt(e.sender_id)) {
+                                            this.activeContact.messages.push({
+                                                html: this.formatMessage(e.message, e.type),
+                                                sender: 'them'
+                                            });
+                                            this.scrollToBottom();
+                                        }
+                                    },
+
+                                    formatMessage(message, type) {
+                                        if (type == 2) {
+                                            let cleanPath = message.split('?')[0].split('#')[0];
+                                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                                            let ext = fileName.split('.').pop().toLowerCase();
+
+                                            // File type detection
+                                            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                                                // Image preview
+                                                return `
+                                                    <a href="${message}" target="_blank" style="display:inline-block;">
+                                                        <img src="${message}" alt="image" 
+                                                            style="max-width:150px; border-radius:6px; display:block;" />
+                                                    </a>
+                                                `;
+                                            } else {
+                                                // File icons
+                                                let iconPath = '';
+                                                if (ext === 'pdf') {
+                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                                                } else if (['doc', 'docx'].includes(ext)) {
+                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
+                                                } else {
+                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
+                                                }
+
+                                                // File preview with icon + filename
+                                                return `
+                                                    <a href="${message}" target="_blank" class="file-message" style="
+                                                        display: flex;
+                                                        align-items: center;
+                                                        background: #fff;
+                                                        border: 2px solid #1e90ff;
+                                                        border-radius: 10px;
+                                                        padding: 8px 12px;
+                                                        text-decoration: none;
+                                                        color: #000;
+                                                        font-weight: bold;
+                                                        max-width: 250px;
+                                                        gap: 10px;
+                                                    ">
+                                                        <img src="${iconPath}" alt="file" style="width: 30px; height: 30px;">
+                                                        <span style="
+                                                            white-space: nowrap;
+                                                            overflow: hidden;
+                                                            text-overflow: ellipsis;
+                                                            max-width: 180px;
+                                                        ">${fileName}</span>
+                                                    </a>
+                                                `;
+                                            }
+                                        }
+
+                                        // Text message
+                                        return `<span>${message}</span>`;
+                                    },
+
+
+
+
+
+
+
+                                    handleFileUpload(event) {
+                                        const file = event.target.files[0];
+                                        if (file) {
+                                            this.selectedFile = file;
+                                            this.newMessage = file.name;
+                                        }
+                                    },
+
+                                    scrollToBottom() {
+                                        this.$nextTick(() => {
+                                            const container = this.$refs.chatContainer;
+                                            if (container) {
+                                                container.scrollTo({
+                                                    top: container.scrollHeight,
+                                                    behavior: 'smooth'
+                                                });
+                                            }
+                                        });
+                                    }
+                                };
+                            }
+
+                        </script>
+
+
+
+                        <!-- Alpine Script -->
+                        <script>
+                            function chatApp() {
+                                return {
+                                    mentorImage: "{{ $mentorImage->document_path ?? 'https://via.placeholder.com/40' }}", // ✅ mentor ki profile
+                                    contacts: [],
+                                    activeContact: null,
+                                    newMessage: '',
+                                    selectedFile: null,
+
+                                    selectContact(contact) {
+                                        this.activeContact = contact;
+                                        this.newMessage = '';
+                                        this.selectedFile = null;
+                                    },
+
+                                    sendMessage() {
+                                        if (!this.activeContact) return;
+
+                                        if (this.newMessage.trim() !== '') {
+                                            this.activeContact.messages.push({ sender: 'me', text: this.newMessage });
+                                            this.newMessage = '';
+                                        }
+
+                                        if (this.selectedFile) {
+                                            this.activeContact.messages.push({
+                                                sender: 'me',
+                                                text: `[File Attached: ${this.selectedFile.name}]`
+                                            });
+                                            this.selectedFile = null;
+                                        }
+
+                                        this.$nextTick(() => {
+                                            const container = this.$refs.chatContainer;
+                                            if (container) {
+                                                container.scrollTo({
+                                                    top: container.scrollHeight,
+                                                    behavior: 'smooth'
+                                                });
+                                            }
+                                        });
+                                    },
+
+                                    handleFileUpload(event) {
+                                        const file = event.target.files[0];
+                                        if (file) {
+                                            this.selectedFile = file;
+                                        }
+                                    }
+                                };
+                            }
+                        </script>
+
+
+                        <!-- <script>
+                            window.mentorChat = function () {
+                                return {
+                                    currentUserId: {{ auth()->guard('trainer')->id() }},
+                                    currentUserType: 'trainer',
+                                    newMessage: '',
+                                    activeContact: null,
+                                    selectedFile: null,
+                                    messagePollingInterval: null,
+
+                                    initEcho() {
+                                        Pusher.logToConsole = true;
+                                        window.Echo = new Echo({
+                                            broadcaster: 'pusher',
+                                            key: '18bff0f2c88aa583c6d7',
+                                            wsHost: window.location.hostname,
+                                            wsPort: 6001,
+                                            wssPort: 6001,
+                                            forceTLS: false,
+                                            encrypted: false,
+                                            enabledTransports: ['ws', 'wss'],
+                                            authEndpoint: '/broadcasting/auth',
+                                            auth: {
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                                }
+                                            }
+                                        });
+
+                                        Echo.private(`chat.trainer.${this.currentUserId}`)
+                                            .listen('.message.sent', (e) => {
+                                                if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
+                                                    this.receiveMessage(e);
+                                                }
+                                            });
+                                    },
+
+                                    openChat(contact) {
+                                        this.activeContact = {
+                                            ...contact,
+                                            messages: [],
+                                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                        };
+                                        this.getMessages(contact.id, contact.type);
+
+                                        this.startMessagePolling();
+                                    },
+
+                                    startMessagePolling() {
+                                        this.messagePollingInterval = setInterval(() => {
+                                            if (this.activeContact) {
+                                                this.getMessages(this.activeContact.id, this.activeContact.type);
+                                            }
+                                        }, 5000); 
+                                    },
+
+                                    stopMessagePolling() {
+                                        if (this.messagePollingInterval) {
+                                            clearInterval(this.messagePollingInterval); 
+                                            this.messagePollingInterval = null;
+                                        }
+                                    },
+
+                                    getMessages(receiverId, receiverType) {
+                                        fetch(`/trainer/chat/messages?receiver_id=${receiverId}&receiver_type=${receiverType}`)
+                                            .then(res => res.json())
+                                            .then(messages => {
+                                                this.activeContact.messages = messages.map(msg => ({
+                                                    text: msg.message,
+                                                    sender: msg.sender_id == this.currentUserId ? 'me' : 'them'
+                                                }));
+                                                this.scrollToBottom();
+                                            })
+                                            .catch(err => {
+                                                console.error('Error fetching messages:', err);
+                                                alert('Could not load messages. Please try again.');
+                                            });
+                                    },
+
+                                    sendMessage() {
+                                        if (!this.newMessage.trim() || !this.activeContact) return;
+
+                                        const payload = {
+                                            receiver_id: this.activeContact.id,
+                                            receiver_type: this.activeContact.type,
+                                            message: this.newMessage,
+                                            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                        };
+
+                                        fetch('/trainer/chat/send', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(payload)
+                                        })
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            this.activeContact.messages.push({
+                                                text: this.newMessage,
+                                                sender: 'me'
+                                            });
+                                            this.newMessage = '';
+                                            this.scrollToBottom();
+                                        })
+                                        .catch(err => {
+                                            console.error('Send error:', err);
+                                            alert('Message sending failed.');
+                                        });
+                                    },
+
+                                    receiveMessage(e) {
+                                        if (this.activeContact && parseInt(this.activeContact.id) === parseInt(e.sender_id)) {
+                                            this.activeContact.messages.push({
+                                                text: e.message,
+                                                sender: 'them'
+                                            });
+                                            this.scrollToBottom();
+                                        }
+                                    },
+
+                                    scrollToBottom() {
+                                        this.$nextTick(() => {
+                                            const container = this.$refs.chatContainer;
+                                            if (container) {
+                                                container.scrollTop = container.scrollHeight;
+                                            }
+                                        });
+                                    },
+
+                                    handleFileUpload(event) {
+                                        const file = event.target.files[0];
+                                        if (file) {
+                                            this.selectedFile = file;
+                                            this.activeContact.messages.push({
+                                                text: `[File Attached: ${file.name}]`,
+                                                sender: 'me'
+                                            });
+                                        }
+                                    },
+
+                                    beforeDestroy() {
+                                        this.stopMessagePolling();
+                                    }
+                                };
+                            }
+
+                        </script>    -->
 
                     </div>
-                </div>
-            </main>
-    <!-- Alpine Script -->
-    <script>
-        function chatApp() {
-            return {
-                contacts: [
-                    {
-                        name: 'Julia Maccarthy',
-                        avatar: 'https://i.pravatar.cc/40?img=1',
-                        status: 'Online',
-                        lastMessage: 'Very easy to understand',
-                        time: '07:00 AM',
-                        messages: [
-                            { sender: 'me', text: 'Hello, How was your lecture' },
-                            { sender: 'them', text: 'Very easy to understand' },
-                            { sender: 'me', text: 'Great! Was it on React or JavaScript?' },
-                            { sender: 'them', text: 'It was on JavaScript ES6. We covered promises and async/await.' },
-                            { sender: 'me', text: 'That’s important. Did you understand everything?' },
-                            { sender: 'them', text: 'Yes, the examples were clear. The tutor explained step by step.' },
-                            { sender: 'me', text: 'Awesome! Can you share your notes later?' },
-                            { sender: 'them', text: 'Sure. I’ll send them after lunch.' }
-                        ]
-                    },
-                    {
-                        name: 'David Parker',
-                        avatar: 'https://i.pravatar.cc/40?img=2',
-                        status: 'Offline',
-                        lastMessage: 'See you later',
-                        time: '06:30 AM',
-                        messages: [
-                            { sender: 'me', text: 'Are you coming today?' },
-                            { sender: 'them', text: 'No, I am busy. See you later.' },
-                            { sender: 'me', text: 'Busy with work or something else?' },
-                            { sender: 'them', text: 'I have a client meeting in the morning and a project deadline in the evening.' },
-                            { sender: 'me', text: 'Got it. Let’s catch up tomorrow then?' },
-                            { sender: 'them', text: 'Sounds good. Let me know what time works for you.' },
-                            { sender: 'me', text: 'Anytime after 10 AM works.' },
-                            { sender: 'them', text: 'Perfect. See you then!' }
-                        ]
-                    },
-                    {
-                        name: 'Anna Lee',
-                        avatar: 'https://i.pravatar.cc/40?img=3',
-                        status: 'Online',
-                        lastMessage: 'Thanks!',
-                        time: '06:00 AM',
-                        messages: [
-                            { sender: 'them', text: 'Can you send the file?' },
-                            { sender: 'me', text: 'Sent. Check now.' },
-                            { sender: 'them', text: 'Thanks!' },
-                            { sender: 'me', text: 'No problem. Let me know if you face any issues.' },
-                            { sender: 'them', text: 'Sure. Are these the final slides for tomorrow’s demo?' },
-                            { sender: 'me', text: 'Yes, version 3.2. Includes updated charts and use cases.' },
-                            { sender: 'them', text: 'Looks good. I’ll go through them tonight.' },
-                            { sender: 'me', text: 'Perfect. Let me know if you need help with anything.' }
-                        ]
-                    }
-                ],
-                activeContact: null,
-                newMessage: '',
-                selectedFile: null,
+                </main>
 
-                selectContact(contact) {
-                    this.activeContact = contact;
-                    this.newMessage = '';
-                    this.selectedFile = null;
-                },
 
-                sendMessage() {
-                    if (!this.activeContact) return;
-
-                    // Send message
-                    if (this.newMessage.trim() !== '') {
-                        this.activeContact.messages.push({ sender: 'me', text: this.newMessage });
-                        this.newMessage = '';
-                    }
-
-                    // Send file (if selected)
-                    if (this.selectedFile) {
-                        this.activeContact.messages.push({
-                            sender: 'me',
-                            text: `[File Attached: ${this.selectedFile.name}]`
-                        });
-                        this.selectedFile = null;
-                    }
-
-                    // Auto-scroll
-                    this.$nextTick(() => {
-                        const container = this.$refs.chatContainer;
-                        if (container) {
-                            container.scrollTo({
-                                top: container.scrollHeight,
-                                behavior: 'smooth'
-                            });
-                        }
-                    });
-                },
-
-                handleFileUpload(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        this.selectedFile = file;
-                    }
-                }
-            };
-        }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-          
+                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
             </div>
         </div>

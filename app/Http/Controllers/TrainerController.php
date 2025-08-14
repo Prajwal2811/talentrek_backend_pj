@@ -745,11 +745,11 @@ class TrainerController extends Controller
                 
                 $startTime = $section['batch_date'] . ' ' . $section['start_time'];
                
-                //$zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+                $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
              
-                // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
-                //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
-                // }
+                if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                    throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+                }
    
                 DB::table('training_batches')->insert([
                     'trainer_id'           => $trainer->id,
@@ -762,8 +762,8 @@ class TrainerController extends Controller
                     'duration'             => $section['duration'],
                     'strength'             => $section['strength'],
                     'days'                 => json_encode(json_decode($section['days'], true)), // convert from stringified JSON
-                    // 'zoom_start_url'       => $zoomMeeting['start_url'],
-                    // 'zoom_join_url'        => $zoomMeeting['join_url'],
+                    'zoom_start_url'       => $zoomMeeting['start_url'],
+                    'zoom_join_url'        => $zoomMeeting['join_url'],
                     'created_at'           => now(),
                     'updated_at'           => now(),
                 ]);
@@ -1154,11 +1154,11 @@ class TrainerController extends Controller
             $zoom = new ZoomService();
             $startTime = $batch['batch_date'] . ' ' . $batch['start_time'];
 
-            $zoomMeeting = $zoom->createMeeting("Batch #{$batch['batch_no']}", $startTime);
+            // $zoomMeeting = $zoom->createMeeting("Batch #{$batch['batch_no']}", $startTime);
 
-            if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
-                throw new \Exception("Zoom creation failed for batch {$batch['batch_no']}");
-            }
+            // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+            //     throw new \Exception("Zoom creation failed for batch {$batch['batch_no']}");
+            // }
 
             TrainingBatch::create([
                 'trainer_id'           => auth()->id(),
@@ -1171,8 +1171,7 @@ class TrainerController extends Controller
                 'duration'             => $batch['duration'],
                 'strength'             => $batch['strength'],
                 'days'                 => json_encode(json_decode($batch['days'], true)),
-                'zoom_start_url'       => $zoomMeeting['start_url'],
-                'zoom_join_url'        => $zoomMeeting['join_url'],
+                //  om_join_url'        => $zoomMeeting['join_url'],
                 'created_at'           => now(),
                 'updated_at'           => now(),
             ]);

@@ -39,6 +39,33 @@
     }
 
 </style>
+<style>
+    .chat-image {
+        max-width: 200px;
+        border-radius: 8px;
+        display: block;
+    }
+    .chat-file-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+    .chat-file-link:hover {
+        text-decoration: underline;
+    }
+
+
+    .chat-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        display: block;
+    }
+    .chat-file-link {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+</style>
 <body>
 
     <div class="loading-area">
@@ -110,39 +137,33 @@
                                 </div>
 
                                 <!-- Messages -->
-                                <div class="flex-1 p-4 space-y-3 overflow-y-auto bg-white h-[calc(100vh-280px)] scroll-hidden" x-ref="chatContainer">
+                                 <!-- Messages -->
+                                <div class="flex-1 p-4 space-y-3 overflow-y-auto bg-white h-[calc(100vh-280px)] scroll-hidden"
+                                    x-ref="chatContainer"
+                                    x-init="$watch('activeContact?.messages', () => { scrollToBottom(); })">
 
-                                    <template x-for="(message, i) in activeContact.messages" :key="i">
-                                        <div class="flex items-end gap-2" 
-                                            :class="message.sender === 'me' ? 'justify-end' : 'justify-start'">
+                                    <template x-for="(message, i) in activeContact?.messages || []" :key="i">
+                                        <div class="flex items-end gap-2" :class="message.sender === 'me' ? 'justify-end' : 'justify-start'">
 
-                                            <!-- Left side avatar (jobseeker) -->
-                                            <img 
-                                                x-show="message.sender !== 'me'" 
-                                                :src="activeContact.avatar" 
-                                                class="w-8 h-8 rounded-full object-cover" 
-                                                alt="User">
+                                            <!-- Left avatar -->
+                                            <img x-show="message.sender !== 'me'" :src="activeContact.avatar"
+                                                class="w-8 h-8 rounded-full object-cover" alt="User">
 
-                                            <!-- Message Bubble -->
-                                            <div
-                                                :class="message.sender === 'me'
-                                                    ? 'bg-blue-600 text-white rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
-                                                    : 'bg-gray-200 text-gray-800 rounded-br-lg rounded-tr-lg rounded-tl-2xl'"
-                                                class="px-4 py-2 text-sm max-w-[70%] break-words shadow-md"
-                                                x-text="message.text">
+                                            <!-- Message -->
+                                            <div :class="message.sender === 'me'
+                                                        ? 'bg-blue-600 text-white rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
+                                                        : 'bg-gray-200 text-gray-800 rounded-br-lg rounded-tr-lg rounded-tl-2xl'"
+                                                class="p-2 text-sm max-w-[70%] break-words shadow-md"
+                                                x-html="message.html">
                                             </div>
 
-                                            <!-- Right side avatar (trainer) -->
-                                            <img 
-                                                x-show="message.sender === 'me'" 
-                                                :src="trainerImage" 
-                                                class="w-8 h-8 rounded-full object-cover" 
-                                                alt="Trainer">
+                                            <!-- Right avatar -->
+                                            <img x-show="message.sender === 'me'" :src="trainerImage"
+                                                class="w-8 h-8 rounded-full object-cover" alt="Trainer">
                                         </div>
                                     </template>
-
-
                                 </div>
+
 
                                 <!-- Input -->
                                 <div class="p-4 border-t flex items-center gap-3 bg-gray-50">
@@ -178,15 +199,18 @@
 
                     </div>
 
-
+                    
                     
                     <!-- Laravel Echo & Alpine.js Script -->
                     <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
                     <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 
+                    
+
                     <script>
                         window.trainerChat = function () {
                             return {
+                                trainerImage: "{{ $trainerImage->document_path ?? 'https://via.placeholder.com/40' }}",
                                 currentUserId: {{ auth()->guard('trainer')->id() }},
                                 currentUserType: 'trainer',
                                 newMessage: '',
@@ -194,15 +218,12 @@
                                 selectedFile: null,
 
                                 initEcho() {
-                                    Pusher.logToConsole = true;
                                     window.Echo = new Echo({
                                         broadcaster: 'pusher',
                                         key: '18bff0f2c88aa583c6d7',
                                         wsHost: window.location.hostname,
                                         wsPort: 6001,
-                                        wssPort: 6001,
                                         forceTLS: false,
-                                        encrypted: false,
                                         enabledTransports: ['ws', 'wss'],
                                         authEndpoint: '/broadcasting/auth',
                                         auth: {
@@ -212,35 +233,16 @@
                                         }
                                     });
 
-                                    // Echo.private(`chat.trainer.${this.currentUserId}`)
-                                    // Echo.channel('chat.trainer')
-                                    //     .listen('.message.sent', (e) => {
-                                    //         if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
-                                    //             this.receiveMessage(e);
-                                    //         }
-                                    //     });
                                     Echo.channel('chat.trainer')
-                                        .error((err) => {
-                                            console.error('Subscription error:', err);
-                                        })
                                         .listen('.message.sent', (e) => {
                                             if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
                                                 this.receiveMessage(e);
-                                                this.scrollToBottom();
                                             }
-                                        })
-                                        .listen('.message.deleted', (e) => {
-                                            $(`#message-${e.messageId}`).remove();
                                         });
-
                                 },
 
                                 openChat(contact) {
-                                    this.activeContact = {
-                                        ...contact,
-                                        messages: [],
-                                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                    };
+                                    this.activeContact = { ...contact, messages: [] };
                                     this.getMessages(contact.id, contact.type);
                                 },
 
@@ -249,57 +251,68 @@
                                         .then(res => res.json())
                                         .then(messages => {
                                             this.activeContact.messages = messages.map(msg => ({
-                                                text: msg.message,
+                                                html: this.formatMessage(msg.message, msg.type),
                                                 sender: msg.sender_id == this.currentUserId ? 'me' : 'them'
                                             }));
                                             this.scrollToBottom();
-                                        })
-                                        .catch(err => {
-                                            console.error('Error fetching messages:', err);
-                                            alert('Could not load messages. Please try again.');
                                         });
                                 },
 
                                 sendMessage() {
-                                    if (!this.newMessage.trim() || !this.activeContact) return;
+                                    if (!this.newMessage.trim() && !this.selectedFile) return;
 
-                                    const payload = {
-                                        receiver_id: this.activeContact.id,
-                                        receiver_type: this.activeContact.type,
-                                        message: this.newMessage,
-                                        _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                    };
+                                    let formData = new FormData();
+                                    formData.append('receiver_id', this.activeContact.id);
+                                    formData.append('receiver_type', this.activeContact.type);
+                                    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                                    formData.append('message', this.newMessage.trim());
+
+                                    if (this.selectedFile) {
+                                        formData.append('file', this.selectedFile);
+                                    }
 
                                     fetch('/trainer/chat/send', {
                                         method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify(payload)
+                                        body: formData
                                     })
                                     .then(res => res.json())
                                     .then(data => {
                                         this.activeContact.messages.push({
-                                            text: this.newMessage,
+                                            html: this.formatMessage(data.file_url || data.message, data.type),
                                             sender: 'me'
                                         });
                                         this.newMessage = '';
+                                        this.selectedFile = null;
+                                        this.$refs.fileInput.value = '';
                                         this.scrollToBottom();
-                                    })
-                                    .catch(err => {
-                                        console.error('Send error:', err);
-                                        alert('Message sending failed.');
                                     });
                                 },
 
                                 receiveMessage(e) {
-                                    if (
-                                        this.activeContact &&
-                                        parseInt(this.activeContact.id) === parseInt(e.sender_id)
-                                    ) {
+                                    if (this.activeContact && parseInt(this.activeContact.id) === parseInt(e.sender_id)) {
                                         this.activeContact.messages.push({
-                                            text: e.message,
+                                            html: this.formatMessage(e.message, e.type),
                                             sender: 'them'
                                         });
                                         this.scrollToBottom();
+                                    }
+                                },
+
+                                formatMessage(message, type) {
+                                    if (type == 2) {
+                                        if (/\.(jpg|jpeg|png|gif)$/i.test(message)) {
+                                            return `<img src="${message}" style="max-width:225px;border-radius:6px;" />`;
+                                        }
+                                        return `<a href="${message}" target="_blank">📎 Download File</a>`;
+                                    }
+                                    return `<span>${message}</span>`;
+                                },
+
+                                handleFileUpload(event) {
+                                    const file = event.target.files[0];
+                                    if (file) {
+                                        this.selectedFile = file;
+                                        this.newMessage = file.name;
                                     }
                                 },
 
@@ -307,24 +320,19 @@
                                     this.$nextTick(() => {
                                         const container = this.$refs.chatContainer;
                                         if (container) {
-                                            container.scrollTop = container.scrollHeight;
+                                            container.scrollTo({
+                                                top: container.scrollHeight,
+                                                behavior: 'smooth'
+                                            });
                                         }
                                     });
-                                },
-
-                                handleFileUpload(event) {
-                                    const file = event.target.files[0];
-                                    if (file) {
-                                        this.selectedFile = file;
-                                        this.activeContact.messages.push({
-                                            text: `[File Attached: ${file.name}]`,
-                                            sender: 'me'
-                                        });
-                                    }
                                 }
                             };
                         }
+
                     </script>
+
+
 
                     <!-- Alpine Script -->
                     <script>
@@ -531,7 +539,7 @@
             </main>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
           
 
             </div>

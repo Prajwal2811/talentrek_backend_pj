@@ -103,33 +103,37 @@
                     <!-- Batches -->
                     <div x-data="batchManager()" class="p-4 border rounded space-y-6">
 
-                        <!-- Input Fields -->
+                       <!-- Input Fields -->
                         <div>
                             <h2 class="text-xl font-semibold mb-4">Batch Details</h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block font-medium mb-1">Batch No</label>
-                                    <input type="text" x-model="batchNo" class="border p-2 rounded w-full" placeholder="Batch No">
+                                    <input type="text" x-model="batchNo" @input="clearError('batchNo')" class="border p-2 rounded w-full" placeholder="Batch No">
+                                    <span x-show="batchNoError" class="text-red-600 text-sm mt-1" x-text="batchNoError"></span>
                                 </div>
 
                                 <div>
                                     <label class="block font-medium mb-1">Batch Date</label>
-                                    <input type="date" x-model="batchDate" class="border p-2 rounded w-full">
+                                    <input type="date" x-model="batchDate" @input="clearError('batchDate')" class="border p-2 rounded w-full">
+                                    <span x-show="batchDateError" class="text-red-600 text-sm mt-1" x-text="batchDateError"></span>
                                 </div>
 
                                 <div>
                                     <label class="block font-medium mb-1">Start Timing</label>
-                                    <input type="time" x-model="startTime" class="border p-2 rounded w-full">
+                                    <input type="time" x-model="startTime" @input="clearError('startTime')" class="border p-2 rounded w-full">
+                                    <span x-show="startTimeError" class="text-red-600 text-sm mt-1" x-text="startTimeError"></span>
                                 </div>
 
                                 <div>
                                     <label class="block font-medium mb-1">End Timing</label>
-                                    <input type="time" x-model="endTime" class="border p-2 rounded w-full">
+                                    <input type="time" x-model="endTime" @input="clearError('endTime')" class="border p-2 rounded w-full">
+                                    <span x-show="endTimeError" class="text-red-600 text-sm mt-1" x-text="endTimeError"></span>
                                 </div>
 
                                 <div>
                                     <label class="block font-medium mb-1">Duration Type</label>
-                                    <select x-model="durationType" class="border p-2 rounded w-full">
+                                    <select x-model="durationType" @input="clearError('duration')" class="border p-2 rounded w-full">
                                         <option value="day">Days</option>
                                         <option value="month">Months</option>
                                         <option value="year">Years</option>
@@ -138,20 +142,21 @@
 
                                 <div>
                                     <label class="block font-medium mb-1">Duration</label>
-                                    <select x-model="duration" class="border p-2 rounded w-full">
+                                    <select x-model="duration" @input="clearError('duration')" class="border p-2 rounded w-full">
                                         <option value="">Select Duration</option>
                                         <template x-for="option in getOptions()" :key="option">
                                             <option :value="option" x-text="option"></option>
                                         </template>
                                     </select>
+                                    <span x-show="durationError" class="text-red-600 text-sm mt-1" x-text="durationError"></span>
                                 </div>
 
                                 <div>
                                     <label class="block font-medium mb-1">Candidate Strength</label>
-                                    <input type="number" min="1" x-model="strength" placeholder="Strength" class="border p-2 rounded w-full">
+                                    <input type="number" min="1" x-model="strength" @input="clearError('strength')" placeholder="Strength" class="border p-2 rounded w-full">
+                                    <span x-show="strengthError" class="text-red-600 text-sm mt-1" x-text="strengthError"></span>
                                 </div>
                             </div>
-
 
                             <!-- Days -->
                             <div class="mt-4">
@@ -175,6 +180,8 @@
                                 <button type="button" @click="updateBatch" x-show="isEditing" class="bg-green-600 text-white px-4 py-2 rounded">✓ Update Batch</button>
                             </div>
                         </div>
+
+
 
                         <!-- Hidden Inputs -->
                         <template x-for="(batch, index) in batches" :key="'hidden-' + index">
@@ -242,7 +249,7 @@
                 </form>
             </main>
 
-            <script>
+            <!-- <script>
                 function batchManager() {
                     return {
                         batchNo: '', batchDate: '', startTime: '', endTime: '',
@@ -371,8 +378,306 @@
                         }
                     };
                 }
-            </script>
+            </script> -->
 
+            <style>
+                .error-message {
+                    display: block;
+                    color: red;
+                    font-size: 14px;
+                    margin-top: 0.25rem;
+                    font-weight: bold; /* Optional, to make the message bold */
+                }
+
+                /* No need for border red styles anymore */
+                .hidden {
+                    display: none !important;
+                }
+            </style>
+
+            <script>
+                // Alpine.js Batch Manager
+                function batchManager() {
+                    return {
+                        batchNo: '', batchDate: '', startTime: '', endTime: '',
+                        durationType: 'day', duration: '', strength: '',
+                        selectedDays: [],
+                        weekDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                        batches: [], isEditing: false, editIndex: null, conflict: false,
+
+                        // Error messages
+                        batchNoError: '', batchDateError: '', startTimeError: '', endTimeError: '', durationError: '', strengthError: '',
+
+                        init() {
+                            // Initialize any required setup
+                        },
+
+                        getOptions() {
+                            if (this.durationType === 'day') return Array.from({ length: 60 }, (_, i) => `${i + 1} day`);
+                            if (this.durationType === 'month') return Array.from({ length: 12 }, (_, i) => `${i + 1} month`);
+                            if (this.durationType === 'year') return Array.from({ length: 5 }, (_, i) => `${i + 1} year`);
+                            return [];
+                        },
+
+                        // Clear error message when input changes
+                        clearError(field) {
+                            if (field === 'batchNo') this.batchNoError = '';
+                            if (field === 'batchDate') this.batchDateError = '';
+                            if (field === 'startTime') this.startTimeError = '';
+                            if (field === 'endTime') this.endTimeError = '';
+                            if (field === 'duration') this.durationError = '';
+                            if (field === 'strength') this.strengthError = '';
+                        },
+
+                        addBatch() {
+                            if (!this.validateForm()) return;
+                            if (this.hasConflict()) { 
+                                this.conflict = true; 
+                                return; 
+                            }
+
+                            this.conflict = false;
+                            this.batches.push(this.getBatchData());
+                            this.resetForm();
+                        },
+
+                        updateBatch() {
+                            if (!this.validateForm()) return;
+                            if (this.hasConflict()) { 
+                                this.conflict = true; 
+                                return; 
+                            }
+
+                            this.conflict = false;
+                            this.batches[this.editIndex] = this.getBatchData();
+                            this.resetForm();
+                        },
+
+                        editBatch(index) {
+                            const batch = this.batches[index];
+                            this.batchNo = batch.batchNo;
+                            this.batchDate = batch.batchDate;
+                            this.startTime = batch.startTime;
+                            this.endTime = batch.endTime;
+                            this.duration = batch.duration;
+                            this.strength = batch.strength;
+                            this.durationType = this.getDurationTypeFromString(batch.duration);
+                            this.selectedDays = [...batch.selectedDays];
+                            this.editIndex = index;
+                            this.isEditing = true;
+
+                            // Clear any validation errors when editing
+                            this.clearValidationErrors();
+                        },
+
+                        removeBatch(index) {
+                            this.batches.splice(index, 1);
+                            if (this.isEditing && this.editIndex === index) {
+                                this.resetForm();
+                            }
+                        },
+
+                        hasConflict() {
+                            if (!this.batchDate || !this.duration) return false;
+
+                            const [value, unit] = this.duration.split(' ');
+                            const durationValue = parseInt(value);
+                            const startDate = new Date(this.batchDate);
+                            const endDate = new Date(startDate);
+
+                            // Calculate end date based on duration
+                            if (unit.includes('day')) {
+                                endDate.setDate(startDate.getDate() + durationValue - 1);
+                            } 
+                            else if (unit.includes('month')) {
+                                endDate.setMonth(startDate.getMonth() + durationValue);
+                                endDate.setDate(startDate.getDate() - 1);
+                            } 
+                            else if (unit.includes('year')) {
+                                endDate.setFullYear(startDate.getFullYear() + durationValue);
+                                endDate.setDate(startDate.getDate() - 1);
+                            }
+
+                            // Check for overlapping batches
+                            return this.batches.some((batch, i) => {
+                                if (this.isEditing && i === this.editIndex) return false;
+
+                                const batchStart = new Date(batch.batchDate);
+                                const batchEnd = new Date(batch.endDate);
+
+                                const dateOverlap = startDate <= batchEnd && endDate >= batchStart;
+                                const timeOverlap = !(this.endTime <= batch.startTime || this.startTime >= batch.endTime);
+
+                                return dateOverlap && timeOverlap;
+                            });
+                        },
+
+                        validateForm() {
+                            let isValid = true;
+
+                            // Clear previous errors
+                            this.clearValidationErrors();
+
+                            // Validate Batch No
+                            if (!this.batchNo.trim()) {
+                                this.batchNoError = 'Batch No is required';
+                                isValid = false;
+                            }
+
+                            // Validate Batch Date
+                            if (!this.batchDate) {
+                                this.batchDateError = 'Batch Date is required';
+                                isValid = false;
+                            }
+
+                            // Validate Start Time
+                            if (!this.startTime) {
+                                this.startTimeError = 'Start Time is required';
+                                isValid = false;
+                            }
+
+                            // Validate End Time
+                            if (!this.endTime) {
+                                this.endTimeError = 'End Time is required';
+                                isValid = false;
+                            } else if (this.startTime && this.endTime <= this.startTime) {
+                                this.endTimeError = 'End Time must be after Start Time';
+                                isValid = false;
+                            }
+
+                            // Validate Duration
+                            if (!this.duration) {
+                                this.durationError = 'Duration is required';
+                                isValid = false;
+                            }
+
+                            // Validate Strength
+                            if (!this.strength || parseInt(this.strength) < 1) {
+                                this.strengthError = 'Valid Strength is required (minimum 1)';
+                                isValid = false;
+                            }
+
+                            return isValid;
+                        },
+
+                        clearValidationErrors() {
+                            this.batchNoError = '';
+                            this.batchDateError = '';
+                            this.startTimeError = '';
+                            this.endTimeError = '';
+                            this.durationError = '';
+                            this.strengthError = '';
+                        },
+
+                        getBatchData() {
+                            return {
+                                batchNo: this.batchNo,
+                                batchDate: this.batchDate,
+                                startTime: this.startTime,
+                                endTime: this.endTime,
+                                duration: this.duration,
+                                strength: this.strength,
+                                selectedDays: [...this.selectedDays],
+                                endDate: this.calculateEndDate()
+                            };
+                        },
+
+                        resetForm() {
+                            this.batchNo = '';
+                            this.batchDate = '';
+                            this.startTime = '';
+                            this.endTime = '';
+                            this.duration = '';
+                            this.strength = '';
+                            this.durationType = 'day';
+                            this.selectedDays = [];
+                            this.isEditing = false;
+                            this.editIndex = null;
+                            this.conflict = false;
+
+                            this.clearValidationErrors();
+                        },
+
+                        getDurationTypeFromString(str) {
+                            if (!str) return 'day';
+                            if (str.includes('day')) return 'day';
+                            if (str.includes('month')) return 'month';
+                            if (str.includes('year')) return 'year';
+                            return 'day';
+                        },
+
+                        calculateEndDate() {
+                            if (!this.batchDate || !this.duration || this.selectedDays.length === 0) return '';
+
+                            const [value, unit] = this.duration.split(' ');
+                            const durationValue = parseInt(value);
+                            const startDate = new Date(this.batchDate);
+                            const endDate = new Date(startDate);
+
+                            if (unit.includes('day')) {
+                                // Calculate based on selected days
+                                const dayMap = {
+                                    Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3,
+                                    Thursday: 4, Friday: 5, Saturday: 6
+                                };
+                                const selectedDayIndices = this.selectedDays.map(day => dayMap[day]);
+
+                                let daysCount = 0;
+                                while (daysCount < durationValue) {
+                                    if (selectedDayIndices.includes(endDate.getDay())) {
+                                        daysCount++;
+                                    }
+                                    if (daysCount < durationValue) {
+                                        endDate.setDate(endDate.getDate() + 1);
+                                    }
+                                }
+                            } 
+                            else if (unit.includes('month')) {
+                                endDate.setMonth(startDate.getMonth() + durationValue);
+                                endDate.setDate(startDate.getDate() - 1);
+                            } 
+                            else if (unit.includes('year')) {
+                                endDate.setFullYear(startDate.getFullYear() + durationValue);
+                                endDate.setDate(startDate.getDate() - 1);
+                            }
+
+                            return endDate.toISOString().split('T')[0];
+                        }
+                    };
+                }
+
+
+
+                // Initialize when document is ready
+                $(document).ready(function() {
+                    // Add error message containers
+                    $('.validation-container').each(function() {
+                        if (!$(this).find('.error-message').length) {
+                            $(this).append('<span class="error-message text-red-500 text-sm mt-1 hidden"></span>');
+                        }
+                    });
+
+                    // Add days container error message
+                    if (!$('.days-container').find('.error-message').length) {
+                        $('.days-container').append('<span class="error-message text-red-500 text-sm mt-1 hidden"></span>');
+                    }
+
+                    // Real-time validation clearing
+                    $('input, select').on('input change', function() {
+                        const fieldName = $(this).attr('x-model');
+                        if (fieldName) {
+                            const $error = $(this).closest('div').find('.error-message');
+                            $error.addClass('hidden').text('');
+                            $(this).removeClass('border-red-500');
+                        }
+                    });
+
+                    // Days selection validation clearing
+                    $('[x-model="selectedDays"]').on('change', function() {
+                        $('.days-container .error-message').addClass('hidden').text('');
+                    });
+                });
+            </script>
 
 
 
