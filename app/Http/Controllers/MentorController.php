@@ -530,7 +530,7 @@ class MentorController extends Controller
                     'cancellation_reason' => $session->cancellation_reason ?? 'Not specified',
                     'status' => $session->status,
                 ];
-            });
+        });
 
         return view('site.mentor.mentor-dashboard', [
             'upcoming' => $sessions['pending'] ?? [],
