@@ -12,7 +12,9 @@
         </div>
     </div>
 
-	
+	@if($mentorNeedsSubscription)
+    @include('site.mentor.subscription.index')
+@endif
     <div class="page-wraper">
         <div class="flex h-screen">
               @include('site.mentor.componants.sidebar')

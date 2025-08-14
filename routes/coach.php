@@ -26,7 +26,14 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::post('/coach/login', [CoachController::class, 'loginCoach'])->name('coach.login.submit');
 	});
 	
-	Route::group(['middleware' => 'coach.auth'], function(){
+	// Routes accessible after login but before subscription
+    Route::middleware(['coach.auth'])->group(function () {
+        Route::get('/subscription', [CoachController::class, 'showSubscriptionPlans'])->name('coach.subscription.index');
+        Route::post('/subscription-payment', [CoachController::class, 'processSubscriptionPayment'])->name('coach.subscription.payment');
+    });
+
+
+	Route::middleware(['coach.auth', 'check.coach.subscription'])->group(function () {
 		Route::get('/dashboard',[CoachController::class, 'dashboard'])->name('coach.dashboard');
 
 		Route::get('/dashboard',[CoachController::class, 'showCoachDashboard'])->name('coach.dashboard');

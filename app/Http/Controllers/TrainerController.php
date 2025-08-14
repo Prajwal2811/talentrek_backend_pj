@@ -27,6 +27,9 @@ use App\Models\Mentors;
 use App\Models\Assessors;
 use Carbon\Carbon;
 use App\Services\ZoomService;
+use App\Models\SubscriptionPlan;
+use App\Models\PurchasedSubscription;
+
 
 class TrainerController extends Controller
 {
@@ -1730,5 +1733,84 @@ class TrainerController extends Controller
      
     }
 
+
+    // public function showSubscriptionPlans()
+    // {
+    //     $user = Auth::guard('trainer')->user();
+
+    //     // If trainer has already purchased, redirect to dashboard
+    //     if ($user->isSubscribtionBuy === 'yes') {
+    //         return redirect()->route('trainer.dashboard');
+    //     }
+
+    //     // Fetch available subscription plans
+    //     $subscriptions = SubscriptionPlan::where('user_type', 'trainer')->get();
+
+    //     return view('trainer.subscription', compact('subscriptions'));
+    // }
+
+
+    public function processSubscriptionPayment(Request $request)
+    {
+        $request->validate([
+            'plan_id' => 'required|exists:subscription_plans,id',
+            'card_number' => 'required|string|min:12|max:19',
+            'expiry' => 'required|string',
+            'cvv' => 'required|string|min:3|max:4',
+        ]);
+
+        $plan = SubscriptionPlan::findOrFail($request->plan_id);
+
+        DB::beginTransaction();
+        try {
+            $trainer = auth('trainer')->user();
+
+            // Create the new subscription
+            $newSubscription = PurchasedSubscription::create([
+                'user_id' => $trainer->id,
+                'user_type' => 'trainer',
+                'subscription_plan_id' => $plan->id,
+                'start_date' => now(),
+                'end_date' => now()->addDays($plan->duration_days),
+                'amount_paid' => $plan->price,
+                'payment_status' => 'paid',
+            ]);
+
+            // Update trainer only if:
+            // - They have no active subscription, OR
+            // - The new subscription ends later than the current one
+            $shouldUpdate = false;
+
+            if (!$trainer->active_subscription_plan_id) {
+                $shouldUpdate = true;
+            } else {
+                $currentActive = PurchasedSubscription::find($trainer->active_subscription_plan_id);
+                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+                    $shouldUpdate = true;
+                }
+            }
+
+            if ($shouldUpdate) {
+                $trainer->isSubscribtionBuy = 'yes';
+                $trainer->active_subscription_plan_id = $plan->id;
+                $trainer->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Subscription purchased successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while purchasing the subscription.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }

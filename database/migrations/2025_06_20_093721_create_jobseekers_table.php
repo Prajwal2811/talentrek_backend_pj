@@ -42,6 +42,7 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->string('is_registered')->default('0');  
             $table->string('isSubscribtionBuy')->default('yes');
+            $table->string('active_subscription_plan_id')->nullable();
             $table->text('zoom_access_token')->nullable();
             $table->text('zoom_refresh_token')->nullable();
             $table->timestamp('zoom_token_expires_at')->nullable();

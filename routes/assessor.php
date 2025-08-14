@@ -29,7 +29,15 @@ Route::group(['prefix' => 'assessor'], function() {
 
 	});
 	
-	Route::group(['middleware' => 'assessor.auth'], function(){
+
+	// Routes accessible after login but before subscription
+    Route::middleware(['assessor.auth'])->group(function () {
+        Route::get('/subscription', [AssessorController::class, 'showSubscriptionPlans'])->name('assessor.subscription.index');
+        Route::post('/subscription-payment', [AssessorController::class, 'processSubscriptionPayment'])->name('assessor.subscription.payment');
+    });
+
+
+	Route::middleware(['assessor.auth', 'check.assessor.subscription'])->group(function () {
 		Route::get('/dashboard',[AssessorController::class, 'dashboard'])->name('assessor.dashboard');
 
 		Route::get('/dashboard',[AssessorController::class, 'showAssessorDashboard'])->name('assessor.dashboard');

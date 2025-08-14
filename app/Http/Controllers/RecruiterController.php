@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use Carbon\Carbon;
-
+use App\Models\SubscriptionPlan;
+use App\Models\PurchasedSubscription;
 class RecruiterController extends Controller
 {
      public function showSignInForm(){
@@ -871,7 +872,68 @@ class RecruiterController extends Controller
 
 
 
+public function processSubscriptionPayment(Request $request)
+    {
+        $request->validate([
+            'plan_id' => 'required|exists:subscription_plans,id',
+            'card_number' => 'required|string|min:12|max:19',
+            'expiry' => 'required|string',
+            'cvv' => 'required|string|min:3|max:4',
+        ]);
 
+        $plan = SubscriptionPlan::findOrFail($request->plan_id);
+
+        DB::beginTransaction();
+        try {
+            $recruiter = auth('recruiter')->user();
+
+            // Create the new subscription
+            $newSubscription = PurchasedSubscription::create([
+                'user_id' => $recruiter->id,
+                'user_type' => 'recruiter',
+                'subscription_plan_id' => $plan->id,
+                'start_date' => now(),
+                'end_date' => now()->addDays($plan->duration_days),
+                'amount_paid' => $plan->price,
+                'payment_status' => 'paid',
+            ]);
+
+            // Update trainer only if:
+            // - They have no active subscription, OR
+            // - The new subscription ends later than the current one
+            $shouldUpdate = false;
+
+            if (!$recruiter->active_subscription_plan_id) {
+                $shouldUpdate = true;
+            } else {
+                $currentActive = PurchasedSubscription::find($recruiter->active_subscription_plan_id);
+                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+                    $shouldUpdate = true;
+                }
+            }
+
+            if ($shouldUpdate) {
+                $recruiter->isSubscribtionBuy = 'yes';
+                $recruiter->active_subscription_plan_id = $plan->id;
+                $recruiter->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Subscription purchased successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while purchasing the subscription.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 }

@@ -585,20 +585,37 @@ class JobseekerController extends Controller
         DB::beginTransaction();
         try {
             $jobseeker = auth('jobseeker')->user();
-            // echo "done"; exit; 
-            PurchasedSubscription::create([
+
+            // Create the new subscription
+            $newSubscription = PurchasedSubscription::create([
                 'user_id' => $jobseeker->id,
                 'user_type' => 'jobseeker',
                 'subscription_plan_id' => $plan->id,
                 'start_date' => now(),
                 'end_date' => now()->addDays($plan->duration_days),
-                'price' => $plan->price,
-                'status' => 'active',
+                'amount_paid' => $plan->price,
                 'payment_status' => 'paid',
             ]);
-            // echo "done"; exit; 
-            // $jobseeker->isSubscribtionBuy = 'yes';
-            // $jobseeker->save();
+
+            // Update jobseeker only if:
+            // - They have no active subscription, OR
+            // - The new subscription ends later than the current one
+            $shouldUpdate = false;
+
+            if (!$jobseeker->active_subscription_plan_id) {
+                $shouldUpdate = true;
+            } else {
+                $currentActive = PurchasedSubscription::find($jobseeker->active_subscription_plan_id);
+                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+                    $shouldUpdate = true;
+                }
+            }
+
+            if ($shouldUpdate) {
+                $jobseeker->isSubscribtionBuy = 'yes';
+                $jobseeker->active_subscription_plan_id = $plan->id;
+                $jobseeker->save();
+            }
 
             DB::commit();
 
@@ -611,10 +628,13 @@ class JobseekerController extends Controller
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Something went wrong while purchasing the subscription.'
+                'message' => 'Something went wrong while purchasing the subscription.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
+
+
 
 
 
@@ -1313,9 +1333,17 @@ class JobseekerController extends Controller
 
         $totalDays = 0;
 
+
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -1357,11 +1385,18 @@ class JobseekerController extends Controller
 
         $totalDays = 0;
 
-        foreach ($experiences as $exp) {
-            $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
-            $totalDays += $start->diffInDays($end);
-        }
+foreach ($experiences as $exp) {
+    $start = Carbon::parse($exp->starts_from);
+
+    if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+        $end = Carbon::parse($exp->end_to);
+    } else {
+        // Assume current date if still working
+        $end = Carbon::now();
+    }
+
+    $totalDays += $start->diffInDays($end);
+}
 
         $interval = CarbonInterval::days($totalDays)->cascade();
         $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
@@ -1400,7 +1435,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -1443,7 +1485,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -2675,7 +2724,14 @@ class JobseekerController extends Controller
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 
@@ -2727,12 +2783,18 @@ class JobseekerController extends Controller
             ->where('user_id', $id)
             ->where('user_type', 'coach')
             ->get();
-
         $totalDays = 0;
 
         foreach ($experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+                $end = Carbon::parse($exp->end_to);
+            } else {
+                // Assume current date if still working
+                $end = Carbon::now();
+            }
+
             $totalDays += $start->diffInDays($end);
         }
 

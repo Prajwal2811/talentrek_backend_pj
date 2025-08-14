@@ -11,7 +11,10 @@
         </div>
     </div>
 
-	
+	 @if($recruiterNeedsSubscription)
+        @include('site.recruiter.subscription.index')
+    @endif
+
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             <!-- Sidebar -->

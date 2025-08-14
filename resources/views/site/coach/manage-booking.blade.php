@@ -8,6 +8,9 @@
             </div>
         </div>
     </div>
+    @if($coachNeedsSubscription)
+        @include('site.coach.subscription.index')
+    @endif
     <div class="page-wraper">
         <div class="flex h-screen">
             @include('site.coach.componants.sidebar')

@@ -12,6 +12,9 @@
         </div>
     </div>
 
+@if($coachNeedsSubscription)
+    @include('site.coach.subscription.index')
+@endif
 
     <!-- Add this script at the end of your body or inside a script tag -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>

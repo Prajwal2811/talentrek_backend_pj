@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('admin_status')->nullable(); 
             $table->string('rejection_reason')->nullable(); 
             $table->string('isSubscribtionBuy')->default('no');
+            $table->string('active_subscription_plan_id')->nullable();         // e.g., Mumbai, Delhi
+
             $table->timestamps();
         });
     }

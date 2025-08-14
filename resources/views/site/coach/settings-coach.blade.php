@@ -22,7 +22,9 @@ $coach = Auth()->user();
         </div>
     </div>
 
-	
+	@if($coachNeedsSubscription)
+        @include('site.coach.subscription.index')
+    @endif
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
@@ -95,123 +97,220 @@ $coach = Auth()->user();
                         <section class="flex-1 p-6">
                             <div class="bg-white rounded-lg shadow p-6">
                                 <!-- Profile Section -->
-                                <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
+                               <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
                                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">Subscription</h3>
 
-                                    <!-- Include Alpine.js -->
-                                    <script src="//unpkg.com/alpinejs" defer></script>
+                                    @php
+                                        $userId = auth()->user('coach')->id;
+                                        // Fetch available plans for this user type
+                                        $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'coach')->get();
 
-                                    <!-- Main Section -->
-                                    <div x-data="{ showPlans: false }">
-                                        <!-- Subscription Card -->
-                                        <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                                            <div>
-                                                <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
-                                                <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features of Talentrek</p>
-                                            </div>
-                                            <button @click="showPlans = true"
-                                                class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
-                                                View Plans
-                                            </button>
+                                        // Fetch purchased subscriptions for current user
+                                        $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*', 'purchased_subscriptions.*')
+                                            ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                            ->where('subscription_plans.user_type', 'coach')
+                                            ->where('purchased_subscriptions.user_id', $userId)
+                                            ->orderBy('purchased_subscriptions.created_at', 'desc')
+                                            ->get();
+
+                                        $showPlansModal = false;
+
+                                        if ($purchasedSubscriptions->count() > 0) {
+                                            $latest = $purchasedSubscriptions->first();
+                                            $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
+
+                                            if ($daysLeft > 0 && $daysLeft <= 30) {
+                                                $showPlansModal = true;
+                                            }
+                                        }
+                                    @endphp
+
+                                    <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        @if($showPlansModal)
+                                            document.getElementById('plansModal').classList.remove('hidden');
+                                        @endif
+                                    });
+                                    </script>
+
+                                    <!-- Subscription Card -->
+                                    <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                                        <div>
+                                            <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
+                                            <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features</p>
                                         </div>
+                                        <button onclick="document.getElementById('plansModal').classList.remove('hidden')"
+                                            class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                                            View Plans
+                                        </button>
+                                    </div>
 
-                                        <!-- Modal Overlay -->
-                                        <div
-                                            x-show="showPlans"
-                                            x-transition
-                                            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-                                            style="display: none;"
-                                        >
-                                            <!-- Modal Content -->
-                                            <div @click.outside="showPlans = false"
-                                                class="bg-white rounded-lg p-6 w-full max-w-5xl mx-auto shadow-lg">
-                                                <div class="flex justify-between items-center mb-6">
-                                                    <h2 class="text-xl font-semibold">Choose Your Plan</h2>
-                                                    <button @click="showPlans = false" class="text-gray-600 hover:text-black text-2xl">&times;</button>
-                                                </div>
+                                    <!-- Plans Modal -->
+                                    <div id="plansModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50 hidden">
+                                        <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative">
+                                            <button onclick="document.getElementById('plansModal').classList.add('hidden')"
+                                                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
 
-                                                <!-- Plans Grid -->
-                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <!-- Plan Example -->
-                                                    <template x-for="(plan, index) in ['Silver', 'Gold', 'Platinum']" :key="index">
-                                                        <div class="border rounded-xl shadow p-5 text-center">
-                                                            <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-b from-gray-300 to-gray-200 mb-3"></div>
-                                                            <h3 class="font-semibold" x-text="plan"></h3>
-                                                            <p class="text-2xl font-bold my-2">$100</p>
-                                                            <hr class="my-3">
-                                                            <p class="text-sm text-gray-600 mb-3">Access premium features with this plan.</p>
-                                                            <ul class="text-left text-sm space-y-1 mb-4 text-gray-700">
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature A</li>
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature B</li>
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature C</li>
-                                                            </ul>
-                                                            <button class="bg-orange-500 text-white w-full py-2 rounded hover:bg-orange-600 transition">
-                                                                Buy subscription
-                                                            </button>
+                                            <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+
+                                            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4">
+                                                @foreach($subscriptions as $plan)
+                                                    <div class="border rounded-lg p-4 shadow-sm text-center">
+                                                        <div class="flex flex-col items-center">
+                                                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                            <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                                            <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                                                         </div>
-                                                    </template>
-                                                </div>
+                                                        <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                                                        @php
+                                                            $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
+                                                        @endphp
+                                                        <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                                            @foreach($features as $feature)
+                                                                <li>{{ trim($feature) }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                        <button type="button"
+                                                            class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                                            data-plan-id="{{ $plan->id }}">
+                                                            Buy subscription
+                                                        </button>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- Payment Modal -->
+                                    <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
+                                        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                                            <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                                            <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+
+                                            <form id="paymentForm">
+                                                @csrf
+                                                <input type="hidden" name="plan_id" id="selectedPlanId">
+
+                                                <div class="mb-4">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                                    <input type="text" name="card_number" value="4242424242424242"
+                                                        class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                </div>
+
+                                                <div class="mb-4 flex space-x-2">
+                                                    <div class="w-1/2">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                                        <input type="text" name="expiry" value="12/30"
+                                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                    </div>
+                                                    <div class="w-1/2">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                                        <input type="text" name="cvv" value="123"
+                                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                    </div>
+                                                </div>
+                                                <button type="submit"
+                                                    class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                                                    Pay Now
+                                                </button>
+                                            </form>
+                                            <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
+                                            <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
 
                                     <!-- Subscription History Table -->
                                     <h4 class="text-lg font-semibold mb-3">Subscription History</h4>
                                     <div class="overflow-x-auto">
-                                        <table class="min-w-full bg-white border border-gray-200 text-sm text-left">
-                                        <thead class="bg-gray-100 text-gray-700">
-                                            <tr>
-                                            <th class="px-4 py-2 border-b">Sr. No.</th>
-                                            <th class="px-4 py-2 border-b">Paid to</th>
-                                            <th class="px-4 py-2 border-b">Date</th>
-                                            <th class="px-4 py-2 border-b">Amount</th>
-                                            <th class="px-4 py-2 border-b">Payment status</th>
-                                            <th class="px-4 py-2 border-b">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="text-gray-700">
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">1.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <!-- Add more rows as needed -->
-                                        </tbody>
+                                        <table class="min-w-full border border-gray-200 text-sm">
+                                            <thead class="bg-gray-100 text-left">
+                                                <tr>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Sr. No.</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Subscription</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Duration</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Purchased on</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Expired on</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($purchasedSubscriptions as $index => $subscription)
+                                                    <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
+                                                        <td class="px-4 py-3">{{ $index + 1 }}.</td>
+                                                        <td class="px-4 py-3">{{ $subscription->title }}</td>
+                                                        <td class="px-4 py-3">{{ $subscription->duration_days }} {{ Str::plural('days', $subscription->duration_days) }}</td>
+                                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->start_date)->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->end_date)->format('d/m/Y') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
                                         </table>
                                     </div>
                                 </div>
+
+                               <!-- Include SweetAlert2 -->
+                                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                <script>
+                                    function openPaymentModal(planId) {
+                                        document.getElementById('selectedPlanId').value = planId;
+                                        document.getElementById('paymentModal').classList.remove('hidden');
+                                    }
+
+                                    function closePaymentModal() {
+                                        document.getElementById('paymentModal').classList.add('hidden');
+                                    }
+
+                                    document.addEventListener('DOMContentLoaded', () => {
+                                        document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                                            button.addEventListener('click', function () {
+                                                openPaymentModal(this.getAttribute('data-plan-id'));
+                                            });
+                                        });
+
+                                        document.addEventListener('keydown', function (e) {
+                                            if (e.key === 'Escape') closePaymentModal();
+                                        });
+
+                                        document.getElementById('paymentForm').addEventListener('submit', function (e) {
+                                            e.preventDefault();
+                                            let formData = new FormData(this);
+
+                                            fetch("{{ route('coach.subscription.payment') }}", {
+                                                method: "POST",
+                                                headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                                                body: formData
+                                            })
+                                            .then(async response => {
+                                                let data = await response.json();
+                                                if (!response.ok) throw data;
+                                                return data;
+                                            })
+                                            .then(data => {
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Payment Successful',
+                                                    text: data.message,
+                                                    confirmButtonColor: '#3085d6',
+                                                    timer: 2000,
+                                                    timerProgressBar: true
+                                                }).then(() => {
+                                                    closePaymentModal();
+                                                    location.reload();
+                                                });
+                                            })
+                                            .catch(error => {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Payment Failed',
+                                                    text: error.message || "Something went wrong!",
+                                                    confirmButtonColor: '#d33'
+                                                });
+                                            });
+                                        });
+                                    });
+                                </script>
 
 
                                    <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">

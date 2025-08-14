@@ -10,7 +10,10 @@
         </div>
     </div>
 
-	
+	@if($assessorNeedsSubscription)
+        @include('site.assessor.subscription.index')
+    @endif
+
  <!-- Wrapper -->
 <!-- Add this script at the end of your body or inside a script tag -->
 <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>

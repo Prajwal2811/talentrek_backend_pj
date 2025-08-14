@@ -17,22 +17,22 @@ return new class extends Migration
             $table->id();
 
             // Foreign keys
-            $table->foreignId('jobseeker_id')->constrained('jobseekers')->onDelete('cascade');
-            $table->foreignId('trainer_id')->constrained('trainers')->onDelete('set null')->nullable(false);
-            $table->foreignId('material_id')->constrained('training_materials')->onDelete('set null')->nullable(false);
+            $table->string('jobseeker_id')->nullable();
+            $table->string('trainer_id')->nullable();
+            $table->string('material_id')->nullable();
             
             // Nullable enum types
             $table->enum('training_type', ['online', 'classroom', 'recorded'])->nullable();
             $table->enum('session_type', ['online', 'classroom'])->nullable();
 
             // Nullable batch
-            $table->foreignId('batch_id')->nullable()->constrained('training_batches')->onDelete('set null');
+            $table->string('batch_id')->nullable();
 
             // Purchase for type
             $table->enum('purchase_for', ['individual', 'team']);
 
             // Payment relation
-            $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
+            $table->string('payment_id')->nullable();
 
             // Status
             $table->string('batchStatus')->nullable();

@@ -8,6 +8,9 @@
             </div>
         </div>
     </div>
+    @if($assessorNeedsSubscription)
+        @include('site.assessor.subscription.index')
+    @endif
     <div class="page-wraper">
         <div class="flex h-screen">
             @include('site.assessor.componants.sidebar')

@@ -10,7 +10,9 @@
             </div>
         </div>
     </div>
-
+@if($mentorNeedsSubscription)
+    @include('site.mentor.subscription.index')
+@endif
 	
     <!-- Wrapper -->
 <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">

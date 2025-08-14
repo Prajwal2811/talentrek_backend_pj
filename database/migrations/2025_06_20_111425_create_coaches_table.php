@@ -39,7 +39,9 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->text('about_coach')->nullable();
             $table->string('is_registered')->default('0');  
-            $table->string('isSubscribtionBuy')->default('no');        // e.g., New York, Delhi
+            $table->string('isSubscribtionBuy')->default('no'); 
+            $table->string('active_subscription_plan_id')->nullable();         // e.g., Mumbai, Delhi
+                   // e.g., New York, Delhi
             $table->timestamps();
         });
     }

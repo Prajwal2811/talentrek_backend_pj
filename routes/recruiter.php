@@ -26,7 +26,14 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::post('/submit-reset-password', [RecruiterController::class, 'resetPassword'])->name('recruiter.reset-password.submit');
 	});
 	
-	Route::group(['middleware' => 'recruiter.auth'], function(){
+		// Routes accessible after login but before subscription
+    Route::middleware(['recruiter.auth'])->group(function () {
+        Route::get('/subscription', [RecruiterController::class, 'showSubscriptionPlans'])->name('recruiter.subscription.index');
+        Route::post('/subscription-payment', [RecruiterController::class, 'processSubscriptionPayment'])->name('recruiter.subscription.payment');
+    });
+
+
+	Route::middleware(['recruiter.auth', 'check.recruiter.subscription'])->group(function () {
 		Route::get('/dashboard',[RecruiterController::class, 'showRecruiterDashboard'])->name('recruiter.dashboard');
 		Route::post('/logout',[RecruiterController::class, 'logoutrecruiter'])->name('recruiter.logout');
 		Route::get('/jobseeker',[RecruiterController::class, 'showJobseekerListForm'])->name('recruiter.jobseeker');
