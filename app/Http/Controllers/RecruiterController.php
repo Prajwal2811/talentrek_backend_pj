@@ -113,7 +113,7 @@ class RecruiterController extends Controller
                'industry_type' => 'required|string|max:255',
                'registration_number' => 'required|string|max:255',
                'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-               'registration_documents' => 'required|array',
+               // 'registration_documents' => 'required|array',
                'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
                ], [
                'company_id.required' => 'Company ID is required.',

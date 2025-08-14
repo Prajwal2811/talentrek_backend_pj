@@ -99,13 +99,29 @@
                                     <div class="flex space-x-2">
                                         <button
                                             class="border border-red-500 text-red-500 px-4 py-1.5 rounded hover:bg-red-50 text-sm"
-                                            @click="openCancelModal(session)">Cancel</button>
-                                        <button
-                                            class="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 text-sm"
-                                            @click="joinSession(session)">Join</button>
+                                            @click="openCancelModal(session)">
+                                            Cancel
+                                        </button>
+
+                                        <template x-if="session.mode && session.mode.trim().toLowerCase() === 'offline'">
+                                            <button
+                                                class="bg-gray-600 text-white px-4 py-1.5 rounded hover:bg-gray-700 text-sm"
+                                                @click="visitSession(session)">
+                                                Visit
+                                            </button>
+                                        </template>
+
+                                        <template x-if="session.mode && session.mode.trim().toLowerCase() === 'online'">
+                                            <button
+                                                class="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 text-sm"
+                                                @click="joinSession(session)">
+                                                Join
+                                            </button>
+                                        </template>
                                     </div>
                                 </template>
 
+                                  
                                 <template x-if="currentTab === 'completed'">
                                     <button
                                         class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm"
