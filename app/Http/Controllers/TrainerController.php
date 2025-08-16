@@ -1108,14 +1108,14 @@ class TrainerController extends Controller
         'training_offer_price'   => 'required|numeric',
         // 'thumbnail'              => 'nullable|image|max:2048',
 
-        'content_sections.*.batch_no'   => 'required|string|max:255',
-        'content_sections.*.batch_date' => 'required|date',
-        'content_sections.*.end_date'   => 'required|date', // ✅ Required now
-        'content_sections.*.start_time' => 'required|string',
-        'content_sections.*.end_time'   => 'required|string',
-        'content_sections.*.duration'   => 'required|string',
-        'content_sections.*.strength'   => 'required|integer|min:1',
-        'content_sections.*.days'       => 'required',
+        // 'content_sections.*.batch_no'   => 'required|string|max:255',
+        // 'content_sections.*.batch_date' => 'required|date',
+        // 'content_sections.*.end_date'   => 'required|date', // ✅ Required now
+        // 'content_sections.*.start_time' => 'required|string',
+        // 'content_sections.*.end_time'   => 'required|string',
+        // 'content_sections.*.duration'   => 'required|string',
+        // 'content_sections.*.strength'   => 'required|integer|min:1',
+        // 'content_sections.*.days'       => 'required',
     ], [
         'content_sections.*.strength.required' => 'Please enter batch strength.',
         'content_sections.*.strength.integer'  => 'Batch strength must be a number.',

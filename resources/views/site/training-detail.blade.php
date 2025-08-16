@@ -130,7 +130,9 @@
                 <div class="flex gap-6 border-b mb-6 text-sm font-medium">
                     <!-- <button class="tab-link pb-2 text-blue-600 border-b-2 border-blue-600 active-tab" data-tab="overview">Course overview</button>
                     <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="benefits">Benefits of training</button> -->
-                    <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="content">Training content</button>
+                    <?php if($material->training_type !== 'online'){ ?>
+                        <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="content">Training content</button>
+                    <?php } ?>
                     <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="reviews">Reviews</button>
                 </div>
                 <!-- < ?PHP dd($material);exit;?>               -->
@@ -248,7 +250,10 @@
                 </div> -->
                  
                 <script src="//unpkg.com/alpinejs" defer></script>
-                <h2 class="text-lg font-bold mb-4">E learning</h2>
+             
+                <?php if($material->training_type !== 'online'){ ?>
+                    <h2 class="text-lg font-bold mb-4">E learning</h2>
+                <?php } ?>
                 <div x-data="{ showPopup: false }">
                     <!-- Grid of Videos -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
