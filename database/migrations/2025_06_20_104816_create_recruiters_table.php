@@ -20,13 +20,14 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('national_id')->unique()->nullable();
             $table->string('status')->default('active');
+            $table->string('role')->nullable();
+            $table->string('recruiter_of')->nullable();
             $table->string('company_id')->nullable();
             $table->string('inactive_reason')->nullable(); 
             $table->string('admin_status')->nullable(); 
             $table->string('rejection_reason')->nullable(); 
             $table->string('isSubscribtionBuy')->default('no');
             $table->string('active_subscription_plan_id')->nullable();         // e.g., Mumbai, Delhi
-
             $table->timestamps();
         });
     }
