@@ -31,9 +31,7 @@
                             </div>
                             <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
                             <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
-                                @foreach($plan->features as $feature)
-                                    <li>{{ trim($feature) }}</li>
-                                @endforeach
+                               
                             </ul>
 
                             <button type="button"

@@ -246,7 +246,7 @@
                                     <thead class="bg-gray-100 text-sm font-medium text-gray-700">
                                         <tr>
                                             <th class="py-2 px-4 border-b">Sr. No.</th>
-                                            <th class="py-2 px-4 border-b">Batch Title</th>
+                                            <th class="py-2 px-4 border-b">Batch No</th>
                                             <th class="py-2 px-4 border-b">Date</th>
                                             <th class="py-2 px-4 border-b">Time</th>
                                             <th class="py-2 px-4 border-b">Duration</th>

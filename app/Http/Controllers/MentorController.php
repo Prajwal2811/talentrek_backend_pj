@@ -539,6 +539,8 @@ class MentorController extends Controller
             'cancelled' => $cancelled,
             'todayCount' => $todayCount,
             'upcomingCount' => $upcomingCount,
+            'sessions' => $sessions,
+            
         ]);
     }
 
