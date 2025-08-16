@@ -38,6 +38,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Subscription;
+use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 
@@ -644,8 +645,13 @@ class AdminController extends Controller
         $experiences = $jobseeker->experiences()->orderBy('id', 'desc')->get();
         $skills = $jobseeker->skills()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','jobseeker')->get();
-        // print_r($additioninfos); die;    
-        return view('admin.jobseeker.view', compact('jobseeker', 'experiences', 'educations', 'skills','additioninfos'));
+        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                                    ->where('purchased_subscriptions.user_id', $id)
+                                                    ->where('purchased_subscriptions.user_type', 'jobseeker')
+                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                    ->get();
+        // print_r($subscriptionPlans); die;    
+        return view('admin.jobseeker.view', compact('jobseeker', 'experiences', 'educations', 'skills','additioninfos','subscriptionPlans'));
     }
 
 
@@ -1258,7 +1264,12 @@ class AdminController extends Controller
         $experiences = $trainer->experiences()->orderBy('id', 'desc')->get();
         $experience = $trainer->experience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','trainer')->get();
-        return view('admin.trainers.view', compact('trainer', 'educations', 'experiences', 'experience','additioninfos'));
+        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                                    ->where('purchased_subscriptions.user_id', $id)
+                                                    ->where('purchased_subscriptions.user_type', 'trainer')
+                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                    ->get();
+        return view('admin.trainers.view', compact('trainer', 'educations', 'experiences', 'experience','additioninfos','subscriptionPlans'));
     }
 
 
@@ -1860,7 +1871,12 @@ class AdminController extends Controller
         $experiences = $mentor->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $mentor->trainingexperience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','mentor')->get();
-        return view('admin.mentors.view', compact('mentor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                                    ->where('purchased_subscriptions.user_id', $id)
+                                                    ->where('purchased_subscriptions.user_type', 'mentor')
+                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                    ->get();
+        return view('admin.mentors.view', compact('mentor', 'educations', 'experiences', 'trainingexperience','additioninfos','subscriptionPlans'));
     }
 
 
@@ -2042,7 +2058,12 @@ class AdminController extends Controller
         $experiences = $coach->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $coach->trainingexperience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','coach')->get();
-        return view('admin.coach.view', compact('coach', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                                    ->where('purchased_subscriptions.user_id', $id)
+                                                    ->where('purchased_subscriptions.user_type', 'coach')
+                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                    ->get();
+        return view('admin.coach.view', compact('coach', 'educations', 'experiences', 'trainingexperience','additioninfos','subscriptionPlans'));
     }
 
 
@@ -2221,7 +2242,12 @@ class AdminController extends Controller
         $experiences = $assessor->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $assessor->trainingexperience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','assessor')->get();
-        return view('admin.assessors.view', compact('assessor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
+        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                                    ->where('purchased_subscriptions.user_id', $id)
+                                                    ->where('purchased_subscriptions.user_type', 'trainer')
+                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                    ->get();
+        return view('admin.assessors.view', compact('assessor', 'educations', 'experiences', 'trainingexperience','additioninfos','subscriptionPlans'));
     }
 
 

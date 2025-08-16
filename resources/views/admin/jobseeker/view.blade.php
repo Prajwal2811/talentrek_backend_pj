@@ -777,7 +777,6 @@
 
 
 
-
                             <div class="card">
                                 <div class="header">
                                     <h2>Jobseeker Subscriptions</h2>
@@ -787,86 +786,59 @@
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Subscription Card 1 -->
-                                                <div class="card p-3 mb-4 shadow-sm">
-                                                    <div class="d-flex flex-column">
-                                                        <h5 class="fw-bold mb-1">Basic Plan</h5>
-                                                        <p class="text-muted mb-2">Access limited job listings and
-                                                            profile views</p>
-                                                        <div class="mb-2">
-                                                            <strong>Duration:</strong> 1 Month<br>
-                                                            <strong>Purchased On:</strong> 01 June 2025<br>
-                                                            <strong>Expired On:</strong> 30 June 2025
-                                                        </div>
-                                                        <span
-                                                            class="badge bg-secondary text-white small align-self-start px-2 py-1">₹499/month</span>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Hidden More Subscriptions -->
-                                                <div id="moreSubscriptions" class="d-none">
-
-                                                    <!-- Subscription Card 2 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-1">Premium Plan</h5>
-                                                            <p class="text-muted mb-2">Full job access, coaching
-                                                                sessions & resume support</p>
-                                                            <div class="mb-2">
-                                                                <strong>Duration:</strong> 3 Months<br>
-                                                                <strong>Purchased On:</strong> 15 May 2025<br>
-                                                                <strong>Expired On:</strong> 14 August 2025
+                                                @if(count($subscriptionPlans) > 0)
+                                                    @foreach ($subscriptionPlans as $index => $plan)
+                                                        <div class="card p-3 mb-4 shadow-sm {{ $index > 0 ? 'd-none extra-subscription' : '' }}">
+                                                            <div class="d-flex flex-column">
+                                                                <h5 class="fw-bold mb-1">{{ $plan->title }}</h5>
+                                                                <p class="text-muted mb-2">{{ $plan->description }}</p>
+                                                                <div class="mb-2">
+                                                                    <strong>Duration:</strong> {{ $plan->duration_days }} Days<br>
+                                                                    <strong>Purchased On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->start_date)->format('d M Y') }}<br>
+                                                                    <strong>Expired On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->end_date)->format('d M Y') }}
+                                                                </div>
+                                                                <span class="badge bg-secondary text-white small align-self-start px-2 py-1">
+                                                                    ₹{{ $plan->price }}
+                                                                </span>
                                                             </div>
-                                                            <span
-                                                                class="badge bg-success text-white small align-self-start px-2 py-1">₹1,499/month</span>
                                                         </div>
-                                                    </div>
+                                                    @endforeach
 
-                                                    <!-- Subscription Card 3 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-1">Enterprise Plan</h5>
-                                                            <p class="text-muted mb-2">Advanced hiring tools and support
-                                                                for startups</p>
-                                                            <div class="mb-2">
-                                                                <strong>Duration:</strong> 1 Year<br>
-                                                                <strong>Purchased On:</strong> 01 January 2025<br>
-                                                                <strong>Expired On:</strong> 31 December 2025
-                                                            </div>
-                                                            <span
-                                                                class="badge bg-warning text-dark small align-self-start px-2 py-1">₹4,999/month</span>
+                                                    <!-- View More Button (only show if more than 1 subscription exists) -->
+                                                    @if(count($subscriptionPlans) > 1)
+                                                        <div class="text-center mt-4">
+                                                            <button class="btn btn-primary" id="toggleButtonSub"
+                                                                onclick="toggleSubscriptions()">View More</button>
                                                         </div>
+                                                    @endif
+                                                @else
+                                                    <div class="alert alert-info text-center p-3">
+                                                        No subscriptions found.
                                                     </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButtonSub"
-                                                        onclick="toggleSubscriptions()">View More</button>
-                                                </div>
+                                                    
+                                                @endif
 
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- JS Toggle -->
-                                <script>
-                                    function toggleSubscriptions() {
-                                        const moreSubscriptions = document.getElementById("moreSubscriptions");
-                                        const button = document.getElementById("toggleButtonSub");
-
-                                        if (moreSubscriptions.classList.contains("d-none")) {
-                                            moreSubscriptions.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            moreSubscriptions.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
                             </div>
+
+                            <!-- Toggle Script -->
+                            <script>
+                                function toggleSubscriptions() {
+                                    const extraSubs = document.querySelectorAll('.extra-subscription');
+                                    const button = document.getElementById("toggleButtonSub");
+
+                                    let hidden = [...extraSubs].some(el => el.classList.contains("d-none"));
+
+                                    extraSubs.forEach(el => el.classList.toggle("d-none", !hidden));
+                                    button.textContent = hidden ? "View Less" : "View More";
+                                }
+                            </script>
+
 
 
 

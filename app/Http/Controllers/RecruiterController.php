@@ -872,7 +872,7 @@ class RecruiterController extends Controller
 
 
 
-public function processSubscriptionPayment(Request $request)
+     public function processSubscriptionPayment(Request $request)
     {
         $request->validate([
             'plan_id' => 'required|exists:subscription_plans,id',
@@ -914,7 +914,8 @@ public function processSubscriptionPayment(Request $request)
 
             if ($shouldUpdate) {
                 $recruiter->isSubscribtionBuy = 'yes';
-                $recruiter->active_subscription_plan_id = $plan->id;
+               //  $recruiter->active_subscription_plan_id = $plan->id;
+                $recruiter->active_subscription_plan_slug = $plan->slug;
                 $recruiter->save();
             }
 
@@ -934,6 +935,86 @@ public function processSubscriptionPayment(Request $request)
             ], 500);
         }
     }
+
+
+     public function addOthers(Request $request)
+     {
+          $validated = $request->validate([
+               'main_recruiter_id' => 'required|exists:recruiters,id',
+               'company_id'        => 'required|exists:recruiters_company,id',
+               'recruiters'        => 'required|array',
+               'recruiters.*.name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
+               'recruiters.*.email' => 'required|email|unique:recruiters,email',
+               'recruiters.*.national_id' => [
+                    'required',
+                    'min:10',
+                    function ($attribute, $value, $fail) {
+                         if (Recruiters::where('national_id', $value)->exists()) {
+                              $fail('The national ID has already been taken in another account.');
+                         }
+                    },
+               ],
+               ], [
+               // Global / General messages
+               'main_recruiter_id.required' => 'Main recruiter is required.',
+               'main_recruiter_id.exists'   => 'The selected main recruiter does not exist.',
+               'company_id.required'        => 'Company is required.',
+               'company_id.exists'          => 'The selected company does not exist.',
+               'recruiters.required'        => 'Please add at least one recruiter.',
+
+               // Name messages
+               'recruiters.*.name.required' => 'Recruiter name is required.',
+               'recruiters.*.name.regex'    => 'Recruiter name can only contain letters and spaces.',
+
+               // Email messages
+               'recruiters.*.email.required' => 'Recruiter email is required.',
+               'recruiters.*.email.email'    => 'Enter a valid email address.',
+               'recruiters.*.email.unique'   => 'This email is already in use.',
+
+               // National ID messages
+               'recruiters.*.national_id.required' => 'National ID is required.',
+               'recruiters.*.national_id.min'      => 'National ID must be at least 10 characters.',
+               ]);
+
+     DB::beginTransaction();
+
+     try {
+          $company = RecruiterCompany::find($validated['company_id']);
+          $addedCount = 0;
+
+          foreach ($validated['recruiters'] as $rec) {
+               $username = strtolower(str_replace(' ', '', $rec['name']));
+               $password = $username . '@talentrek';
+
+               Recruiters::create([
+                    'name'        => $rec['name'],
+                    'email'       => $rec['email'],
+                    'company_id'  => $validated['company_id'],
+                    'national_id' => $rec['national_id'],
+                    'password'    => Hash::make($password),
+                    'pass'        => $password,
+               ]);
+
+               $addedCount++;
+          }
+
+          $company->increment('recruiter_count', $addedCount);
+
+          // Update additional fields
+          $company->update([
+               'active_subscription_plan_id' => $request->subscription_id,
+          ]);
+          DB::commit();
+          return redirect()->back()->with('success', 'Recruiters added successfully.');
+     } catch (\Exception $e) {
+          DB::rollBack();
+          return response()->json([
+               'status'  => 'error',
+               'message' => $e->getMessage()
+          ], 500);
+     }
+     }
+
 
 
 }

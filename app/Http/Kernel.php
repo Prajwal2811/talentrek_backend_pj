@@ -95,6 +95,7 @@ class Kernel extends HttpKernel
         'check.jobseeker.subscription' => \App\Http\Middleware\CheckJobseekerSubscription::class,
         'check.expat.subscription' => \App\Http\Middleware\CheckExpatSubscription::class,
         'check.recruiter.subscription' => \App\Http\Middleware\CheckRecruiterSubscription::class,
+        'check.recruiter.subscription_for_other' => \App\Http\Middleware\CheckOtherRecruiterSubscription::class,
 
 
         

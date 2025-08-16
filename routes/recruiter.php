@@ -33,7 +33,7 @@ Route::group(['prefix' => 'recruiter'], function() {
     });
 
 
-	Route::middleware(['recruiter.auth', 'check.recruiter.subscription'])->group(function () {
+	Route::middleware(['recruiter.auth', 'check.recruiter.subscription','check.recruiter.subscription_for_other'])->group(function () {
 		Route::get('/dashboard',[RecruiterController::class, 'showRecruiterDashboard'])->name('recruiter.dashboard');
 		Route::post('/logout',[RecruiterController::class, 'logoutrecruiter'])->name('recruiter.logout');
 		Route::get('/jobseeker',[RecruiterController::class, 'showJobseekerListForm'])->name('recruiter.jobseeker');
@@ -54,6 +54,8 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::get('/filter-jobseekers', [RecruiterController::class, 'filterJobseekers'])->name('recruiter.filter.jobseekers');
 		
 		Route::get('/admin-support', [RecruiterController::class, 'showAdminSupportForm'])->name('recruiter.admin.support');
+
+		Route::post('/recruiter/add-others', [RecruiterController::class, 'addOthers'])->name('recruiter.add.others');
 
 	});
 });

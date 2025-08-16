@@ -15,6 +15,10 @@
         @include('site.recruiter.subscription.index')
     @endif
 
+    @if($otherRecruiterSubscription)
+        @include('site.recruiter.subscription.add-other-recruiters')
+    @endif
+
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             <!-- Sidebar -->

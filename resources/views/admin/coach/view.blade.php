@@ -515,6 +515,69 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="card">
+                                <div class="header">
+                                    <h2>Coach Subscriptions</h2>
+                                </div>
+                                <div class="body">
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+
+                                                @if(count($subscriptionPlans) > 0)
+                                                    @foreach ($subscriptionPlans as $index => $plan)
+                                                        <div class="card p-3 mb-4 shadow-sm {{ $index > 0 ? 'd-none extra-subscription' : '' }}">
+                                                            <div class="d-flex flex-column">
+                                                                <h5 class="fw-bold mb-1">{{ $plan->title }}</h5>
+                                                                <p class="text-muted mb-2">{{ $plan->description }}</p>
+                                                                <div class="mb-2">
+                                                                    <strong>Duration:</strong> {{ $plan->duration_days }} Days<br>
+                                                                    <strong>Purchased On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->start_date)->format('d M Y') }}<br>
+                                                                    <strong>Expired On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->end_date)->format('d M Y') }}
+                                                                </div>
+                                                                <span class="badge bg-secondary text-white small align-self-start px-2 py-1">
+                                                                    ₹{{ $plan->price }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+
+                                                    <!-- View More Button (only show if more than 1 subscription exists) -->
+                                                    @if(count($subscriptionPlans) > 1)
+                                                        <div class="text-center mt-4">
+                                                            <button class="btn btn-primary" id="toggleButtonSub"
+                                                                onclick="toggleSubscriptions()">View More</button>
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    <div class="alert alert-info text-center p-3">
+                                                        No subscriptions found.
+                                                    </div>
+                                                @endif
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Toggle Script -->
+                            <script>
+                                function toggleSubscriptions() {
+                                    const extraSubs = document.querySelectorAll('.extra-subscription');
+                                    const button = document.getElementById("toggleButtonSub");
+
+                                    let hidden = [...extraSubs].some(el => el.classList.contains("d-none"));
+
+                                    extraSubs.forEach(el => el.classList.toggle("d-none", !hidden));
+                                    button.textContent = hidden ? "View Less" : "View More";
+                                }
+                            </script>
+
+
                         </div>
                     </div>
                 </div>
