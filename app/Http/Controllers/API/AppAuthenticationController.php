@@ -20,6 +20,84 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 class AppAuthenticationController extends Controller
 {
+    public function googleLoginSignUpForMCAJT(Request $request)
+    {
+       $validator = Validator::make($request->all(), [
+            'email'    => 'required|email',
+            'name'    => 'required',
+            'google_id' => 'required',
+            'type'     => 'required|in:jobseeker,mentor,assessor,coach,trainer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ Only the first error message
+            ], 422);
+        }
+        $map = [
+            'mentor'    => 'mentors',
+            'assessor'  => 'assessors',
+            'jobseeker' => 'jobseeker',
+            'trainer' => 'trainer',
+        ];
+        $type = $map[$request->type] ?? 'coach';
+        $modelMap = [
+            'jobseeker' => \App\Models\Jobseekers::class,
+            'mentors' => \App\Models\Mentors::class,
+            'assessors' => \App\Models\Assessors::class,
+            'coach' => \App\Models\Coach::class,
+            'trainer' => \App\Models\Trainers::class,
+        ];
+        $model = $modelMap[$type];
+        $user = $model::where('email', $request->email)->first();
+        if (!$user || $user->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact admimnistrator.'
+            ], 401);
+        }
+//print_r($user);
+        if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+            ], 401);
+        }
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid credentials.'
+            ], 401);
+        }
+
+         if (!$user) {
+                $user = $model::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'status' => 'active',
+                'google_id' => $request->google_id,
+                'password' => bcrypt(Str::random(16)), // Random placeholder password
+                'email_verified_at' => now(),
+            ]);
+        }
+        
+        $iSRegistered = $user->status !== null;
+        return response()->json([
+            'status' => true,
+            'iSRegistered' => $iSRegistered,
+            'message' => ucfirst($request->type) . ' login successful',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_registered' => $user->is_registered,
+                'type' => $request->type,
+            ]
+        ]);
+    }
+    
     public function signIn(Request $request)
     {
        $validator = Validator::make($request->all(), [
