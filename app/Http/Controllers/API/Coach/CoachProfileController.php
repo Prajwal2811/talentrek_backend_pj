@@ -182,7 +182,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -276,7 +276,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -405,7 +405,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -503,7 +503,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -626,7 +626,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();

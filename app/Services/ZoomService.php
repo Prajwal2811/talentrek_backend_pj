@@ -39,6 +39,7 @@ class ZoomService
             Log::error('Zoom Access Token retrieval failed.');
             return null;
         }
+
         $userEmail = config('services.zoom.user_email');
 
         $response = Http::withToken($accessToken)->post("https://api.zoom.us/v2/users/{$userEmail}/meetings", [

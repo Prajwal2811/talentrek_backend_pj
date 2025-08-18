@@ -26,135 +26,146 @@ $skills = $user->skills->first();
 
     @include('site.componants.navbar')	
 
-    @if($user->isSubscribtionBuy  === 'no')
-        <!-- Modal -->
+    @if($user->isSubscribtionBuy === 'no')
+        @php
+            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
+            // print_r($subscriptions); die;
+        @endphp
+        <!-- Subscription Modal -->
         <div id="subscriptionModal"
-            class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 {{ $user->isSubscribtionBuy === 'no' ? '' : 'hidden' }}">
-            
+            class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative">
                 <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Silver Plan -->
-                    <div class="border rounded-lg p-4 shadow-sm text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                            <h4 class="font-semibold">Silver</h4>
-                            <p class="font-bold text-lg mt-1">AED 49</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @foreach($subscriptions as $plan)
+                        <div class="border rounded-lg p-4 shadow-sm text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                            <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                @foreach(explode(',', $plan->features) as $feature)
+                                    <li>{{ trim($feature) }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button"
+                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                data-plan-id="{{ $plan->id }}">
+                                Buy subscription
+                            </button>
                         </div>
-                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
-                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                        </ul>
-                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
-                            Buy subscription
-                        </button>
-
-                    </div>
-
-                    <div class="border rounded-lg p-4 shadow-sm text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                            <h4 class="font-semibold">Silver</h4>
-                            <p class="font-bold text-lg mt-1">AED 49</p>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
-                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                        </ul>
-                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
-                            Buy subscription
-                        </button>
-
-                    </div><div class="border rounded-lg p-4 shadow-sm text-center">
-                        <div class="flex flex-col items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                            <h4 class="font-semibold">Silver</h4>
-                            <p class="font-bold text-lg mt-1">AED 49</p>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet...</p>
-                        <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                            <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                        </ul>
-                        <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn">
-                            Buy subscription
-                        </button>
-
-                    </div>
-
-                    
-
-                    <!-- Gold Plan -->
-                    <!-- ... other plans same as above ... -->
-
+                    @endforeach
                 </div>
             </div>
         </div>
+
         <!-- Payment Modal -->
-        <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex items-center justify-center">
-            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+            <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
+                <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                    <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
 
-                <form action="{{ route('jobseeker.subscription.payment') }}" method="POST">
-                    @csrf
+                    <form id="paymentForm">
+                        @csrf
+                        <input type="hidden" name="plan_id" id="selectedPlanId">
 
-                    <!-- Card Number -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                        <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="1234 5678 9012 3456">
-                    </div>
-
-                    <!-- Expiry & CVV -->
-                    <div class="mb-4 flex space-x-2">
-                        <div class="w-1/2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="MM/YY">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                            <input type="text" name="card_number" value="4242424242424242"
+                                class="w-full border border-gray-300 rounded-md px-4 py-2">
                         </div>
-                        <div class="w-1/2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-md px-4 py-2" placeholder="123">
-                        </div>
-                    </div>
 
-                    <!-- Submit -->
-                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                        Pay Now
+                        <div class="mb-4 flex space-x-2">
+                            <div class="w-1/2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                <input type="text" name="expiry" value="12/30"
+                                    class="w-full border border-gray-300 rounded-md px-4 py-2">
+                            </div>
+                            <div class="w-1/2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                <input type="text" name="cvv" value="123"
+                                    class="w-full border border-gray-300 rounded-md px-4 py-2">
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                            Pay Now
+                        </button>
+                    </form>
+                    <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
+                    <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                        ×
                     </button>
-                </form>
-
-                <!-- Close Button -->
-                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
-                    ×
-                </button>
+                </div>
             </div>
-        </div>
-
-
         <script>
-            function openPaymentModal() {
-                document.getElementById('paymentModal').classList.remove('hidden');
-            }
+        function openPaymentModal(planId) {
+            document.getElementById('selectedPlanId').value = planId;
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
 
-            function closePaymentModal() {
-                document.getElementById('paymentModal').classList.add('hidden');
-            }
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+        }
 
-            // Attach event listener to all Buy Subscription buttons
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('.buy-subscription-btn').forEach(button => {
-                    button.addEventListener('click', openPaymentModal);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Open modal on buy button click
+            document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    openPaymentModal(this.getAttribute('data-plan-id'));
                 });
             });
+
+            // Close modal on Escape
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closePaymentModal();
+            });
+
+            // Handle AJAX payment
+            document.getElementById('paymentForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                let formData = new FormData(this);
+                let messageBox = document.getElementById('paymentMessage');
+                messageBox.textContent = "";
+
+                fetch("{{ route('jobseeker.subscription.payment') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: formData
+                })
+                .then(async response => {
+                    let data = await response.json();
+                    if (!response.ok) throw data;
+                    return data;
+                })
+                .then(data => {
+                    messageBox.classList.remove('text-red-500');
+                    messageBox.classList.add('text-green-500');
+                    messageBox.textContent = data.message;
+
+                    setTimeout(() => {
+                        closePaymentModal();
+                        location.reload();
+                    }, 1500);
+                })
+                .catch(error => {
+                    messageBox.classList.remove('text-green-500');
+                    messageBox.classList.add('text-red-500');
+
+                    if (error.errors) {
+                        messageBox.textContent = Object.values(error.errors).flat().join(', ');
+                    } else {
+                        messageBox.textContent = error.message || "Something went wrong!";
+                    }
+                });
+            });
+        });
         </script>
-
-
     @else
         <div class="page-content">
             <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset//images/banner/service page banner.png') }}');">
@@ -466,6 +477,31 @@ $skills = $user->skills->first();
                                             <label class="block text-sm font-medium mb-1">City <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="city" placeholder="Enter city" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->city ?? '' }}"/>
                                             @error('city')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                         <!-- State -->
+                                        <div class="mt-3">
+                                            <label class="block font-medium mb-1">State</label>
+                                            <input type="text" name="state" placeholder="Enter State" value="{{ Auth()->user()->state ?? '' }}" class="w-full border rounded px-3 py-2" />
+                                            @error('state')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Country <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" placeholder="Enter country" name="country"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->country ?? '' }}"/>
+                                            @error('country')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="pin_code" placeholder="Enter pin_code" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->pin_code ?? '' }}"/>
+                                            @error('pin_code')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
@@ -1287,7 +1323,7 @@ $skills = $user->skills->first();
                                 <div class="lg:col-span-2 space-y-4">
                                     @forelse($cartItems as $item)
                                         @php $material = $item->material; @endphp
-                                        <div class="flex border rounded-lg p-4 gap-4">
+                                        <div class="cart-item flex border rounded-lg p-4 gap-4">
                                             <!-- Image and Remove -->
                                             <div class="flex flex-col items-start gap-2">
                                                 <img src="{{ $material->thumbnail_file_path }}" alt="Course" class="w-48 h-48 object-cover rounded" />
@@ -1391,56 +1427,57 @@ $skills = $user->skills->first();
                         </div>
 
 
+
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                         <script>
-                            document.addEventListener('DOMContentLoaded', function () {
+                            $(document).ready(function () {
                                 let itemToRemoveId = null;
-                                let removeBtnElement = null;
+                                let $clickedButton = null;
 
-                                // Open confirmation modal
-                                document.querySelectorAll('.remove-item').forEach(button => {
-                                    button.addEventListener('click', function () {
-                                        itemToRemoveId = this.dataset.id;
-                                        removeBtnElement = this;
-                                        document.getElementById('removeConfirmModal').classList.remove('hidden');
-                                    });
+                                $('.remove-item').on('click', function () {
+                                    itemToRemoveId = $(this).data('id');
+                                    $clickedButton = $(this);
+                                    $('#removeConfirmModal').removeClass('hidden');
                                 });
 
-                                // Cancel removal
-                                document.getElementById('cancelRemove').addEventListener('click', function () {
+                                $('#cancelRemove').on('click', function () {
                                     itemToRemoveId = null;
-                                    removeBtnElement = null;
-                                    document.getElementById('removeConfirmModal').classList.add('hidden');
+                                    $clickedButton = null;
+                                    $('#removeConfirmModal').addClass('hidden');
                                 });
 
-                                // Confirm removal
-                                document.getElementById('confirmRemove').addEventListener('click', function () {
+                                $('#confirmRemove').on('click', function () {
                                     if (!itemToRemoveId) return;
 
-                                    fetch(`/cart/remove/${itemToRemoveId}`, {
-                                        method: 'POST',
+                                    $.ajax({
+                                        url: "{{ route('cart.remove', ':id') }}".replace(':id', itemToRemoveId),
+                                        type: 'POST',
                                         headers: {
-                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                            'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        },
+                                        success: function (response) {
+                                            if (response.status === 'success') {
+                                                $('#removeConfirmModal').addClass('hidden');
+                                                $clickedButton.closest('.cart-item').remove();
+
+                                                // Optional: if no cart items left, show "Your cart is empty."
+                                                if ($('.cart-item').length === 0) {
+                                                    $('.lg\\:col-span-2').html('<p class="text-gray-500">Your cart is empty.</p>');
+                                                }
+
+                                            } else {
+                                                alert(response.message || 'Remove failed');
+                                            }
+                                        },
+                                        error: function () {
+                                            alert('Something went wrong');
                                         }
-                                    })
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        if (data.status === 'success') {
-                                            const itemContainer = removeBtnElement.closest('.flex.border.rounded-lg.p-4');
-                                            itemContainer.remove();
-                                            document.getElementById('removeConfirmModal').classList.add('hidden');
-                                            location.reload(); // optional
-                                        } else {
-                                            alert(data.message || 'Failed to remove item');
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.error(err);
-                                        alert('Something went wrong!');
                                     });
                                 });
                             });
-                            </script>
+                        </script>
+
+
 
 
 
@@ -1453,9 +1490,11 @@ $skills = $user->skills->first();
                                                         ->where('jobseeker_id', auth()->user()->id)
                                                         ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
                                                         ->get();
+                           
                             $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
-                                                                        ->where('user_id', auth()->user()->id)
-                                                                        ->first();                            
+                            ->where('user_id', auth()->user()->id)
+                            ->first();
+                                                                 
                         @endphp
                         <!-- Training Tab -->
                         <div x-show="tab === 'training'" x-cloak>
@@ -1534,7 +1573,7 @@ $skills = $user->skills->first();
                                                             </li>
                                                         @else
                                                             <li>
-                                                                <a class="dropdown-item text-blue-600" href="{{ route('training.join', $material->id ?? 0) }}">
+                                                                <a class="dropdown-item text-blue-600" href="">
                                                                     Join Training
                                                                 </a>
                                                             </li>
@@ -1647,7 +1686,9 @@ $skills = $user->skills->first();
                                         <div class="flex items-center justify-between mt-4 text-sm text-gray-700">
                                         <!-- Instructor -->
                                         <div class="flex items-center space-x-2">
-                                            <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}" class="w-6 h-6 rounded-full">
+                                            <img src="{{ $trainerImage->document_path ?? asset('default-avatar.png') }}" 
+                                                alt="{{ $trainerName }}" 
+                                                class="w-6 h-6 rounded-full">
                                             <span>{{ $trainerName }}</span>
                                         </div>
 
@@ -1759,7 +1800,6 @@ $skills = $user->skills->first();
                                 }
                             }
                         @endphp
-
                         {{-- Mentorship --}}
                         @php
                             $mentorships = \App\Models\BookingSession::with([
@@ -1769,6 +1809,7 @@ $skills = $user->skills->first();
                             ->whereHas('mentor.profilePicture')
                             ->get();
                         @endphp
+
 
                         <div x-show="tab === 'mentorship'" x-cloak>
                             <h2 class="text-xl font-semibold mb-4">Mentorship</h2>

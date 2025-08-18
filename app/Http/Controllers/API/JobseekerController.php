@@ -39,6 +39,20 @@ class JobseekerController extends Controller
         // Find the jobseeker by email
         $jobseeker = Jobseekers::where('email', $request->email)->first();
 
+        if (!$jobseeker || $jobseeker->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact admimnistrator.'
+            ], 401);
+        }
+
+        if (!in_array($jobseeker->admin_status, ['approved', 'superadmin_approved'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+            ], 401);
+        }
+
         // Check if user exists and password matches
         if (!$jobseeker || !Hash::check($request->password, $jobseeker->password)) {
             return response()->json([

@@ -16,13 +16,17 @@ class Assessors extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'company_name',
-        'company_email',
+        'name',
+        'email',
         'phone_code',
-        'company_phone_number',
-        'company_instablishment_date',
+        'phone_number',
+        'instablishment_date',
         'industry_type',
-        'company_website',
+        'website',
+        'pin_code',
+        'country',
+        'state',
+        'national_id'
     ];
 
     /**

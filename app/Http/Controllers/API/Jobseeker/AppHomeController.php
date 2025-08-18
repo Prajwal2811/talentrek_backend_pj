@@ -60,11 +60,12 @@ class AppHomeController extends Controller
                 'training_title',
                 'training_price',
                 'training_offer_price',
-                'thumbnail_file_path as image'
+                'thumbnail_file_path as image',
+                'training_category'
             )
             ->with(['trainer:id,name','latestWorkExperience']) // only fetch trainer id & name
             //->with('') // only fetch trainer id & name
-            ->withAvg('trainerReviews', 'ratings')->limit(4)->get()->map(function ($item) {
+            ->withAvg('trainerReviews', 'ratings')->get()->map(function ($item) {
                 $avg = $item->trainer_reviews_avg_ratings;
                 $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                 unset($item->trainer_reviews_avg_ratings);

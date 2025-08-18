@@ -7,13 +7,13 @@ use App\Models\Api\Testimonial;
 use App\Models\Api\TrainingMaterial;
 use App\Models\Api\TrainingPrograms;
 use App\Models\Api\Trainers;
+use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Models\Api\JobseekerCartItem;
-use App\Models\Api\BookingSession;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+
 class CartManagementController extends Controller
 {
     use ApiResponse;
@@ -202,10 +202,11 @@ class CartManagementController extends Controller
             //$id = $request->training_material_id;
             $jobseekerId = $request->jobseekerId;
 
+            
             $slotDate = Carbon::createFromFormat('d/m/Y', $request->slotDate)->format('Y-m-d') ;
             $exists = BookingSession::where('booking_slot_id', $request->slotId)
                 ->where('slot_date', $slotDate)
-                ->where('status', 'confirmed')
+                ->where('status', 'pending')
                 ->exists();
 
             if ($exists) {
@@ -218,7 +219,7 @@ class CartManagementController extends Controller
                 'user_id' => $request->user_id,
                 'user_type' => $request->user_type,
                 'slot_date' => $slotDate,
-                'status' => 'confirmed',
+                'status' => 'pending',
                 'slot_time' => '555',
             ]);
 
@@ -233,4 +234,63 @@ class CartManagementController extends Controller
         }
     }
 
+    public function butNowTrainingMaterials(Request $request)
+    {
+        $data = $request->all();
+
+        $rules = [
+            'material_id' => 'required|integer',
+            'jobseekerId'  => 'required|integer',
+            'trainer_id' => 'required',
+            //'training_type' => 'required',
+           // 'batch_id' => 'required|integer',
+            //'purchase_for' => 'required',
+            
+        ];        
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }    
+
+        try {
+            
+            //$id = $request->training_material_id;
+            $jobseekerId = $request->jobseekerId;
+
+            
+           $exists = JobseekerTrainingMaterialPurchase::where('material_id', $request->material_id)
+                ->where('jobseeker_id', $request->jobseekerId)
+                ->where('trainer_id', $request->trainer_id)                
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['status' => false, 'message' => 'This material already purchased.'], 200);
+            }
+
+            JobseekerTrainingMaterialPurchase::create([
+                'jobseeker_id' => $jobseekerId,
+                'material_id' => $request->material_id,
+                'batch_id' => 1,
+                'training_type' => 'recorded',
+                'purchase_for' => 'individual',
+                'session_type' => 'online',
+                'trainer_id' => $request->trainer_id,
+                'payment_id'=>1
+            ]);
+
+            return response()->json(['status' => true, 'message' => $request->user_type.' material purchased successfully.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

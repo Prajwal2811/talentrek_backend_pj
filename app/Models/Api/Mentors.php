@@ -21,6 +21,11 @@ class Mentors extends Model
         'phone_number',
         'date_of_birth',
         'city',
+        'pin_code',
+        'country',
+        'state',
+        'national_id',
+        'pin_code',
     ];
 
     /**

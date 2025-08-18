@@ -11,7 +11,6 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::view('/forgot-password', 'admin.forgot-password')->name('admin.forgot-password');
 		Route::post('/admin/login', [App\Http\Controllers\AdminController::class, 'authenticate'])->name('admin.auth');
 		Route::post('/admin/send-reset-link', [App\Http\Controllers\AdminController::class, 'sendResetPassword'])->name('admin.send-reset-link');
-	
 	});
 	
 	Route::group(['middleware' => 'admin.auth'], function () {
@@ -19,6 +18,10 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 		// Profile, Settings
 		Route::get('/profile', [AdminController::class, 'profile'])->name('admin.profile');
+		Route::post('/admin/profile/update/{id}', [AdminController::class, 'updateAdminProfile'])->name('admin.update.profile');
+
+
+
 		Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
 		Route::post('/settings/store', [AdminController::class, 'settingsUpdate'])->name('admin.settings.store');
 		Route::post('/settings/store-media', [AdminController::class, 'storeMediaLinks'])->name('admin.settings.store-media');
@@ -93,7 +96,7 @@ Route::group(['prefix' => 'admin'], function() {
         });
         // Mentor Module
         Route::middleware('admin.module:Mentors')->group(function () {
-		    Route::get('/mentors', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentors');
+		    Route::get('/mentor', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentor');
             Route::get('/mentor/{id}/view', [App\Http\Controllers\AdminController::class, 'viewMentor'])->name('admin.mentor.view');
             Route::get('/mentor/{id}/booking-session', [App\Http\Controllers\AdminController::class, 'viewBookingSession'])->name('admin.mentor.booking-session');
             Route::post('/mentor/changeStatus', [App\Http\Controllers\AdminController::class, 'mentorChangeStatus'])->name('admin.mentor.changeStatus');	
@@ -115,6 +118,8 @@ Route::group(['prefix' => 'admin'], function() {
         Route::middleware('admin.module:Subscriptions')->group(function () {
 		    Route::get('/subscriptions', [App\Http\Controllers\AdminController::class, 'subscriptions'])->name('admin.subscriptions');
 			Route::get('/subscription-plans/{type}', [App\Http\Controllers\AdminController::class, 'showSubscriptions'])->name('admin.subscription.subscription-plans.view');
+		    Route::post('/subscriptions-store', [App\Http\Controllers\AdminController::class, 'subscriptionsStore'])->name('admin.subscription.store');
+
 
         });
         // Languages

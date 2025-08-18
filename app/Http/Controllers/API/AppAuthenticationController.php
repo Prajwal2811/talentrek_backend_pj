@@ -49,12 +49,27 @@ class AppAuthenticationController extends Controller
         ];
         $model = $modelMap[$type];
         $user = $model::where('email', $request->email)->first();
+        if (!$user || $user->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact admimnistrator.'
+            ], 401);
+        }
+//print_r($user);
+        if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+            ], 401);
+        }
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials.'
             ], 401);
         }
+
         $iSRegistered = $user->status !== null;
         return response()->json([
             'status' => true,

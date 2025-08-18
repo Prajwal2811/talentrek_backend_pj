@@ -236,10 +236,12 @@
                                                 <label>Name</label>
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->name }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Email address</label>
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->email }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Date of birth</label>
                                                 @php
@@ -256,19 +258,47 @@
                                                 @endphp
                                                 <input readonly type="text" class="form-control" value="{{ $formattedDate }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
                                                 <label>Phone number</label>
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->phone_code ? $mentor->phone_code . '-' . $mentor->phone_number : $mentor->phone_number }}">
                                             </div>
+
                                             <div class="col-md-12 form-group">
-                                                <label>Location</label>
+                                                <label>Gender</label>
+                                                <input readonly type="text" class="form-control" value="{{ ucfirst($mentor->gender) }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $mentor->city }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $mentor->state }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $mentor->country }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <input readonly type="text" class="form-control" value="{{ $mentor->address }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>PIN Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $mentor->pin_code }}">
                                             </div>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xl-8 col-lg-8 col-md-7">
                             <div class="card">
                                 <div class="header">
@@ -348,7 +378,7 @@
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>To</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work here' ? 'work here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
                                                                     </div>
                                                                 </div>
                                                                 @if (!$loop->last)

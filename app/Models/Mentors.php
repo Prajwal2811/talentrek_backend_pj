@@ -12,16 +12,17 @@ class Mentors extends Authenticatable
 
     protected $table = 'mentors';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'email',
         'phone_code',
         'phone_number',
         'date_of_birth',
+        'address',
         'city',
+        'state',
+        'country',
+        'pin_code',
         'password',
         'pass',
         'otp',
@@ -42,13 +43,13 @@ class Mentors extends Authenticatable
     public function educations()
     {
         return $this->hasMany(EducationDetails::class, 'user_id')
-                    ->where('user_type', 'mentors');
+                    ->where('user_type', 'mentor');
     }
     public function experiences()
     {
 
         return $this->hasMany(WorkExperience::class, 'user_id')
-                    ->where('user_type', 'mentors');
+                    ->where('user_type', 'mentor');
     }
 
     public function trainingexperience()

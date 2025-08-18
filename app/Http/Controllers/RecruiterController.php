@@ -50,6 +50,10 @@ class RecruiterController extends Controller
      {
           return view('site.recruiter.reset-password'); 
      }
+     public function showAdminSupportForm()
+     {
+          return view('site.recruiter.admin-support'); 
+     }
      public function postRegistration(Request $request)
      {
           $validated = $request->validate([
@@ -84,22 +88,20 @@ class RecruiterController extends Controller
      {
           $validated = $request->validate([
                'company_id' => 'required|exists:recruiters_company,id',
-               'name' => 'required|string|max:255',
+               'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'email' => 'required|email|unique:recruiters,email',
                'national_id' => [
                     'required',
                     'min:10',
                     function ($attribute, $value, $fail) {
                          $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                         $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                         $existsInJobseekers = Jobseekers::where('national_id', $value)->exists();
-
-                         if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                       
+                         if ($existsInRecruiters) {
                               $fail('The national ID has already been taken in another account.');
                          }
                     },
                ],
-               'company_name' => 'required|string',
+               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'company_website' => 'required|url',
                'company_city' => 'required|string|max:255',
                'company_address' => 'required|string|max:500',
@@ -110,18 +112,20 @@ class RecruiterController extends Controller
                'industry_type' => 'required|string|max:255',
                'registration_number' => 'required|string|max:255',
                'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-               'registration_documents' => 'required|array',
+               // 'registration_documents' => 'required|array',
                'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
                ], [
                'company_id.required' => 'Company ID is required.',
                'company_id.exists' => 'Selected company does not exist.',
                'name.required' => 'Name is required.',
+               'name.regex' => 'The full name should contain only letters and single spaces.',
                'email.required' => 'Email is required.',
                'email.email' => 'Enter a valid email address.',
                'email.unique' => 'This email is already in use.',
                'national_id.required' => 'National ID is required.',
                'national_id.min' => 'National ID must be at least 10 characters.',
                'company_name.required' => 'Company name is required.',
+               'company_name.regex' => 'The company name should contain only letters and single spaces.',
                'company_website.required' => 'Company website is required.',
                'company_website.url' => 'Enter a valid URL.',
                'company_city.required' => 'Company city is required.',
@@ -161,6 +165,7 @@ class RecruiterController extends Controller
                     'no_of_employee' => $validated['no_of_employee'],
                     'industry_type' => $validated['industry_type'],
                     'registration_number' => $validated['registration_number'],
+                    'is_registered' => 1
                ]);
 
                // Step 2: Create recruiter
@@ -409,17 +414,17 @@ class RecruiterController extends Controller
      public function showJobseekerListForm()
      {
           $recruiterId = auth()->user()->recruiter_id;
-
+          
           $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
                               ->pluck('jobseeker_id')
                               ->toArray();
-          
+
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                     ->where('status', 'active')
                     ->whereIn('admin_status', ['approved', 'superadmin_approved'])
                     ->whereNotIn('id', $shortlistedIds)
                     ->get();
-
+          
 
          $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                                    ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
@@ -432,8 +437,8 @@ class RecruiterController extends Controller
                                    )
                                    ->get();
 
-     //     echo "<pre>";
-     //     print_r($shortlisted_jobseekers);die;
+          //     echo "<pre>";
+          //     print_r($shortlisted_jobseekers);die;
 
           return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers'));
      }
@@ -465,36 +470,36 @@ class RecruiterController extends Controller
 
      public function interviewRequestSubmit(Request $request)
      {
-     $request->validate([
-          'jobseeker_id' => 'required|integer',
-     ]);
-
-     $recruiter = auth()->user();
-     $jobseekerId = $request->input('jobseeker_id');
-
-     $shortlist = RecruiterJobseekersShortlist::where([
-          'company_id' => $recruiter->id,
-          'recruiter_id' => $recruiter->recruiter_id,
-          'jobseeker_id' => $jobseekerId,
-     ])->first();
-
-     if ($shortlist) {
-          $shortlist->update([
-               'interview_request' => 'yes',
+          $request->validate([
+               'jobseeker_id' => 'required|integer',
           ]);
-     } else {
-          RecruiterJobseekersShortlist::create([
+
+          $recruiter = auth()->user();
+          $jobseekerId = $request->input('jobseeker_id');
+
+          $shortlist = RecruiterJobseekersShortlist::where([
                'company_id' => $recruiter->id,
                'recruiter_id' => $recruiter->recruiter_id,
                'jobseeker_id' => $jobseekerId,
-               'status' => 'yes',
-               'admin_status' => 'pending',
-               'interview_request' => 'yes',
-               'interview_url' => null,
-          ]);
-     }
+          ])->first();
 
-     return response()->json(['success' => true, 'message' => 'Interview request sent.']);
+          if ($shortlist) {
+               $shortlist->update([
+                    'interview_request' => 'yes',
+               ]);
+          } else {
+               RecruiterJobseekersShortlist::create([
+                    'company_id' => $recruiter->id,
+                    'recruiter_id' => $recruiter->recruiter_id,
+                    'jobseeker_id' => $jobseekerId,
+                    'status' => 'yes',
+                    'admin_status' => 'pending',
+                    'interview_request' => 'yes',
+                    'interview_url' => null,
+               ]);
+          }
+
+          return response()->json(['success' => true, 'message' => 'Interview request sent.']);
      }
 
 
@@ -573,7 +578,7 @@ class RecruiterController extends Controller
 
           $validated = $request->validate([
                // Company fields
-               'company_name' => 'required|string|max:255',
+               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'company_phone_number' => 'required|digits:10',
                'business_email' => [
                     'required',
@@ -585,7 +590,7 @@ class RecruiterController extends Controller
                'company_website' => 'nullable|url',
 
                // Recruiter fields
-               'name' => 'required|string|max:255',
+               'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'email' => [
                     'required',
                     'email',
@@ -610,6 +615,7 @@ class RecruiterController extends Controller
            [
                // Custom messages for Company fields
                'company_name.required' => 'The company name is required.',
+               'company_name.regex' => 'The name should contain only letters and single spaces.',
                'company_phone_number.required' => 'The company phone number is required.',
                'company_phone_number.digits' => 'The phone number must be exactly 10 digits.',
                'business_email.required' => 'The business email is required.',
@@ -622,6 +628,7 @@ class RecruiterController extends Controller
 
                // Custom messages for Recruiter fields
                'name.required' => 'The recruiter name is required.',
+               'name.regex' => 'The name should contain only letters and single spaces.',
                'email.required' => 'The recruiter email is required.',
                'email.email' => 'The recruiter email must be a valid email address.',
                'email.unique' => 'The recruiter email has already been taken.',
@@ -661,18 +668,15 @@ class RecruiterController extends Controller
           $validated = $request->validate([
                'company_profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
                'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-               ], [
-               // Custom messages for company_profile
+          ], [
                'company_profile.file' => 'The company profile must be a valid file.',
                'company_profile.mimes' => 'The company profile must be a file of type: jpg, jpeg, png.',
                'company_profile.max' => 'The company profile must not be greater than 2MB.',
 
-               // Custom messages for register_document
                'register_document.file' => 'The registration document must be a valid file.',
                'register_document.mimes' => 'The registration document must be a file of type: pdf, doc, docx.',
                'register_document.max' => 'The registration document must not be greater than 2MB.',
           ]);
-
 
           foreach (['company_profile', 'register_document'] as $type) {
                if ($request->hasFile($type)) {
@@ -683,7 +687,11 @@ class RecruiterController extends Controller
 
                     \App\Models\AdditionalInfo::updateOrCreate(
                          ['user_id' => $userId, 'doc_type' => $type],
-                         ['document_path' => $path, 'document_name' => $fileName]
+                         [
+                              'document_path' => $path,
+                              'document_name' => $fileName,
+                              'user_type' => 'recruiter', // Ensures recruiter type is stored
+                         ]
                     );
                }
           }
@@ -693,7 +701,6 @@ class RecruiterController extends Controller
                'message' => 'Company documents updated successfully!',
           ]);
      }
-
 
 
      public function deleteCompanyDocument($type)
@@ -724,17 +731,147 @@ class RecruiterController extends Controller
      }
 
 
-
-
      public function deleteAccount()
      {
-          $recruiterId = auth()->id();
-          // dd($recruiterId);exit;
-          RecruiterCompany::where('id', $recruiterId)->delete();
-          Recruiters::where('company_id', $recruiterId)->delete();
+          $user = auth()->user(); 
+
+          $companyId = $user->id; 
+          $recruiterId = $user->recruiter_id;
+
+          RecruiterCompany::where('id', $companyId)->delete();
+          Recruiters::where('id', $recruiterId)->delete();
+
           auth()->logout();
 
           return redirect()->route('recruiter.login')->with('success', 'Your account has been deleted successfully.');
      }
+
+
+
+
+
+
+    public function filterJobseekers(Request $request)
+     {
+     $recruiterId = auth()->user()->recruiter_id;
+
+     // Get shortlisted IDs
+     $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
+          ->pluck('jobseeker_id')
+          ->toArray();
+
+     // Get shortlisted jobseekers with total experience
+     $shortlisted_jobseekers = $this->getShortlistedJobseekers($recruiterId);
+
+     // Get non-shortlisted jobseekers
+     $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+          ->where('status', 'active')
+          ->whereIn('admin_status', ['approved', 'superadmin_approved'])
+          ->whereNotIn('id', $shortlistedIds)
+          ->get();
+
+     // Apply filters
+     $filtered = $jobseekers->filter(function ($jobseeker) use ($request) {
+          return $this->applyFilters($jobseeker, $request);
+     });
+
+     // Render HTML
+     $jobseekerListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $filtered])->render();
+     $shortlistedListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers])->render();
+
+     return response()->json([
+          'jobseekers_html' => $jobseekerListHtml,
+          'shortlisted_html' => $shortlistedListHtml
+     ]);
+     }
+
+     private function getShortlistedJobseekers($recruiterId)
+     {
+     $shortlisted = Jobseekers::with(['educations', 'experiences', 'skills'])
+          ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+          ->where('shortlist.recruiter_id', $recruiterId)
+          ->where('jobseekers.status', 'active')
+          ->select(
+               'jobseekers.*',
+               'shortlist.admin_status as shortlist_admin_status',
+               'shortlist.interview_request'
+          )
+          ->get();
+
+     foreach ($shortlisted as $jobseeker) {
+          $jobseeker->total_experience = $this->calculateExperience($jobseeker);
+     }
+
+     return $shortlisted;
+     }
+
+     private function calculateExperience($jobseeker)
+     {
+     $totalExp = 0;
+     foreach ($jobseeker->experiences as $exp) {
+          if ($exp->starts_from && $exp->end_to) {
+               $start = \Carbon\Carbon::parse($exp->starts_from);
+               $end = \Carbon\Carbon::parse($exp->end_to);
+               $totalExp += $start->diffInDays($end);
+          }
+     }
+     $years = floor($totalExp / 365);
+     return $years . ' years';
+     }
+
+     private function applyFilters($jobseeker, $request)
+     {
+     $totalExp = 0;
+     foreach ($jobseeker->experiences as $exp) {
+          if ($exp->starts_from && $exp->end_to) {
+               $start = \Carbon\Carbon::parse($exp->starts_from);
+               $end = \Carbon\Carbon::parse($exp->end_to);
+               $totalExp += $start->diffInDays($end);
+          }
+     }
+
+     $yearsExp = floor($totalExp / 365);
+     $jobseeker->total_experience = $yearsExp . ' years';
+
+     // Experience filter
+     if ($request->filled('experience') && !in_array('all', $request->experience)) {
+          $match = false;
+          if (in_array('fresher', $request->experience) && $yearsExp <= 3) $match = true;
+          if (in_array('experienced', $request->experience) && $yearsExp > 3) $match = true;
+          if (!$match) return false;
+     }
+
+     // Education filter
+     if ($request->filled('education')) {
+          $eduMatch = $jobseeker->educations->pluck('high_education')->intersect($request->education)->isNotEmpty();
+          if (!$eduMatch) return false;
+     }
+
+     // Gender filter
+     if ($request->filled('gender') && !in_array('all', $request->gender)) {
+          $filterGenders = array_map('strtolower', $request->gender);
+          $jobseekerGender = strtolower($jobseeker->gender);
+          if (!in_array($jobseekerGender, $filterGenders)) {
+               return false;
+          }
+     }
+
+     // Certificate filter
+     if ($request->filled('certificate') && !in_array('all', $request->certificate)) {
+          $certificateCount = $jobseeker->skills->count();
+          $match = false;
+          if (in_array('0-5', $request->certificate) && $certificateCount >= 0 && $certificateCount <= 5) $match = true;
+          if (in_array('5+', $request->certificate) && $certificateCount > 5) $match = true;
+          if (in_array('not-certified', $request->certificate) && $certificateCount == 0) $match = true;
+          if (!$match) return false;
+     }
+
+     return true;
+     }
+
+
+
+
+
 
 }

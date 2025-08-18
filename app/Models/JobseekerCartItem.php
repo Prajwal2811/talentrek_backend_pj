@@ -31,19 +31,6 @@ class JobseekerCartItem extends Model
     public function material()
     {
         return $this->belongsTo(TrainingMaterial::class, 'material_id');
-    }
+    }    
 
-    public function trainerReviews()
-    {
-        return $this->hasMany(Review::class, 'trainer_material', 'material_id')
-                    ->where('user_type', 'trainer');
-    } 
-
-    public function latestWorkExperience()
-    {
-        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
-            ->where('user_type', 'trainer') // filter only trainer-type
-            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
-            ->select('user_id', 'job_role', 'end_to');
-    }
 }

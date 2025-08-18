@@ -46,7 +46,7 @@ class SessionsManagementController extends Controller
                 'zoom_meeting_id', 'zoom_join_url', 'zoom_start_url'
             )->where('user_id', $request->user_id)
             ->where('user_type', $request->type)
-            ->where('status', 'confirmed');
+            ->where('status', 'pending');
 
             // Clone the base query for each group
             $totalSessions = (clone $baseQuery)->get();
@@ -121,7 +121,7 @@ class SessionsManagementController extends Controller
                     $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
                 }
 
-                $upcomingSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
+                $upcomingSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
                 ->whereDate('slot_date', '>=', Carbon::today())
                 ->orderBy('slot_date', 'asc')
                 ->get()
@@ -256,7 +256,7 @@ class SessionsManagementController extends Controller
             } elseif ($type === 'coach') {
                 $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
             }
-            $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
+            $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
                 ->whereDate('slot_date', '<', Carbon::today())                
                 ->orderBy('slot_date', 'asc')
                 ->get()->map(function ($item) use ($type) {

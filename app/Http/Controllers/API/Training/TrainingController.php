@@ -12,6 +12,7 @@ use App\Models\Api\TrainingBatch;
 use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\TrainerAssessment;
 use App\Models\Api\AssessmentOption;
+use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Models\Api\AssessmentQuestion;
 use App\Models\Api\AdditionalInfo;
 use App\Services\ZoomService;
@@ -220,38 +221,63 @@ class TrainingController extends Controller
 
     public function saveTrainingOnlineData(Request $request)
     {
-        try {           
+        $data = $request->all();
 
-             $validator = Validator::make($request->all(), [
-                'trainerId' => 'required',
-                'training_title'         => 'required|string|max:255',
-                'training_sub_title'     => 'nullable|string|max:255',
-                'training_objective'     => 'nullable|string',
-                'training_descriptions'  => 'nullable|string',
-                'training_category'      => 'required|string',
-                'training_level'         => 'required|string',
-                'training_price'         => 'required|numeric',
-                'training_offer_price'   => 'required|numeric',
-                'thumbnail'              => 'nullable|image|max:2048',
-                'training_type'          => 'required|string',            
+        $rules = [
+            'trainerId'             => 'required',
+            'training_title'        => 'required|string|max:255',
+            'training_sub_title'    => 'nullable|string|max:255',
+            'training_objective'    => 'nullable|string',
+            'training_descriptions' => 'nullable|string',
+            'training_category'     => 'required|string',
+            'training_level'        => 'required|string',
+            'training_price'        => 'required|numeric',
+            'training_offer_price'  => 'required|numeric',
+            'thumbnail'             => 'nullable|image|max:2048',
+            'training_type'         => 'required|string',
+        ];
+
+        // Check if content_sections exist
+        if (!empty($data['content_sections'])) {
+            foreach ($data['content_sections'] as $index => $section) {
+                $rules["content_sections.$index.batch_no"]   = 'required|string|max:255';
+                $rules["content_sections.$index.batch_date"] = [
+                    'required',
+                    'date_format:d/m/Y',
+                    function ($attribute, $value, $fail) {
+                        $date = Carbon::createFromFormat('d/m/Y', $value);
+                        if ($date->isPast()) {
+                            $fail("$attribute should not be a past date.");
+                        }
+                    },
+                ];
                 
-                'content_sections'               => 'required|array|min:1',
-                'content_sections.*.batch_no'    => 'required|string|max:255',
-                'content_sections.*.batch_date'  => 'required|date',
-                'content_sections.*.start_time'  => 'required|string',
-                'content_sections.*.end_time'    => 'required|string',
-                'content_sections.*.duration'    => 'required|string',
-                'content_sections.*.duration_type'    => 'required|string',
-                'content_sections.*.strength'   => 'required|integer|min:1',
-                'content_sections.*.days'       => 'required',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first(), // ✅ Return only the first error
-                ], 422);
+                // $rules["content_sections.$index.batch_date"] = 'required|date';
+                $rules["content_sections.$index.start_time"] = 'required|string';
+                $rules["content_sections.$index.end_time"]   = 'required|string';
+                $rules["content_sections.$index.duration"]   = 'required|string';
+                $rules["content_sections.$index.duration_type"]   = 'required|string';
+                $rules["content_sections.$index.strength"]   = 'required|integer|min:1';
+                $rules["content_sections.$index.days"]       = 'required';
             }
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'At least one content section is required.'
+            ], 200);
+        }
+
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
+
+        try {
 
             $trainerId = $request->trainerId ;
             $trainer = Trainers::where('id', $trainerId)->first();
@@ -328,6 +354,38 @@ class TrainingController extends Controller
                 foreach ($request->content_sections as $index => $section) {
                     // Check if content section has an ID (for update)
 
+                    $startDate = Carbon::createFromFormat('d/m/Y', $section['batch_date']);
+                    //$document->start_date = $startDate;
+
+                    // Calculate end_date based on duration_type
+                    switch (strtolower($section['duration_type'])) {
+                        case 'days':
+                        case 'day':
+                            $endDate = $startDate->copy()->addDays((int)$section['duration']);
+                            break;
+
+                        case 'weeks':
+                        case 'week':
+                            $endDate = $startDate->copy()->addWeeks((int)$section['duration']);
+                            break;
+
+                        case 'months':
+                        case 'month':
+                            $endDate = $startDate->copy()->addMonths((int)$section['duration']);
+                            break;
+
+                        case 'years':
+                        case 'year':
+                            $endDate = $startDate->copy()->addYears((int)$section['duration']);
+                            break;
+
+                        default:
+                            $endDate = $startDate; // fallback: same as start
+                            break;
+                    }
+
+                  
+
                     $zoom = new ZoomService();
                     $date = Carbon::createFromFormat('d/m/Y', $section['batch_date'])->format('Y-m-d');
                     $startTime = $date . ' ' . $section['start_time'];
@@ -337,20 +395,7 @@ class TrainingController extends Controller
                     // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
                     //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
                     // }
-                    echo $durationType = $section['duration_type'] ;
-                    $duration = $section['duration'] ;
-                     $start = Carbon::parse($section['batch_date']) ;
-                    switch ($durationType) {
-                        case 'Day':                        
-                           echo "===" .$end_date =  $start->copy()->addDays($duration);
-                        case 'Month':
-                           echo  "=-----==" .$end_date =  $start->copy()->addMonths($duration);
-                        case 'Year':
-                           echo "========" . $end_date =  $start->copy()->addYears($duration);
-                        default:
-                            throw new \Exception("Invalid duration type: $durationType");
-                    }
-                    
+
                     if (isset($section['id'])) {
                         $document = TrainingBatch::where('id', $section['id'])
                                     ->where('training_material_id', $training->id)
@@ -361,12 +406,13 @@ class TrainingController extends Controller
                             $document->trainer_id = $trainer->id;
                             $document->training_material_id = $training->id;
                             $document->batch_no     = $section['batch_no'];
-                            $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
+                            $document->start_date   = Carbon::createFromFormat('d/m/Y', $section['batch_date']) ;
+                            $document->end_date = $endDate;
                             $document->start_timing = date("H:i", strtotime($section['start_time']));
                             $document->end_timing   = date("H:i", strtotime($section['end_time']));
                             $document->duration     = $section['duration'].' '.$section['duration_type'];
                             $document->strength     = $section['strength'];
-                            $document->days     =json_encode(json_decode($section['days'], true)); // convert from stringified JSON
+                            $document->days     =$section['days']; // convert from stringified JSON
                             $document->save();
                             continue;
                         }
@@ -377,14 +423,13 @@ class TrainingController extends Controller
                     $document->trainer_id = $trainer->id;
                     $document->training_material_id = $training->id;
                     $document->batch_no     = $section['batch_no'];
-                    $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
+                    $document->start_date   = Carbon::createFromFormat('d/m/Y', $section['batch_date']) ;
+                    $document->end_date = $endDate;
                     $document->start_timing = date("H:i", strtotime($section['start_time']));
                     $document->end_timing   = date("H:i", strtotime($section['end_time']));
-                    $document->end_date   = date("Y-m-d", strtotime($end_date)) ;
-
-                    $document->duration     = $section['duration'];
+                    $document->duration     = $section['duration'].' '.$section['duration_type'];
                     $document->strength     = $section['strength'];
-                    $document->days     =json_encode(json_decode($section['days'], true)); // convert from stringified JSON
+                    $document->days     =$section['days']; // convert from stringified JSON
                     $document->zoom_start_url      = '';//$zoomMeeting['start_url'];
                     $document->zoom_join_url        = '';//$zoomMeeting['join_url'];
                     $document->save();
@@ -769,6 +814,56 @@ class TrainingController extends Controller
                 'success' => false,
                 'message' => 'Something went wrong while fetching training list.',
                 'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteTrainingMaterialById($trainerMaterialId)
+    {
+        try {
+           $TrainingMaterial = TrainingMaterial::where('id', $trainerMaterialId)->first();
+
+           if (!$TrainingMaterial) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Training material not found.'
+                ], 404);
+            }
+
+            if($TrainingMaterial->training_type == 'recorded'){
+                $JobseekerTrainingMaterialPurchase = JobseekerTrainingMaterialPurchase::where('material_id', $trainerMaterialId)->first();
+                 if($JobseekerTrainingMaterialPurchase){
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Some job seeker already purchase this material ,So unable to delete.'
+                    ], 200);
+                }
+                TrainingMaterialsDocument::where('training_material_id', $trainerMaterialId)->delete();
+                //TrainerAssessment::where('material_id', $trainerMaterialId)->delete();                
+            }
+            else{
+                $JobseekerTrainingMaterialPurchase = JobseekerTrainingMaterialPurchase::where('material_id', $trainerMaterialId)->first();
+                 if($JobseekerTrainingMaterialPurchase){
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Some job seeker already purchase this material ,So unable to delete.'
+                    ], 200);
+                }
+                TrainingBatch::where('training_material_id', $trainerMaterialId)->delete();
+                //TrainerAssessment::where('material_id', $trainerMaterialId)->delete();
+            }           
+            
+            $TrainingMaterial->delete(); // Remove DB record
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Training material deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while deleting the file.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

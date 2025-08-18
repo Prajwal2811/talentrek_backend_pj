@@ -548,7 +548,7 @@ class CoachController extends Controller
                                         <div class="header">
                                             <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
                                         </div>
-                                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+                                        <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
 
                                         <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
@@ -568,8 +568,8 @@ class CoachController extends Controller
                                     </div>
                                 </body>
                                 </html>
-                                ', function ($message) use ($jobseeker) {
-                                    $message->to($jobseeker->email)
+                                ', function ($message) use ($trainer) {
+                                    $message->to($trainer->email)
                                             ->subject('Welcome to Talentrek – Registration Successful');
                                 });
             } else {

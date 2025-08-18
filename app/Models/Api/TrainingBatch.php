@@ -31,6 +31,7 @@ class TrainingBatch extends Authenticatable
         'start_timing',
         'end_timing',
         'duration',
+        'days'
     ];
 
     /**
@@ -51,6 +52,7 @@ class TrainingBatch extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'permissions' => 'array',
+         'days' => 'array',
     ];
 
     public function trainingMaterial()

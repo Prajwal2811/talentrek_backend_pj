@@ -23,7 +23,11 @@ class Coach extends Authenticatable
         'phone_code',
         'phone_number',
         'date_of_birth',
+        'address',
         'city',
+        'state',
+        'country',
+        'pin_code',
         'password',
         'pass',
         'otp',
@@ -89,4 +93,6 @@ class Coach extends Authenticatable
     {
         return $this->hasMany(BookingSlot::class, 'user_id')->where('user_type', 'coach');
     }
+
+    
 }

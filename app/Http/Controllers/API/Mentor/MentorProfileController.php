@@ -75,7 +75,7 @@ class MentorProfileController extends Controller
 
             $image = '' ;
             foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
-                if($TrainersAdditionalInfos->doc_type == 'profile_picture'){
+                if($TrainersAdditionalInfos->doc_type == 'mentor_profile_picture'){
                     $image = $TrainersAdditionalInfos->image ;
                 }                
             }
@@ -188,7 +188,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -282,7 +282,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -412,7 +412,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -480,9 +480,10 @@ class MentorProfileController extends Controller
             // ]);
 
             $TrainersId = $request->mentor_id;
-            $TrainingMaterialsDocument = TrainingExperience::where('user_id', $TrainersId)->first();
+            $TrainingMaterialsDocument = TrainingExperience::where('user_id', $TrainersId)->where('user_type', 'mentor')->first();
 
             if (!$TrainingMaterialsDocument) {
+              
                 TrainingExperience::create([
                     'user_id'   => $request->mentor_id,
                     'user_type'   => 'mentor',
@@ -493,6 +494,7 @@ class MentorProfileController extends Controller
                     'portfolio_link' => $request->portfolio_link
                 ]);
             } else {
+               
                 // Update the Trainers basic info
                 $TrainingMaterialsDocument->update([
                     'user_id'   => $request->mentor_id,
@@ -509,7 +511,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -632,7 +634,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();

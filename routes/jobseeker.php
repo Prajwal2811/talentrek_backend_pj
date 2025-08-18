@@ -35,9 +35,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		
 
 
+		Route::get('jobseeker/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
+		Route::get('jobseeker/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
 
 		
-		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
 		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
 		
 		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
@@ -83,7 +85,12 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::post('/add-to-cart/{id}', [JobseekerController::class, 'addToCart'])->name('jobseeker.addtocart');
 
-		Route::post('/cart/remove/{id}', [JobseekerController::class, 'remove'])->name('cart.remove');
+		// Route::post('/cart/remove/{id}', [JobseekerController::class, 'remove'])->name('cart.remove');
+		Route::post('/cart/remove/{id}', [JobseekerController::class, 'removeCartItem'])->name('cart.remove');
+
+
+		 Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
+    	Route::get('/chat/messages', [JobseekerController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 
 
 
@@ -113,6 +120,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/take-assessment/{id}', [JobseekerController::class, 'viewAssessment'])->name('assessment.view');
 
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
+		Route::get('/buy-course-for-team/{id}', [JobseekerController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
 
 

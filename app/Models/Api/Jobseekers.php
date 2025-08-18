@@ -36,7 +36,11 @@ class Jobseekers extends Authenticatable
         'rejection_reason', 
         'shortlist',
         'admin_recruiter_status',
-        'google_id'
+        'google_id',
+        'pin_code',
+        'country',
+        'state',
+        'national_id'
     ];
 
     /**

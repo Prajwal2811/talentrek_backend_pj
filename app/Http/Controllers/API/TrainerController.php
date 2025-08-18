@@ -42,6 +42,20 @@ class TrainerController extends Controller
         $hashedPassword = Hash::make('password123');
 
 
+        if (!$trainer || $trainer->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact admimnistrator.'
+            ], 401);
+        }
+
+        if (!in_array($trainer->admin_status, ['approved', 'superadmin_approved'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+            ], 401);
+        }
+        
         // Check if user exists and password matches
         if (!$trainer || !Hash::check($request->password, $trainer->password)) {
             return response()->json([
@@ -50,12 +64,7 @@ class TrainerController extends Controller
             ], 401);
         }
 
-        // if ($trainer->status != 'active') {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'User is inactive or pending approval. Please contact the administrator'
-        //     ], 401);
-        // }
+       
 
         $iSRegistered = $trainer->status !== null;
 

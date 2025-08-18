@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Api;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,83 +52,19 @@ class BookingSession extends Model
     {
         return $this->belongsTo(BookingSlot::class, 'booking_slot_id');
     }
+
+    public function mentor()
+    {
+        return $this->belongsTo(Mentors::class, 'user_id', 'id');
+    }
+
+    public function assessor()
+    {
+        return $this->belongsTo(Assessors::class, 'user_id', 'id');
+    }
     
-    // ──────── MENTOR RELATIONS ────────
-    public function mentors()
+    public function coach()
     {
-        return $this->hasOne(Mentors::class,'id', 'user_id') ;
-    }
-    
-    public function mentorLatestWorkExperience()
-    {
-        return $this->hasOne(WorkExperience::class, 'user_id', 'user_id') // user_id in work_experience = trainer's id
-            ->where('user_type', 'mentor') // filter only trainer-type
-            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
-            ->select('user_id', 'job_role', 'end_to');
-    }
-
-    public function WorkExperience()
-    {
-        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
-        ->where('user_type', 'mentor');
-    }
-
-    public function mentorAdditionalInfo()
-    {
-        return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'mentor');
-    }
-
-    // ──────── COACHES RELATIONS ────────
-    public function coaches()
-    {
-        return $this->hasOne(Coach::class,'id', 'user_id') ;
-    }
-
-    public function coachLatestWorkExperience()
-    {
-        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
-            ->where('user_type', 'coach') // filter only trainer-type
-            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
-            ->select('user_id', 'job_role', 'end_to');
-    }
-
-    public function coachWorkExperience()
-    {
-        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
-        ->where('user_type', 'coach');
-    }
-
-    public function coachAdditionalInfo()
-    {
-        return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'coach');
-    }
-
-    // ──────── ASSESSOR RELATIONS ────────
-    public function assessors()
-    {
-        return $this->hasOne(Assessors::class,'id', 'user_id') ;
-    }
-
-    public function assessorLatestWorkExperience()
-    {
-        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
-            ->where('user_type', 'assessor') // filter only trainer-type
-            ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
-            ->select('user_id', 'job_role', 'end_to');
-    }
-
-    public function assessorAdditionalInfo()
-    {
-        return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
-        
-        ->where('user_type', 'assessor');
-    }
-
-    public function AssessorWorkExperience()
-    {
-        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
-        ->where('user_type', 'assessor');
+        return $this->belongsTo(Coach::class, 'user_id', 'id');
     }
 }

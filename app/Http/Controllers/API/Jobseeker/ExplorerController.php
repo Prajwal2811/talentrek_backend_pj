@@ -311,9 +311,9 @@ class ExplorerController extends Controller
                 ->exists();
                 $TrainingMaterial->isPurchased = $isPurchased; // true/false
                 $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
-                if(!$isPurchased){
-                    unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
-                }
+                // if(!$isPurchased){
+                //     unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
+                // }
                 unset($TrainingMaterial->trainingMaterialDocuments);
 
             }
@@ -614,68 +614,6 @@ class ExplorerController extends Controller
             return $this->errorResponse('Something went wrong while submitting the review.', 500, [
                 'error' => $e->getMessage()
             ]);
-        }
-    }
-
-    public function trainingMaterialBatchDetailById($trainingId)
-    {
-        try {
-            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
-                ->withCount('trainingMaterialDocuments')
-                ->with('batches')
-                ->with(['trainer:id,name', 'latestWorkExperience'])
-                ->with('trainerReviews')
-                ->withAvg('trainerReviews', 'ratings')
-                ->where('id', $trainingId)
-                ->first();
-            if ($TrainingMaterial) {
-                $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
-                $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
-
-                $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
-                    $parts = explode(':', $doc->file_duration); // HH:MM:SS
-                    if (count($parts) === 3) {
-                        $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
-                        return $carry + $seconds;
-                    }
-                    return $carry;
-                }, 0);
-
-                // Convert total seconds back to HH:MM:SS
-                $TrainingMaterial->total_duration = gmdate('H:i:s', $totalSeconds);
-                $hours = (int)gmdate('H', $totalSeconds);
-                $minutes = (int)gmdate('i', $totalSeconds);
-                $seconds = (int)gmdate('s', $totalSeconds);
-                $TrainingMaterial->durationInHours = $hours. ' Hr' . ($hours !== 1 ? 's' : '');
-                $TrainingMaterial->durationInMinutes = $minutes. ' Min' . ($minutes !== 1 ? 's' : '');
-                $TrainingMaterial->durationInSeconds = $seconds. ' Second' . ($seconds !== 1 ? 's' : '');
-                
-                $now = Carbon::now();
-                foreach ($TrainingMaterial->batches as $batch) {
-                    $isExpired = Carbon::parse($batch->end_date)->lt($now);
-                    $isFull = isset($batch->enrolled_count) && isset($TrainingMaterial->training_strength) &&
-                            $batch->enrolled_count >= $TrainingMaterial->training_strength;
-
-                    $batch->batchAvailable = ($isExpired || $isFull) ? false : true;
-                }
-
-                // Optional: remove the raw field if not needed in response
-                unset($TrainingMaterial->trainer_reviews_avg_ratings);
-                unset($TrainingMaterial->trainerReviews);
-
-                // Check if jobseeker purchased the training from this trainer
-                
-                unset($TrainingMaterial->trainingMaterialDocuments);
-
-            }
-            
-            return $this->successResponse($TrainingMaterial, 'Training course details with review  percentage fetched successfully.');
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong.',
-                'error' => $e->getMessage()
-            ], 500);
         }
     }
 }

@@ -23,7 +23,11 @@ class Coach extends Model
         'date_of_birth',
         'city',
         'password',
-        'pass'
+        'pass',
+        'pin_code',
+        'country',
+        'state',
+        'national_id'
     ];
 
     /**

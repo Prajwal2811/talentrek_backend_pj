@@ -180,7 +180,7 @@ class TrainerProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'trainer_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -274,7 +274,7 @@ class TrainerProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'trainer_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -403,7 +403,7 @@ class TrainerProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'trainer_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -476,7 +476,7 @@ class TrainerProfileController extends Controller
 
             if (!$TrainingMaterialsDocument) {
                 TrainingExperience::create([
-                    'user_id'   => $trainer->id,
+                    'user_id'   => $TrainersId,
                     'user_type'   => 'trainer',
                     'skills'         => $request->skills,
                     'interest'       => $request->interest,
@@ -487,7 +487,7 @@ class TrainerProfileController extends Controller
             } else {
                 // Update the Trainers basic info
                 $TrainingMaterialsDocument->update([
-                    'user_id'   => $trainer->id,
+                    'user_id'   => $TrainersId,
                     'user_type'   => 'trainer',
                     'skills'         => $request->skills,
                     'interest'       => $request->interest,
@@ -501,7 +501,7 @@ class TrainerProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'trainer_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -526,7 +526,7 @@ class TrainerProfileController extends Controller
                 }
             }
 
-            return $this->successResponse(null, 'TrainingMaterialsDocument details updated successfully.');
+            return $this->successResponse(null, 'Trainer skills details updated successfully.');
 
         } catch (\Exception $e) {
             return response()->json([
@@ -624,7 +624,7 @@ class TrainerProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'trainer_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();

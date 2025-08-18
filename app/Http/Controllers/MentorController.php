@@ -232,23 +232,25 @@ class MentorController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
             'phone_number' => 'required|unique:mentors,phone_number,' . $mentor->id,
             'dob' => 'required|date',
+            'phone_code' => 'required',
             'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|digits:5',
             'national_id' => [
                 'required',
                 'min:10',
                 function ($attribute, $value, $fail) use ($mentor) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)->exists();
                     $existsInMentors = Mentors::where('national_id', $value)
                         ->where('id', '!=', $mentor->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers || $existsInMentors) {
+                    if ($existsInMentors) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -262,7 +264,7 @@ class MentorController extends Controller
             'job_role.*' => 'required|string',
             'organization.*' => 'required|string',
             'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date',
+            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
 
             'training_skills' => 'required|string',
             'area_of_interest' => 'required|string',
@@ -273,6 +275,43 @@ class MentorController extends Controller
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+        ],[
+            // ✅ Custom messages
+            'name.required' => 'Please enter your full name.',
+            'name.regex' => 'The name should contain only letters and single spaces.',
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already taken.',
+            'phone_number.required' => 'Please enter your phone number.',
+            'phone_number.unique' => 'This phone number is already taken.',
+            'dob.required' => 'Please enter your date of birth.',
+            'city.required' => 'Please enter your city.',
+            'state.required' => 'Please enter your state.',
+            'national_id.required' => 'Please enter your national ID.',
+            'national_id.min' => 'National ID must be at least 10 characters.',
+
+            'high_education.*.required' => 'Please enter your highest education.',
+            'institution.*.required' => 'Please enter the institution name.',
+            'graduate_year.*.required' => 'Please enter your graduation year.',
+            'job_role.*.required' => 'Please enter your job role.',
+            'organization.*.required' => 'Please enter the organization name.',
+            'starts_from.*.required' => 'Please enter the start date.',
+            'end_to.*.required' => 'Please enter the end date.',
+
+            'training_skills.required' => 'Please enter your training skills.',
+            'area_of_interest.required' => 'Please enter your area of interest.',
+            'job_category.required' => 'Please select your job category.',
+            'website_link.required' => 'Please enter your website link.',
+            'website_link.url' => 'Please enter a valid website URL.',
+            'portfolio_link.required' => 'Please enter your portfolio link.',
+            'portfolio_link.url' => 'Please enter a valid portfolio URL.',
+
+            'resume.required' => 'Please upload your resume.',
+            'resume.mimes' => 'Resume must be a file of type: pdf, doc, docx.',
+            'profile_picture.required' => 'Please upload your profile picture.',
+            'profile_picture.image' => 'Profile picture must be an image.',
+            'training_certificate.required' => 'Please upload your training certificate.',
+            'training_certificate.mimes' => 'Training certificate must be a file of type: pdf, doc, docx.',
         ]);
 
         DB::beginTransaction();
@@ -282,9 +321,15 @@ class MentorController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
+            'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
+            'address' => $validated['address'],
             'city' => $validated['city'],
+            'state' => $validated['state'],
+            'country' => $validated['country'],
+            'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
+            'is_registered' => 1
         ]);
 
         // Save education
@@ -577,18 +622,70 @@ class MentorController extends Controller
         ]);
     }
 
+    // public function updateSlotTime(Request $request)
+    // {
+    //     $request->validate([
+    //         'id' => 'required|exists:booking_slots,id',
+    //         'start_time' => 'required',
+    //         'end_time' => 'required|after:start_time',
+    //     ]);
+
+    //     // Convert to 24-hour format
+    //     $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
+    //     $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+
+    //     $slot = BookingSlot::findOrFail($request->id);
+    //     $slot->update([
+    //         'start_time' => $startTime,
+    //         'end_time' => $endTime,
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Slot time updated successfully.',
+    //         'slot' => $slot,
+    //     ]);
+    // }
     public function updateSlotTime(Request $request)
     {
         $request->validate([
             'id' => 'required|exists:booking_slots,id',
             'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'end_time' => 'required',
         ]);
 
         // Convert to 24-hour format
         $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
         $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
 
+        // ✅ Check same start and end time
+        if ($startTime === $endTime) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Start time and end time cannot be the same.',
+            ], 422);
+        }
+
+        // ✅ Check if another slot overlaps
+        $exists = BookingSlot::where('id', '!=', $request->id)
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->whereBetween('start_time', [$startTime, $endTime])
+                ->orWhereBetween('end_time', [$startTime, $endTime])
+                ->orWhere(function ($q2) use ($startTime, $endTime) {
+                    $q2->where('start_time', '<=', $startTime)
+                        ->where('end_time', '>=', $endTime);
+                });
+            })
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This time slot is already selected.',
+            ], 422);
+        }
+
+        // ✅ Update slot if no error
         $slot = BookingSlot::findOrFail($request->id);
         $slot->update([
             'start_time' => $startTime,
@@ -601,6 +698,9 @@ class MentorController extends Controller
             'slot' => $slot,
         ]);
     }
+
+
+
 
 
     public function deleteSlot(Request $request)
@@ -629,7 +729,9 @@ class MentorController extends Controller
 
     public function updateStatus(Request $request)
     {
-        $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+        // $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+        $date = Carbon::createFromFormat('Y-m-d', $request->date)->addDay()->format('Y-m-d');
+
         $slot = BookingSlot::find($request->slot_id);
 
         if (!$slot) {
@@ -787,12 +889,16 @@ class MentorController extends Controller
         $mentor = auth()->guard('mentor')->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
-            'phone' => 'required|string|max:15',
-            'dob' => 'nullable|date',
-            'national_id' => 'nullable|string|max:15',
-            'location' => 'nullable|string|max:255',
+            'phone' => 'required|digits:9',
+            'dob' => 'required|date',
+            'national_id' => 'required|string|max:15',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'pin_code' => 'required|digits:5',
             'about_mentor' => 'nullable|string',
         ]);
 
@@ -802,7 +908,11 @@ class MentorController extends Controller
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
-            'city' => $validated['location'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'state' => $validated['state'] ?? null,
+            'country' => $validated['country'] ?? null,
+            'pin_code' => $validated['pin_code'] ?? null,
             'about_mentor' => $validated['about_mentor'] ?? null,
         ]);
 

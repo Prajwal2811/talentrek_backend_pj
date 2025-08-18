@@ -26,7 +26,7 @@ class SeekerProfileController extends Controller
             // Fetch jobseeker personal information
             $jobseekerPersonal = Jobseekers::select(
                 'id', 'name', 'email', 'gender', 'phone_code', 'phone_number',
-                'date_of_birth', 'city', 'address','state', 'address','pin_code','country' )->where('id', $id)->first();
+                'date_of_birth', 'city', 'address','state', 'address','pin_code','country','national_id' )->where('id', $id)->first();
             
             $JobSeekPersonal = $jobseekerPersonal->toArray();
             if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {

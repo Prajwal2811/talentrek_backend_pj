@@ -9,22 +9,36 @@ class JobseekerTrainingMaterialPurchase extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+   protected $fillable = [
         'jobseeker_id',
         'trainer_id',
         'material_id',
         'training_type',
         'session_type',
         'batch_id',
-        'purchase_for',
-        'payment_id',
+        'payment_method',
+        'amount',
+        'tax',
+        'discount',
+        'status',
+        'transaction_id',
     ];
+
 
     // Relationships
     public function jobseeker()
     {
-        return $this->belongsTo(Jobseekers::class);
+        return $this->belongsTo(Jobseekers::class, 'jobseeker_id');
     }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture');
+    }
+
+
 
     public function trainer()
     {
@@ -46,6 +60,7 @@ class JobseekerTrainingMaterialPurchase extends Model
         return $this->belongsTo(PaymentHistory::class, 'payment_id');
     }
 
+    
 
 
 }

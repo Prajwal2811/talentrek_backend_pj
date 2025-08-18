@@ -56,7 +56,7 @@ class TrainingMaterial extends Model
 
     public function latestWorkExperience()
     {
-        return $this->hasOne(WorkExperience::class, 'user_id', 'id') // user_id in work_experience = trainer's id
+        return $this->hasOne(WorkExperience::class, 'user_id', 'trainer_id') // user_id in work_experience = trainer's id
             ->where('user_type', 'trainer') // filter only trainer-type
             ->orderByRaw('ABS(DATEDIFF(end_to, CURDATE()))') // closest to today
             ->select('user_id', 'job_role', 'end_to');
