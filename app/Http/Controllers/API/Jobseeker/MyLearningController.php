@@ -114,7 +114,7 @@ class MyLearningController extends Controller
             $allPurchases = JobseekerBookingSession::select('*')
             ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo','mentors','WorkExperience'])
                 ->where('jobseeker_id', $jobseekerId)
-                ->where('status','confirmed')
+                ->where('status','pending')
                 ->where('user_type','mentor')
                 ->get()
                 ->map(function ($session) use ($today) {
@@ -185,7 +185,7 @@ class MyLearningController extends Controller
             $allPurchases = JobseekerBookingSession::select('*')
             ->with(['assessorLatestWorkExperience', 'assessorAdditionalInfo','assessors','AssessorWorkExperience'])
                 ->where('jobseeker_id', $jobseekerId)
-                ->where('status','confirmed')
+                ->where('status','pending')
                 ->where('user_type','assessor')
                 ->get()
                 ->map(function ($session) use ($today) {
@@ -258,7 +258,7 @@ class MyLearningController extends Controller
             $allPurchases = JobseekerBookingSession::select('*')
             ->with(['coachLatestWorkExperience', 'coachAdditionalInfo','coaches','coachWorkExperience'])
                 ->where('jobseeker_id', $jobseekerId)
-                ->where('status','confirmed')
+                ->where('status','pending')
                 ->where('user_type','coach')
                 ->get()
                 ->map(function ($session) use ($today) {

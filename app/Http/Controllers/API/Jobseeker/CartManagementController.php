@@ -239,24 +239,47 @@ class CartManagementController extends Controller
     {
         $data = $request->all();
 
-        $rules = [
-            'material_id' => 'required|integer',
-            'jobseekerId'  => 'required|integer',
-            'trainer_id' => 'required',
-            //'training_type' => 'required',
-           // 'batch_id' => 'required|integer',
-            //'purchase_for' => 'required',
+        // $rules = [
+        //     'material_id' => 'required|integer',
+        //     'jobseekerId'  => 'required|integer',
+        //     'trainer_id' => 'required',
+        //     'training_type' => 'required|in:online,classroom,recorded',
+        //     'session_type' => 'required_if:training_type,online|in:online,classroom,recorded',
+        //     'batch' => 'required_if:training_type,online|exists:training_batches,id',
+        //     'payment_method' => 'required|in:card,upi'
             
-        ];        
-        $validator = Validator::make($data, $rules);
+        // ];        
+        // $validator = Validator::make($data, $rules);
 
-        // Return only the first error
+        // // Return only the first error
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => $validator->errors()->first()
+        //     ], 200);
+        // }    
+
+        $rules = [
+            'material_id'    => 'required|integer',
+            'jobseekerId'    => 'required|integer',
+            'trainer_id'     => 'required',
+            'training_type'  => 'required|in:online,classroom,recorded',
+            'payment_method' => 'required|in:card,upi',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        // ✅ Apply batch validation only if training_type = online
+        $validator->sometimes('batch', 'required|exists:training_batches,id', function ($input) {
+            return in_array($input->training_type, ['online', 'classroom']);
+        });
+         $validator->sometimes('session_type', 'required', function ($input) {
+            return in_array($input->training_type, ['online', 'classroom']);
+        });
+
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 200);
-        }    
+            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 422);
+        }
 
         try {
             
@@ -273,15 +296,26 @@ class CartManagementController extends Controller
                 return response()->json(['status' => false, 'message' => 'This material already purchased.'], 200);
             }
 
+            $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
+
+            $actualPrice = $material->training_price;
+            $offerPrice = $material->training_offer_price;
+            $savedAmount = $actualPrice - $offerPrice;
+            $tax = round($offerPrice * 0.10, 2);
+            $total = $offerPrice + $tax;
+
             JobseekerTrainingMaterialPurchase::create([
                 'jobseeker_id' => $jobseekerId,
-                'material_id' => $request->material_id,
-                'batch_id' => 1,
-                'training_type' => 'recorded',
-                'purchase_for' => 'individual',
-                'session_type' => 'online',
-                'trainer_id' => $request->trainer_id,
-                'payment_id'=>1
+                'trainer_id' => $material->trainer_id,
+                'material_id' => $material->id,
+                'training_type' => $request->training_type,
+                'session_type' => $request->session_type,
+                'batch_id' => $request->batch,
+                'payment_method' => $request->payment_method,
+                'amount' => $total,
+                'tax' => $tax,
+                'discount' => $savedAmount,
+                'status' => 'paid',
             ]);
 
             return response()->json(['status' => true, 'message' => $request->user_type.' material purchased successfully.']);
@@ -294,7 +328,6 @@ class CartManagementController extends Controller
             ], 500);
         }
     }
-<<<<<<< HEAD
 
     public function showTrainingMaterialsBatches($id,$jobseekerId)
     {      
@@ -441,6 +474,4 @@ class CartManagementController extends Controller
         ]]);
         
     }
-=======
->>>>>>> 4efe38c3cd542c58ff3a502f4cf29067996d470d
 }
