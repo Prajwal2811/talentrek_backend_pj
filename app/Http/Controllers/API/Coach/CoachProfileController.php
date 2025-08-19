@@ -25,8 +25,13 @@ class CoachProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Coach::select('*')->where('id', $id)->first();
+            $TrainersPersonal = Coach::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_coach as description')->where('id', $id)->first();
            
+            $coachPersonal = $TrainersPersonal->toArray();
+            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $coachPersonal['date_of_birth'] = date('d/m/Y', strtotime($TrainersPersonal->date_of_birth));
+            }
+
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Coach not found.', 404);
             }
@@ -46,7 +51,17 @@ class CoachProfileController extends Controller
             )
             ->where('user_id', $id)
             ->where('user_type', 'coach')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->starts_from = Carbon::parse($item->starts_from)->format('d/m/Y');
+                
+                if (strtolower($item->end_to) !== 'work here') {
+                    $item->end_to = Carbon::parse($item->end_to)->format('d/m/Y');
+                }
+                // else keep 'work here' as it is
+
+                return $item;
+            });
 
             $Trainerskill = TrainingExperience::select('id','user_id','training_skills','area_of_interest','job_category','website_link','portfolio_link')
             ->where('user_id', $id)
@@ -62,7 +77,7 @@ class CoachProfileController extends Controller
 
             // Return combined response
             return $this->successResponse([
-                'CoachPersonal'       => $TrainersPersonal,
+                'CoachPersonal'       => $coachPersonal,
                 'CoachEducation'      => $TrainersEducation,
                 'CoachWorkExp'        => $TrainersWorkExp,
                 'Coachskill'          => $Trainerskill,
@@ -78,6 +93,8 @@ class CoachProfileController extends Controller
 
     public function updatePersonalInfoDetails(Request $request)
     {
+        $TrainersId = $request->coach_id;
+        $Trainers = Coach::where('id', $TrainersId)->first();
         // $request->validate([
         //     'name'         => 'required|string|max:255',
         //     'gender'       => 'required|in:Male,Female,Other',
@@ -100,14 +117,12 @@ class CoachProfileController extends Controller
             'national_id' => [
                 'required',
                 'min:10',
-                function ($attribute, $value, $fail) use ($jobseeker) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)
-                        ->where('id', '!=', $jobseeker->id)
+                function ($attribute, $value, $fail) use ($Trainers) {
+                    $existsInCoach = Coach::where('national_id', $value)
+                        ->where('id', '!=', $Trainers->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                    if ($existsInCoach) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -141,8 +156,7 @@ class CoachProfileController extends Controller
         }
 
         try {
-            $TrainersId = $request->coach_id;
-            $Trainers = Coach::where('id', $TrainersId)->first();
+            
 
             if (!$Trainers) {
                 return response()->json([
@@ -168,7 +182,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -262,7 +276,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -391,7 +405,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -489,7 +503,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'coach')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -612,7 +626,7 @@ class CoachProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'coach_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();

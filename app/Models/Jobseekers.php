@@ -26,8 +26,11 @@ class Jobseekers extends Authenticatable
         'date_of_birth',
         'national_id',
         'city',
+        'state',
         'address',
         'password',
+        'pin_code',
+        'country',
         'pass',
         'role',
         'otp',
@@ -95,9 +98,15 @@ class Jobseekers extends Authenticatable
 
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(PaymentHistory::class);
     }
 
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture');
+    }
     
 
 }

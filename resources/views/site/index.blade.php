@@ -1,7 +1,4 @@
 <?php
-    
-    
-
     // Fetch all trainers
     $trainers = DB::table('trainers')->get();
 
@@ -10,7 +7,7 @@
         $profile = DB::table('additional_info')
             ->where('user_id', $trainer->id)
             ->where('user_type', 'trainer')
-            ->where('doc_type', 'profile_picture')
+            ->where('doc_type', 'trainer_profile_picture')
             ->first();
 
         $trainer->profile_picture = $profile ? $profile->document_path : null;
@@ -30,11 +27,472 @@
             $material->batches = DB::table('training_batches')
                 ->where('training_material_id', $material->id)
                 ->get();
+            
+            $material->rating = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->avg('ratings');
+
+            $material->rating_count = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->count();
+
+            $material->reviews = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->select('ratings', 'reviews')
+                ->get();  
         }
     }
 
+    $jobseekerId = auth()->guard('jobseeker')->id();
+    
+    $trainersList = DB::table('jobseeker_training_material_purchases as p')
+        ->join('trainers as t', 'p.trainer_id', '=', 't.id')
+        ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 't.id')
+                ->where('ai.user_type', '=', 'trainer')
+                ->where('ai.doc_type', '=', 'profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            't.id as trainer_id', 
+            't.name as trainer_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+        ->get();
+
 ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @include('site.componants.header')
+
+<!-- CHAT MODULE CSS START -->
+
+<style>
+    /* CSS */
+    .chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 70px;
+    display: flex;
+    align-items: center;
+    z-index: 10000; /* ⬅️ Make sure it's higher than chatBox or chatModal */
+        cursor: pointer;
+    }
+
+    .chat-label {
+    background-color: white;
+    padding: 10px 20px;              /* increased padding */
+    border-radius: 25px;             /* more rounded */
+    font-weight: bold;
+    font-size: 18px;                 /* larger text */
+    margin-right: 8px;              /* more spacing */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 2;
+    }
+
+    .chat-icon {
+    background-color: #e36a42;
+    color: white;
+    padding: 12px;                   /* more inner space */
+    border-radius: 50% 50% 0% 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;                    /* larger icon bubble */
+    width: 50px;
+    font-size: 22px;                 /* larger icon */
+    position: relative;
+    z-index: 1;
+    }
+
+    /* Chat Modal */
+    .chat-modal {
+    position: fixed;
+    bottom: 90px;
+    right: 30px;
+    width: 360px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    overflow: hidden;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+    min-height: 400px;
+    }
+
+    .hidden {
+    display: none;
+    }
+
+    /* Tabs */
+    .chat-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    }
+
+    .chat-tabs button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+    font-weight: 600;
+    cursor: pointer;
+    color: #555;
+    }
+
+    .chat-tabs button.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    }
+
+    /* Chat List Area */
+    .chat-lists {
+    overflow-y: auto;
+    flex: 1;
+    }
+
+    /* Each Chat User */
+    .chat-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    }
+
+    .chat-user img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    }
+
+    .chat-text {
+    flex: 1;
+    margin-left: 10px;
+    overflow: hidden;
+    }
+
+    .chat-name {
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+    .chat-message {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+    .chat-time {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    margin-left: 8px;
+    }
+
+</style>
+<style>
+    .chat-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        font-size: 18px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        cursor: pointer;
+        z-index: 9999;
+    }
+
+    .chat-modal {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .chat-tabs {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+        background: #f6f6f6;
+    }
+
+    .chat-tabs button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .chat-tabs button.active {
+        background: #007bff;
+        color: white;
+    }
+
+    .chat-lists {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .chat-user {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .chat-user img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .chat-text {
+        flex: 1;
+    }
+
+    .chat-name {
+        font-weight: 600;
+    }
+
+    .chat-message {
+        font-size: 13px;
+        color: #777;
+    }
+
+    .chat-time {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+</style>
+<style>
+    .chat-box {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); /* ⬅️ Stronger shadow */
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+
+    .chat-box.hidden {
+        display: none;
+    }
+
+    .chat-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .chat-header img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .chat-name {
+        font-weight: bold;
+    }
+
+    .chat-subtext {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 8px 12px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+ 
+
+
+    .chat-input {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+
+    .chat-input input {
+        flex-grow: 1;
+        border: none;
+        padding: 10px;
+        outline: none;
+    }
+
+    .chat-input button {
+        padding: 10px 15px;
+        border: none;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+
+    .chat-header i {
+        font-size: 18px;
+        cursor: pointer;
+        margin-right: 6px;
+    }
+
+    .chat-modal.hidden {
+        display: none;
+    }
+</style>
+
+<style>
+    /* #chatMessages {
+        display: flex;
+        flex-direction: column;
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #f9f9f9;
+    } */
+
+    #chatMessages {
+        display: flex;
+        flex-direction: column;
+        /* ❌ remove height & overflow here */
+        /* height: 400px; */
+        /* overflow-y: auto; */
+        padding: 10px;
+        background-color: #f9f9f9;
+    }
+
+    .chat-body-box {
+        max-height: 400px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+
+    .chat-body-box {
+        overflow-y: scroll;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE and Edge */
+
+        scroll-behavior: smooth; /* Optional: for smooth scrolling */
+    }
+
+    /* For Chrome, Safari, and Edge (WebKit browsers) */
+    .chat-body-box::-webkit-scrollbar {
+        display: none;
+    }
+
+
+
+    .message {
+        padding: 10px 15px;
+        border-radius: 15px;
+        max-width: 60%;
+        word-wrap: break-word;
+        margin: 5px 0;
+        display: inline-block;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .message.outgoing {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+        text-align: left;
+        border-top-left-radius: 0;
+    }
+
+    .message.incoming {
+        background-color: #e4e6eb;
+        color: #000;
+        align-self: flex-start;
+        text-align: left;
+        border-top-right-radius: 0;
+    }
+
+
+</style>
+
+@include('site.componants.header')
+<!-- CHAT MODULE CSS END -->
 <body>
     <div class="loading-area">
         <div class="loading-box"></div>
@@ -69,13 +527,330 @@
                 </div>
             </div>
 
-          
-       
+
             <!-- Training Programs Section -->
             <section class="py-16 bg-white relative">
+               
+                <!-- Font Awesome CDN -->
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+                <!-- Chat Button -->
+                <div class="chat-button" onclick="toggleChatModal()">
+                    <div class="chat-label">Chat</div>
+                    <div class="chat-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                </div>
+
+                <!-- Chat Modal -->
+                <div id="chatModal" class="chat-modal hidden">
+                    <div class="chat-tabs">
+                        <button onclick="showTab('trainer')" class="active">Trainer</button>
+                        <button onclick="showTab('mentor')">Mentor</button>
+                        <button onclick="showTab('coach')">Coach</button>
+                        <button onclick="showTab('assessor')">Assessor</button>
+                    </div>
+
+                    <!-- Chat Lists -->
+                    <div class="chat-lists">
+                        <!-- Trainer Tab -->
+                        <div id="trainer" class="tab-content active">
+                            @foreach($trainersList as $trainer)
+                                <div class="chat-user" onclick="openChat({{ $trainer->trainer_id }}, 'trainer', '{{ $trainer->trainer_name }}', '{{ $trainer->profile_picture ?? asset('images/default-profile.png') }}')">
+>
+                                    <img src="{{ $trainer->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $trainer->trainer_name }}</div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+
+
+                        <!-- Mentor Tab -->
+                        <div id="mentor" class="tab-content">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/men/2.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Mentor David</div>
+                                    <div class="chat-message">Mentor message sample</div>
+                                </div>
+                                <div class="chat-time">06:00 PM</div>
+                            </div>
+                        </div>
+
+                        <!-- Coach Tab -->
+                        <div id="coach" class="tab-content">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/women/3.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Coach Lucy</div>
+                                    <div class="chat-message">Coach message sample</div>
+                                </div>
+                                <div class="chat-time">05:30 PM</div>
+                            </div>
+                        </div>
+
+                        <!-- Assessor Tab -->
+                        <div id="assessor" class="tab-content">
+                            <div class="chat-user">
+                                <img src="https://randomuser.me/api/portraits/men/4.jpg" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Assessor Mike</div>
+                                    <div class="chat-message">Assessor message sample</div>
+                                </div>
+                                <div class="chat-time">04:45 PM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Window Box -->
+                <!-- <div id="chatBox" class="chat-box hidden">
+                    <div class="chat-header">
+                        <i class="fa-solid fa-arrow-left" onclick="backToChatList()"></i>
+                        <img id="chatProfile" src="" />
+                        <div>
+                            <div id="chatName" class="chat-name">Name</div>
+                            <div id="chatSubtext" class="chat-subtext">Lorem ipsum sit dolor amet</div>
+                        </div>
+                        <div id="chatTime" class="chat-time">00:00 PM</div>
+                    </div>
+                    <div class="chat-body">
+                        <div class="message incoming">Hello, How was your lecture</div>
+                        <div class="message outgoing">Very easy to understand</div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" placeholder="Write your message here ....." />
+                        <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div> -->
+                <div id="chatBox" class="chat-box hidden">
+                    <div class="chat-header">
+                        <i class="fa-solid fa-arrow-left" onclick="backToChatList()"></i>
+                        <img id="chatProfile" src="" />
+                        <div>
+                            <div id="chatName" class="chat-name">Name</div>
+                            <div id="chatSubtext" class="chat-subtext">Lorem ipsum sit dolor amet</div>
+                        </div>
+                        <div id="chatTime" class="chat-time">00:00 PM</div>
+                    </div>
+
+                    <div class="chat-body chat-body-box"  id="chatBody">
+                        <div id="chatMessages"></div> <!-- ✅ Important -->
+                    </div>
+
+                    <div class="chat-input">
+                        <input type="hidden" id="receiver_id">
+                        <input type="hidden" id="receiver_type">
+
+                        <input type="text" id="message" placeholder="Write your message here ....." />
+                        <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                    <!-- Laravel Echo -->
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
+                <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+                <meta name="csrf-token" content="{{ csrf_token() }}">
+
+                <script>
+                    Pusher.logToConsole = true;
+
+                    window.Echo = new Echo({
+                        broadcaster: 'pusher',
+                        key: '18bff0f2c88aa583c6d7',
+                        wsHost: window.location.hostname,
+                        wsPort: 6001,
+                        wssPort: 6001,
+                        forceTLS: false,
+                        enableStats: false,
+                        encrypted: false,
+                        enabledTransports: ['ws', 'wss'],
+                        authEndpoint: '/broadcasting/auth',
+                        withCredentials: true,  // Ensure cookies are sent with the request
+                        auth: {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            }
+                        }
+                    });
+
+                </script>
+
+
+                <script>
+                   
+                    const currentUserId = {{ auth()->guard('jobseeker')->id() }};
+                    const currentUserType = 'jobseeker'; 
+                    //console.log(currentUserId);
+                    // Echo.private(`chat.jobseeker.${currentUserId}`)
+                    Echo.channel('chat.jobseeker')
+                        .error((err) => {
+                            console.error('Subscription error:', err);
+                        })
+                        .listen('.message.sent', (e) => {
+                            if (parseInt(e.sender_id) !== parseInt(currentUserId)) {
+                                appendMessage(e);
+                                scrollToBottom();
+                            }
+                        })
+                        .listen('.message.deleted', (e) => {
+                            $(`#message-${e.messageId}`).remove();
+                        });
+
+                    
+                    $('#sendBtn').on('click', function () {
+                        const receiverId = $('#receiver_id').val();
+                        const receiverType = $('#receiver_type').val();
+                        const messageText = $('#message').val().trim();
+
+                        if (!messageText) return;
+
+                        $.ajax({
+                            url: '/chat/send',
+                            method: 'POST',
+                            data: {
+                                receiver_id: receiverId,
+                                receiver_type: receiverType,
+                                message: messageText,
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function (res) {
+                                $('#message').val('');
+
+                                if (res && res.id) {
+                                    appendMessage({
+                                        id: res.id,
+                                        sender_id: res.sender_id,
+                                        sender_type: res.sender_type,
+                                        message: res.message,
+                                        created_at: res.created_at
+                                    });
+                                    getMessages(receiverId, receiverType);
+                                } else {
+                                    console.error('Unexpected response:', res);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Send error:', error);
+                                alert('Message sending failed.');
+                            }
+                        });
+                    });
+
+                    
+                    function getMessages(receiverId, receiverType) {
+                        $.get('/chat/messages', {
+                            receiver_id: receiverId,
+                            receiver_type: receiverType
+                        }, function (messages) {
+                            $('#chatMessages').html('');
+                            messages.forEach(msg => appendMessage(msg));
+                            scrollToBottom();
+                        });
+                    }
+
+                
+                    function appendMessage(msg) {
+                        const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+
+                        const msgHtml = `
+                            <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
+                                ${msg.message}
+                            </div>
+                        `;
+                        $('#chatMessages').append(msgHtml);
+                        //scrollToBottom();
+                    }
+
+                    function openChat(receiverId, receiverType, receiverName, receiverProfile) {
+                        $('#receiver_id').val(receiverId);
+                        $('#receiver_type').val(receiverType);
+                        $('#chatName').text(receiverName);
+                        $('#chatProfile').attr('src', receiverProfile);
+                        $('#chatTime').text(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+                        $('#chatModal').addClass('hidden');
+                        $('#chatBox').removeClass('hidden');
+
+                        getMessages(receiverId, receiverType);
+
+                    }
+
+                    function scrollToBottom() {
+                        const chatBody = document.querySelector('.chat-body-box');
+                        if (chatBody) {
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                        }
+                    }
+
+
+                </script>
+
+
+
+            
+
+ 
+                <script>
+                    // Toggle modal open/close
+                    function toggleChatModal() {
+                        const modal = document.getElementById("chatModal");
+                        const chatBox = document.getElementById("chatBox");
+                        modal.classList.toggle("hidden");
+                        chatBox.classList.add("hidden"); // always close chat when opening modal
+                    }
+
+                    // Tab switcher
+                    function showTab(tabId) {
+                        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                        document.getElementById(tabId).classList.add('active');
+
+                        document.querySelectorAll('.chat-tabs button').forEach(btn => btn.classList.remove('active'));
+                        const activeBtn = Array.from(document.querySelectorAll('.chat-tabs button')).find(btn => btn.textContent.toLowerCase() === tabId);
+                        if (activeBtn) activeBtn.classList.add('active');
+                    }
+
+                    // Open chat with clicked user
+                    document.querySelectorAll('.chat-user').forEach(user => {
+                        user.addEventListener('click', function () {
+                            const imgSrc = this.querySelector('img').src;
+                            const name = this.querySelector('.chat-name').textContent;
+                            const message = this.querySelector('.chat-message').textContent;
+                            const time = this.querySelector('.chat-time').textContent;
+
+                            document.getElementById('chatProfile').src = imgSrc;
+                            document.getElementById('chatName').textContent = name;
+                            document.getElementById('chatSubtext').textContent = message;
+                            document.getElementById('chatTime').textContent = time;
+
+                            // Hide list modal, show chat box
+                            document.getElementById('chatModal').classList.add('hidden');
+                            document.getElementById('chatBox').classList.remove('hidden');
+                        });
+                    });
+
+                    // Back to chat list
+                    function backToChatList() {
+                        document.getElementById('chatBox').classList.add('hidden');
+                        document.getElementById('chatModal').classList.remove('hidden');
+                    }
+                </script>
+
+
+
+
+
+
+
+
                 <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold text-black">Training Programs</h2>
-                <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    <h2 class="text-3xl font-bold text-black">Training Programs</h2>
+                    <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                 </div>
 
                 <div class="relative max-w-[1300px] mx-auto px-4">
@@ -177,8 +952,17 @@
                                             <p class="text-sm text-gray-500 mb-2">{{ $material->training_sub_title }}</p>
 
                                             <div class="flex items-center text-yellow-500 text-sm mb-2">
-                                                <span class="mr-1">★★★★☆</span>
-                                                <span class="text-gray-500 text-xs">(4/5) Rating</span>
+                                               @php
+                                                $avgRating = round($material->rating ?? 0, 1); // rounded to 1 decimal place
+                                                $filledStars = floor($avgRating); // for star display
+                                                @endphp
+
+                                                <p class="mt-1 text-yellow-500">
+                                                    @for ($i = 1; $i <= 5; $i++)
+                                                        <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
+                                                    @endfor
+                                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) Rating</span>
+                                                </p>
                                             </div>
 
                                             <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4">
@@ -195,6 +979,11 @@
                                                     {{ $totalHours }} hrs
                                                 </li>
                                                 <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? 'Beginner' }}</li>
+                                                <li>
+                                                    <i class="bi bi-play-circle"></i>
+                                                    {{ !empty($material->session_type) ? $material->session_type : 'Recorded' }}
+                                                </li>
+
                                             </ul>
 
                                             <div class="flex items-center justify-between">
@@ -510,7 +1299,7 @@
             </style>
 
 
-            <script>
+            <!-- <script>
                 const swiper = new Swiper(".mySwiper", {
                     slidesPerView: 1,
                     spaceBetween: 20,
@@ -553,7 +1342,7 @@
                 font-size: 0.95rem;
                 margin-top: 5px;
                 }
-            </style>
+            </style> -->
            
 
 

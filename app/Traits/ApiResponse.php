@@ -31,5 +31,7 @@ trait ApiResponse
             'data'    => $data,
         ], $code);
     }
+
+    
 }
 

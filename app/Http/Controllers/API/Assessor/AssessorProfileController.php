@@ -25,8 +25,10 @@ class AssessorProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Assessors::select('*')->where('id', $id)->first();
-           
+            $TrainersPersonal = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','shortlist','avatar','about_assessor as description' ,'state', 'address','pin_code','country')->where('id', $id)->first();
+           if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $TrainersPersonal->date_of_birth = Carbon::parse($TrainersPersonal->date_of_birth)->format('d/m/Y');
+            }
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Trainer not found.', 404);
             }
@@ -46,7 +48,17 @@ class AssessorProfileController extends Controller
             )
             ->where('user_id', $id)
             ->where('user_type', 'assessor')
-            ->get();
+            ->get() 
+            ->map(function ($item) {
+                $item->starts_from = Carbon::parse($item->starts_from)->format('d/m/Y');
+                
+                if (strtolower($item->end_to) !== 'work here') {
+                    $item->end_to = Carbon::parse($item->end_to)->format('d/m/Y');
+                }
+                // else keep 'work here' as it is
+
+                return $item;
+            });
 
             $Trainerskill = TrainingExperience::select('*')
             ->where('user_id', $id)
@@ -79,6 +91,8 @@ class AssessorProfileController extends Controller
 
     public function updatePersonalInfoDetails(Request $request)
     {
+        $TrainersId = $request->assessor_id;
+        $Trainers = Assessors::where('id', $TrainersId)->first();
         // $request->validate([
         //     'name'         => 'required|string|max:255',
         //     'gender'       => 'required|in:Male,Female,Other',
@@ -100,14 +114,12 @@ class AssessorProfileController extends Controller
             'national_id' => [
                 'required',
                 'min:10',
-                function ($attribute, $value, $fail) use ($jobseeker) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)
-                        ->where('id', '!=', $jobseeker->id)
+                function ($attribute, $value, $fail) use ($Trainers) {
+                    $existsInAssessors = Assessors::where('national_id', $value)
+                        ->where('id', '!=', $Trainers->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                    if ($existsInAssessors) {
                         $fail('The national ID has already been taken.');
                     }
                 },

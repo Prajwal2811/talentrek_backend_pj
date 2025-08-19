@@ -122,9 +122,10 @@ class SlotManagementController extends Controller
             'date_format:d/m/Y',
             function ($attribute, $value, $fail) {
                 try {
-                    $date = Carbon::createFromFormat('d/m/Y', $value);
-                    
-                    if ($date->isPast() ) {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
                         $fail("The unavailable date must not be in the past.");
                     }
                 } catch (\Exception $e) {
@@ -146,7 +147,7 @@ class SlotManagementController extends Controller
         try {
                 $userId = $request->user_id;
                 $userType = $request->user_type;
-                $date = Carbon::parse($request->unavailableDate)->format('Y-m-d');
+                $dateAdd = Carbon::createFromFormat('d/m/Y',$request->unavailbaleDate)->format('Y-m-d');
 
                 // Get all booking slots for this user
                 $slots = BookingSlot::where('user_id', $userId)
@@ -161,7 +162,7 @@ class SlotManagementController extends Controller
                 }
 
                 foreach ($slots as $slot) {
-                    $existing = BookingSlotUnavailableDate::where('unavailable_date', $date)
+                    $existing = BookingSlotUnavailableDate::where('unavailable_date', $dateAdd)
                         ->where('booking_slot_id', $slot->id)
                         ->first();
 
@@ -172,7 +173,7 @@ class SlotManagementController extends Controller
                         // If not exists, insert (mark as unavailable)
                         BookingSlotUnavailableDate::create([
                             'booking_slot_id'   => $slot->id,
-                            'unavailable_date'  => $date
+                            'unavailable_date'  => $dateAdd
                         ]);
                     }
                 }
@@ -212,9 +213,10 @@ class SlotManagementController extends Controller
             'date_format:d/m/Y',
             function ($attribute, $value, $fail) {
                 try {
-                    $date = Carbon::createFromFormat('d/m/Y', $value);
-                    
-                    if ($date->isPast() ) {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
                         $fail("The unavailable date must not be in the past.");
                     }
                 } catch (\Exception $e) {
@@ -372,9 +374,10 @@ class SlotManagementController extends Controller
             'date_format:d/m/Y',
             function ($attribute, $value, $fail) {
                 try {
-                    $date = Carbon::createFromFormat('d/m/Y', $value);
-                    
-                    if ($date->isPast() ) {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
                         $fail("The mark date must not be in the past.");
                     }
                 } catch (\Exception $e) {
@@ -400,19 +403,19 @@ class SlotManagementController extends Controller
                     $existing->delete();
                     return response()->json([
                         'status' => 'success',
-                        'message' => 'Slot time available for .'.$date
+                        'message' => 'Slot time available for '.$request->markDate
                     ]);
                 }
 
                 // If not exists, insert (mark as unavailable)
                 BookingSlotUnavailableDate::create([
-                    'booking_slot_id'   => $slot->id,
+                    'booking_slot_id'   => $request->id,
                     'unavailable_date'  => $date
                 ]);                    
 
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Slot time unavailable for .'.$date
+                    'message' => 'Slot time unavailable for '.$request->markDate
                 ]);
 
         } catch (\Exception $e) {
@@ -473,9 +476,10 @@ class SlotManagementController extends Controller
             'date_format:d/m/Y',
             function ($attribute, $value, $fail) {
                 try {
-                    $date = Carbon::createFromFormat('d/m/Y', $value);
-                    
-                    if ($date->isPast() ) {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
                         $fail("The  date must not be in the past.");
                     }
                 } catch (\Exception $e) {

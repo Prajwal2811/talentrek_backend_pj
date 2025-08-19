@@ -14,11 +14,94 @@ use App\Models\EducationDetail;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
+use App\Models\Api\TrainingPrograms;
 use App\Models\AdditionalInfo;
+use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 class AppAuthenticationController extends Controller
 {
+    public function googleLoginSignUpForMCAJT(Request $request)
+    {
+       $validator = Validator::make($request->all(), [
+            'email'    => 'required|email',
+            'name'    => 'required',
+            'google_id' => 'required',
+            'type'     => 'required|in:jobseeker,mentor,assessor,coach,trainer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ Only the first error message
+            ], 422);
+        }
+        $map = [
+            'mentor'    => 'mentors',
+            'assessor'  => 'assessors',
+            'jobseeker' => 'jobseeker',
+            'trainer' => 'trainer',
+        ];
+        $type = $map[$request->type] ?? 'coach';
+        $modelMap = [
+            'jobseeker' => \App\Models\Jobseekers::class,
+            'mentors' => \App\Models\Mentors::class,
+            'assessors' => \App\Models\Assessors::class,
+            'coach' => \App\Models\Coach::class,
+            'trainer' => \App\Models\Trainers::class,
+        ];
+        $model = $modelMap[$type];
+        $user = $model::where('email', $request->email)->first();
+        // if (!$user || $user->status != 'active') {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Your account is inactive. Please contact admimnistrator.'
+        //     ], 401);
+        // }
+//print_r($user);
+        // if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+        //     ], 401);
+        // }
+
+        // if (!$user || !Hash::check($request->password, $user->password)) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Invalid credentials.'
+        //     ], 401);
+        // }
+        $firstName = $request->name;
+       $password = $firstName . '@talentrek';
+         if (!$user) {
+                $user = $model::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'google_id' => $request->google_id,
+                'status' => 'active',
+                'password' => Hash::make($password),
+                'pass' => $password,
+                'email_verified_at' => now(),
+                //'is_registered' => false
+            ]);
+        }
+        
+        $iSRegistered = $user->status !== null;
+        return response()->json([
+            'status' => true,
+            'iSRegistered' => $iSRegistered,
+            'message' => ucfirst($request->type) . ' login successful',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_registered' => $user->is_registered,
+                'type' => $request->type,
+            ]
+        ]);
+    }
+
     public function signIn(Request $request)
     {
        $validator = Validator::make($request->all(), [
@@ -48,12 +131,27 @@ class AppAuthenticationController extends Controller
         ];
         $model = $modelMap[$type];
         $user = $model::where('email', $request->email)->first();
+        if (!$user || $user->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact admimnistrator.'
+            ], 401);
+        }
+//print_r($user);
+        if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+            ], 401);
+        }
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials.'
             ], 401);
         }
+
         $iSRegistered = $user->status !== null;
         return response()->json([
             'status' => true,
@@ -63,7 +161,7 @@ class AppAuthenticationController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'is_registered' => $trainer->is_registered,
+                'is_registered' => $user->is_registered,
                 'type' => $request->type,
             ]
         ]);
@@ -492,5 +590,20 @@ class AppAuthenticationController extends Controller
             'contact_value' => $contactValue,
             'type' => $type,
         ]);
+    }   
+
+    public function skillsAreaOfInterestListing()
+    {
+       //try {
+            $skillsAreaOfInterestListing = TrainingPrograms::select('*')->get();
+            if ($skillsAreaOfInterestListing->isEmpty()) {
+                return $this->errorResponse('No skills area of interest list found.', 200,[]);
+            }
+            return $this->successResponse($skillsAreaOfInterestListing, 'Skills area of interest list fetched successfully.');
+        // } catch (\Exception $e) {
+        //     return $this->errorResponse('An error occurred while fetching skills area of interest list.', 500,[]);
+        // }
     }
+
+    
 }

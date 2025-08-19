@@ -12,6 +12,8 @@ use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\AdditionalInfo;
 use App\Models\Api\BookingSlotUnavailableDate;
 use App\Models\Api\BookingSession;
+use App\Models\SubscriptionPlan;
+
 use DB;
 use Carbon\Carbon;
 class SessionsManagementController extends Controller
@@ -46,7 +48,7 @@ class SessionsManagementController extends Controller
                 'zoom_meeting_id', 'zoom_join_url', 'zoom_start_url'
             )->where('user_id', $request->user_id)
             ->where('user_type', $request->type)
-            ->where('status', 'confirmed');
+            ->where('status', 'pending');
 
             // Clone the base query for each group
             $totalSessions = (clone $baseQuery)->get();
@@ -121,7 +123,7 @@ class SessionsManagementController extends Controller
                     $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
                 }
 
-                $upcomingSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
+                $upcomingSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
                 ->whereDate('slot_date', '>=', Carbon::today())
                 ->orderBy('slot_date', 'asc')
                 ->get()
@@ -256,7 +258,7 @@ class SessionsManagementController extends Controller
             } elseif ($type === 'coach') {
                 $relationships = ['jobseeker', 'jobseekerWorkExperience', 'jobseekerAdditionalInfo','bookingSlot'];
             }
-            $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'confirmed')
+            $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
                 ->whereDate('slot_date', '<', Carbon::today())                
                 ->orderBy('slot_date', 'asc')
                 ->get()->map(function ($item) use ($type) {
@@ -298,4 +300,16 @@ class SessionsManagementController extends Controller
         }
     }
 
+    public function subscriptionPlanListForMCAJT($type='mentor')
+    {
+    //    try {
+            $SubscriptionPlan = SubscriptionPlan::select('*')->where('user_type',$type)->where('is_active',1)->get();
+            if ($SubscriptionPlan->isEmpty()) {
+                return $this->errorResponse('No Subscription list found for '.$type.' .', 200,[]);
+            }
+            return $this->successResponse($SubscriptionPlan, 'Subscription list for '.$type.' fetched successfully.');
+        // } catch (\Exception $e) {
+        //     return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
+        // }
+    }
 }

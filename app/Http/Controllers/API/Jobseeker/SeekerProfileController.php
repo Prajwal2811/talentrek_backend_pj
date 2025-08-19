@@ -26,12 +26,12 @@ class SeekerProfileController extends Controller
             // Fetch jobseeker personal information
             $jobseekerPersonal = Jobseekers::select(
                 'id', 'name', 'email', 'gender', 'phone_code', 'phone_number',
-                'date_of_birth', 'city', 'address'
-            )->where('id', $id)->first();
-
-            // if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {
-            //     $jobseekerPersonal->date_of_birth = \Carbon\Carbon::parse($jobseekerPersonal->date_of_birth)->format('d-m-Y');
-            // }
+                'date_of_birth', 'city', 'address','state', 'address','pin_code','country','national_id' )->where('id', $id)->first();
+            
+            $JobSeekPersonal = $jobseekerPersonal->toArray();
+            if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {
+                $JobSeekPersonal['date_of_birth'] = date('d/m/Y', strtotime($jobseekerPersonal->date_of_birth));
+            }
 
 
             if (!$jobseekerPersonal) {
@@ -53,7 +53,17 @@ class SeekerProfileController extends Controller
             )
             ->where('user_id', $id)
             ->where('user_type', 'jobseeker')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->starts_from = Carbon::parse($item->starts_from)->format('d/m/Y');
+                
+                if (strtolower($item->end_to) !== 'work here') {
+                    $item->end_to = Carbon::parse($item->end_to)->format('d/m/Y');
+                }
+                // else keep 'work here' as it is
+
+                return $item;
+            });
 
             $jobseekerSkill = Skills::select(
                 'id', 'jobseeker_id', 'skills', 'interest', 'job_category',
@@ -78,7 +88,7 @@ class SeekerProfileController extends Controller
             }
             // Return combined response
             return $this->successWithCmsResponse([
-               'jobseekerPersonal'       => $jobseekerPersonal,
+               'jobseekerPersonal'       => $JobSeekPersonal,
                 'jobseekerEducation'      => $jobseekerEducation,
                 'jobseekerWorkExp'        => $jobseekerWorkExp,
                 'jobseekerSkill'          => $jobseekerSkill,
@@ -94,6 +104,8 @@ class SeekerProfileController extends Controller
 
     public function updatePersonalInfoDetails(Request $request)
     {
+        $jobseekerId = $request->jobseeker_id;
+        $jobseeker = Jobseekers::where('id', $jobseekerId)->first();
         // $request->validate([
         //     'name'         => 'required|string|max:255',
         //     'gender'       => 'required|in:Male,Female,Other',
@@ -116,13 +128,11 @@ class SeekerProfileController extends Controller
                 'required',
                 'min:10',
                 function ($attribute, $value, $fail) use ($jobseeker) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
                     $existsInJobseekers = Jobseekers::where('national_id', $value)
                         ->where('id', '!=', $jobseeker->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                    if ($existsInJobseekers) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -156,8 +166,7 @@ class SeekerProfileController extends Controller
         }
         
         try {
-            $jobseekerId = $request->jobseeker_id;
-            $jobseeker = Jobseekers::where('id', $jobseekerId)->first();
+            
 
             if (!$jobseeker) {
                 return response()->json([

@@ -119,8 +119,13 @@ class MyLearningController extends Controller
                 ->get()
                 ->map(function ($session) use ($today) {
                     $totalDays = collect($session->WorkExperience)->reduce(function ($carry, $exp) {
-                        $start = \Carbon\Carbon::parse($exp->start_from);
-                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? now() 
+                            : Carbon::parse($endRaw);
+
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $session->total_experience_days = $totalDays;
@@ -185,8 +190,13 @@ class MyLearningController extends Controller
                 ->get()
                 ->map(function ($session) use ($today) {
                     $totalDays = collect($session->AssessorWorkExperience)->reduce(function ($carry, $exp) {
-                        $start = \Carbon\Carbon::parse($exp->start_from);
-                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? now() 
+                            : Carbon::parse($endRaw);
+
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $session->total_experience_days = $totalDays;
@@ -253,8 +263,13 @@ class MyLearningController extends Controller
                 ->get()
                 ->map(function ($session) use ($today) {
                     $totalDays = collect($session->coachWorkExperience)->reduce(function ($carry, $exp) {
-                        $start = \Carbon\Carbon::parse($exp->start_from);
-                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? now() 
+                            : Carbon::parse($endRaw);
+
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $session->total_experience_days = $totalDays;
@@ -308,22 +323,56 @@ class MyLearningController extends Controller
 
     public function jobSeekerConsultationSession(Request $request)
     {
+        $data = $request->all();
+
+        $rules = [
+            'jobSeekerId'   => 'required|integer',
+            'sessionDate'   => 'required', // Optional: validate date format
+            'roleType'      => 'required|string',
+            'userId'        => 'required|integer',
+            'trainingMode'  => 'required|string',
+        ];
+        $rules["sessionDate"] = [
+            'required',
+            'date_format:d/m/Y',
+            function ($attribute, $value, $fail) {
+                try {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
+                        $fail("The session date must not be in the past.");
+                    }
+                } catch (\Exception $e) {
+                    $fail("The session date must be a valid date in d/m/Y format.");
+                }
+            },
+        ]; 
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }   
        try {  
             
-            $validator = Validator::make($request->all(), [
-                'jobSeekerId'   => 'required|integer',
-                'sessionDate'   => 'required|date', // Optional: validate date format
-                'roleType'      => 'required|string',
-                'userId'        => 'required|integer',
-                'trainingMode'  => 'required|string',
-            ]);
+            // $validator = Validator::make($request->all(), [
+            //     'jobSeekerId'   => 'required|integer',
+            //     'sessionDate'   => 'required|date', // Optional: validate date format
+            //     'roleType'      => 'required|string',
+            //     'userId'        => 'required|integer',
+            //     'trainingMode'  => 'required|string',
+            // ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first(), // ✅ Shows only the first error
-                ], 422);
-            }
+            // if ($validator->fails()) {
+            //     return response()->json([
+            //         'status' => false,
+            //         'message' => $validator->errors()->first(), // ✅ Shows only the first error
+            //     ], 422);
+            // }
 
            $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
 
@@ -338,13 +387,8 @@ class MyLearningController extends Controller
                                         ->exists();
 
                     $slot->is_available = !$isUnavailable;
-                   
-
-
-
                     return $slot;
-                });
-
+            });
 
             // Return success with data
             return response()->json([
@@ -361,23 +405,57 @@ class MyLearningController extends Controller
 
     public function jobSeekerBookAConsultationSession(Request $request)
     {
-       
-       try {
-            $validator = Validator::make($request->all(), [
-                'jobSeekerId'   => 'required|integer',
-                'sessionDate'   => 'required|date',        // Optional: ensure it's a valid date
-                'roleType'      => 'required|string',
-                'userId'        => 'required|integer',
-                'trainingMode'  => 'required|string',
-                'slot_id'       => 'required|integer',
-            ]);
+        $data = $request->all();
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first(), // ✅ Return only the first error
-                ], 422);
-            }
+        $rules = [
+            'jobSeekerId'   => 'required|integer',
+            'sessionDate'   => 'required|date',        // Optional: ensure it's a valid date
+            'roleType'      => 'required|string',
+            'userId'        => 'required|integer',
+            'trainingMode'  => 'required|string',
+            'slot_id'       => 'required|integer',
+        ];
+        $rules["sessionDate"] = [
+            'required',
+            'date_format:d/m/Y',
+            function ($attribute, $value, $fail) {
+                try {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);                    
+                    $today = Carbon::today();
+
+                    if ($date < $today) {
+                        $fail("The session date must not be in the past.");
+                    }
+                } catch (\Exception $e) {
+                    $fail("The session date must be a valid date in d/m/Y format.");
+                }
+            },
+        ]; 
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
+       try {
+            // $validator = Validator::make($request->all(), [
+            //     'jobSeekerId'   => 'required|integer',
+            //     'sessionDate'   => 'required|date',        // Optional: ensure it's a valid date
+            //     'roleType'      => 'required|string',
+            //     'userId'        => 'required|integer',
+            //     'trainingMode'  => 'required|string',
+            //     'slot_id'       => 'required|integer',
+            // ]);
+
+            // if ($validator->fails()) {
+            //     return response()->json([
+            //         'status' => false,
+            //         'message' => $validator->errors()->first(), // ✅ Return only the first error
+            //     ], 422);
+            // }
 
             $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
 

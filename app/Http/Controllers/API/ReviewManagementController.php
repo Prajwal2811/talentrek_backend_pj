@@ -71,7 +71,7 @@ class ReviewManagementController extends Controller
                     'created_at'     => $review->created_at,
                     'review_period'  => $review->review_period,
                     'job_seeker_name' => optional($review->jobSeekerInfoName)->name, // Adjust as needed
-                    'document_path'  => optional($review->jobSeekerInfo)->document_path,
+                    'image'  => optional($review->jobSeekerInfo)->document_path,
                 ];
             });
 
@@ -102,7 +102,7 @@ class ReviewManagementController extends Controller
                     'created_at'     => $review->created_at,
                     'review_period'  => $review->review_period,
                     'job_seeker_name' => optional($review->jobSeekerInfoName)->name, // Adjust as needed
-                    'document_path'  => optional($review->jobSeekerInfo)->document_path,
+                    'image'  => optional($review->jobSeekerInfo)->document_path,
                 ];
             });
 
@@ -131,7 +131,7 @@ class ReviewManagementController extends Controller
                     'created_at'     => $review->created_at,
                     'review_period'  => $review->review_period,
                     'job_seeker_name' => optional($review->jobSeekerInfoName)->name, // Adjust as needed
-                    'document_path'  => optional($review->jobSeekerInfo)->document_path,
+                    'image'  => optional($review->jobSeekerInfo)->document_path,
                 ];
             });       
 

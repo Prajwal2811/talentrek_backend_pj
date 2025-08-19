@@ -16,3 +16,22 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+
+Broadcast::channel('chat.jobseeker.{id}', function ($user, $id) {
+    // Check if the user is authenticated and if the ID matches
+    return auth('jobseeker')->check() && (int) auth('jobseeker')->id() === (int) $id;
+});
+
+Broadcast::channel('chat.trainer.{id}', function ($trainer, $id) {
+    return auth()->guard('trainer')->check() && $trainer->id == $id;
+});
+
+
+// Broadcast::channel('chat.{id}', function ($user, $id) {
+//     return (int) $user->id === (int) $id;
+// }, ['guards' => ['jobseeker', 'trainer', 'coach']]);
+
+
+
+

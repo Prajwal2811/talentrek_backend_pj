@@ -31,5 +31,6 @@ class JobseekerCartItem extends Model
     public function material()
     {
         return $this->belongsTo(TrainingMaterial::class, 'material_id');
-    }
+    }    
+
 }

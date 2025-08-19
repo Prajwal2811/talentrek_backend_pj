@@ -26,7 +26,10 @@ class MentorProfileController extends Controller
         try {
             // Fetch Trainers personal information
             $TrainersPersonal = Mentors::select('*')->where('id', $id)->first();
-           
+            $TrainerPersonal = $TrainersPersonal->toArray();
+            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
+                $TrainerPersonal['date_of_birth'] = date('d/m/Y', strtotime($TrainersPersonal->date_of_birth));
+            }
             if (!$TrainersPersonal) {
                 return $this->errorResponse('Mentor not found.', 404);
             }
@@ -46,7 +49,17 @@ class MentorProfileController extends Controller
             )
             ->where('user_id', $id)
             ->where('user_type', 'mentor')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->starts_from = Carbon::parse($item->starts_from)->format('d/m/Y');
+                
+                if (strtolower($item->end_to) !== 'work here') {
+                    $item->end_to = Carbon::parse($item->end_to)->format('d/m/Y');
+                }
+                // else keep 'work here' as it is
+
+                return $item;
+            });
 
             $Trainerskill = TrainingExperience::select('id','user_id','training_skills','area_of_interest','job_category','website_link','portfolio_link')
             ->where('user_id', $id)
@@ -62,14 +75,14 @@ class MentorProfileController extends Controller
 
             $image = '' ;
             foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
-                if($TrainersAdditionalInfos->doc_type == 'profile_picture'){
+                if($TrainersAdditionalInfos->doc_type == 'mentor_profile_picture'){
                     $image = $TrainersAdditionalInfos->image ;
                 }                
             }
 
             // Return combined response
             return $this->successWithCmsResponse([
-                'MentorPersonal'       => $TrainersPersonal,
+                'MentorPersonal'       => $TrainerPersonal,
                 'MentorEducation'      => $TrainersEducation,
                 'MentorWorkExp'        => $TrainersWorkExp,
                 'MentorSkill'          => $Trainerskill,
@@ -85,6 +98,8 @@ class MentorProfileController extends Controller
 
     public function updatePersonalInfoDetails(Request $request)
     {
+        $TrainersId = $request->mentor_id;
+        $Trainers = Mentors::where('id', $TrainersId)->first();
         // $request->validate([
         //     'name'         => 'required|string|max:255',
         //     'gender'       => 'required|in:Male,Female,Other',
@@ -108,14 +123,12 @@ class MentorProfileController extends Controller
             'national_id' => [
                 'required',
                 'min:10',
-                function ($attribute, $value, $fail) use ($jobseeker) {
-                    $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
-                    $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)
-                        ->where('id', '!=', $jobseeker->id)
+                function ($attribute, $value, $fail) use ($Trainers) {
+                    $existsInMentors = Mentors::where('national_id', $value)
+                        ->where('id', '!=', $Trainers->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                    if ($existsInMentors) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -149,8 +162,7 @@ class MentorProfileController extends Controller
         }
 
         try {
-            $TrainersId = $request->mentor_id;
-            $Trainers = Mentors::where('id', $TrainersId)->first();
+            
 
             if (!$Trainers) {
                 return response()->json([
@@ -176,7 +188,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -270,7 +282,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -400,7 +412,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -468,9 +480,10 @@ class MentorProfileController extends Controller
             // ]);
 
             $TrainersId = $request->mentor_id;
-            $TrainingMaterialsDocument = TrainingExperience::where('user_id', $TrainersId)->first();
+            $TrainingMaterialsDocument = TrainingExperience::where('user_id', $TrainersId)->where('user_type', 'mentor')->first();
 
             if (!$TrainingMaterialsDocument) {
+              
                 TrainingExperience::create([
                     'user_id'   => $request->mentor_id,
                     'user_type'   => 'mentor',
@@ -481,6 +494,7 @@ class MentorProfileController extends Controller
                     'portfolio_link' => $request->portfolio_link
                 ]);
             } else {
+               
                 // Update the Trainers basic info
                 $TrainingMaterialsDocument->update([
                     'user_id'   => $request->mentor_id,
@@ -497,7 +511,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'mentor')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
@@ -620,7 +634,7 @@ class MentorProfileController extends Controller
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $TrainersId)
                     ->where('user_type', 'trainer')
-                    ->where('doc_type', 'profile_picture')
+                    ->where('doc_type', 'mentor_profile_picture')
                     ->first();
 
                 $profileName = $request->file('profile_picture')->getClientOriginalName();
