@@ -52,6 +52,7 @@ class AppAuthenticationController extends Controller
         ];
         $model = $modelMap[$type];
         $user = $model::where('email', $request->email)->first();
+<<<<<<< HEAD
         // if (!$user || $user->status != 'active') {
         //     return response()->json([
         //         'status' => false,
@@ -74,16 +75,46 @@ class AppAuthenticationController extends Controller
         // }
         $firstName = $request->name;
        $password = $firstName . '@talentrek';
+=======
+        if (!$user || $user->status != 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account is inactive. Please contact admimnistrator.'
+            ], 401);
+        }
+//print_r($user);
+        if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+            ], 401);
+        }
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid credentials.'
+            ], 401);
+        }
+
+>>>>>>> 4efe38c3cd542c58ff3a502f4cf29067996d470d
          if (!$user) {
                 $user = $model::create([
                 'name' => $request->name,
                 'email' => $request->email,
+<<<<<<< HEAD
                 'google_id' => $request->google_id,
                 'status' => 'active',
                 'password' => Hash::make($password),
                 'pass' => $password,
                 'email_verified_at' => now(),
                 //'is_registered' => false
+=======
+                'status' => 'active',
+                'google_id' => $request->google_id,
+                'password' => bcrypt(Str::random(16)), // Random placeholder password
+                'email_verified_at' => now(),
+>>>>>>> 4efe38c3cd542c58ff3a502f4cf29067996d470d
             ]);
         }
         
@@ -101,7 +132,11 @@ class AppAuthenticationController extends Controller
             ]
         ]);
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 4efe38c3cd542c58ff3a502f4cf29067996d470d
     public function signIn(Request $request)
     {
        $validator = Validator::make($request->all(), [

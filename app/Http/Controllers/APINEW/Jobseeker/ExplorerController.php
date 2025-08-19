@@ -43,7 +43,9 @@ class ExplorerController extends Controller
                     return $carry + $start->diffInDays($end);
                 }, 0);
                 $item->total_experience_days = $totalDays;
-                $item->total_experience_years = round($totalDays / 365, 1);
+                $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                 $avg = $item->mentor_reviews_avg_ratings;
                 $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                 unset($item->mentor_reviews_avg_ratings); // remove raw avg field
@@ -104,7 +106,9 @@ class ExplorerController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                     // Get the most recent job_role based on nearest end_to (null means current)
                     $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
                         return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
@@ -157,7 +161,9 @@ class ExplorerController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                     $avg = $item->assessor_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)
@@ -200,7 +206,9 @@ class ExplorerController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                    $months = floor(($totalDays % 365) / 30);
+                    $item->total_experience_years =  $years.'.'.$months ;
                     $avg = $item->coach_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)

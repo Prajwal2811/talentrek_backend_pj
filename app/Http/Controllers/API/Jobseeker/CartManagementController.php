@@ -294,6 +294,7 @@ class CartManagementController extends Controller
             ], 500);
         }
     }
+<<<<<<< HEAD
 
     public function showTrainingMaterialsBatches($id,$jobseekerId)
     {      
@@ -440,4 +441,6 @@ class CartManagementController extends Controller
         ]]);
         
     }
+=======
+>>>>>>> 4efe38c3cd542c58ff3a502f4cf29067996d470d
 }
