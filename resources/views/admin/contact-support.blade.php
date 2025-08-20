@@ -338,39 +338,114 @@
                                 </script> -->
 
 
+                                <!-- jQuery -->
                                 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+                                <!-- Pusher (keep only one) -->
                                 <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
-                                <script src="{{ asset('js/echo.js') }}"></script>
+
+                                <!-- Laravel Echo -->
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
+
+                                <meta name="csrf-token" content="{{ csrf_token() }}">
+
                                 <script>
+                                    // Debug logs
+                                    // Pusher.logToConsole = true;
+
+                                    // Current user
                                     let currentUserId = null;
                                     let currentUserType = null;
                                     let authUserId = "{{ auth()->id() }}";
 
-                                    // 📦 Open chat
-                                    $(document).on('click', '.openChat', function(e){
-                                        e.preventDefault();
-
-                                        // Set selected user info
-                                        currentUserId = $(this).data('id');
-                                        currentUserType = $(this).data('type').toLowerCase();
-                                        let userName = $(this).data('name');
-
-                                        // Highlight active user
-                                        $(".right_chat li").removeClass("active-chat");
-                                        $(this).closest("li").addClass("active-chat");
-
-                                        // Show chat box and set user info
-                                        $("#chatBox").removeClass('d-none');
-                                        $("#chatUserName").text(userName);
-                                        $("#chatUserType").text(currentUserType);
-
-                                        // Load previous messages
-                                        loadMessages();
+                                    // ✅ Setup Echo only once
+                                    window.Echo = new Echo({
+                                        broadcaster: 'pusher',
+                                        key: '{{ env("PUSHER_APP_KEY") }}',
+                                        wsHost: window.location.hostname,
+                                        wsPort: 6001,
+                                        forceTLS: false,
+                                        enableStats: false,
+                                        enabledTransports: ['ws', 'wss'],
+                                        authEndpoint: '/broadcasting/auth',
+                                        withCredentials: true,
+                                        auth: {
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                            }
+                                        }
                                     });
 
-                                    // 📨 Load messages
-                                    function loadMessages(){
-                                        if(!currentUserId || !currentUserType) return;
+                                    // ✅ Listen on admin channel
+                                    Echo.channel('chat.admin')
+                                        .listen('.message.sent', (e) => {
+                                            if (e.sender_id != authUserId) appendMessage(e);
+                                        });
+
+                                    // ✅ Document Ready
+                                    $(document).ready(function () {
+
+                                        // Open chat
+                                        $(document).on('click', '.openChat', function (e) {
+                                            e.preventDefault();
+
+                                            currentUserId = $(this).data('id');
+                                            currentUserType = $(this).data('type').toLowerCase();
+                                            let userName = $(this).data('name');
+
+                                            $(".right_chat li").removeClass("active-chat");
+                                            $(this).closest("li").addClass("active-chat");
+
+                                            $("#chatBox").removeClass('d-none');
+                                            $("#chatUserName").text(userName);
+                                            $("#chatUserType").text(currentUserType);
+
+                                            loadMessages();
+                                        });
+
+                                        // File input preview
+                                        $("#fileInput").on('change', function () {
+                                            let file = this.files[0];
+                                            if (file) $("#messageInput").val(file.name);
+                                        });
+
+                                        // File upload button
+                                        $("#fileBtn").click(function () {
+                                            $("#fileInput").click();
+                                        });
+
+                                        // Send message
+                                        $("#sendBtn").click(function () {
+                                            let msg = $("#messageInput").val();
+                                            let file = $("#fileInput")[0].files[0];
+                                            if (!msg.trim() && !file) return;
+
+                                            let formData = new FormData();
+                                            formData.append('_token', "{{ csrf_token() }}");
+                                            formData.append('receiver_id', currentUserId);
+                                            formData.append('receiver_type', currentUserType);
+
+                                            if (file) formData.append('file', file);
+                                            else formData.append('message', msg);
+
+                                            $.ajax({
+                                                url: "{{ route('admin.group.chat.send') }}",
+                                                method: "POST",
+                                                data: formData,
+                                                contentType: false,
+                                                processData: false,
+                                                success: function (res) {
+                                                    appendMessage({ ...res, sender_id: authUserId });
+                                                    $("#messageInput").val('');
+                                                    $("#fileInput").val('');
+                                                }
+                                            });
+                                        });
+                                    });
+
+                                    // ✅ Load messages
+                                    function loadMessages() {
+                                        if (!currentUserId || !currentUserType) return;
 
                                         $.ajax({
                                             url: "{{ route('admin.group.chat.fetch') }}",
@@ -380,102 +455,73 @@
                                                 receiver_type: currentUserType,
                                                 _token: "{{ csrf_token() }}"
                                             },
-                                            success: function(res){
+                                            success: function (res) {
                                                 $("#chatMessages").html('');
-                                                res.forEach(msg => {
-                                                    appendMessage(msg);
-                                                });
+                                                res.forEach(msg => appendMessage(msg));
                                             }
                                         });
                                     }
 
-                                    // Append single message
+                                    // ✅ Append message
                                     function appendMessage(msg) {
                                         let isSelf = (msg.sender_type === 'admin');
+                                        let content = '';
 
-                                        // Prepare message content
-                                        let content = (msg.type == 2) 
-                                            ? `<a href="${msg.message}" target="_blank">📎 File</a>` 
-                                            : msg.message;
+                                        if (msg.type == 2) {
+                                            let cleanPath = msg.message.split('?')[0].split('#')[0];
+                                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                                            let ext = fileName.split('.').pop().toLowerCase();
 
-                                        // Append message to chat
+                                            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                                content = `<img src="${msg.message}" style="max-width:250px; border-radius:6px;" />`;
+                                            } else {
+                                                let iconPath = '';
+                                                if (ext === 'pdf') {
+                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                                                } else if (ext === 'doc' || ext === 'docx') {
+                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
+                                                } else {
+                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
+                                                }
+
+                                                content = `
+                                                    <a href="${msg.message}" target="_blank" style="
+                                                        display: flex;
+                                                        align-items: center;
+                                                        background: white;
+                                                        border: 2px solid #1e90ff;
+                                                        border-radius: 10px;
+                                                        padding: 8px 12px;
+                                                        text-decoration: none;
+                                                        color: black;
+                                                        font-weight: bold;
+                                                        max-width: 250px;
+                                                        gap: 10px;
+                                                    ">
+                                                        <img src="${iconPath}" style="width: 30px; height: 30px;">
+                                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fileName}</span>
+                                                    </a>
+                                                `;
+                                            }
+                                        } else {
+                                            content = msg.message;
+                                        }
+
                                         let html = `
                                             <div class="flex ${isSelf ? 'justify-end' : 'justify-start'} mb-2">
-                                                <div class="bg-gray-200 p-2 rounded max-w-xs break-words ${isSelf ? 'bg-blue-100 text-black' : 'bg-gray-200 text-black'}">
+                                                <div class="p-2 rounded max-w-xs break-words ${isSelf ? 'bg-blue-100 text-black' : 'bg-gray-200 text-black'}">
                                                     ${content}
-                                                    <div class="text-xs text-gray-500 mt-1">${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
                                                 </div>
                                             </div>
                                         `;
-                                        
+
                                         $('#chatMessages').append(html);
                                         $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
                                     }
-
-
-
-                                    
-
-                                    // 📁 File upload trigger
-                                    $("#fileBtn").click(function(){
-                                        $("#fileInput").click();
-                                    });
-
-                                    // 🛫 Send message
-                                    $("#sendBtn").click(function(){
-                                        let msg = $("#messageInput").val();
-                                        let file = $("#fileInput")[0].files[0];
-                                        if(!msg.trim() && !file) return;
-
-                                        let formData = new FormData();
-                                        formData.append('_token',"{{ csrf_token() }}");
-                                        formData.append('receiver_id', currentUserId);
-                                        formData.append('receiver_type', currentUserType);
-
-                                        if(file) formData.append('file', file);
-                                        else formData.append('message', msg);
-
-                                        $.ajax({
-                                            url: "{{ route('admin.group.chat.send') }}",
-                                            method: "POST",
-                                            data: formData,
-                                            contentType: false,
-                                            processData: false,
-                                            success: function(res){
-                                                appendMessage({...res, sender_id: authUserId});
-                                                $("#messageInput").val('');
-                                                $("#fileInput").val('');
-                                            }
-                                        });
-                                    });
-
-                                  
-
-                                   
-                                        window.Echo = new Echo({
-                                            broadcaster: 'pusher',
-                                            key: '{{ env("PUSHER_APP_KEY") }}',
-                                            wsHost: window.location.hostname,
-                                            wsPort: 6001,
-                                            forceTLS: false,
-                                            disableStats: true,
-                                        });
-                                  
-
-
-                                    // Listen to user-specific and group channels
-                                    // Echo.channel(`chat.${currentUserType}`)
-                                    // .listen('.message.sent', (e)=>{
-                                    //     if(e.sender_id != authUserId) appendMessage(e);
-                                    // });
-
-                                    // Optional: group messages for everyone
-                                    Echo.channel('chat.admin')
-                                    .listen('.message.sent', (e)=>{
-                                        if(e.sender_id != authUserId) appendMessage(e);
-                                    });
                                 </script>
-
 
         
 

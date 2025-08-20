@@ -31,7 +31,7 @@ class CheckAssessorSubscription
         }
 
         // Share to all views → user either didn’t buy OR subscription expired
-        view()->share('assessorNeedsSubscription', $user->isSubscribtionBuy === 'no' || $isExpired);
+        view()->share('assessorNeedsSubscription', $user->isSubscribtionBuy === 'no' && $isExpired);
 
         return $next($request);
     }

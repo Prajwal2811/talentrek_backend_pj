@@ -543,8 +543,8 @@
     }
 
     .message.outgoing {
-        background-color: #007bff;
-        color: white;
+        background-color: rgba(219, 234, 254, var(--tw-bg-opacity));
+        color: black;
         align-self: flex-end;
         text-align: left;
         border-top-left-radius: 0;
@@ -682,17 +682,22 @@
 
                         <!-- Admin Tab -->
                         <div id="admin" class="tab-content">
-                            @foreach($adminsList as $admin)
-                                <div class="chat-user" onclick="openChat({{ $admin->user_id }}, 'admin', '{{ $admin->admin_name }}', '{{ $admin->profile_picture ?? asset('images/default-profile.png') }}')">
-                                    <img src="{{ $admin->profile_picture ?? asset('images/default-profile.png') }}" />
-                                    <div class="chat-text">
-                                        <div class="chat-name">{{ $admin->admin_name }}</div>
-                                        <div class="chat-message">Click to start chat</div>
-                                    </div>
-                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
+                            <div class="chat-user" 
+                                onclick="openChat(1, 'admin', 'Talententrek Contact Support', 'https://static.vecteezy.com/system/resources/previews/021/162/989/non_2x/3d-male-customer-call-service-wearing-cap-png.png')">
+
+                                <img src="https://static.vecteezy.com/system/resources/previews/021/162/989/non_2x/3d-male-customer-call-service-wearing-cap-png.png" 
+                                    alt="Talententrek Contact Support Avatar" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Talententrek Contact Support</div>
+                                    <div class="chat-message">Click to start chat</div>
                                 </div>
-                            @endforeach
+                                <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
+                            </div>
                         </div>
+
+
+
+
                     </div>
                 </div>
 
@@ -828,7 +833,7 @@
                 </script>
 
 
-                <script>
+                <!-- <script>
                    
                     const currentUserId = {{ auth()->guard('jobseeker')->id() }};
                     const currentUserType = 'jobseeker'; 
@@ -1050,6 +1055,166 @@
                     }
 
 
+                </script> -->
+
+
+
+                <script>
+                    const currentUserId = {{ auth()->guard('jobseeker')->id() }};
+                    const currentUserType = 'jobseeker'; 
+
+                    Echo.channel('chat.jobseeker')
+                        .error((err) => {
+                            console.error('Subscription error:', err);
+                        })
+                        .listen('.message.sent', (e) => {
+                            if (parseInt(e.sender_id) !== parseInt(currentUserId)) {
+                                appendMessage(e);
+                                scrollToBottom();
+                            }
+                        })
+                        .listen('.message.deleted', (e) => {
+                            $(`#message-${e.messageId}`).remove();
+                        });
+
+                    $('#fileInput').on('change', function () {
+                        const file = this.files[0];
+                        if (file) {
+                            $('#message').val(file.name); 
+                        }
+                    });
+
+                    // Send Button
+                    $('#sendBtn').on('click', function(){
+                        const receiverId = $('#receiver_id').val();
+                        const receiverType = $('#receiver_type').val();
+                        const messageText = $('#message').val().trim();
+                        const file = $('#fileInput')[0].files[0];
+
+                        if(!messageText && !file) return;
+
+                        const formData = new FormData();
+                        formData.append('receiver_id', receiverId);
+                        formData.append('receiver_type', receiverType);
+                        formData.append('message', messageText);
+                        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                        if(file) formData.append('file', file);
+
+                        let url = '/chat/send';
+                        if(receiverType === 'admin') url = '/jobseeker/admin/chat/send';
+
+                        $.ajax({
+                            url: url,
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(res){
+                                $('#message').val('');
+                                $('#fileInput').val('');
+                                if(res && res.id) appendMessage(res);
+                                scrollToBottom();
+                            },
+                            error: function(xhr){
+                                console.error('Send error:', xhr.responseText);
+                                alert('Message sending failed.');
+                            }
+                        });
+                    });
+
+                    // Fetch messages
+                    function getMessages(receiverId, receiverType){
+                        let url = '/chat/messages';
+                        if(receiverType === 'admin') url = '/jobseeker/admin/chat/messages';
+
+                        $.get(url, { receiver_id: receiverId, receiver_type: receiverType }, function(messages){
+                            $('#chatMessages').html('');
+                            messages.forEach(msg => appendMessage(msg));
+                            scrollToBottom();
+                        });
+                    }
+
+                    function appendMessage(msg) {
+                        const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+                        let content = '';
+
+                        if (msg.type == 2) {
+                            let cleanPath = msg.message.split('?')[0].split('#')[0];
+                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                            let ext = fileName.split('.').pop().toLowerCase();
+
+                            let iconPath = '';
+                            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                content = `<img src="${msg.message}" style="max-width:125px; border-radius:6px;" />`;
+                            } else {
+                                if (ext === 'pdf') {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                                } else if (ext === 'doc' || ext === 'docx') {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
+                                } else {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
+                                }
+
+                                content = `
+                                    <a href="${msg.message}" target="_blank" class="file-message" style="
+                                        display: flex;
+                                        align-items: center;
+                                        background: white;
+                                        border: 2px solid #1e90ff;
+                                        border-radius: 10px;
+                                        padding: 8px 12px;
+                                        text-decoration: none;
+                                        color: black;
+                                        font-weight: bold;
+                                        max-width: 250px;
+                                        gap: 10px;
+                                    ">
+                                        <img src="${iconPath}" style="width: 30px; height: 30px;">
+                                        <span style="
+                                            white-space: nowrap;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                        ">${fileName}</span>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            content = msg.message;
+                        }
+
+                        // ✅ Time formatting
+                        let time = msg.created_at 
+                            ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        const msgHtml = `
+                            <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
+                                <div>${content}</div>
+                                <div class="text-xs text-gray-500 mt-1">${time}</div>
+                            </div>
+                        `;
+                        $('#chatMessages').append(msgHtml);
+                    }
+
+                    function openChat(receiverId, receiverType, receiverName, receiverProfile) {
+                        $('#receiver_id').val(receiverId);
+                        $('#receiver_type').val(receiverType);
+                        $('#chatName').text(receiverName);
+                        $('#chatProfile').attr('src', receiverProfile);
+                        $('#chatTime').text(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+                        $('#chatModal').addClass('hidden');
+                        $('#chatBox').removeClass('hidden');
+
+                        getMessages(receiverId, receiverType);
+                    }
+
+                    function scrollToBottom() {
+                        const chatBody = document.querySelector('.chat-body-box');
+                        if (chatBody) {
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                        }
+                    }
                 </script>
 
 
@@ -1269,7 +1434,7 @@
                     </div>
 
                     <div class="mt-10 text-center">
-                        <button id="viewAllBtn" class="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition">
+                        <button id="viewAllBtn" class="px-6 py-2 text-black bg-blue-100 hover:bg-blue-700 rounded-md transition">
                             View All Courses
                         </button>
                     </div>

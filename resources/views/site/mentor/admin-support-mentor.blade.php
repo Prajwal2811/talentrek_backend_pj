@@ -43,6 +43,7 @@
 
                             <!-- Chat Input -->
                             <div class="pt-4 mt-4 border-t flex items-center space-x-2">
+                                
                                 <input
                                     type="text"
                                     id="chatInput"
@@ -66,84 +67,148 @@
 
                     <!-- Scripts -->
                     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                    <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
-                    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.0/dist/echo.iife.js"></script>
+                    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
+
+                    <meta name="csrf-token" content="{{ csrf_token() }}">
 
                     <script>
-                        function appendMessage(message) {
-                         
-                            let alignment = message.is_self ? 'justify-end' : 'justify-start';
-                            let bubbleClass = 'bg-gray-200 text-black';
+                        let authUserId = "{{ auth()->id() }}";
 
-                           
-                            if (message.sender_type === 'assessor' || message.sender_type === 'coach') {
-                                bubbleClass = 'bg-blue-100 text-black';
+                        // ✅ Laravel Echo setup
+                        window.Echo = new Echo({
+                            broadcaster: 'pusher',
+                            key: '{{ env("PUSHER_APP_KEY") }}',
+                            wsHost: window.location.hostname,
+                            wsPort: 6001,
+                            forceTLS: false,
+                            enabledTransports: ['ws', 'wss'],
+                            authEndpoint: '/broadcasting/auth',
+                            withCredentials: true,
+                            auth: {
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                }
+                            }
+                        });
+
+                        // ✅ Page load → fetch old messages
+                        $(document).ready(function () {
+                            $.ajax({
+                                url: "{{ route('mentor.group.chat.fetch') }}",
+                                method: "GET",
+                                success: function (res) {
+                                    $("#chatMessages").html('');
+                                    res.forEach(msg => appendMessage(msg));
+                                }
+                            });
+
+                            // File preview
+                            $("#fileInput").on('change', function () {
+                                let file = this.files[0];
+                                if (file) $("#chatInput").val(file.name);
+                            });
+
+                            // File upload trigger
+                            $("#fileBtn").click(function () {
+                                $("#fileInput").click();
+                            });
+
+                            // ✅ Send message
+                            $("#sendBtn").click(function () {
+                                let msg = $("#chatInput").val();
+                                let file = $("#fileInput")[0].files[0];
+                                if (!msg.trim() && !file) return;
+
+                                let formData = new FormData();
+                                formData.append('_token', "{{ csrf_token() }}");
+
+                                if (file) formData.append('file', file);
+                                else formData.append('message', msg);
+
+                                $.ajax({
+                                    url: "{{ route('mentor.group.chat.send') }}",
+                                    method: "POST",
+                                    data: formData,
+                                    contentType: false,
+                                    processData: false,
+                                    success: function (res) {
+                                        appendMessage({ ...res, sender_id: authUserId });
+                                        $("#chatInput").val('');
+                                        $("#fileInput").val('');
+                                    }
+                                });
+                            });
+                        });
+
+                        // ✅ Listen realtime channel
+                        Echo.channel('chat.mentor')
+                            .listen('.message.sent', (e) => {
+                                if (e.sender_id != authUserId) appendMessage(e);
+                            });
+
+                        // ✅ Append message function
+                        function appendMessage(msg) {
+                            let isSelf = (msg.sender_id == authUserId);
+                            let content = '';
+
+                            if (msg.type == 2) {
+                                let cleanPath = msg.message.split('?')[0].split('#')[0];
+                                let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                                let ext = fileName.split('.').pop().toLowerCase();
+
+                                if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                    content = `<img src="${msg.message}" style="max-width:250px; border-radius:6px;" />`;
+                                } else {
+                                    let iconPath = '';
+                                    if (ext === 'pdf') {
+                                        iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                                    } else if (ext === 'doc' || ext === 'docx') {
+                                        iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
+                                    } else {
+                                        iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
+                                    }
+
+                                    content = `
+                                        <a href="${msg.message}" target="_blank" style="
+                                            display: flex;
+                                            align-items: center;
+                                            background: white;
+                                            border: 2px solid #1e90ff;
+                                            border-radius: 10px;
+                                            padding: 8px 12px;
+                                            text-decoration: none;
+                                            color: black;
+                                            font-weight: bold;
+                                            max-width: 250px;
+                                            gap: 10px;
+                                        ">
+                                            <img src="${iconPath}" style="width: 30px; height: 30px;">
+                                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fileName}</span>
+                                        </a>
+                                    `;
+                                }
+                            } else {
+                                content = msg.message;
                             }
 
                             let html = `
-                                <div class="flex ${alignment}">
-                                    <div class="${bubbleClass} p-2 rounded max-w-xs break-words">
-                                        ${message.type == 1 
-                                            ? message.message 
-                                            : `<a href="${message.message}" target="_blank">📎 File</a>`}
-                                        <div class="text-xs text-gray-500 mt-1">${message.created_at}</div>
+                                <div class="flex ${isSelf ? 'justify-end' : 'justify-start'} mb-2">
+                                    <div class="p-2 rounded max-w-xs break-words ${isSelf ? 'bg-blue-100 text-black' : 'bg-gray-200 text-black'}">
+                                        ${content}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
                                     </div>
-                                </div>`;
+                                </div>
+                            `;
 
                             $('#chatMessages').append(html);
                             $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
                         }
-
-                        // Fetch existing messages
-                        $.get('{{ route("mentor.group.chat.fetch") }}', function(messages) {
-                            messages.forEach(msg => {
-                                msg.is_self = (msg.sender_id == '{{ auth()->id() }}'); 
-                                appendMessage(msg);
-                            });
-                        });
-
-
-                        // Send message via AJAX
-                        $('#sendBtn').click(function() {
-                            let formData = new FormData();
-                            formData.append('message', $('#chatInput').val());
-                            let file = $('#fileInput')[0].files[0];
-                            if(file) formData.append('file', file);
-
-                            $.ajax({
-                                url: '{{ route("mentor.group.chat.send") }}',
-                                type: 'POST',
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                                headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'},
-                                success: function(res) {
-                                    res.is_self = true;
-                                    appendMessage(res);
-                                    $('#chatInput').val('');
-                                    $('#fileInput').val('');
-                                },
-                                error: function(err) {
-                                    alert(err.responseJSON.error);
-                                }
-                            });
-                        });
-
-                        // Realtime updates with Laravel Echo
-                        Pusher.logToConsole = false;
-                        window.Echo = new Echo({
-                            broadcaster: 'pusher',
-                            key: '{{ config("broadcasting.connections.pusher.key") }}',
-                            cluster: '{{ config("broadcasting.connections.pusher.cluster") }}',
-                            forceTLS: true
-                        });
-
-                        // 🟢 Mentor chat
-                        Echo.channel('chat.mentor')
-                            .listen('.message.sent', (e) => {
-                                appendMessage(e);
-                            });
                     </script>
+
+
 
 
                     <script src="https://cdn.tailwindcss.com"></script>
