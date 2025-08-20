@@ -53,6 +53,12 @@ Route::group(['prefix' => 'assessor'], function() {
 
 		Route::delete('/delete', [AssessorController::class, 'deleteAccount'])->name('assessor.destroy');
 
+		// Chat with Jobseeker
+		Route::get('/chat-with-jobseeker', [AssessorController::class, 'chatWithJobseekerAssessor'])->name('chat.with.jobseeker.assessor');
+
+		// Admin Support
+		Route::get('/admin-support-assessor', [AssessorController::class, 'adminSupportAssessor'])->name('admin-support-assessor');
+
 		// Reviews
 		Route::get('/reviews', [AssessorController::class, 'assessorReviews'])->name('assessor.reviews');
 		Route::delete('/delete-assessor-review/{id}', [AssessorController::class, 'deleteAssessorReview'])->name('assessor.review.delete');

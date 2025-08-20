@@ -11,15 +11,13 @@
         </div>
     </div>
 
-	@if($mentorNeedsSubscription)
-    @include('site.mentor.subscription.index')
-@endif
+
     <div class="page-wraper">
         <div class="flex h-screen">
-             @include('site.mentor.componants.sidebar')
+             @include('site.coach.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                @include('site.mentor.componants.navbar')
+                @include('site.coach.componants.navbar')
 
                     <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
                         <h2 class="text-2xl font-semibold mb-6">Admin support</h2>
@@ -64,18 +62,20 @@
 
 
 
-                    <!-- Scripts -->
+                   <!-- jQuery -->
                     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+                    <!-- Pusher -->
                     <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
+
+                    <!-- Laravel Echo (CDN build) -->
                     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.0/dist/echo.iife.js"></script>
 
                     <script>
                         function appendMessage(message) {
-                         
                             let alignment = message.is_self ? 'justify-end' : 'justify-start';
                             let bubbleClass = 'bg-gray-200 text-black';
 
-                           
                             if (message.sender_type === 'assessor' || message.sender_type === 'coach') {
                                 bubbleClass = 'bg-blue-100 text-black';
                             }
@@ -95,13 +95,12 @@
                         }
 
                         // Fetch existing messages
-                        $.get('{{ route("mentor.group.chat.fetch") }}', function(messages) {
+                        $.get('{{ route("coach.group.chat.fetch") }}', function(messages) {
                             messages.forEach(msg => {
                                 msg.is_self = (msg.sender_id == '{{ auth()->id() }}'); 
                                 appendMessage(msg);
                             });
                         });
-
 
                         // Send message via AJAX
                         $('#sendBtn').click(function() {
@@ -111,7 +110,7 @@
                             if(file) formData.append('file', file);
 
                             $.ajax({
-                                url: '{{ route("mentor.group.chat.send") }}',
+                                url: '{{ route("coach.group.chat.send") }}',
                                 type: 'POST',
                                 data: formData,
                                 processData: false,
@@ -128,27 +127,41 @@
                                 }
                             });
                         });
-
-                        // Realtime updates with Laravel Echo
-                        Pusher.logToConsole = false;
+                        let currentUserId = '{{ auth()->guard("coach")->id() }}';
                         window.Echo = new Echo({
                             broadcaster: 'pusher',
-                            key: '{{ config("broadcasting.connections.pusher.key") }}',
-                            cluster: '{{ config("broadcasting.connections.pusher.cluster") }}',
-                            forceTLS: true
+                            key: '18bff0f2c88aa583c6d7',
+                            cluster: 'ap2', // 👈 yeh add karo
+                            wsHost: window.location.hostname,
+                            wsPort: 6001,
+                            forceTLS: false,
+                            enabledTransports: ['ws', 'wss'],
+                            authEndpoint: '/broadcasting/auth',
+                            auth: {
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                }
+                            }
                         });
 
-                        // 🟢 Mentor chat
-                        Echo.channel('chat.mentor')
-                            .listen('.message.sent', (e) => {
-                                appendMessage(e);
-                            });
+
+
+                      
+                        // Echo.channel('chat.coach')
+                        //     .listen('.message.sent', (e) => {
+                        //         this.appendMessage(e);
+                        //     });
+                        Echo.channel('chat.coach')
+                        .listen('.message.sent', (e) => {
+                            if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
+                                this.receiveMessage(e);
+                            }
+                        });
                     </script>
 
-
+                    <!-- Tailwind (⚠️ dev only, for production build with CLI/PostCSS) -->
                     <script src="https://cdn.tailwindcss.com"></script>
                     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-                 
 
 
 
@@ -167,4 +180,4 @@
 
 
           
-@include('site.mentor.componants.footer')
+@include('site.coach.componants.footer')

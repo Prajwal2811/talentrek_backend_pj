@@ -30,6 +30,20 @@ Broadcast::channel('chat.trainer.{id}', function ($trainer, $id) {
 Broadcast::channel('chat.mentor.{id}', function ($mentor, $id) {
     return auth()->guard('mentor')->check() && $mentor->id == $id;
 });
+
+Broadcast::channel('chat.coach.{id}', function ($coach, $id) {
+    return auth()->guard('coach')->check() && $coach->id == $id;
+});
+
+Broadcast::channel('chat.assessor.{id}', function ($assessor, $id) {
+    return auth()->guard('assessor')->check() && $assessor->id == $id;
+});
+
+Broadcast::channel('chat.admin.{id}', function ($admin, $id) {
+    return auth()->guard('admin')->check() && $admin->id == $id;
+    
+});
+
 // Broadcast::channel('chat.{id}', function ($user, $id) {
 //     return (int) $user->id === (int) $id;
 // }, ['guards' => ['jobseeker', 'trainer', 'coach']]);

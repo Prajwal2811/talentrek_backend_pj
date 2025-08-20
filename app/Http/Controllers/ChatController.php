@@ -26,7 +26,7 @@ use Carbon\Carbon;
 use App\Events\MessageDeleted;
 use App\Events\MessageSent;
 use Illuminate\Support\Facades\Broadcast;
-
+use Illuminate\Support\Facades\URL;
 
 class ChatController extends Controller
 {
@@ -70,17 +70,14 @@ class ChatController extends Controller
             'message'      => $request->message
         ];
 
-        // ✅ Agar file hai to upload karein
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-
             // Custom uploads folder
             $filename = 'profile_' . time() . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('uploads'), $filename);
 
-            // URL banake save kare
             $data['message'] = url('uploads/' . $filename);
-            $data['type'] = 2; // File
+            $data['type'] = 2;
         }
 
         $message = Message::create($data);
@@ -116,6 +113,14 @@ class ChatController extends Controller
         elseif (auth()->guard('coach')->check()) 
         {
             return ['id' => auth()->guard('coach')->id(), 'type' => 'coach'];
+        }
+        elseif (auth()->guard('assessor')->check()) 
+        {
+            return ['id' => auth()->guard('assessor')->id(), 'type' => 'assessor'];
+        }
+        elseif (auth()->guard('admin')->check()) 
+        {
+            return ['id' => auth()->guard('admin')->id(), 'type' => 'admin'];
         }
 
         return ['id' => null, 'type' => null];
@@ -164,5 +169,96 @@ class ChatController extends Controller
         }
 
     }
+
+
+
+    public function sendGroupMessage(Request $request)
+    {
+        $sender = $this->getSender(); // returns ['id' => ..., 'type' => ...]
+
+        if (!$sender['id'] || (!$request->message && !$request->hasFile('file'))) {
+            return response()->json(['error' => 'Message or file required'], 422);
+        }
+
+        $receiverId = 0;
+        $receiverType = 'group';
+
+        if ($sender['type'] === 'admin') {
+            if (!$request->receiver_id || !$request->receiver_type) {
+                return response()->json(['error' => 'Receiver ID and type required for admin'], 422);
+            }
+            $receiverId = $request->receiver_id;
+            $receiverType = $request->receiver_type;
+        }
+
+        $data = [
+            'sender_id' => $sender['id'],
+            'sender_type' => $sender['type'],
+            'receiver_id' => $receiverId,
+            'receiver_type' => $receiverType,
+            'type' => 1,
+            'message' => $request->message,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filename = 'chat_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $filename);
+
+            $data['message'] = URL::to('uploads/' . $filename);
+            $data['type'] = 2;
+        }
+
+        $messageId = DB::table('admin_group_chats')->insertGetId($data);
+
+        // Fetch the inserted message to return
+        $message = DB::table('admin_group_chats')->where('id', $messageId)->first();
+
+        broadcast(new MessageSent((object)$message))->toOthers();
+
+        return response()->json($message);
+    }
+
+
+
+ 
+
+    public function fetchGroupMessages(Request $request)
+    {
+        $user = $this->getSender(); 
+        $selectedUserId = $request->receiver_id ?? 0;
+        $selectedUserType = $request->receiver_type ?? null;
+
+        $query = DB::table('admin_group_chats');
+
+        if ($user['type'] == 'admin') {
+            $query->where(function($q) use ($selectedUserId, $selectedUserType) {
+                $q->where(function($q2) use ($selectedUserId, $selectedUserType) {
+                    $q2->where('sender_id', $selectedUserId)
+                    ->where('sender_type', $selectedUserType);
+                })->orWhere(function($q3) use ($selectedUserId, $selectedUserType) {
+                    $q3->where('receiver_id', $selectedUserId)
+                    ->where('receiver_type', $selectedUserType);
+                });
+            });
+        } else {
+            // Mentor ya other users ke liye
+            $query->where(function($q) use ($user) {
+                $q->where('receiver_id', $user['id'])
+                ->where('receiver_type', $user['type'])
+                ->orWhere('sender_id', $user['id'])
+                ->where('sender_type', $user['type']);
+            });
+        }
+
+        $messages = $query->orderBy('created_at', 'asc')->get();
+
+        return response()->json($messages);
+    }
+
+
+
 
 }

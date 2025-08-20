@@ -1082,4 +1082,11 @@ class AssessorController extends Controller
         }
     }
 
+    public function chatWithJobseekerAssessor(){
+        return view('site.assessor.chat-jobseeker-assessor'); 
+    }
+
+    public function adminSupportAssessor(){
+        return view('site.assessor.admin-support-assessor'); 
+    }
 }
