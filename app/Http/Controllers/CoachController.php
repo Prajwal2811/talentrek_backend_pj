@@ -1017,4 +1017,12 @@ class CoachController extends Controller
         }
     }
 
+    public function chatWithJobseekerCoach(){
+        return view('site.coach.chat-jobseeker-coach'); 
+    }
+
+    public function adminSupportCoach(){
+        return view('site.coach.admin-support-coach'); 
+    }
+
 }

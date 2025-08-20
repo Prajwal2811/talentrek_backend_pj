@@ -60,9 +60,9 @@
         <!-- Other Mentor Links -->
         @php
             $assessorLinks = [
-                ['route' => 'chat.with.jobseeker.mentor', 'icon' => 'message-circle', 'label' => 'Chat with Jobseeker'],
+                ['route' => 'chat.with.jobseeker.assessor', 'icon' => 'message-circle', 'label' => 'Chat with Jobseeker'],
                 ['route' => 'assessor.reviews', 'icon' => 'star', 'label' => 'Reviews'],
-                ['route' => 'admin-support-mentor', 'icon' => 'headphones', 'label' => 'Admin Support'],
+                ['route' => 'admin-support-assessor', 'icon' => 'headphones', 'label' => 'Admin Support'],
                 ['route' => 'setting.assessor', 'icon' => 'settings', 'label' => 'Settings'],
             ];
         @endphp

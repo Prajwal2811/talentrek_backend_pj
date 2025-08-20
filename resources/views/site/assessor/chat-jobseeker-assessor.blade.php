@@ -1,5 +1,5 @@
 <?php
-    $mentorId = auth()->guard('mentor')->id();
+    $assessorId = auth()->guard('assessor')->id();
 
     $jobseekersList = DB::table('jobseeker_saved_booking_session as p')
         ->join('jobseekers as j', 'p.jobseeker_id', '=', 'j.id')
@@ -8,9 +8,9 @@
                 ->where('ai.user_type', 'jobseeker')
                 ->where('ai.doc_type', 'profile_picture');
         })
-        ->where('p.user_id', $mentorId)
-        ->where('p.user_type', 'mentor')
-        ->where('p.status', 'confirmed')
+        ->where('p.user_id', $assessorId)
+        ->where('p.user_type', 'assessor')
+        ->where('p.status', 'pending')
         ->where('p.admin_status', 'approved')
         ->select(
             'j.id as jobseeker_id',
@@ -24,7 +24,7 @@
     // echo "<pre>";
     // print_r( $jobseekersList);exit;
 
-    $mentorImage = App\Models\AdditionalInfo::where('doc_type', 'mentor_profile_picture')
+    $assessorImage = App\Models\AdditionalInfo::where('doc_type', 'assessor_profile_picture')
         ->where('user_id', auth()->user()->id)
         ->first();
 
@@ -45,19 +45,17 @@
         </div>
     </div>
 
-	@if($mentorNeedsSubscription)
-    @include('site.mentor.subscription.index')
-@endif
+
     <div class="page-wraper">
         <div class="flex h-screen">
-              @include('site.mentor.componants.sidebar')
+              @include('site.assessor.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                @include('site.mentor.componants.navbar')
+                @include('site.assessor.componants.navbar')
 
                 <main class="p-6 " x-data="chatApp()">
                     <h2 class="text-2xl font-semibold mb-6">Message</h2>
-                    <div x-data="mentorChat()" x-init="initEcho()" class="grid grid-cols-3 gap-4 h-[calc(100vh-100px)] p-4">
+                    <div x-data="assessorChat()" x-init="initEcho()" class="grid grid-cols-3 gap-4 h-[calc(100vh-100px)] p-4">
         
                         <!-- ✅ Contacts Sidebar -->
                         <!-- <div class="bg-white rounded-lg shadow overflow-y-auto col-span-1"> -->
@@ -124,8 +122,8 @@
                                                 </div>
 
                                                 <!-- Right avatar -->
-                                                <img x-show="message.sender === 'me'" :src="mentorImage"
-                                                    class="w-8 h-8 rounded-full object-cover" alt="Mentor">
+                                                <img x-show="message.sender === 'me'" :src="assessorImage"
+                                                    class="w-8 h-8 rounded-full object-cover" alt="assessor">
                                             </div>
                                         </template>
                                     </div>
@@ -158,7 +156,7 @@
                             <template x-if="!activeContact">
                                 <div class="flex flex-col items-center justify-center flex-1 text-center text-gray-500 px-6">
                                     <img src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png" class="w-24 h-24 mb-6 opacity-50" />
-                                    <h3 class="text-lg font-semibold mb-2">Welcome to the Mentor Chat Panel</h3>
+                                    <h3 class="text-lg font-semibold mb-2">Welcome to the assessor Chat Panel</h3>
                                     <p class="text-sm text-gray-400">Select a contact from the left panel to view and send messages.</p>
                                 </div>
                             </template>
@@ -173,38 +171,38 @@
 
                         <style>
                             .file-message {
-                                display: flex;
-                                align-items: center;
-                                background: white;
-                                border: 2px solid #1e90ff;
-                                border-radius: 10px;
-                                padding: 8px 12px;
-                                text-decoration: none;
-                                color: black;
-                                font-weight: bold;
-                                max-width: 250px;
-                                gap: 10px;
-                            }
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #1e90ff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    max-width: 250px;
+    gap: 10px;
+}
 
-                            .file-icon {
-                                width: 30px;
-                                height: 30px;
-                            }
+.file-icon {
+    width: 30px;
+    height: 30px;
+}
 
-                            .file-name {
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                            }
+.file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
                         </style>
 
                         <script>
-                            window.mentorChat = function () {
+                            window.assessorChat = function () {
                                 return {
-                                    mentorImage: "{{ $mentorImage->document_path ?? 'https://via.placeholder.com/40' }}",
-                                    currentUserId: {{ auth()->guard('mentor')->id() }},
-                                    currentUserType: 'mentor',
+                                    assessorImage: "{{ $assessorImage->document_path ?? 'https://via.placeholder.com/40' }}",
+                                    currentUserId: {{ auth()->guard('assessor')->id() }},
+                                    currentUserType: 'assessor',
                                     newMessage: '',
                                     activeContact: null,
                                     selectedFile: null,
@@ -225,7 +223,7 @@
                                             }
                                         });
 
-                                        Echo.channel('chat.mentor')
+                                        Echo.channel('chat.assessor')
                                             .listen('.message.sent', (e) => {
                                                 if (parseInt(e.sender_id) !== parseInt(this.currentUserId)) {
                                                     this.receiveMessage(e);
@@ -239,7 +237,7 @@
                                     },
 
                                     getMessages(receiverId, receiverType) {
-                                        fetch(`/mentor/chat/messages?receiver_id=${receiverId}&receiver_type=${receiverType}`)
+                                        fetch(`/assessor/chat/messages?receiver_id=${receiverId}&receiver_type=${receiverType}`)
                                             .then(res => res.json())
                                             .then(messages => {
                                                 this.activeContact.messages = messages.map(msg => ({
@@ -263,7 +261,7 @@
                                             formData.append('file', this.selectedFile);
                                         }
 
-                                        fetch('/mentor/chat/send', {
+                                        fetch('/assessor/chat/send', {
                                             method: 'POST',
                                             body: formData
                                         })
@@ -383,7 +381,7 @@
                         <script>
                             function chatApp() {
                                 return {
-                                    mentorImage: "{{ $mentorImage->document_path ?? 'https://via.placeholder.com/40' }}", // ✅ mentor ki profile
+                                    assessorImage: "{{ $assessorImage->document_path ?? 'https://via.placeholder.com/40' }}", // ✅ assessor ki profile
                                     contacts: [],
                                     activeContact: null,
                                     newMessage: '',
@@ -434,7 +432,7 @@
 
 
                         <!-- <script>
-                            window.mentorChat = function () {
+                            window.assessorChat = function () {
                                 return {
                                     currentUserId: {{ auth()->guard('trainer')->id() }},
                                     currentUserType: 'trainer',
@@ -598,4 +596,4 @@
     </div>
            
 
-@include('site.mentor.componants.footer')
+@include('site.assessor.componants.footer')
