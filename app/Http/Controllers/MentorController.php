@@ -1176,7 +1176,7 @@ class MentorController extends Controller
 
             if ($shouldUpdate) {
                 $mentor->isSubscribtionBuy = 'yes';
-                $mentor->active_subscription_plan_id = $plan->id;
+                $mentor->active_subscription_plan_id = $newSubscription->id;
                 $mentor->save();
             }
 

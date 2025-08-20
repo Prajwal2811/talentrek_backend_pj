@@ -58,15 +58,23 @@
                                             <div class="form-group col-md-6">
                                                 <label>Duration (Months)</label>
                                                 <select name="plans[{{ $i }}][duration_months]" class="form-control" required>
-                                                    <option disabled {{ empty($plan['duration_months']) ? 'selected' : '' }}>Select duration</option>
+                                                    <option disabled {{ empty($plan['duration_months']) && empty($plan['duration_days']) ? 'selected' : '' }}>
+                                                        Select duration
+                                                    </option>
                                                     @foreach([1, 3, 6, 12] as $m)
-                                                        <option value="{{ $m }}" {{ ($plan['duration_months'] ?? ($plan['duration_days'] ?? 0)/30) == $m ? 'selected' : '' }}>
+                                                        <option value="{{ $m }}"
+                                                            {{ (isset($plan['duration_months']) && $plan['duration_months'] == $m) 
+                                                                || (isset($plan['duration_days']) && $plan['duration_days']/30 == $m) 
+                                                                    ? 'selected' : '' }}>
                                                             {{ $m }} Month{{ $m > 1 ? 's' : '' }}
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                @error("plans.$i.duration_months") <small class="text-danger">{{ $message }}</small> @enderror
+                                                @error("plans.$i.duration_months")
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
                                             </div>
+
 
                                             <!-- Features -->
                                             <div class="form-group col-md-6">

@@ -1766,16 +1766,27 @@ class AdminController extends Controller
 
         // Insert new plans
         foreach ($request->plans as $plan) {
+            $durationMonths = $plan['duration_months'];
+
+            // calculate duration_days
+            if ($durationMonths == 12) {
+                $durationDays = 365;
+            } else {
+                $durationDays = $durationMonths * 30;
+            }
+
             SubscriptionPlan::create([
                 'user_type'     => $request->user_type,
                 'title'         => $plan['title'],
                 'price'         => $plan['price'],
-                'duration_days' => $plan['duration_months'] * 30,
-                'features' => $plan['features'] ?? null,
+                'duration_months' => $durationMonths,
+                'duration_days' => $durationDays,
+                'features'      => $plan['features'] ?? null,
                 'description'   => $plan['description'] ?? null,
                 'is_active'     => true,
             ]);
         }
+
 
         return redirect()->back()->with('success', 'Subscription plans updated successfully!');
     }

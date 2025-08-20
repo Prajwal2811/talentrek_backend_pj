@@ -125,11 +125,7 @@ Route::get('/zoom-users', function () {
 Auth::routes();
 
 
-
-
-
 // broadcasting auth route
-
 Route::post('/broadcasting/auth', function () {
     // Check if any of the guards are authenticated
     if (auth('jobseeker')->check() || auth('trainer')->check() || auth('coach')->check()) {
@@ -142,24 +138,24 @@ Route::post('/broadcasting/auth', function () {
 
 
 
-Route::group(['middleware' => 'jobseeker.auth'], function() {
-	Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('jobseeker.chat.send');
-	Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('jobseeker.chat.fetch');
+Route::group(['middleware' => 'jobseeker.auth'], function () {
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('jobseeker.chat.send');
+    Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 });
 
-Route::group(['middleware' => 'trainer.auth'], function() {
-	Route::post('/trainer/chat/send', [ChatController::class, 'sendMessage'])->name('trainer.chat.send');
-	Route::get('/trainer/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.fetch');
+Route::group(['middleware' => 'trainer.auth'], function () {
+    Route::post('/trainer/chat/send', [ChatController::class, 'sendMessage'])->name('trainer.chat.send');
+    Route::get('/trainer/chat/messages', [ChatController::class, 'getMessages'])->name('trainer.chat.fetch');
 });
 
-Route::group(['middleware' => 'mentor.auth'], function() {
-	Route::post('/mentor/chat/send', [ChatController::class, 'sendMessage'])->name('mentor.chat.send');
-	Route::get('/mentor/chat/messages', [ChatController::class, 'getMessages'])->name('mentor.chat.fetch');
+Route::group(['middleware' => 'mentor.auth'], function () {
+    Route::post('/mentor/chat/send', [ChatController::class, 'sendMessage'])->name('mentor.chat.send');
+    Route::get('/mentor/chat/messages', [ChatController::class, 'getMessages'])->name('mentor.chat.fetch');
 });
 
-Route::group(['middleware' => 'coach.auth'], function() {
-	Route::post('/coach/chat/send', [ChatController::class, 'sendMessage'])->name('coach.chat.send');
-	Route::get('/coach/chat/messages', [ChatController::class, 'getMessages'])->name('coach.chat.fetch');
+Route::group(['middleware' => 'coach.auth'], function () {
+    Route::post('/coach/chat/send', [ChatController::class, 'sendMessage'])->name('coach.chat.send');
+    Route::get('/coach/chat/messages', [ChatController::class, 'getMessages'])->name('coach.chat.fetch');
 });
 
 

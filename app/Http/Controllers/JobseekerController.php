@@ -574,10 +574,10 @@ class JobseekerController extends Controller
     public function processSubscriptionPayment(Request $request)
     {
         $request->validate([
-            'plan_id' => 'required|exists:subscription_plans,id',
+            'plan_id'     => 'required|exists:subscription_plans,id',
             'card_number' => 'required|string|min:12|max:19',
-            'expiry' => 'required|string',
-            'cvv' => 'required|string|min:3|max:4',
+            'expiry'      => 'required|string',
+            'cvv'         => 'required|string|min:3|max:4',
         ]);
 
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
@@ -586,53 +586,53 @@ class JobseekerController extends Controller
         try {
             $jobseeker = auth('jobseeker')->user();
 
-            // Create the new subscription
+            // Create purchased subscription
             $newSubscription = PurchasedSubscription::create([
-                'user_id' => $jobseeker->id,
-                'user_type' => 'jobseeker',
+                'user_id'              => $jobseeker->id,
+                'user_type'            => 'jobseeker',
                 'subscription_plan_id' => $plan->id,
-                'start_date' => now(),
-                'end_date' => now()->addDays($plan->duration_days),
-                'amount_paid' => $plan->price,
-                'payment_status' => 'paid',
+                'start_date'           => now(),
+                'end_date'             => now()->addDays($plan->duration_days),
+                'amount_paid'          => $plan->price,
+                'payment_status'       => 'paid',
             ]);
 
-            // Update jobseeker only if:
-            // - They have no active subscription, OR
-            // - The new subscription ends later than the current one
+            // Determine if jobseeker record should be updated
             $shouldUpdate = false;
 
             if (!$jobseeker->active_subscription_plan_id) {
                 $shouldUpdate = true;
             } else {
                 $currentActive = PurchasedSubscription::find($jobseeker->active_subscription_plan_id);
-                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+                if (!$currentActive || Carbon::parse($newSubscription->end_date)->gt($currentActive->end_date)) {
                     $shouldUpdate = true;
                 }
             }
 
             if ($shouldUpdate) {
                 $jobseeker->isSubscribtionBuy = 'yes';
-                $jobseeker->active_subscription_plan_id = $plan->id;
+                // Save purchased subscription id, not plan id
+                $jobseeker->active_subscription_plan_id = $newSubscription->id;
                 $jobseeker->save();
             }
 
             DB::commit();
 
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Subscription purchased successfully!'
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Something went wrong while purchasing the subscription.',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
+
 
 
 
@@ -2402,7 +2402,7 @@ class JobseekerController extends Controller
         }
 
         $request->validate([
-            'training_type' => 'required|in:online,classroom',
+            'training_type' => 'required|in:online,classroom,recorded',
             'session_type' => 'required_if:training_type,online|in:online,classroom',
             'batch' => 'required_if:training_type,online|exists:training_batches,id',
             'payment_method' => 'required|in:card,upi'

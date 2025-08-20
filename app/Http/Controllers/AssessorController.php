@@ -1061,7 +1061,7 @@ class AssessorController extends Controller
 
             if ($shouldUpdate) {
                 $assessor->isSubscribtionBuy = 'yes';
-                $assessor->active_subscription_plan_id = $plan->id;
+                $assessor->active_subscription_plan_id = $newSubscription->id;
                 $assessor->save();
             }
 

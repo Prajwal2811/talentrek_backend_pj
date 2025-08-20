@@ -15,9 +15,24 @@ class CheckJobseekerSubscription
             return redirect()->route('site.jobseeker.login');
         }
 
-        // Pass subscription status to views
-        view()->share('jobseekerNeedsSubscription', $user->isSubscribtionBuy === 'no');
+        $activePlanId = $user->active_subscription_plan_id;
+
+        $subscription = \App\Models\PurchasedSubscription::where('id', $activePlanId)
+            ->where('user_id', $user->id)
+            ->where('user_type', 'jobseeker')
+            ->first();
+
+        $isExpired = true;
+
+        if ($subscription) {
+            $endDate = \Carbon\Carbon::parse($subscription->end_date);
+            $isExpired = $endDate->isPast(); // true if expired
+        }
+
+        // Share to all views → user either didn’t buy OR subscription expired
+        view()->share('jobseekerNeedsSubscription', $user->isSubscribtionBuy === 'no' || $isExpired);
 
         return $next($request);
     }
+
 }

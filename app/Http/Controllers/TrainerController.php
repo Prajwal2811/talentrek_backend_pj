@@ -1791,7 +1791,7 @@ class TrainerController extends Controller
 
             if ($shouldUpdate) {
                 $trainer->isSubscribtionBuy = 'yes';
-                $trainer->active_subscription_plan_id = $plan->id;
+                $trainer->active_subscription_plan_id = $newSubscription->id;
                 $trainer->save();
             }
 

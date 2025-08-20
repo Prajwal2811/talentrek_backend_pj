@@ -26,7 +26,10 @@
                     @foreach($subscriptions as $plan)
                         <div class="border rounded-lg p-4 shadow-sm text-center">
                             <div class="flex flex-col items-center">
-                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mb-2">
+                                    <i class="fas fa-crown text-orange-500 text-xl"></i>
+                                </div>
+
                                 <h4 class="font-semibold">{{ $plan->title }}</h4>
                                 <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                             </div>

@@ -996,7 +996,7 @@ class CoachController extends Controller
 
             if ($shouldUpdate) {
                 $coach->isSubscribtionBuy = 'yes';
-                $coach->active_subscription_plan_id = $plan->id;
+                $coach->active_subscription_plan_id = $newSubscription->id;
                 $coach->save();
             }
 
