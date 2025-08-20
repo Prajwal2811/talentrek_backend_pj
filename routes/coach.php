@@ -49,6 +49,12 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::delete('coach/delete-document/{type}', [CoachController::class, 'deleteCoachDocument'])->name('coach.additional.delete');
 		Route::delete('/delete', [CoachController::class, 'deleteAccount'])->name('coach.destroy');
 
+		// Chat with Jobseeker
+		Route::get('/chat-with-jobseeker', [CoachController::class, 'chatWithJobseekerCoach'])->name('chat.with.jobseeker.coach');
+
+		// Admin Support
+		Route::get('/admin-support-coach', [CoachController::class, 'adminSupportCoach'])->name('admin-support-coach');
+
 		// Reviews
 		Route::get('/reviews', [CoachController::class, 'coachReviews'])->name('coach.reviews');
 		Route::delete('/delete-coach-review/{id}', [CoachController::class, 'deleteCoachReview'])->name('coach.review.delete');

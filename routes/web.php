@@ -132,7 +132,7 @@ Auth::routes();
 
 Route::post('/broadcasting/auth', function () {
     // Check if any of the guards are authenticated
-    if (auth('jobseeker')->check() || auth('trainer')->check() || auth('coach')->check()) {
+    if (auth('jobseeker')->check() || auth('trainer')->check() || auth('coach')->check() || auth('mentor')->check() || auth('assessor')->check()) {
         return Broadcast::auth(request());
     }
 
@@ -155,13 +155,36 @@ Route::group(['middleware' => 'trainer.auth'], function() {
 Route::group(['middleware' => 'mentor.auth'], function() {
 	Route::post('/mentor/chat/send', [ChatController::class, 'sendMessage'])->name('mentor.chat.send');
 	Route::get('/mentor/chat/messages', [ChatController::class, 'getMessages'])->name('mentor.chat.fetch');
+
+    Route::post('/mentor/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('mentor.group.chat.send');
+	Route::get('/mentor/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('mentor.group.chat.fetch');
 });
 
 Route::group(['middleware' => 'coach.auth'], function() {
 	Route::post('/coach/chat/send', [ChatController::class, 'sendMessage'])->name('coach.chat.send');
 	Route::get('/coach/chat/messages', [ChatController::class, 'getMessages'])->name('coach.chat.fetch');
+
+    Route::post('/coach/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('coach.group.chat.send');
+	Route::get('/coach/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('coach.group.chat.fetch');
 });
 
+Route::group(['middleware' => 'assessor.auth'], function() {
+	Route::post('/assessor/chat/send', [ChatController::class, 'sendMessage'])->name('assessor.chat.send');
+	Route::get('/assessor/chat/messages', [ChatController::class, 'getMessages'])->name('assessor.chat.fetch');
+
+    Route::post('/assessor/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('assessor.group.chat.send');
+	Route::get('/assessor/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('assessor.group.chat.fetch');
+});
+
+
+
+
+Route::group(['middleware' => 'admin.auth'], function() {
+    // Route::post('/admin/chat/send', [ChatController::class, 'sendMessage'])->name('admin.chat.send');
+    // Route::get('/admin/chat/messages', [ChatController::class, 'getMessages'])->name('admin.chat.fetch');
+	Route::post('/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
+	Route::get('/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
+});
 
 
 

@@ -60,9 +60,9 @@
         <!-- Other coach Links -->
         @php
             $coachLinks = [
-                ['route' => 'chat.with.jobseeker.mentor', 'icon' => 'message-circle', 'label' => 'Chat with Jobseeker'],
+                ['route' => 'chat.with.jobseeker.coach', 'icon' => 'message-circle', 'label' => 'Chat with Jobseeker'],
                 ['route' => 'coach.reviews', 'icon' => 'star', 'label' => 'Reviews'],
-                ['route' => 'admin-support-mentor', 'icon' => 'headphones', 'label' => 'Admin Support'],
+                ['route' => 'admin-support-coach', 'icon' => 'headphones', 'label' => 'Admin Support'],
                 ['route' => 'setting.coach', 'icon' => 'settings', 'label' => 'Settings'],
             ];
         @endphp

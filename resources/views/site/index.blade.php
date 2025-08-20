@@ -85,6 +85,57 @@
     // echo "<pre>";
     // print_r($mentorsList);exit;
 
+    //All Mentor chat list with perticular jobseeker
+    $assessorsList = DB::table('jobseeker_saved_booking_session as p')
+    ->join('assessors as m', 'p.user_id', '=', 'm.id')
+    ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'm.id')
+                ->where('ai.user_type', '=', 'assessor')
+                ->where('ai.doc_type', '=', 'assessor_profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            'm.id as user_id', 
+            'm.name as assessor_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+    ->get();
+    // echo "<pre>";
+    // print_r($assessorsList);exit;
+
+    //All Mentor chat list with perticular jobseeker
+    $coachesList = DB::table('jobseeker_saved_booking_session as p')
+    ->join('coaches as m', 'p.user_id', '=', 'm.id')
+    ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'm.id')
+                ->where('ai.user_type', '=', 'coach')
+                ->where('ai.doc_type', '=', 'coach_profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            'm.id as user_id', 
+            'm.name as coach_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+    ->get();
+    // echo "<pre>";
+    // print_r($coachesList);exit;
+
+    //All Admin chat list with perticular jobseeker
+    $adminsList = [];
+
+    if ($jobseekerId) {
+        $adminsList = DB::table('admins as a')
+            ->select('a.id as user_id', 'a.name as admin_name')
+            ->where('a.status', 'active')
+            ->get();
+    }
+
+    // echo "<pre>";
+    // print_r($adminsList);exit;
+
 ?>
 
 
@@ -153,7 +204,7 @@
     }
 
     /* Tabs */
-    .chat-tabs {
+    /* .chat-tabs {
     display: flex;
     border-bottom: 1px solid #ddd;
     }
@@ -171,7 +222,31 @@
     .chat-tabs button.active {
     color: #007bff;
     border-bottom: 2px solid #007bff;
+    } */
+   .chat-tabs {
+        display: flex;
+        border-bottom: 1px solid #ddd;
     }
+
+    .chat-tabs button {
+        flex: 1;                /* Equal width */
+        width: 20%;             /* 5 button → 20% each *0/
+        padding: 10px 0;
+        border: none;
+        background: #f1f1f1;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: center;     /* Center text */
+        white-space: nowrap;    /* Text ek line me rahe */
+        border-radius: 5px 5px 0 0;
+    }
+
+    .chat-tabs button.active {
+        background: #007bff;
+        color: #fff;
+    }
+
+
 
     /* Chat List Area */
     .chat-lists {
@@ -540,6 +615,7 @@
                         <button onclick="showTab('mentor')">Mentor</button>
                         <button onclick="showTab('coach')">Coach</button>
                         <button onclick="showTab('assessor')">Assessor</button>
+                        <button onclick="showTab('admin')">Admin</button>
                     </div>
 
                     <!-- Chat Lists -->
@@ -575,26 +651,45 @@
 
                         <!-- Coach Tab -->
                         <div id="coach" class="tab-content">
-                            <div class="chat-user">
-                                <img src="https://randomuser.me/api/portraits/women/3.jpg" />
-                                <div class="chat-text">
-                                    <div class="chat-name">Coach Lucy</div>
-                                    <div class="chat-message">Coach message sample</div>
+                            @foreach($coachesList as $coach)
+                                <div class="chat-user" onclick="openChat({{ $coach->user_id }}, 'coach', '{{ $coach->coach_name }}', '{{ $coach->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $coach->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $coach->coach_name }}</div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
-                                <div class="chat-time">05:30 PM</div>
-                            </div>
+                            @endforeach
                         </div>
+
 
                         <!-- Assessor Tab -->
                         <div id="assessor" class="tab-content">
-                            <div class="chat-user">
-                                <img src="https://randomuser.me/api/portraits/men/4.jpg" />
-                                <div class="chat-text">
-                                    <div class="chat-name">Assessor Mike</div>
-                                    <div class="chat-message">Assessor message sample</div>
+                            @foreach($assessorsList as $assessor)
+                                <div class="chat-user" onclick="openChat({{ $assessor->user_id }}, 'assessor', '{{ $assessor->assessor_name }}', '{{ $assessor->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $assessor->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $assessor->assessor_name }}</div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
-                                <div class="chat-time">04:45 PM</div>
-                            </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Admin Tab -->
+                        <div id="admin" class="tab-content">
+                            @foreach($adminsList as $admin)
+                                <div class="chat-user" onclick="openChat({{ $admin->user_id }}, 'admin', '{{ $admin->admin_name }}', '{{ $admin->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $admin->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $admin->admin_name }}</div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>

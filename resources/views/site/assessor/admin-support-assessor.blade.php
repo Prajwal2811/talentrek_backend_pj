@@ -11,15 +11,13 @@
         </div>
     </div>
 
-	@if($mentorNeedsSubscription)
-    @include('site.mentor.subscription.index')
-@endif
+
     <div class="page-wraper">
         <div class="flex h-screen">
-             @include('site.mentor.componants.sidebar')
+             @include('site.assessor.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                @include('site.mentor.componants.navbar')
+                @include('site.assessor.componants.navbar')
 
                     <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
                         <h2 class="text-2xl font-semibold mb-6">Admin support</h2>
@@ -71,11 +69,9 @@
 
                     <script>
                         function appendMessage(message) {
-                         
                             let alignment = message.is_self ? 'justify-end' : 'justify-start';
                             let bubbleClass = 'bg-gray-200 text-black';
 
-                           
                             if (message.sender_type === 'assessor' || message.sender_type === 'coach') {
                                 bubbleClass = 'bg-blue-100 text-black';
                             }
@@ -94,8 +90,9 @@
                             $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
                         }
 
+
                         // Fetch existing messages
-                        $.get('{{ route("mentor.group.chat.fetch") }}', function(messages) {
+                        $.get('{{ route("assessor.group.chat.fetch") }}', function(messages) {
                             messages.forEach(msg => {
                                 msg.is_self = (msg.sender_id == '{{ auth()->id() }}'); 
                                 appendMessage(msg);
@@ -111,7 +108,7 @@
                             if(file) formData.append('file', file);
 
                             $.ajax({
-                                url: '{{ route("mentor.group.chat.send") }}',
+                                url: '{{ route("assessor.group.chat.send") }}',
                                 type: 'POST',
                                 data: formData,
                                 processData: false,
@@ -138,8 +135,8 @@
                             forceTLS: true
                         });
 
-                        // 🟢 Mentor chat
-                        Echo.channel('chat.mentor')
+                        // 🟢 assessor chat
+                        Echo.channel('chat.assessor')
                             .listen('.message.sent', (e) => {
                                 appendMessage(e);
                             });
@@ -167,4 +164,4 @@
 
 
           
-@include('site.mentor.componants.footer')
+@include('site.assessor.componants.footer')
