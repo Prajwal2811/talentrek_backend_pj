@@ -115,7 +115,7 @@
 
                                                 <!-- Message -->
                                                 <div :class="message.sender === 'me'
-                                                            ? 'bg-blue-600 text-white rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
+                                                            ? 'bg-blue-100 text-black rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
                                                             : 'bg-gray-200 text-gray-800 rounded-br-lg rounded-tr-lg rounded-tl-2xl'"
                                                     class="p-2 text-sm max-w-[70%] break-words shadow-md"
                                                     x-html="message.html">
@@ -144,7 +144,7 @@
                                             <input type="file" class="hidden" @change="handleFileUpload" />
                                         </label>
 
-                                        <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition" @click="sendMessage">
+                                        <button class="bg-blue-300 hover:bg-blue-400 text-black p-2 rounded-full transition" @click="sendMessage">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </div>
