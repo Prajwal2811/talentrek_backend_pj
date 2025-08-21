@@ -48,7 +48,7 @@
 
                     <!-- Admin Support -->
                     <a 
-                        href="admin-support.html" 
+                        href="{{ route('recruiter.admin.support') }}" 
                         :class="[ 
                             active === 'admin-support' 
                                 ? 'bg-white text-blue-900 font-semibold' 

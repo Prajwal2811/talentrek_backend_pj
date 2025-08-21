@@ -24,6 +24,8 @@ return new class extends Migration
 
             $table->text('training_experience')->nullable();   // Description of experience
             $table->text('training_skills')->nullable();       // Comma-separated skills
+            $table->string('area_of_interest')->nullable();        // Personal or company site
+            $table->string('job_category')->nullable();        // Personal or company site
             $table->string('website_link')->nullable();        // Personal or company site
             $table->string('portfolio_link')->nullable();      // e.g., GitHub, Behance
 

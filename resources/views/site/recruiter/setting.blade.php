@@ -11,7 +11,12 @@
         </div>
     </div>
 
-	
+	@if($recruiterNeedsSubscription)
+        @include('site.recruiter.subscription.index')
+    @endif
+     @if($otherRecruiterSubscription)
+        @include('site.recruiter.subscription.add-other-recruiters')
+    @endif
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
 
@@ -19,55 +24,7 @@
             @include('site.recruiter.componants.sidebar')	
 
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                        <button 
-                            @click="sidebarOpen = !sidebarOpen" 
-                            class="text-gray-700 hover:text-blue-600 focus:outline-none"
-                            title="Toggle Sidebar"
-                            aria-label="Toggle Sidebar"
-                            type="button"
-                            >
-                            <i data-feather="menu" class="w-6 h-6"></i>
-                        </button>
-                        <!-- <div class="relative w-full">
-                            <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> {{$companyDetails->name}}</span>
-                            
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                 @include('site.recruiter.componants.navbar')
 
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
                     <h2 class="text-2xl font-semibold mb-6">Settings</h2>
@@ -79,9 +36,10 @@
                                 <li>
                                 <a
                                     href="#"
-                                    @click.prevent="activeSection = 'profile'"
+                                    @click.prevent="activeSection = 'profile'; activeSubTab = 'company'"
                                     :class="activeSection === 'profile' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Profile</a>
+                                    >Profile</a>
+
                                 </li>
                                 <li>
                                 <a
@@ -346,10 +304,27 @@
 
 
                                 <!-- Subscription Section (with internal tabs) -->
-                                <div x-show="activeSection === 'profile'" x-transition>
+                                <div x-show="activeSection === 'profile'"  x-transition>
                                     <!-- Company Header -->
                                     <div class="flex items-center space-x-4 mb-4">
-                                        <img src="./images/gallery/pic8.jpg" alt="Logo" class="w-20 h-20 rounded-lg object-cover" />
+                                        @php
+                                            use App\Models\AdditionalInfo;
+                                            $userId = auth()->id();
+                                            
+                                            $profile = AdditionalInfo::where('user_id', $userId)
+                                                        ->where('doc_type', 'company_profile')
+                                                        ->first();
+                                        @endphp
+
+                                        <!-- Image Preview -->
+                                        <img 
+                                                id="profilePreview" 
+                                                src="{{ $profile ? asset($profile->document_path) : 'https://www.lscny.org/app/uploads/2018/05/mystery-person.png' }}" 
+                                                class="h-20 w-20 rounded-md mb-2" 
+                                                alt="Profile Preview" 
+                                            />
+
+
                                         <div>
                                             <h3 class="text-xl font-semibold">                {{$companyDetails->name}}
                                             </h3>
@@ -418,103 +393,264 @@
                                     <div>
                                         <!-- Company Info Tab -->
                                         <div x-show="activeSubTab === 'company'" x-transition>
-                                            <form action="{{ route('recruiter.company.profile.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            <!-- Success Message -->
+                                            <div id="company-profile-success" class="alert alert-success text-center" style="display: none;">
+                                                <strong>Success!</strong> <span class="message-text"></span>
+                                            </div>    
+                                            <form id="company-profile-form" action="{{ route('recruiter.company.profile.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                                 @csrf
 
-                                                <!-- Company name spans both columns -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Company name</label>
-                                                    <input type="text" name="company_name" value="{{$companyDetails->company_name}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("company_name")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                <!-- Company Info -->
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Company name <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="company_name" value="{{ $companyDetails->company_name }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("company_name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Phone number</label>
-                                                    <input type="text"  name="company_phone_number"  value="{{$companyDetails->company_phone_number}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("company_phone_number")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block mb-1 font-medium">Company email <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="email" name="business_email" value="{{ $companyDetails->business_email }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("business_email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company email</label>
-                                                    <input type="email"  name="business_email"  value="{{$companyDetails->business_email}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("business_email")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block mb-1 font-medium">Company Phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="company_phone_number" value="{{ $companyDetails->company_phone_number }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("company_phone_number") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Industry type</label>
+                                                    <label class="block mb-1 font-medium">Industry type <span style="color: red; font-size: 17px;">*</span></label>
                                                     <select class="w-full border rounded px-3 py-2" name="industry_type">
                                                         <option value="">Select Industry</option>
                                                         <option value="Information technology" {{ old('industry_type', $companyDetails->industry_type) == 'Information technology' ? 'selected' : '' }}>Information technology</option>
                                                         <option value="Healthcare" {{ old('industry_type', $companyDetails->industry_type) == 'Healthcare' ? 'selected' : '' }}>Healthcare</option>
                                                         <option value="Finance" {{ old('industry_type', $companyDetails->industry_type) == 'Finance' ? 'selected' : '' }}>Finance</option>
                                                     </select>
-                                                    @error("industry_type")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    @error("industry_type") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Company establishment date <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input id="establishment_date" name="establishment_date" value="{{ \Carbon\Carbon::parse($companyDetails->updated_at)->format('d-m-Y') }}" class="w-full border rounded px-3 py-2 form-control" />
+                                                    @error("establishment_date") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company establishment date</label>
-                                                    <input   id="establishment_date" name="establishment_date" value="{{ \Carbon\Carbon::parse($companyDetails->updated_at)->format('d-m-Y') }}" class="w-full border rounded px-3 py-2 form-control" />
-                                                    @error("establishment_date")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block mb-1 font-medium">Company website <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="company_website" value="{{ $companyDetails->company_website }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("company_website") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
-                                                
+
+                                                <!-- Recruiter Info -->
+                                                <div class="col-span-2 mt-4">
+                                                    <h3 class="text-xl font-semibold">Recruiter Details</h3>
+                                                </div>
+
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company website</label>
-                                                    <input type="text"  name="company_website"  value="{{$companyDetails->company_website}}" class="w-full border rounded px-3 py-2" />
-                                                    @error("company_website")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block mb-1 font-medium">Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
-                                          
+
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
+
+                                                <div class="">
+                                                    <label class="block mb-1 font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
+                                                    @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                </div>
+
                                                 <!-- Buttons -->
-                                                <div class="mt-6 flex justify-end space-x-3">
-                                                    <button
-                                                        @click.prevent="activeSubTab = 'documents'"
-                                                        class="border px-6 py-2 rounded hover:bg-gray-100" >
-                                                        Next
-                                                    </button>
-                                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                                        Update
-                                                    </button>
+                                                <div class="col-span-2 mt-6 flex justify-end space-x-3">
+                                                    <button @click.prevent="activeSubTab = 'documents'" class="border px-6 py-2 rounded hover:bg-gray-100">Next</button>
+                                                    <button type="submit" id="save-company-profile" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Update</button>
                                                 </div>
                                             </form>
                                         </div>
+                                        <script>
+                                            document.getElementById('save-company-profile').addEventListener('click', function (e) {    
+                                                e.preventDefault(); // Prevent default form submission
+
+                                                const form = document.getElementById('company-profile-form');
+                                                const formData = new FormData(form);
+                                                const successBox = document.getElementById('company-profile-success');
+                                                const successText = successBox.querySelector('.message-text');
+
+                                                // Clear previous error messages
+                                                form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+
+                                                fetch(form.action, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
+                                                        'Accept': 'application/json'
+                                                    },
+                                                    body: formData
+                                                })
+                                                .then(response => {
+                                                    if (!response.ok) return response.json().then(err => Promise.reject(err));
+                                                    return response.json();
+                                                })
+                                                .then(data => {
+                                                    // Show success alert
+                                                    successText.textContent = data.message;
+                                                    successBox.style.display = 'block';
+
+                                                    // Hide after 3 seconds
+                                                    setTimeout(() => {
+                                                        successBox.style.display = 'none';
+                                                        successText.textContent = '';
+                                                    }, 3000);
+
+                                                    // Optional: switch to next tab
+                                                    if (typeof nextTab === "function") nextTab();
+                                                })
+                                                .catch(error => {
+                                                    const errors = error.errors || {};
+                                                    Object.keys(errors).forEach(field => {
+                                                        const message = errors[field][0];
+                                                        const input = form.querySelector(`[name="${field}"]`);
+                                                        if (input) {
+                                                            const errorElem = document.createElement('p');
+                                                            errorElem.className = 'text-red-600 text-sm mt-1';
+                                                            errorElem.textContent = message;
+                                                            input.insertAdjacentElement('afterend', errorElem);
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                        </script>
+
+    
 
                                         <!-- Documents Tab -->
                                         <div x-show="activeSubTab === 'documents'" x-transition>
-                                            <form method="POST" action="{{ route('recruiter.company.document.update') }}" class="space-y-4 text-sm" enctype="multipart/form-data">
-                                                <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
+                                            <!-- Success Alert -->
+                                            <div id="company-docs-success" class="alert alert-success mt-4 text-center hidden">
+                                                <span class="message-text font-semibold"></span>
+                                            </div>
+
+                                            <form id="company-documents-form" method="POST" action="{{ route('recruiter.company.document.update') }}" enctype="multipart/form-data" class="space-y-4 text-sm">
                                                 @csrf
+                                                <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
 
-                                                {{-- Company Profile Picture --}}
+                                                <!-- Company Profile Picture -->
                                                 <div>
-                                                    <label class="block mb-1 font-medium" for="company_profile_pic">Upload Company Profile Picture</label>
-                                                    <input type="file" id="company_profile_pic" class="w-full border rounded px-3 py-2" name="company_profile_pic" accept="image/*" required />
+                                                    <label class="block font-medium mb-1">Company Profile Picture <span style="color: red; font-size: 17px;">*</span></label>
+                                                    @if($companyProfile)
+                                                        <div class="flex items-center gap-4">
+                                                            <a href="{{ asset($companyProfile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">📄 View Image</a>
+                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="company_profile">Delete</button>
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="company_profile" accept="image/*" class="w-full border rounded px-3 py-2" />
                                                 </div>
 
-                                                {{-- Company Registration Document --}}
+                                                <!-- Registration Document -->
                                                 <div>
-                                                    <label class="block mb-1 font-medium" for="doc1">Upload Company Registration Document</label>
-                                                    <input type="file" id="doc1" class="w-full border rounded px-3 py-2" name="register_document" required />
+                                                    <label class="block font-medium mb-1">Registration Document <span style="color: red; font-size: 17px;">*</span></label>
+                                                    @if($registrationDoc)
+                                                        <div class="flex items-center gap-4">
+                                                            <a href="{{ asset($registrationDoc->document_path) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700">📄 View Document</a>
+                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="register_document">Delete</button>
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="register_document" accept=".pdf,.doc,.docx" class="w-full border rounded px-3 py-2" />
                                                 </div>
 
-                                                <div class="mt-6 flex justify-end space-x-3">
-                                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                                        Update
-                                                    </button>
+                                                <div class="flex justify-end mt-4">
+                                                    <button type="button" id="save-company-docs" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800">Update</button>
                                                 </div>
                                             </form>
+
+                                            <!-- Delete Modal -->
+                                            <div id="deleteCompanyDocModal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
+                                                <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
+                                                    <h2 class="text-lg font-semibold mb-4">Confirm Delete</h2>
+                                                    <p class="mb-4 text-gray-700">Are you sure you want to delete <span id="delete-doc-type" class="font-bold"></span>?</p>
+                                                    <div class="flex justify-end gap-4">
+                                                        <button type="button" id="cancelCompanyDocDelete" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+                                                        <button type="button" id="confirmCompanyDocDelete" class="bg-red-600 text-white px-4 py-2 rounded">Delete</button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
+                                        <script>
+                                            let selectedCompanyDocType = null;
+
+                                            document.getElementById('save-company-docs').addEventListener('click', function () {
+                                                const form = document.getElementById('company-documents-form');
+                                                const formData = new FormData(form);
+                                                const successBox = document.getElementById('company-docs-success');
+                                                const successText = successBox.querySelector('.message-text');
+
+                                                fetch(form.action, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
+                                                        'Accept': 'application/json'
+                                                    },
+                                                    body: formData
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    successText.textContent = data.message;
+                                                    successBox.classList.remove('hidden');
+                                                    setTimeout(() => location.reload(), 2000); // Reload after success
+                                                })
+                                                .catch(error => {
+                                                    alert('Failed to upload documents.');
+                                                });
+                                            });
+
+                                            document.querySelectorAll('.delete-doc').forEach(btn => {
+                                                btn.addEventListener('click', () => {
+                                                    selectedCompanyDocType = btn.dataset.type;
+                                                    document.getElementById('delete-doc-type').textContent = selectedCompanyDocType.replace(/_/g, ' ');
+                                                    document.getElementById('deleteCompanyDocModal').classList.remove('hidden');
+                                                });
+                                            });
+
+                                            document.getElementById('cancelCompanyDocDelete').addEventListener('click', () => {
+                                                selectedCompanyDocType = null;
+                                                document.getElementById('deleteCompanyDocModal').classList.add('hidden');
+                                            });
+
+                                            document.getElementById('confirmCompanyDocDelete').addEventListener('click', () => {
+                                                if (!selectedCompanyDocType) return;
+
+                                                fetch(`{{ route('recruiter.company.document.delete', ':type') }}`.replace(':type', selectedCompanyDocType), {
+                                                    method: 'DELETE',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
+                                                        'Accept': 'application/json'
+                                                    }
+                                                })
+                                                .then(res => res.json())
+                                                .then(data => {
+                                                    document.getElementById('deleteCompanyDocModal').classList.add('hidden');
+                                                    selectedCompanyDocType = null;
+
+                                                    const successBox = document.getElementById('company-docs-success');
+                                                    const successText = successBox.querySelector('.message-text');
+                                                    successText.textContent = data.message;
+                                                    successBox.classList.remove('hidden');
+                                                    setTimeout(() => location.reload(), 2000);
+                                                })
+                                                .catch(() => {
+                                                    alert('Delete failed.');
+                                                    document.getElementById('deleteCompanyDocModal').classList.add('hidden');
+                                                });
+                                            });
+                                        </script>
+
+
                                         
                                     </div>
                                 </div>
@@ -581,6 +717,29 @@
                                             Delete Account
                                         </button>
                                     </form>
+
+                                        <!-- SweetAlert2 CDN -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                        <script>
+                                          document.getElementById('deleteAccountBtn').addEventListener('click', function () {
+                                                Swal.fire({
+                                                    title: 'Are you sure?',
+                                                    text: "This action is irreversible. Delete your account?",
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#d33',
+                                                    cancelButtonColor: '#3085d6',
+                                                    confirmButtonText: 'Yes, delete it!',
+                                                    cancelButtonText: 'No',
+                                                    width: '350px', // Make it smaller
+                                                    padding: '1em',
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        document.getElementById('deleteAccountForm').submit();
+                                                    }
+                                                });
+                                            });
+                                        </script>
                                 </div>
                             </div>
                         </section>
@@ -599,7 +758,7 @@
         <script>
             feather.replace()
         </script>
-
+    
 
     </div>
            

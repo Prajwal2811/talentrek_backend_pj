@@ -13,7 +13,7 @@
                 <ul class="nav navbar-nav">
                     <!-- Language Switch -->
                     <li class="dropdown">
-                        <a href="javascript:void(0);" class="dropdown-toggle icon-menu d-flex align-items-center" data-toggle="dropdown">
+                        {{-- <a href="javascript:void(0);" class="dropdown-toggle icon-menu d-flex align-items-center" data-toggle="dropdown">
                             <span class="ml-1 d-flex align-items-center text-uppercase">
                                 @switch(app()->getLocale())
                                     @case('en')
@@ -24,8 +24,8 @@
                                         @break
                                 @endswitch
                             </span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-right p-2" style="min-width: 160px;">
+                        </a> --}}
+                        {{-- <ul class="dropdown-menu dropdown-menu-right p-2" style="min-width: 160px;">
                             <li class="mb-1">
                                 <a class="dropdown-item d-flex align-items-center" href="#" onclick="switchLanguage('en')">
                                     <img src="	https://flagcdn.com/w20/us.png" alt="English" width="20" class="mr-2"> English
@@ -36,7 +36,7 @@
                                     <img src="	https://flagcdn.com/w20/sa.png" alt="Arabic" width="20" class="mr-2"> Arabic
                                 </a>
                             </li>
-                        </ul>
+                        </ul> --}}
                     </li>
 
 
@@ -44,7 +44,7 @@
                     <!-- Notifications -->
                     <li class="dropdown">
                         <a href="javascript:void(0);" class="dropdown-toggle icon-menu" data-toggle="dropdown">
-                            <i class="fa fa-bell-o"></i>
+                            <i class="fa fa-bell-o text"></i>
                             <span class="notification-dot info">4</span>
                         </a>
                         <ul class="dropdown-menu feeds_widget mt-0 animation-li-delay">

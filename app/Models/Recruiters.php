@@ -22,6 +22,7 @@ class Recruiters extends Authenticatable
         'company_id',
         'name',
         'email',
+        'national_id',
         'phone_number',
         'password',
         'pass',
@@ -46,4 +47,5 @@ class Recruiters extends Authenticatable
         return $this->hasOne(RecruiterCompany::class, 'recruiter_id');
     }
 
+    
 }

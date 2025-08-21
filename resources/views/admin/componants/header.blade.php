@@ -28,13 +28,12 @@
 <link rel="stylesheet" href="{{ asset('asset/backend/vendor/jquery-datatable/fixedeader/dataTables.fixedcolumns.bootstrap4.min.css') }}">
 <link rel="stylesheet" href="{{ asset('asset/backend/vendor/jquery-datatable/fixedeader/dataTables.fixedheader.bootstrap4.min.css') }}">
 <link rel="stylesheet" href="{{ asset('asset/backend/vendor/sweetalert/sweetalert.css') }}">
+<link rel="stylesheet" href="{{ asset('asset/backend/css/mooli.min.css') }}">
     
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-<!-- Custom Css -->
-<link rel="stylesheet" href="{{ asset('asset/backend/css/mooli.min.css') }}">
 
 <!-- Bootstrap 5 JS (with Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

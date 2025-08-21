@@ -36,8 +36,11 @@ class JobseekerController extends Controller
             ], 401);
         }
 
+        $iSRegistered = $jobseeker->status !== null;
+
         return response()->json([
             'status' => true,
+            'iSRegistered' => $iSRegistered,
             'message' => 'Login successful',
             'data' => [
                 'id' => $jobseeker->id,
@@ -45,6 +48,7 @@ class JobseekerController extends Controller
                 'email' => $jobseeker->email
             ]
         ]);
+
 
     }
 
@@ -153,7 +157,7 @@ class JobseekerController extends Controller
                 'status' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
-            ], 422);
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -189,7 +193,7 @@ class JobseekerController extends Controller
                 'date_of_birth'=> 'required|date|before:today',
                 'location'     => 'required|string|max:255',
                 'address'      => 'required|string|max:500',
-                'password'     => 'required|string|min:6|confirmed',
+                //'password'     => 'required|string|min:6|confirmed',
 
                 // Education
                 'education' => 'required|array|min:1',
@@ -225,8 +229,6 @@ class JobseekerController extends Controller
                 'date_of_birth'=> $request->date_of_birth,
                 'city'         => $request->location,
                 'address'      => $request->address,
-                'password'     => Hash::make($request->password),
-                'pass'         => $request->password,
                 'is_registered'=> true, // you should add this column to your table
             ]);
 
@@ -249,8 +251,8 @@ class JobseekerController extends Controller
                     'user_type'    => 'jobseeker',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => $exp['start_date'],
-                    'end_to'       => $exp['end_date']
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => date('Y-m-d',strtotime($exp['end_date']))
                 ]);
             }
 
@@ -409,7 +411,7 @@ class JobseekerController extends Controller
                 'status'  => false,
                 'message' => 'Validation failed',
                 'errors'  => $e->errors()
-            ], 422);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -432,7 +434,7 @@ class JobseekerController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 201);
         }
 
         // Generate 6-digit OTP
@@ -540,7 +542,7 @@ class JobseekerController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 201);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';
@@ -578,7 +580,7 @@ class JobseekerController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 201);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';

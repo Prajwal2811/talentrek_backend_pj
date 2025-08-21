@@ -29,10 +29,15 @@ return new class extends Migration
             $table->string('no_of_employee')->nullable();
             $table->string('industry_type')->nullable();
             $table->string('registration_number')->nullable();
-            $table->string('status')->nullable();
+            $table->string('status')->default('active');
             $table->string('admin_status')->nullable();
             $table->string('inactive_reason')->nullable();
             $table->string('rejection_reason')->nullable();
+            $table->string('is_registered')->default('0');  
+            $table->string('isSubscribtionBuy')->default('no');
+            $table->string('active_subscription_plan_id')->nullable();
+            $table->string('active_subscription_plan_slug')->nullable();
+            $table->string('recruiter_count')->nullable();
             $table->timestamps();
 
                 // Cascade delete recruiters when company is deleted

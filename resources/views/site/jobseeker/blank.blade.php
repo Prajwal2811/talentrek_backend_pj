@@ -16,3 +16,389 @@
 
 
 @include('site.jobseeker.componants.footer')
+
+
+
+
+
+@php
+                            $mentorships = \App\Models\BookingSession::with([
+                                    'mentor.reviews',
+                                    'mentor.profilePicture',
+                                    'mentor.experiences'
+                                ])
+                                ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                                ->where('user_type', 'mentor')
+                                ->whereHas('mentor.profilePicture')
+                                ->get();
+                        @endphp
+
+                        <div x-show="tab === 'mentorship'" x-cloak>
+                            <h2 class="text-xl font-semibold mb-4">Mentorship</h2>
+                            @foreach ($mentorships as $index => $mentorship)
+                                @php
+                                    $mentor = $mentorship->mentor;
+                                    $reviews = $mentor?->reviews ?? collect();
+                                    $experiences = $mentor?->experiences ?? collect();
+
+                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                    $totalReviews = $reviews->count();
+                                    $roundedRating = round($averageRating);
+                                    $stars = str_repeat('★', $roundedRating) . str_repeat('☆', 5 - $roundedRating);
+
+                                    $currentExp = $experiences->firstWhere('end_to', null) ??
+                                                $experiences->sortByDesc('end_to')->first();
+                                    $designation = $currentExp ? ($currentExp->job_role) : 'No designation available';
+
+                                    $zoomLink = $mentorship->zoom_join_url ?? null;
+                                @endphp
+
+                                <div class="flex items-start border-b pb-4 mb-4 space-x-4">
+                                    <!-- Mentor Profile Picture -->
+                                    <img src="{{ $mentor?->profilePicture?->document_path }}" alt="Mentor" class="w-24 h-24 rounded-full object-cover">
+
+                                    <div class="flex-1">
+                                        <!-- Mentor Name + Designation + Join Button in a Row -->
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <a href="mentorship-details-profile.html">
+                                                    <h3 class="text-lg font-semibold text-gray-900">{{ $mentor?->name }}</h3>
+                                                </a>
+                                                <p class="text-sm text-gray-500 mt-1">{{ $designation }}</p>
+
+                                                <!-- Rating -->
+                                                <div class="flex items-center mt-2 text-sm space-x-2">
+                                                    <div class="text-yellow-500 text-base">
+                                                        {{ $stars }}
+                                                    </div>
+                                                    <span class="text-gray-500">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Join Meet Button -->
+                                            <!-- Join Meet or View Address Button -->
+                                            <div class="ml-4 shrink-0">
+                                                @if ($mentorship->slot_mode === 'online' && $zoomLink)
+                                                    <button type="button"
+                                                            class="btn btn-primary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#zoomModal{{ $index }}">
+                                                        Join Meet
+                                                    </button>
+                                                @elseif ($mentorship->slot_mode === 'offline')
+                                                    <button type="button"
+                                                            class="btn btn-outline-secondary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#addressModal{{ $index }}">
+                                                        View Address
+                                                    </button>
+                                                @else
+                                                    <p class="text-red-500 text-sm">Link not available</p>
+                                                @endif
+                                            </div>
+                                            <!-- Address Modal for Offline Slot -->
+                                            @if ($mentorship->slot_mode === 'offline')
+                                                <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-labelledby="addressModalLabel{{ $index }}" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="addressModalLabel{{ $index }}">Mentor's Address</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p class="text-gray-800">
+                                                                    {{ $mentor?->address ?? 'Address not available' }}
+                                                                </p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Zoom Modal -->
+                                <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-labelledby="zoomModalLabel{{ $index }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="zoomModalLabel{{ $index }}">Join Zoom Meeting with {{ $mentor?->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Click the link below to join the meeting:</p>
+                                                <a href="{{ $zoomLink }}" target="_blank" class="text-blue-600 font-medium underline break-all">
+                                                    {{ $zoomLink }}
+                                                </a>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+
+                        {{-- Assessor --}}
+                        @php
+                            $assessments = \App\Models\BookingSession::with([
+                                    'assessor.reviews',
+                                    'assessor.profilePicture',
+                                    'assessor.experiences'
+                                ])
+                                ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                                ->where('user_type', 'assessor') // only assessor type sessions
+                                ->whereHas('assessor.profilePicture')
+                                ->get();
+                        @endphp
+
+                        <div x-show="tab === 'assessment'" x-cloak>
+                            <h2 class="text-xl font-semibold mb-4">Assessor</h2>
+
+                            @if ($assessments->isEmpty())
+                                <div class="text-gray-500 text-sm">
+                                    No assessment sessions found.
+                                </div>
+                            @else
+                                @foreach ($assessments as $index => $assessment)
+                                    @php
+                                        $assessor = $assessment->assessor;
+                                        $reviews = $assessor?->reviews ?? collect();
+                                        $experiences = $assessor?->experiences ?? collect();
+
+                                        $averageRating = $reviews->avg('ratings') ?? 0;
+                                        $totalReviews = $reviews->count();
+                                        $roundedRating = round($averageRating);
+                                        $stars = str_repeat('★', $roundedRating) . str_repeat('☆', 5 - $roundedRating);
+
+                                        $currentExp = $experiences->firstWhere('end_to', null) ??
+                                                    $experiences->sortByDesc('end_to')->first();
+                                        $designation = $currentExp ? ($currentExp->job_role) : 'No designation available';
+
+                                        $zoomLink = $assessment->zoom_join_url ?? null;
+                                    @endphp
+
+                                    <!-- Existing card and modal code... -->
+                                    <div class="flex items-start border-b pb-4 mb-4 space-x-4">
+                                        <img src="{{ $assessor?->profilePicture?->document_path }}" alt="Assessor" class="w-24 h-24 rounded-full object-cover">
+
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-center">
+                                                <div>
+                                                    <a href="#">
+                                                        <h3 class="text-lg font-semibold text-gray-900">{{ $assessor?->name }}</h3>
+                                                    </a>
+                                                    <p class="text-sm text-gray-500 mt-1">{{ $designation }}</p>
+
+                                                    <div class="flex items-center mt-2 text-sm space-x-2">
+                                                        <div class="text-yellow-500 text-base">
+                                                            {{ $stars }}
+                                                        </div>
+                                                        <span class="text-gray-500">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="ml-4 shrink-0">
+                                                    @if ($assessment->slot_mode === 'online' && $zoomLink)
+                                                        <button type="button"
+                                                                class="btn btn-primary btn-sm"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#zoomModal{{ $index }}">
+                                                            Join Meet
+                                                        </button>
+                                                    @elseif ($assessment->slot_mode === 'offline')
+                                                        <button type="button"
+                                                                class="btn btn-outline-secondary btn-sm"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#addressModal{{ $index }}">
+                                                            View Address
+                                                        </button>
+                                                    @else
+                                                        <p class="text-red-500 text-sm">Link not available</p>
+                                                    @endif
+                                                </div>
+                                                <!-- Address Modal for Offline Slot -->
+                                                @if ($assessment->slot_mode === 'offline')
+                                                    <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-labelledby="addressModalLabel{{ $index }}" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="addressModalLabel{{ $index }}">Assessor's Address</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p class="text-gray-800">
+                                                                        {{ $assessor?->address ?? 'Address not available' }}
+                                                                    </p>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Zoom Modal -->
+                                    <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-labelledby="zoomModalLabel{{ $index }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="zoomModalLabel{{ $index }}">Join Zoom Meeting with {{ $assessor?->name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Click the link below to join the meeting:</p>
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="text-blue-600 font-medium underline break-all">
+                                                        {{ $zoomLink }}
+                                                    </a>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+
+                    <!-- Coaching Tab -->
+                    @php
+                        $coachings = \App\Models\BookingSession::with([
+                                'coach.reviews',
+                                'coach.profilePicture',
+                                'coach.experiences'
+                            ])
+                            ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->where('user_type', 'coach') // only coach type sessions
+                            ->whereHas('coach.profilePicture')
+                            ->get();
+                    @endphp
+
+                    <div x-show="tab === 'coaching'" x-cloak>
+                        <h2 class="text-xl font-semibold mb-4">Coaching</h2>
+
+                        @if ($coachings->isEmpty())
+                            <div class="text-gray-500 text-sm">
+                                No coaching sessions found.
+                            </div>
+                        @else
+                            @foreach ($coachings as $index => $coaching)
+                                @php
+                                    $coach = $coaching->coach;
+                                    $reviews = $coach?->reviews ?? collect();
+                                    $experiences = $coach?->experiences ?? collect();
+
+                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                    $totalReviews = $reviews->count();
+                                    $roundedRating = round($averageRating);
+                                    $stars = str_repeat('★', $roundedRating) . str_repeat('☆', 5 - $roundedRating);
+
+                                    $currentExp = $experiences->firstWhere('end_to', null) ??
+                                                $experiences->sortByDesc('end_to')->first();
+                                    $designation = $currentExp ? ($currentExp->job_role) : 'No designation available';
+
+                                    $zoomLink = $coaching->zoom_join_url ?? null;
+                                @endphp
+
+                                <div class="flex items-start border-b pb-4 mb-4 space-x-4">
+                                    <img src="{{ $coach?->profilePicture?->document_path }}" alt="Coach" class="w-24 h-24 rounded-full object-cover">
+
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <a href="#">
+                                                    <h3 class="text-lg font-semibold text-gray-900">{{ $coach?->name }}</h3>
+                                                </a>
+                                                <p class="text-sm text-gray-500 mt-1">{{ $designation }}</p>
+
+                                                <div class="flex items-center mt-2 text-sm space-x-2">
+                                                    <div class="text-yellow-500 text-base">
+                                                        {{ $stars }}
+                                                    </div>
+                                                    <span class="text-gray-500">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="ml-4 shrink-0">
+                                                @if ($coaching->slot_mode === 'online' && $zoomLink)
+                                                    <button type="button"
+                                                            class="btn btn-primary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#zoomModal{{ $index }}">
+                                                        Join Meet
+                                                    </button>
+                                                @elseif ($coaching->slot_mode === 'offline')
+                                                    <button type="button"
+                                                            class="btn btn-outline-secondary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#addressModal{{ $index }}">
+                                                        View Address
+                                                    </button>
+                                                @else
+                                                    <p class="text-red-500 text-sm">Link not available</p>
+                                                @endif
+                                            </div>
+                                            <!-- Address Modal for Offline Slot -->
+                                            @if ($coaching->slot_mode === 'offline')
+                                                <div class="modal fade" id="addressModal{{ $index }}" tabindex="-1" aria-labelledby="addressModalLabel{{ $index }}" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="addressModalLabel{{ $index }}">Coach's Address</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p class="text-gray-800">
+                                                                    {{ $coach?->address ?? 'Address not available' }}
+                                                                </p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Zoom Modal -->
+                                <div class="modal fade" id="zoomModal{{ $index }}" tabindex="-1" aria-labelledby="zoomModalLabel{{ $index }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="zoomModalLabel{{ $index }}">Join Zoom Meeting with {{ $coach?->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Click the link below to join the meeting:</p>
+                                                <a href="{{ $zoomLink }}" target="_blank" class="text-blue-600 font-medium underline break-all">
+                                                    {{ $zoomLink }}
+                                                </a>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>

@@ -18,6 +18,8 @@ class TrainingExperience extends Model
         'user_type',
         'training_experience',
         'training_skills',
+        'area_of_interest',
+        'job_category',
         'website_link',
         'portfolio_link',
     ];

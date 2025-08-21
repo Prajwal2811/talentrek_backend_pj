@@ -23,7 +23,7 @@ return new class extends Migration
             $table->text('description')->nullable();                  // Optional description
             $table->string('file_path')->nullable();                  // Path to stored document
             $table->string('file_name')->nullable();                  // Original file name
-
+            $table->string('file_duration')->nullable();              // Duration of the document
             $table->timestamps();
 
             // Foreign key constraints with shorter names

@@ -34,6 +34,7 @@ return new class extends Migration
 
 
             $table->string('status')->nullable();
+            $table->string('interview_request')->nullable();
             $table->string('admin_status')->nullable();
             $table->string('rejection_reason')->nullable();
             $table->string('interview_url')->nullable();
