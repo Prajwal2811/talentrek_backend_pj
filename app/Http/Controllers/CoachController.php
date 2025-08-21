@@ -250,7 +250,106 @@ class CoachController extends Controller
 
     public function showCoachDashboard()
     {
-        return view('site.coach.coach-dashboard');    
+        $sessions = BookingSession::select(
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'coach')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
+            ->get()
+            ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
+                return [
+                    'session_id' => $session->session_id,
+                    'name' => $session->name,
+                    'role' => $latestExperience->job_role ?? 'N/A', 
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
+                    'status' => $session->status,
+                ];
+            })
+            ->groupBy('status');
+
+        // echo "<pre>";    
+        // print_r( $sessions);exit; 
+       
+        $today = \Carbon\Carbon::today()->format('Y-m-d');
+   
+        $todayCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'coach')
+            ->whereDate('jobseeker_saved_booking_session.slot_date', $today)
+            ->count();
+           
+        $upcomingCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'coach')
+            ->where('jobseeker_saved_booking_session.status', 'pending')
+            ->count();
+            
+        // ✅ Properly formatted cancelled sessions for modal use
+        $cancelled = BookingSession::select(
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'coach')
+            ->where('jobseeker_saved_booking_session.status', 'cancelled')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
+            ->get()
+            ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
+                return [
+                    'session_id' => $session->session_id,
+                    'name' => $session->name,
+                    'role' => $latestExperience->job_role ?? 'N/A',
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
+                    'status' => $session->status,
+                ];
+            });
+        // echo "<pre>";    
+        // print_r($cancelled);exit; 
+
+        return view('site.coach.coach-dashboard', [
+            'upcoming' => $sessions['pending'] ?? [],
+            'completed' => $sessions['completed'] ?? [],
+            'cancelled' => $cancelled,
+            'todayCount' => $todayCount,
+            'upcomingCount' => $upcomingCount,
+        ]); 
+         
     }
 
     public function logoutCoach(Request $request)
@@ -908,31 +1007,92 @@ class CoachController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Slot status updated.']);
     }
 
+    // public function updateSlotTime(Request $request)
+    // {
+    //     $request->validate([
+    //         'id' => 'required|exists:booking_slots,id',
+    //         'start_time' => 'required',
+    //         'end_time' => 'required|after:start_time',
+    //     ]);
+
+    //     // Convert to 24-hour format
+    //     $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
+    //     $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+
+    //     $slot = BookingSlot::findOrFail($request->id);
+        
+    //     $slot->update([
+    //         'start_time' => $startTime,
+    //         'end_time' => $endTime,
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Slot time updated successfully.',
+    //         'slot' => $slot,
+    //     ]);
+    // }
+
+  
     public function updateSlotTime(Request $request)
     {
         $request->validate([
             'id' => 'required|exists:booking_slots,id',
             'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'end_time' => 'required',
         ]);
 
-        // Convert to 24-hour format
         $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
-        $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+        $endTime   = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
 
-        $slot = BookingSlot::findOrFail($request->id);
-        
+        if ($startTime === $endTime) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Start time and end time cannot be the same.',
+            ], 422);
+        }
+
+        $userId   = auth()->id();
+        $userType = 'coach';
+
+        $slot = BookingSlot::where('id', $request->id)
+            ->where('user_id', $userId)
+            ->where('user_type', $userType)
+            ->firstOrFail();
+
+    
+        $exists = BookingSlot::where('id', '!=', $slot->id)
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->where(function ($q1) use ($startTime, $endTime) {
+                    $q1->where('start_time', '<', $endTime)
+                    ->where('end_time', '>', $startTime);
+                });
+            })
+            ->exists();
+
+
+        if ($exists) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'This time slot is already selected.',
+            ], 422);
+        }
+
+    
         $slot->update([
             'start_time' => $startTime,
-            'end_time' => $endTime,
+            'end_time'   => $endTime,
         ]);
-
+      
         return response()->json([
-            'status' => 'success',
-            'message' => 'Slot time updated successfully.',
-            'slot' => $slot,
+            'status'  => 'success',
+            'message' => 'slot updated successfully.',
+            'slot'    => $slot,
         ]);
     }
+
     public function deleteSlot(Request $request)
     {
         $request->validate([
