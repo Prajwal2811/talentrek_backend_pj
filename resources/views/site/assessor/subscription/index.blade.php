@@ -29,7 +29,7 @@
                         <div class="border rounded-lg p-4 shadow-sm text-center">
                             <div class="flex flex-col items-center">
                                 <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mb-2">
-                                    <i class="fas fa-crown text-orange-500 text-xl"></i>
+                                    <i class="fas fa-crown text-blue-500 text-xl"></i>
                                 </div>
 
                                 <h4 class="font-semibold">{{ $plan->title }}</h4>
@@ -42,7 +42,7 @@
                                 @endforeach
                             </ul>
                             <button type="button"
-                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
                                 data-plan-id="{{ $plan->id }}">
                                 Buy subscription
                             </button>

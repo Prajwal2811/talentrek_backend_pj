@@ -174,12 +174,14 @@ class RecruiterController extends Controller
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'national_id' => $validated['national_id'],
+                    'company_id' => $validated['company_id'],
+                    'role' => 'main',
                ]);
 
                // Step 3: Update company with recruiter_id
-               $company->update([
-                    'recruiter_id' => $recruiter->id,
-               ]);
+               // $company->update([
+               //      'recruiter_id' => $recruiter->id,
+               // ]);
 
                // Step 4: Upload company profile
                if ($request->hasFile('company_profile')) {
@@ -237,7 +239,7 @@ class RecruiterController extends Controller
                'password'  => 'required'
           ]);
 
-          $recruiter = RecruiterCompany::where('business_email', $request->email)->first();
+          $recruiter = Recruiters::where('email', $request->email)->first();
 
           if (!$recruiter) {
                session()->flash('error', 'Recruiter account not found.');
@@ -250,7 +252,7 @@ class RecruiterController extends Controller
           }
 
           if (Auth::guard('recruiter')->attempt([
-               'business_email' => $request->email,
+               'email' => $request->email,
                'password' => $request->password
           ])) {
                return redirect()->route('recruiter.dashboard');
@@ -264,10 +266,8 @@ class RecruiterController extends Controller
      public function logoutrecruiter(Request $request)
      {
           Auth::guard('recruiter')->logout();
-          
           $request->session()->invalidate(); 
           $request->session()->regenerateToken(); 
-
           return redirect()->route('recruiter.login')->with('success', 'Logged out successfully');
      }
 

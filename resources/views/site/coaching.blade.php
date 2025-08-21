@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\DB;
     // echo "</pre>";
 
 ?>
+@if($jobseekerNeedsSubscription)
+            @include('site.jobseeker.subscription.index')
+        @endif
 @include('site.componants.header')
 <body>
     <div class="loading-area">
