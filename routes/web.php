@@ -137,6 +137,9 @@ Route::post('/broadcasting/auth', function () {
 Route::group(['middleware' => 'jobseeker.auth'], function () {
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('jobseeker.chat.send');
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('jobseeker.chat.fetch');
+
+    Route::post('/jobseeker/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('jobseeker.group.chat.send');
+	Route::get('/jobseeker/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('jobseeker.group.chat.fetch');
 });
 
 Route::group(['middleware' => 'trainer.auth'], function () {
@@ -172,8 +175,6 @@ Route::group(['middleware' => 'assessor.auth'], function() {
 
 
 Route::group(['middleware' => 'admin.auth'], function() {
-    // Route::post('/admin/chat/send', [ChatController::class, 'sendMessage'])->name('admin.chat.send');
-    // Route::get('/admin/chat/messages', [ChatController::class, 'getMessages'])->name('admin.chat.fetch');
 	Route::post('/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
 	Route::get('/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
 

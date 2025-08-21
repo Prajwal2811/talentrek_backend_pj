@@ -117,7 +117,7 @@
 
                                                 <!-- Message -->
                                                 <div :class="message.sender === 'me'
-                                                            ? 'bg-blue-600 text-white rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
+                                                            ? 'bg-blue-100 text-black rounded-bl-lg rounded-tl-lg rounded-tr-2xl'
                                                             : 'bg-gray-200 text-gray-800 rounded-br-lg rounded-tr-lg rounded-tl-2xl'"
                                                     class="p-2 text-sm max-w-[70%] break-words shadow-md"
                                                     x-html="message.html">
@@ -146,7 +146,7 @@
                                             <input type="file" class="hidden" @change="handleFileUpload" />
                                         </label>
 
-                                        <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition" @click="sendMessage">
+                                        <button class="bg-blue-300 hover:bg-blue-400 text-black p-2 rounded-full transition" @click="sendMessage">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </div>
@@ -243,7 +243,7 @@
                                             .then(res => res.json())
                                             .then(messages => {
                                                 this.activeContact.messages = messages.map(msg => ({
-                                                    html: this.formatMessage(msg.message, msg.type),
+                                                    html: this.formatMessage(msg.message, msg.type, msg.created_at), // ✅ created_at pass kiya
                                                     sender: msg.sender_id == this.currentUserId ? 'me' : 'them'
                                                 }));
                                                 this.scrollToBottom();
@@ -270,7 +270,7 @@
                                         .then(res => res.json())
                                         .then(data => {
                                             this.activeContact.messages.push({
-                                                html: this.formatMessage(data.file_url || data.message, data.type),
+                                                html: this.formatMessage(data.file_url || data.message, data.type, data.created_at), // ✅ created_at pass
                                                 sender: 'me'
                                             });
                                             this.newMessage = '';
@@ -283,30 +283,29 @@
                                     receiveMessage(e) {
                                         if (this.activeContact && parseInt(this.activeContact.id) === parseInt(e.sender_id)) {
                                             this.activeContact.messages.push({
-                                                html: this.formatMessage(e.message, e.type),
+                                                html: this.formatMessage(e.message, e.type, e.created_at), // ✅ created_at pass
                                                 sender: 'them'
                                             });
                                             this.scrollToBottom();
                                         }
                                     },
 
-                                    formatMessage(message, type) {
+                                    formatMessage(message, type, createdAt = null) {
+                                        let content = '';
+
                                         if (type == 2) {
                                             let cleanPath = message.split('?')[0].split('#')[0];
                                             let fileName = decodeURIComponent(cleanPath.split('/').pop());
                                             let ext = fileName.split('.').pop().toLowerCase();
 
-                                            // File type detection
                                             if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-                                                // Image preview
-                                                return `
+                                                content = `
                                                     <a href="${message}" target="_blank" style="display:inline-block;">
                                                         <img src="${message}" alt="image" 
                                                             style="max-width:150px; border-radius:6px; display:block;" />
                                                     </a>
                                                 `;
                                             } else {
-                                                // File icons
                                                 let iconPath = '';
                                                 if (ext === 'pdf') {
                                                     iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
@@ -316,8 +315,7 @@
                                                     iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
                                                 }
 
-                                                // File preview with icon + filename
-                                                return `
+                                                content = `
                                                     <a href="${message}" target="_blank" class="file-message" style="
                                                         display: flex;
                                                         align-items: center;
@@ -341,11 +339,24 @@
                                                     </a>
                                                 `;
                                             }
+                                        } else {
+                                            content = `<span>${message}</span>`;
                                         }
 
-                                        // Text message
-                                        return `<span>${message}</span>`;
+                                        // ✅ Time format (hh:mm AM/PM)
+                                        let time = createdAt
+                                            ? new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                                            : '';
+
+                                        return `
+                                            <div>
+                                                ${content}
+                                                <div class="text-xs text-gray-500 mt-1">${time}</div>
+                                            </div>
+                                        `;
                                     },
+
+
 
 
 
