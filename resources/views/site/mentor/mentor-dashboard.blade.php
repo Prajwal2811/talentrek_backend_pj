@@ -50,11 +50,11 @@
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
                         <p class="text-gray-500">Total upcoming sessions</p>
-                        <h3 class="text-3xl font-bold mt-2">24</h3>
+                        <h3 class="text-3xl font-bold mt-2">{{$upcomingCount ?? 0}}</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
                         <p class="text-gray-500">Today’s sessions</p>
-                        <h3 class="text-3xl font-bold mt-2">15</h3>
+                        <h3 class="text-3xl font-bold mt-2">{{$todayCount ?? 0}}</h3>
                     </div>
                 </div>
 
