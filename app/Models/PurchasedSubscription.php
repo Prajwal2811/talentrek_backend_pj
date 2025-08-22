@@ -24,6 +24,7 @@ class PurchasedSubscription extends Model
         'subscribable_type',
         'start_date',
         'end_date',
+        'company_id'
     ];
 
    

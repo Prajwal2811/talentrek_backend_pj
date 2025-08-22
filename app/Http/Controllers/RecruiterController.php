@@ -885,38 +885,40 @@ class RecruiterController extends Controller
 
         DB::beginTransaction();
         try {
-            $recruiter = auth('recruiter')->user();
+               $recruiter = auth('recruiter')->user();
+               $companyData = RecruiterCompany::where('recruiter_id', $recruiter->id)->first();
 
-            // Create the new subscription
-            $newSubscription = PurchasedSubscription::create([
-                'user_id' => $recruiter->id,
-                'user_type' => 'recruiter',
-                'subscription_plan_id' => $plan->id,
-                'start_date' => now(),
-                'end_date' => now()->addDays($plan->duration_days),
-                'amount_paid' => $plan->price,
-                'payment_status' => 'paid',
-            ]);
+               // Create the new subscription
+               $newSubscription = PurchasedSubscription::create([
+                    'user_id' => $recruiter->id,
+                    'user_type' => 'recruiter',
+                    'company_id' => $companyData->id,
+                    'subscription_plan_id' => $plan->id,
+                    'start_date' => now(),
+                    'end_date' => now()->addDays($plan->duration_days),
+                    'amount_paid' => $plan->price,
+                    'payment_status' => 'paid',
+               ]);
 
             // Update trainer only if:
             // - They have no active subscription, OR
             // - The new subscription ends later than the current one
             $shouldUpdate = false;
 
-            if (!$recruiter->active_subscription_plan_id) {
+            if (!$companyData->active_subscription_plan_id) {
                 $shouldUpdate = true;
             } else {
-                $currentActive = PurchasedSubscription::find($recruiter->active_subscription_plan_id);
+                $currentActive = PurchasedSubscription::find($companyData->active_subscription_plan_id);
                 if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
                     $shouldUpdate = true;
                 }
             }
 
             if ($shouldUpdate) {
-                $recruiter->isSubscribtionBuy = 'yes';
-               //  $recruiter->active_subscription_plan_id = $plan->id;
-                $recruiter->active_subscription_plan_slug = $plan->slug;
-                $recruiter->save();
+                $companyData->isSubscribtionBuy = 'yes';
+               //  $companyData->active_subscription_plan_id = $plan->id;
+                $companyData->active_subscription_plan_slug = $plan->slug;
+                $companyData->save();
             }
 
             DB::commit();

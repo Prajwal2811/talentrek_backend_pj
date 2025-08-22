@@ -1,7 +1,5 @@
 @include('site.componants.header')
-
 <body>
-
     <div class="loading-area">
         <div class="loading-box"></div>
         <div class="loading-pic">
@@ -10,25 +8,21 @@
             </div>
         </div>
     </div>
+    @php
+        $subscriptionType = App\Models\RecruiterCompany::where('recruiter_id', auth()->user('recruiter')->id)->first();
+        $RecruiterSubscription = $subscriptionType->active_subscription_plan_slug;
 
-
-        @php
-            $subscriptionType = App\Models\RecruiterCompany::where('recruiter_id', auth()->user('recruiter')->id)->first();
-            $RecruiterSubscription = $subscriptionType->active_subscription_plan_slug;
-
-            if ($RecruiterSubscription == 'corporate_3_recruiters') {
-                $totalRecruiters = 3; // including current recruiter
-            } else {
-                $totalRecruiters = 6; // including current recruiter
-            }
-
-            // One recruiter is current user, so subtract 1 for the extra inputs
-            $extraRecruiters = $totalRecruiters - 1;
-
-            $companyId = App\Models\RecruiterCompany::where('recruiter_id', auth()->user('recruiter')->id)->first()->id;
-            $slug = $subscriptionType->active_subscription_plan_slug;
-            $subscriptionID = App\Models\SubscriptionPlan::where('slug', $slug)->first()->id;
-        @endphp
+        if ($RecruiterSubscription == 'corporate_3_recruiters') {
+            $totalRecruiters = 3; // including current recruiter
+        } else {
+            $totalRecruiters = 6; // including current recruiter
+        }
+        // One recruiter is current user, so subtract 1 for the extra inputs
+        $extraRecruiters = $totalRecruiters - 1;
+        $companyId = App\Models\RecruiterCompany::where('recruiter_id', auth()->user('recruiter')->id)->first()->id;
+        $slug = $subscriptionType->active_subscription_plan_slug;
+        $subscriptionID = App\Models\SubscriptionPlan::where('slug', $slug)->first()->id;
+    @endphp
 
         <!-- Subscription Modal -->
        <div id="subscriptionModal"
@@ -41,7 +35,6 @@
                 <input type="text" name="main_recruiter_id" value="{{ auth()->user('recruiter')->id }}" hidden>
                 <input type="text" name="company_id" value="{{ $companyId }}" hidden>
                 <input type="text" name="subscription_id" value="{{ $subscriptionID }}" hidden>
-
                 <div id="recruiterInputs">
                     @for ($i = 0; $i < $extraRecruiters; $i++)
                         <div class="mb-3 flex space-x-2 recruiter-row">
@@ -74,18 +67,14 @@
                     Save Recruiters
                 </button>
             </form>
-
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
             <script>
             $('#addRecruitersForm').on('submit', function (e) {
                 e.preventDefault();
-
                 let form = $(this);
                 let actionUrl = form.attr('action');
                 let formData = form.serialize();
-
                 // Clear old errors
                 $('.error').text('');
 

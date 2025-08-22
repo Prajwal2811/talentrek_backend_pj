@@ -15,21 +15,36 @@ return new class extends Migration
     {
         Schema::create('purchased_subscriptions', function (Blueprint $table) {
             $table->id();
+
             // Link to the subscription plan
             $table->foreignId('subscription_plan_id')->constrained()->onDelete('cascade');
-            // Polymorphic relation: jobseeker, trainer, etc.
+
+            // Polymorphic relation: jobseeker, recruiter, trainer, mentor, coach, assessor, expat
             $table->unsignedBigInteger('user_id');
-            $table->string('user_type');
+            $table->enum('user_type', [
+                'jobseeker',
+                'recruiter',
+                'trainer',
+                'mentor',
+                'coach',
+                'assessor',
+                'expat'
+            ]);
+
+            // For recruiters only (nullable for others)
+            $table->unsignedBigInteger('company_id')->nullable();
+
             // Dates
             $table->date('start_date');
             $table->date('end_date')->nullable();
 
-            // Optional: payment status/amount if needed
+            // Payment info
             $table->decimal('amount_paid', 8, 2)->nullable();
-            $table->string('payment_status')->nullable(); // or 'paid', 'failed', etc.
+            $table->string('payment_status')->nullable(); // e.g. 'paid', 'pending', 'failed'
 
             $table->timestamps();
         });
+
     }
 
     /**
