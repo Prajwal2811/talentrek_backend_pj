@@ -1,14 +1,11 @@
 <?php
 $user = Auth()->user();
-
+// echo "<pre>";
+// print_r($user);exit;
 $edu = $user->educations;         
 $work = $user->experiences;       
-// $skills = $user->skills;
 $skills = $user->skills->first();
 
-// echo "<pre>";
-// print_r($work);
-// exit;
 
 ?>
 
@@ -275,11 +272,12 @@ $skills = $user->skills->first();
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Gender <span style="color: red; font-size: 17px;">*</span></label>
-                                                <select class="w-full border rounded px-3 py-2" name="gender" id = "gender">
-                                                    <option>{{Auth()->user()->gender}}</option>
-                                                    <option selected>Male</option>
-                                                    <option>Female</option>
+                                                <select class="w-full border rounded px-3 py-2" name="gender" id="gender">
+                                                    <option value="">Select Gender</option>
+                                                    <option value="Male" {{ Auth()->user()->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                                    <option value="Female" {{ Auth()->user()->gender == 'Female' ? 'selected' : '' }}>Female</option>
                                                 </select>
+
                                                 @error('gender')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -297,6 +295,7 @@ $skills = $user->skills->first();
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Date of Birth <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input 
+                                                    type="date"
                                                     name="dob" 
                                                     id="dob" 
                                                     class="w-full border rounded px-3 py-2" 
@@ -429,13 +428,23 @@ $skills = $user->skills->first();
                                                 const message = errors[field][0];
                                                 const input = form.querySelector(`[name="${field}"]`);
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = message;
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
                                 <!-- Success Message -->
@@ -596,13 +605,23 @@ $skills = $user->skills->first();
                                                 const input = inputList[parseInt(index)];
 
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[fieldName][0];
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
 
@@ -650,40 +669,47 @@ $skills = $user->skills->first();
                                                     <!-- Started From -->
                                                     <div>
                                                         <label class="block text-sm font-medium mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input readonly name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
-                                                            value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" />
+                                                        <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
+                                                            value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" max="{{ date('Y-m-d') }}"/>
                                                     </div>
 
                                                     <!-- End To & Checkbox -->
-                                                    @php
-                                                        $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-                                                            (isset($data->end_to) && $data->end_to === 'work here');
-                                                    @endphp
+                                                   @php
+    $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
+        (isset($data->end_to) && $data->end_to === 'work here');
+    $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
+@endphp
 
-                                                    <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
-                                                        <label class="block text-sm font-medium mb-1">
-                                                            To <span style="color: red; font-size: 17px;">*</span>
-                                                        </label>
+<div x-data="{ 
+        working: {{ $isWorking ? 'true' : 'false' }}, 
+        endDate: '{{ $defaultDate }}', 
+        defaultDate: '{{ $defaultDate }}'
+    }"
+>
+    <label class="block text-sm font-medium mb-1">
+        To <span style="color: red; font-size: 17px;">*</span>
+    </label>
 
-                                                        <input 
-                                                            readonly 
-                                                            name="end_to[]" 
-                                                            class="datepicker-end w-full border rounded px-3 py-2"
-                                                            x-bind:disabled="working"
-                                                            value="{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}"
-                                                        />
+    <input 
+        type="date" 
+        name="end_to[]" 
+        class="datepicker-end w-full border rounded px-3 py-2"
+        x-bind:disabled="working"
+        x-model="endDate"
+        max="{{ date('Y-m-d') }}"
+    />
 
-                                                        <label class="inline-flex items-center space-x-2 mt-2">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                name="currently_working[]" 
-                                                                value="{{ $i }}"
-                                                                x-model="working"
-                                                                {{ $isWorking ? 'checked' : '' }} 
-                                                            />
-                                                            <span>I currently work here</span>
-                                                        </label>
-                                                    </div>
+    <label class="inline-flex items-center space-x-2 mt-2">
+        <input 
+            type="checkbox" 
+            name="currently_working[]" 
+            value="{{ $i }}"
+            x-model="working"
+            x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
+        />
+        <span>I currently work here</span>
+    </label>
+</div>
 
 
 
@@ -795,13 +821,23 @@ $skills = $user->skills->first();
                                                 const input = inputList[parseInt(index)];
 
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[fieldName][0];
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
 
@@ -833,25 +869,35 @@ $skills = $user->skills->first();
                                         </div>
 
                                         <!-- Job Categories -->
+                                         
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                             <select class="w-full border rounded px-3 py-2" name="job_category">
                                                 <option value="">Select Job Category</option>
-                                                @foreach([
-                                                    'IT & Software',
-                                                    'Sales & Marketing',
-                                                    'Design & Creative',
-                                                    'Finance & Accounting',
-                                                    'Education & Training',
-                                                    'Healthcare',
-                                                    'Other'
-                                                ] as $category)
+                                                @php
+                                                    $categories = [
+                                                        'IT & Software',
+                                                        'Sales & Marketing',
+                                                        'Design & Creative',
+                                                        'Finance & Accounting',
+                                                        'Education & Training',
+                                                        'Healthcare',
+                                                        'Other'
+                                                    ];
+                                                    // Agar DB ki value list me nahi hai to usko append kar do
+                                                    if(!empty($skills->job_category) && !in_array($skills->job_category, $categories)){
+                                                        $categories[] = $skills->job_category;
+                                                    }
+                                                @endphp
+
+                                                @foreach($categories as $category)
                                                     <option value="{{ $category }}"
                                                         {{ old('job_category', $skills->job_category ?? '') === $category ? 'selected' : '' }}>
                                                         {{ $category }}
                                                     </option>
                                                 @endforeach
                                             </select>
+
                                         </div>
 
                                         <!-- Website Link -->
@@ -920,13 +966,23 @@ $skills = $user->skills->first();
                                             Object.keys(errors).forEach(field => {
                                                 const input = form.querySelector(`[name="${field}"]`);
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[field][0];
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
     
@@ -2134,19 +2190,19 @@ $skills = $user->skills->first();
 </script>
 <script>
     $(document).ready(function () {
-        $('#dob').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
+        // $('#dob').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     endDate: new Date(),
+        //     autoclose: true,
+        //     todayHighlight: true
+        // });
         
-        $('.datepicker-start, .datepicker-end').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
+        // $('.datepicker-start, .datepicker-end').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     endDate: new Date(),
+        //     autoclose: true,
+        //     todayHighlight: true
+        // });
     });
 </script>
 
@@ -2211,27 +2267,27 @@ $skills = $user->skills->first();
 </script> -->
 <script>
 $(document).ready(function () {
-    $('#dob').datepicker({
-        format: 'yyyy-mm-dd',
-        endDate: new Date(),
-        autoclose: true,
-        todayHighlight: true
-    });
-        function initializeDatePickers() {
-        $('.datepicker-start, .datepicker-end').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
-    }
+    // $('#dob').datepicker({
+    //     format: 'yyyy-mm-dd',
+    //     endDate: new Date(),
+    //     autoclose: true,
+    //     todayHighlight: true
+    // });
+    //     function initializeDatePickers() {
+    //     $('.datepicker-start, .datepicker-end').datepicker({
+    //         format: 'yyyy-mm-dd',
+    //         endDate: new Date(),
+    //         autoclose: true,
+    //         todayHighlight: true
+    //     });
+    // }
 
-    initializeDatePickers();
+    // initializeDatePickers();
 
-    $('#add-work').on('click', function () {
+    // $('#add-work').on('click', function () {
         
-        initializeDatePickers(); 
-    });
+    //     initializeDatePickers(); 
+    // });
 });
 
 </script>

@@ -66,78 +66,78 @@ class JobseekerController extends Controller
         ]);
 
         // Send welcome email
-            Mail::html('
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Welcome to Talentrek</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            background-color: #f6f8fa;
-                            margin: 0;
-                            padding: 20px;
-                            color: #333;
-                        }
-                        .container {
-                            background-color: #ffffff;
-                            padding: 30px;
-                            border-radius: 8px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                            max-width: 600px;
-                            margin: auto;
-                        }
-                        .header {
-                            text-align: center;
-                            margin-bottom: 20px;
-                        }
-                        .footer {
-                            font-size: 12px;
-                            text-align: center;
-                            color: #999;
-                            margin-top: 30px;
-                        }
-                        .btn {
-                            display: inline-block;
-                            margin-top: 20px;
-                            padding: 10px 20px;
-                            background-color: #007bff;
-                            color: #fff !important;
-                            text-decoration: none;
-                            border-radius: 4px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
-                        </div>
-                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+            // Mail::html('
+            //     <!DOCTYPE html>
+            //     <html lang="en">
+            //     <head>
+            //         <meta charset="UTF-8">
+            //         <title>Welcome to Talentrek</title>
+            //         <style>
+            //             body {
+            //                 font-family: Arial, sans-serif;
+            //                 background-color: #f6f8fa;
+            //                 margin: 0;
+            //                 padding: 20px;
+            //                 color: #333;
+            //             }
+            //             .container {
+            //                 background-color: #ffffff;
+            //                 padding: 30px;
+            //                 border-radius: 8px;
+            //                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            //                 max-width: 600px;
+            //                 margin: auto;
+            //             }
+            //             .header {
+            //                 text-align: center;
+            //                 margin-bottom: 20px;
+            //             }
+            //             .footer {
+            //                 font-size: 12px;
+            //                 text-align: center;
+            //                 color: #999;
+            //                 margin-top: 30px;
+            //             }
+            //             .btn {
+            //                 display: inline-block;
+            //                 margin-top: 20px;
+            //                 padding: 10px 20px;
+            //                 background-color: #007bff;
+            //                 color: #fff !important;
+            //                 text-decoration: none;
+            //                 border-radius: 4px;
+            //             }
+            //         </style>
+            //     </head>
+            //     <body>
+            //         <div class="container">
+            //             <div class="header">
+            //                 <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+            //             </div>
+            //             <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
 
-                        <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+            //             <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-                        <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+            //             <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
 
-                        <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+            //             <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
-                        <p>
-                            <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
-                        </p>
+            //             <p>
+            //                 <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+            //             </p>
 
-                        <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
-                    </div>
+            //             <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+            //         </div>
 
-                    <div class="footer">
-                        © ' . date('Y') . ' Talentrek. All rights reserved.
-                    </div>
-                </body>
-                </html>
-            ', function ($message) use ($jobseeker) {
-                $message->to($jobseeker->email)
-                    ->subject('Welcome to Talentrek – Registration Successful');
-            });
+            //         <div class="footer">
+            //             © ' . date('Y') . ' Talentrek. All rights reserved.
+            //         </div>
+            //     </body>
+            //     </html>
+            // ', function ($message) use ($jobseeker) {
+            //     $message->to($jobseeker->email)
+            //         ->subject('Welcome to Talentrek – Registration Successful');
+            // });
         //   
 
         // Set session
@@ -438,78 +438,78 @@ class JobseekerController extends Controller
         }
 
 
-        Mail::html('
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>Welcome to Talentrek</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        background-color: #f6f8fa;
-                        margin: 0;
-                        padding: 20px;
-                        color: #333;
-                    }
-                    .container {
-                        background-color: #ffffff;
-                        padding: 30px;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        max-width: 600px;
-                        margin: auto;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
-                    .footer {
-                        font-size: 12px;
-                        text-align: center;
-                        color: #999;
-                        margin-top: 30px;
-                    }
-                    .btn {
-                        display: inline-block;
-                        margin-top: 20px;
-                        padding: 10px 20px;
-                        background-color: #007bff;
-                        color: #fff !important;
-                        text-decoration: none;
-                        border-radius: 4px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
-                    </div>
-                    <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+        // Mail::html(' 
+        //     <!DOCTYPE html>
+        //     <html lang="en">
+        //     <head>
+        //         <meta charset="UTF-8">
+        //         <title>Welcome to Talentrek</title>
+        //         <style>
+        //             body {
+        //                 font-family: Arial, sans-serif;
+        //                 background-color: #f6f8fa;
+        //                 margin: 0;
+        //                 padding: 20px;
+        //                 color: #333;
+        //             }
+        //             .container {
+        //                 background-color: #ffffff;
+        //                 padding: 30px;
+        //                 border-radius: 8px;
+        //                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        //                 max-width: 600px;
+        //                 margin: auto;
+        //             }
+        //             .header {
+        //                 text-align: center;
+        //                 margin-bottom: 20px;
+        //             }
+        //             .footer {
+        //                 font-size: 12px;
+        //                 text-align: center;
+        //                 color: #999;
+        //                 margin-top: 30px;
+        //             }
+        //             .btn {
+        //                 display: inline-block;
+        //                 margin-top: 20px;
+        //                 padding: 10px 20px;
+        //                 background-color: #007bff;
+        //                 color: #fff !important;
+        //                 text-decoration: none;
+        //                 border-radius: 4px;
+        //             }
+        //         </style>
+        //     </head>
+        //     <body>
+        //         <div class="container">
+        //             <div class="header">
+        //                 <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+        //             </div>
+        //             <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
 
-                    <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+        //             <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-                    <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+        //             <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
 
-                    <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+        //             <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
-                    <p>
-                        <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
-                    </p>
+        //             <p>
+        //                 <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+        //             </p>
 
-                    <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
-                </div>
+        //             <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+        //         </div>
 
-                <div class="footer">
-                    © ' . date('Y') . ' Talentrek. All rights reserved.
-                </div>
-            </body>
-            </html>
-        ', function ($message) use ($jobseeker) {
-            $message->to($jobseeker->email)
-                ->subject('Welcome to Talentrek – Registration Successful');
-        });
+        //         <div class="footer">
+        //             © ' . date('Y') . ' Talentrek. All rights reserved.
+        //         </div>
+        //     </body>
+        //     </html>
+        // ', function ($message) use ($jobseeker) {
+        //     $message->to($jobseeker->email)
+        //         ->subject('Welcome to Talentrek – Registration Successful');
+        // });
 
 
         session()->forget('jobseeker_id');
@@ -540,6 +540,36 @@ class JobseekerController extends Controller
     }
 
 
+    // public function loginJobseeker(Request $request)
+    // {
+    //     $this->validate($request, [
+    //         'email' => 'required|email',
+    //         'password' => 'required'
+    //     ]);
+
+    //     $jobseeker = Jobseekers::where('email', $request->email)->first();
+
+    //     if (!$jobseeker) {
+    //         // Email does not exist
+    //         session()->flash('error', 'Invalid email or password.');
+    //         return back()->withInput($request->only('email'));
+    //     }
+
+    //     if ($jobseeker->status !== 'active') {
+    //         // Status is inactive or blocked
+    //         session()->flash('error', 'Your account is inactive. Please contact admimnistrator.');
+    //         return back()->withInput($request->only('email'));
+    //     }
+
+    //     // Now attempt login only if status is active
+    //     if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
+    //         return redirect()->route('jobseeker.profile');
+    //     } else {
+    //         session()->flash('error', 'Invalid email or password.');
+    //         return back()->withInput($request->only('email'));
+    //     }
+    // }
+
     public function loginJobseeker(Request $request)
     {
         $this->validate($request, [
@@ -550,22 +580,36 @@ class JobseekerController extends Controller
         $jobseeker = Jobseekers::where('email', $request->email)->first();
 
         if (!$jobseeker) {
-            // Email does not exist
-            session()->flash('error', 'Invalid email or password.');
+            session()->flash('error', 'Invalid email ya password.');
             return back()->withInput($request->only('email'));
         }
 
         if ($jobseeker->status !== 'active') {
-            // Status is inactive or blocked
-            session()->flash('error', 'Your account is inactive. Please contact admimnistrator.');
+            session()->flash('error', 'your account is inactive, contact to administrator.');
             return back()->withInput($request->only('email'));
         }
 
-        // Now attempt login only if status is active
+        if ($jobseeker->is_registered == 0) {
+            session([
+                'jobseeker_id' => $jobseeker->id,
+                'email' => $jobseeker->email,
+                'phone_number' => $jobseeker->phone_number,
+            ]);
+
+
+            return redirect()->route('jobseeker.registration')
+                ->with([
+                    'info' => 'Please complete your registration.',
+                    'email' => session('email'),
+                    'phone' => session('phone_number'),
+                ]);
+        }
+
+
         if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
             return redirect()->route('jobseeker.profile');
         } else {
-            session()->flash('error', 'Invalid email or password.');
+            session()->flash('error', 'Invalid email ya password.');
             return back()->withInput($request->only('email'));
         }
     }
@@ -1544,7 +1588,7 @@ class JobseekerController extends Controller
 
         // Step: Get already booked slots by jobseeker on selected date
         $bookedSlots = DB::table('jobseeker_saved_booking_session')
-            ->where('jobseeker_id', $jobseeker_id)
+            // ->where('jobseeker_id', $jobseeker_id)
             ->where('user_type', 'mentor')
             ->where('user_id', $mentor_id)
             ->whereDate('slot_date', $formattedDate)
