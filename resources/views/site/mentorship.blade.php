@@ -16,7 +16,11 @@
             background: white;
         }
     </style>
+<<<<<<< HEAD
     
+=======
+   
+>>>>>>> c940fdd120030686d7e494d3cb15f2a500449522
       @include('site.componants.navbar')
 
     <div class="page-content">
