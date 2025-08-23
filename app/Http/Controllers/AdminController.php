@@ -41,6 +41,7 @@ use App\Models\Subscription;
 use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
+use App\Services\ZoomService;
 
 
 use DB;
@@ -833,12 +834,22 @@ class AdminController extends Controller
 
     public function updateStatusForShortlist(Request $request)
     {
-        $request->validate([
+        $rules = [
             'jobseeker_id' => 'required|exists:jobseekers,id',
-            'status' => 'required|in:approved,rejected',
-            'reason' => 'nullable|string|max:500',
-            'role' => 'required|in:admin,superadmin',
-        ]);
+            'status'       => 'required|in:approved,rejected',
+            'role'         => 'required|in:admin,superadmin',
+        ];
+
+        // Extra validation rules
+        if ($request->status === 'rejected') {
+            $rules['reason'] = 'required|string|max:500';
+        }
+        if ($request->status === 'approved' && $request->role === 'superadmin') {
+            $rules['interview_date']   = 'required|date';
+            $rules['interview_time']   = 'required';
+        }
+
+        $validated = $request->validate($rules);
 
         $jobseeker = RecruiterJobseekersShortlist::where('jobseeker_id', $request->jobseeker_id)->firstOrFail();
 
@@ -848,14 +859,48 @@ class AdminController extends Controller
         } elseif ($request->role === 'superadmin') {
             if ($jobseeker->admin_status === 'approved') {
                 $jobseeker->admin_status = 'superadmin_' . $request->status;
+                $jobseeker->interview_status = 'scheduled';
                 $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
+
+                if ($request->status === 'approved') {
+                    // Save interview schedule
+                    $jobseeker->interview_date = $request->interview_date;
+                    $jobseeker->interview_time = $request->interview_time;
+                    // ✅ If online mode, create Zoom meeting
+                    try {
+                        $zoom = new ZoomService();
+                        $startTime = $request->interview_date . ' ' . $request->interview_time;
+
+                        $zoomMeeting = $zoom->createMeeting("Interview with #{$jobseeker->id}", $startTime);
+
+                        if ($zoomMeeting) {
+                            $jobseeker->zoom_start_url = $zoomMeeting['start_url'];
+                            $jobseeker->zoom_join_url  = $zoomMeeting['join_url'];
+                        } else {
+                            Log::error('Zoom creation failed for interview', [
+                                'jobseeker_id' => $jobseeker->id,
+                                'interview_date' => $request->interview_date,
+                                'interview_time' => $request->interview_time,
+                            ]);
+                            return back()->with('error', 'Zoom meeting creation failed. Please try again later.');
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Zoom API Exception', [
+                            'message' => $e->getMessage(),
+                            'jobseeker_id' => $jobseeker->id,
+                        ]);
+                        return back()->with('error', 'Zoom meeting creation failed. Please try again.');
+                    }
+                }
             }
         }
 
         $jobseeker->save();
 
-        return back()->with('success', 'Status updated.');
+        return back()->with('success', 'Status updated successfully.');
     }
+
+
 
 
 

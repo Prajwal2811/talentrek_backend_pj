@@ -69,50 +69,59 @@
             </form>
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-            <script>
-            $('#addRecruitersForm').on('submit', function (e) {
-                e.preventDefault();
-                let form = $(this);
-                let actionUrl = form.attr('action');
-                let formData = form.serialize();
-                // Clear old errors
-                $('.error').text('');
+           <script>
+                $('#addRecruitersForm').on('submit', function (e) {
+                    e.preventDefault();
 
-                $.ajax({
-                    url: actionUrl,
-                    type: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        form.trigger('reset'); // clear inputs
+                    let form = $(this);
+                    let actionUrl = form.attr('action');
+                    let formData = form.serialize();
+                    let submitBtn = form.find('button[type="submit"]');
 
-                        Swal.fire({
-                            title: 'Success!',
-                            text: response.message || 'Recruiters added successfully.',
-                            icon: 'success',
-                            confirmButtonColor: '#3085d6',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            location.reload();
-                        });
-                    },
-                    error: function (xhr) {
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            $.each(errors, function (field, messages) {
-                                $(`[data-error="${field}"]`).text(messages[0]);
-                            });
-                        } else {
+                    // Clear old errors
+                    $('.error').text('');
+                    // Disable submit button
+                    submitBtn.prop('disabled', true).text('Saving...');
+
+                    $.ajax({
+                        url: actionUrl,
+                        type: 'POST',
+                        data: formData,
+                        success: function (response) {
+                            form.trigger('reset'); // clear inputs
+
                             Swal.fire({
-                                title: 'Error!',
-                                text: 'Something went wrong. Please try again.',
-                                icon: 'error'
+                                title: 'Success!',
+                                text: response.message || 'Recruiters added successfully.',
+                                icon: 'success',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
                             });
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                $.each(errors, function (field, messages) {
+                                    $(`[data-error="${field}"]`).text(messages[0]);
+                                });
+                                // Re-enable button since errors exist
+                                submitBtn.prop('disabled', false).text('Save Recruiters');
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Something went wrong. Please try again.',
+                                    icon: 'error'
+                                });
+                                // Re-enable button on generic error
+                                submitBtn.prop('disabled', false).text('Save Recruiters');
+                            }
                         }
-                    }
+                    });
                 });
-            });
+                </script>
 
-            </script>
 
         </div>
     </div>

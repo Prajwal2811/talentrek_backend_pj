@@ -578,9 +578,7 @@
             background: white;
         }
     </style>
-        @if($jobseekerNeedsSubscription)
-            @include('site.jobseeker.subscription.index')
-        @endif
+      
       @include('site.componants.navbar')
         @php
             $bannerContent = App\Models\CMS::where('slug', 'web_banner')->first();

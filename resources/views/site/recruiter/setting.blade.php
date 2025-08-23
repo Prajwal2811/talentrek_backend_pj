@@ -317,16 +317,11 @@
                                         @endphp
 
                                         <!-- Image Preview -->
-                                        <img 
-                                                id="profilePreview" 
-                                                src="{{ $profile ? asset($profile->document_path) : 'https://www.lscny.org/app/uploads/2018/05/mystery-person.png' }}" 
-                                                class="h-20 w-20 rounded-md mb-2" 
-                                                alt="Profile Preview" 
-                                            />
+                                        <img id="profilePreview" src="{{ $profile ? asset($profile->document_path) : 'https://www.lscny.org/app/uploads/2018/05/mystery-person.png' }}" class="h-20 w-20 rounded-md mb-2"  alt="Profile Preview"  />
 
 
                                         <div>
-                                            <h3 class="text-xl font-semibold">                {{$companyDetails->name}}
+                                            <h3 class="text-xl font-semibold">{{$companyDetails->name}}
                                             </h3>
                                             <p class="text-gray-600">{{$companyDetails->email}}</p>
                                             
@@ -442,28 +437,80 @@
                                                     @error("company_website") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
+                                                @php
+                                                    $recruiterId = auth('recruiter')->id();
+                                                    $recruiterRole = auth('recruiter')->user()->role;
+                                                    $subRecruiters = \App\Models\Recruiters::where('recruiter_of', $recruiterId)->get();
+                                                @endphp
+
                                                 <!-- Recruiter Info -->
                                                 <div class="col-span-2 mt-4">
                                                     <h3 class="text-xl font-semibold">Recruiter Details</h3>
                                                 </div>
 
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
-                                                    @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-                                                </div>
+                                                @if ($recruiterRole === 'main')
+                                                    {{-- Main Recruiter --}}
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
+                                                        @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                    </div>
 
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
-                                                    @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-                                                </div>
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
+                                                        @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                    </div>
 
-                                                <div class="">
-                                                    <label class="block mb-1 font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
-                                                    @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-                                                </div>
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
+                                                        @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                    </div>
+
+                                                    {{-- Sub Recruiters --}}
+                                                    @foreach ($subRecruiters as $subRecruiter)
+                                                        <div>
+                                                            <label class="block mb-1 font-medium">Sub-Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
+                                                            <input type="text" name="name[]" value="{{ $subRecruiter->name }}" class="w-full border rounded px-3 py-2" />
+                                                            @error("name.{$loop->index}") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block mb-1 font-medium">Sub-Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
+                                                            <input type="text" name="email[]" value="{{ $subRecruiter->email }}" class="w-full border rounded px-3 py-2" />
+                                                            @error("email.{$loop->index}") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block mb-1 font-medium">Sub-Recruiter National ID <span style="color: red; font-size: 17px;">*</span></label>
+                                                            <input type="text" name="national_id[]" value="{{ $subRecruiter->national_id }}" class="w-full border rounded px-3 py-2" />
+                                                            @error("national_id.{$loop->index}") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                        </div>
+                                                    @endforeach
+
+                                                @elseif($recruiterRole === 'sub_recruiter')
+                                                    {{-- Sub Recruiter Logged In --}}
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
+                                                        @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
+                                                        @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
+                                                        @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                                                    </div>
+                                                @endif
+
+                                                
 
                                                 <!-- Buttons -->
                                                 <div class="col-span-2 mt-6 flex justify-end space-x-3">

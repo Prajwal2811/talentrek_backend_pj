@@ -12,7 +12,7 @@ Route::fallback(function () {
 });
 
 
-	Route::middleware(['jobseeker.auth', 'check.jobseeker.subscription'])->group(function () {
+	// Route::middleware(['jobseeker.auth', 'check.jobseeker.subscription'])->group(function () {
         Route::get('/', function () {
             return view('site.index');
         })->name('home');
@@ -92,7 +92,7 @@ Route::fallback(function () {
             return view('site.coach-booking-success');
         })->name('coach-booking-success');
 
-	});
+	// });
 
 
 Route::get('/zoom-users', function () {

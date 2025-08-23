@@ -44,7 +44,7 @@ Route::group(['prefix' => 'recruiter'], function() {
 		->name('recruiter.jobseeker.details');
 		Route::get('/settings', [RecruiterController::class, 'showRecruitmentSettingForm'])
 		->name('recruiter.settings');
-
+		Route::post('/interview/update-status', [RecruiterController::class, 'updateStatus'])->name('recruiter.interview.updateStatus');
 		Route::post('/profile/update',[RecruiterController::class, 'updateCompanyProfile'])->name('recruiter.company.profile.update');
 		Route::post('/profile/document/update',[RecruiterController::class, 'updateCompanyDocument'])->name('recruiter.company.document.update');
 		Route::delete('/profile/documents/delete/{type}', [RecruiterController::class, 'deleteCompanyDocument'])->name('recruiter.company.document.delete');

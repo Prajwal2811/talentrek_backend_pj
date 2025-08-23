@@ -16,9 +16,7 @@
             background: white;
         }
     </style>
-    @if($jobseekerNeedsSubscription)
-            @include('site.jobseeker.subscription.index')
-        @endif
+   
       @include('site.componants.navbar')
 
   <div class="page-content">

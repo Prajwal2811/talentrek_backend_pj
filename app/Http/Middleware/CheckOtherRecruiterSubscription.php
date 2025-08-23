@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\RecruiterCompany;
 
 class CheckOtherRecruiterSubscription
 {
@@ -14,8 +14,17 @@ class CheckOtherRecruiterSubscription
         if (!$user) {
             return redirect()->route('site.recruiter.login');
         }
-        // Pass subscription status to views
-        view()->share('otherRecruiterSubscription', $user->active_subscription_plan_id === null && $user->isSubscribtionBuy === 'yes');
+
+        $companyData = RecruiterCompany::where('recruiter_id', $user->id)->first();
+
+        // Show "Add Other Recruiter" modal only if subscription is bought
+        // but no recruiters have been added yet
+        $otherRecruiterSubscription = $companyData 
+            && $companyData->isSubscribtionBuy === 'yes' 
+            && (int) $companyData->recruiter_count === 0;
+
+        view()->share('otherRecruiterSubscription', $otherRecruiterSubscription);
+
         return $next($request);
     }
 }

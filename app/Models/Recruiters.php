@@ -32,6 +32,8 @@ class Recruiters extends Authenticatable
         'inactive_reason',
         'admin_status',
         'rejection_reason',
+        'recruiter_of',
+        'is_registered'
     ];
 
     /**
