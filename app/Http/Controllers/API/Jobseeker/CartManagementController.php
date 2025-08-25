@@ -487,7 +487,7 @@ class CartManagementController extends Controller
             ->get();
 
         return response()->json(['status' => true, 'message' => 'material batches fetched  successfully.','courseTotalPrice' => $courseTotalPrice,'savedPrice' => $savedPrice,'gstTax' => $gstTax,'totalPrice' => $totalPrice,'data' =>[
-            'material'       => $material,
+    'material'       => $material,
             'user'           => $user,
             'userType'       => $userType,
             'userId'         => $userId,

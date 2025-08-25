@@ -61,7 +61,7 @@ use App\Http\Controllers\API\SlotManagementController;
 use App\Http\Controllers\API\SessionsManagementController;
 
 use App\Http\Controllers\API\ReviewManagementController;
-
+use App\Http\Controllers\API\SubscriptionManagementController;
 
 
 
@@ -102,6 +102,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::prefix('authentication')->middleware('throttle:60,1')->group(function () {
 
+    Route::post('/googleLoginSignUp', [AppAuthenticationController::class, 'googleLoginSignUpForMCAJT']);
+    
     Route::post('/sign-in', [AppAuthenticationController::class, 'signIn']);
 
     Route::post('/sign-up', [AppAuthenticationController::class, 'signUp']);
@@ -112,7 +114,8 @@ Route::prefix('authentication')->middleware('throttle:60,1')->group(function () 
 
     Route::post('/verify-otp', [AppAuthenticationController::class, 'verifyOtp']);
 
-    Route::post('/reset-password', [AppAuthenticationController::class, 'resetPassword']);
+    Route::post('/reset-password', [AppAuthenticationController::class, 'resetPassword']);  
+
 
 });
 
@@ -242,6 +245,8 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::get('/viewCartItem/{jobseekerId}', [CartManagementController::class, 'viewCartItemByJobseeker']);
     Route::post('/butNowSlot', [CartManagementController::class, 'butNowSlotForMCA']);
     Route::post('/butNowTrainingMaterial', [CartManagementController::class, 'butNowTrainingMaterials']);
+
+    Route::get('/showTrainingMaterialsBatches/{materialId}/{jobseekerId}', [CartManagementController::class, 'showTrainingMaterialsBatches']);
 
 });
 
@@ -445,6 +450,8 @@ Route::post('/cancelledBookedSessions', [SessionsManagementController::class, 'c
 Route::post('/completedBookedSessions', [SessionsManagementController::class, 'completedBookedSessionsForMCA']);
 Route::post('/totalBookedSessions', [SessionsManagementController::class, 'totalBookedSessionsCountsForMCA']);
 
+Route::get('/subscriptionPlanList/{type}', [SessionsManagementController::class, 'subscriptionPlanListForMCAJT']);
+Route::post('/processSubscriptionPayment', [SubscriptionManagementController::class, 'processSubscriptionPaymentForMCAJT']);
 
 
 Route::post('/reviewsDetailsById', [ReviewManagementController::class, 'reviewsDetailsByMCAIds']);
