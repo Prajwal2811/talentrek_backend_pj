@@ -25,7 +25,7 @@ class AssessorProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','shortlist','avatar','about_assessor as description' ,'state', 'address','pin_code','country')->where('id', $id)->first();
+            $TrainersPersonal = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','shortlist','avatar','about_assessor as description' ,'state', 'address','pin_code','country','about_assessor')->where('id', $id)->first();
            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
                 $TrainersPersonal->date_of_birth = Carbon::parse($TrainersPersonal->date_of_birth)->format('d/m/Y');
             }
@@ -107,6 +107,7 @@ class AssessorProfileController extends Controller
             'gender' => 'required|in:Male,Female,Other',
             'location' => 'required|string',
             'address' => 'required|string',
+            //'about_assessor' => 'required',                
             'pincode' => 'required',                
             'city' => 'required|string',                
             'state' => 'required|string',                
@@ -173,6 +174,7 @@ class AssessorProfileController extends Controller
                 'state'      => $request->state,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
+                'about_assessor'      => $request->about_assessor,
                 'national_id'      => $request->national_id,
             ]);
 

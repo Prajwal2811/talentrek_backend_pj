@@ -27,7 +27,8 @@ class Coach extends Model
         'pin_code',
         'country',
         'state',
-        'national_id'
+        'national_id',
+        'about_coach'
     ];
 
     /**
@@ -64,6 +65,6 @@ class Coach extends Model
     public function additionalInfo()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'coach');
+                    ->where('user_type', 'coach')->where('doc_type', 'coach_profile_picture');
     }
 }

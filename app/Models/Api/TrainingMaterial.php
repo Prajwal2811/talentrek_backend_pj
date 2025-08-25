@@ -52,7 +52,11 @@ class TrainingMaterial extends Model
                     ->where('user_type', 'trainer');
     } 
     
-    
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id', 'trainer_id')
+                    ->where('user_type', 'trainer')->where('doc_type', 'trainer_profile_picture');
+    }
 
     public function latestWorkExperience()
     {

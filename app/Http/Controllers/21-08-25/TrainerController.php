@@ -27,9 +27,6 @@ use App\Models\Mentors;
 use App\Models\Assessors;
 use Carbon\Carbon;
 use App\Services\ZoomService;
-use App\Models\SubscriptionPlan;
-use App\Models\PurchasedSubscription;
-
 
 class TrainerController extends Controller
 {
@@ -745,11 +742,11 @@ class TrainerController extends Controller
                 
                 $startTime = $section['batch_date'] . ' ' . $section['start_time'];
                
-                $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+                //$zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
              
-                if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
-                    throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
-                }
+                // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+                // }
    
                 DB::table('training_batches')->insert([
                     'trainer_id'           => $trainer->id,
@@ -762,8 +759,8 @@ class TrainerController extends Controller
                     'duration'             => $section['duration'],
                     'strength'             => $section['strength'],
                     'days'                 => json_encode(json_decode($section['days'], true)), // convert from stringified JSON
-                    'zoom_start_url'       => $zoomMeeting['start_url'],
-                    'zoom_join_url'        => $zoomMeeting['join_url'],
+                    // 'zoom_start_url'       => $zoomMeeting['start_url'],
+                    // 'zoom_join_url'        => $zoomMeeting['join_url'],
                     'created_at'           => now(),
                     'updated_at'           => now(),
                 ]);
@@ -1108,14 +1105,14 @@ class TrainerController extends Controller
         'training_offer_price'   => 'required|numeric',
         // 'thumbnail'              => 'nullable|image|max:2048',
 
-        // 'content_sections.*.batch_no'   => 'required|string|max:255',
-        // 'content_sections.*.batch_date' => 'required|date',
-        // 'content_sections.*.end_date'   => 'required|date', // ✅ Required now
-        // 'content_sections.*.start_time' => 'required|string',
-        // 'content_sections.*.end_time'   => 'required|string',
-        // 'content_sections.*.duration'   => 'required|string',
-        // 'content_sections.*.strength'   => 'required|integer|min:1',
-        // 'content_sections.*.days'       => 'required',
+        'content_sections.*.batch_no'   => 'required|string|max:255',
+        'content_sections.*.batch_date' => 'required|date',
+        'content_sections.*.end_date'   => 'required|date', // ✅ Required now
+        'content_sections.*.start_time' => 'required|string',
+        'content_sections.*.end_time'   => 'required|string',
+        'content_sections.*.duration'   => 'required|string',
+        'content_sections.*.strength'   => 'required|integer|min:1',
+        'content_sections.*.days'       => 'required',
     ], [
         'content_sections.*.strength.required' => 'Please enter batch strength.',
         'content_sections.*.strength.integer'  => 'Batch strength must be a number.',
@@ -1171,7 +1168,8 @@ class TrainerController extends Controller
                 'duration'             => $batch['duration'],
                 'strength'             => $batch['strength'],
                 'days'                 => json_encode(json_decode($batch['days'], true)),
-                //  om_join_url'        => $zoomMeeting['join_url'],
+                // 'zoom_start_url'       => $zoomMeeting['start_url'],
+                // 'zoom_join_url'        => $zoomMeeting['join_url'],
                 'created_at'           => now(),
                 'updated_at'           => now(),
             ]);
@@ -1732,84 +1730,5 @@ class TrainerController extends Controller
      
     }
 
-
-    // public function showSubscriptionPlans()
-    // {
-    //     $user = Auth::guard('trainer')->user();
-
-    //     // If trainer has already purchased, redirect to dashboard
-    //     if ($user->isSubscribtionBuy === 'yes') {
-    //         return redirect()->route('trainer.dashboard');
-    //     }
-
-    //     // Fetch available subscription plans
-    //     $subscriptions = SubscriptionPlan::where('user_type', 'trainer')->get();
-
-    //     return view('trainer.subscription', compact('subscriptions'));
-    // }
-
-
-    public function processSubscriptionPayment(Request $request)
-    {
-        $request->validate([
-            'plan_id' => 'required|exists:subscription_plans,id',
-            'card_number' => 'required|string|min:12|max:19',
-            'expiry' => 'required|string',
-            'cvv' => 'required|string|min:3|max:4',
-        ]);
-
-        $plan = SubscriptionPlan::findOrFail($request->plan_id);
-
-        DB::beginTransaction();
-        try {
-            $trainer = auth('trainer')->user();
-
-            // Create the new subscription
-            $newSubscription = PurchasedSubscription::create([
-                'user_id' => $trainer->id,
-                'user_type' => 'trainer',
-                'subscription_plan_id' => $plan->id,
-                'start_date' => now(),
-                'end_date' => now()->addDays($plan->duration_days),
-                'amount_paid' => $plan->price,
-                'payment_status' => 'paid',
-            ]);
-
-            // Update trainer only if:
-            // - They have no active subscription, OR
-            // - The new subscription ends later than the current one
-            $shouldUpdate = false;
-
-            if (!$trainer->active_subscription_plan_id) {
-                $shouldUpdate = true;
-            } else {
-                $currentActive = PurchasedSubscription::find($trainer->active_subscription_plan_id);
-                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
-                    $shouldUpdate = true;
-                }
-            }
-
-            if ($shouldUpdate) {
-                $trainer->isSubscribtionBuy = 'yes';
-                $trainer->active_subscription_plan_id = $newSubscription->id;
-                $trainer->save();
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Subscription purchased successfully!'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Something went wrong while purchasing the subscription.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
 
 }

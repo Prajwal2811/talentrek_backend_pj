@@ -25,7 +25,7 @@ class CoachProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Coach::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_coach as description')->where('id', $id)->first();
+            $TrainersPersonal = Coach::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_coach')->where('id', $id)->first();
            
             $coachPersonal = $TrainersPersonal->toArray();
             if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
@@ -111,6 +111,7 @@ class CoachProfileController extends Controller
             'location' => 'required|string',
             'address' => 'required|string',
             'pincode' => 'required',                
+            //'about_coach' => 'required',                
             'city' => 'required|string',                
             'state' => 'required|string',                
             'country' => 'required|string',
@@ -175,6 +176,7 @@ class CoachProfileController extends Controller
                 'state'      => $request->state,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
+                'about_coach'      => $request->about_coach,
                 'national_id'      => $request->national_id,
             ]);
 

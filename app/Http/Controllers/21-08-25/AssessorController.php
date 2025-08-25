@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Coach;
-use DB;
-use Auth;
 use App\Models\Mentors;
 use App\Models\Trainers;
 use App\Models\Jobseekers;
@@ -21,47 +19,49 @@ use App\Models\BookingSlotUnavailableDate;
 use App\Models\BookingSession;
 use App\Models\TrainingCategory;
 use App\Models\BookingSlot;
+use App\Models\Assessors;
 use Carbon\Carbon;
-use App\Models\SubscriptionPlan;
-use App\Models\PurchasedSubscription;
+use DB;
+use Auth;
 
-class CoachController extends Controller
+
+class AssessorController extends Controller
 {
     public function showSignInForm(){
-        return view('site.coach.sign-in'); 
+        return view('site.assessor.sign-in'); 
     }
     public function showSignUpForm()
     {
-    return view('site.coach.sign-up');
+    return view('site.assessor.sign-up');
     }
     public function showRegistrationForm()
     {
-        $categories = TrainingCategory::all();
-        return view('site.coach.registration', compact('categories'));
+    $categories = TrainingCategory::all();
+    return view('site.assessor.registration', compact('categories'));
     }
     public function showForgotPasswordForm()
     {
-        return view('site.coach.forget-password');
+        return view('site.assessor.forget-password');
     }
     public function showOtpForm()
     {
-        return view('site.coach.verify-otp'); 
+        return view('site.assessor.verify-otp'); 
     }
     public function showResetPasswordForm()
     {
-        return view('site.coach.reset-password'); 
+        return view('site.assessor.reset-password'); 
     }
 
     public function postRegistration(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email|unique:coaches,email',
-            'phone_number' => 'required|unique:coaches,phone_number',
+            'email' => 'required|email|unique:assessors,email',
+            'phone_number' => 'required|unique:assessors,phone_number',
             'password' => 'required|min:6|same:confirm_password',
             'confirm_password' => 'required|min:6',
         ]);
 
-        $coaches = Coach::create([
+        $assessors = Assessors::create([
             'email' => $request->email,
             'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
@@ -69,12 +69,12 @@ class CoachController extends Controller
         ]);
 
         session([
-            'coach_id' => $coaches->id,
+            'assessor_id' => $assessors->id,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
 
-        return redirect()->route('coach.registration');
+        return redirect()->route('assessor.registration');
     }
 
 
@@ -85,7 +85,7 @@ class CoachController extends Controller
                 $isEmail = filter_var($value, FILTER_VALIDATE_EMAIL);
                 $column = $isEmail ? 'email' : 'phone_number';
 
-                $exists = DB::table('coaches')->where($column, $value)->exists();
+                $exists = DB::table('assessors')->where($column, $value)->exists();
 
                 if (!$exists) {
                     $fail("This " . ($isEmail ? 'email' : 'mobile number') . " is not registered.");
@@ -99,7 +99,7 @@ class CoachController extends Controller
         $contactMethod = $isEmail ? 'email' : 'phone_number';
 
         // Save OTP in database
-        DB::table('coaches')->where($contactMethod, $contact)->update([
+        DB::table('assessors')->where($contactMethod, $contact)->update([
             'otp' => $otp,
             'updated_at' => now()
         ]);
@@ -120,7 +120,7 @@ class CoachController extends Controller
         ]);
 
         // Then redirect to OTP verification page
-        return redirect()->route('coach.verify-otp')->with('success', 'OTP sent!');
+        return redirect()->route('assessor.verify-otp')->with('success', 'OTP sent!');
     }
 
     public function resendOtp(Request $request)
@@ -135,7 +135,7 @@ class CoachController extends Controller
         $otp = rand(100000, 999999);
 
         // Save new OTP in database
-        DB::table('coaches')->where($contactMethod, $contact)->update([
+        DB::table('assessors')->where($contactMethod, $contact)->update([
             'otp' => $otp,
             'updated_at' => now()
         ]);
@@ -152,6 +152,7 @@ class CoachController extends Controller
         return response()->json(['message' => 'OTP resent successfully.']);
     }
 
+
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -163,21 +164,21 @@ class CoachController extends Controller
         $isEmail = filter_var($contact, FILTER_VALIDATE_EMAIL);
         $column = $isEmail ? 'email' : 'phone_number';
 
-        $coaches = DB::table('coaches')
+        $assessors = DB::table('assessors')
             ->where($column, $contact)
             ->where('otp', $request->otp)
             ->first();
 
-        if (!$coaches) {
+        if (!$assessors) {
             return back()
                 ->withErrors(['otp' => 'Invalid OTP or contact. Please enter the correct 6-digit OTP.'])
                 ->withInput();
         }
 
         // Save verified user ID in session
-        session(['verified_recruiter' => $coaches->id]);
+        session(['verified_recruiter' => $assessors->id]);
 
-        return redirect()->route('coach.reset-password');
+        return redirect()->route('assessor.reset-password');
     }
 
     public function resetPassword(Request $request){
@@ -185,13 +186,13 @@ class CoachController extends Controller
             'new_password' => 'required|min:6|same:confirm_password',
             'confirm_password' => 'required|min:6',
         ]);
-        $coachId = session('verified_recruiter');
+        $assessorId = session('verified_recruiter');
        
-        if (!$coachId) {
-            return redirect()->route('coach.forget.password')->withErrors(['session' => 'Session expired. Please try again.']);
+        if (!$assessorId) {
+            return redirect()->route('assessor.forget.password')->withErrors(['session' => 'Session expired. Please try again.']);
         }
 
-        $updated = DB::table('coaches')->where('id', $coachId)->update([
+        $updated = DB::table('assessors')->where('id', $assessorId)->update([
             'password' => Hash::make($request->new_password),
             'pass' => $request->new_password,
             'otp' => null, 
@@ -212,79 +213,78 @@ class CoachController extends Controller
         //     });
         // }
 
-        return redirect()->route('coach.login')->with('success', 'Password change successfully.');
+        return redirect()->route('assessor.login')->with('success', 'Password change successfully.');
     } 
 
     
 
-    public function loginCoach(Request $request)
+    public function loginAssessor(Request $request)
     {
         $this->validate($request, [
             'email'     => 'required|email',
             'password'  => 'required'
         ]);
 
-        $coach = Coach::where('email', $request->email)->first();
+        $assessor = Assessors::where('email', $request->email)->first();
 
-        if (!$coach) {
+        if (!$assessor) {
             // Email does not exist
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
 
-        if ($coach->status !== 'active') {
+        if ($assessor->status !== 'active') {
             // Status is inactive or blocked
             session()->flash('error', 'Your account is inactive. Please contact administrator.');
             return back()->withInput($request->only('email'));
         }
 
         // Now attempt login only if status is active
-        if (Auth::guard('coach')->attempt(['email' => $request->email, 'password' => $request->password])) {
+        if (Auth::guard('assessor')->attempt(['email' => $request->email, 'password' => $request->password])) {
             // return view('site.trainer.trainer-dashboard');
-            return redirect()->route('coach.dashboard');
+            return redirect()->route('assessor.dashboard');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
 
-    public function showCoachDashboard()
+    public function showAssessorDashboard()
     {
-        return view('site.coach.coach-dashboard');    
+        return view('site.assessor.assessor-dashboard');    
     }
 
-    public function logoutCoach(Request $request)
+    public function logoutAssessor(Request $request)
     {
-        Auth::guard('coach')->logout();
+        Auth::guard('assessor')->logout();
         
         $request->session()->invalidate(); 
         $request->session()->regenerateToken(); 
 
-        return redirect()->route('coach.login')->with('success', 'Logged out successfully');
+        return redirect()->route('assessor.login')->with('success', 'Logged out successfully');
     }
 
-
-    public function storeCoachInformation(Request $request)
+    public function storeAssessorInformation(Request $request)
     {
-        $coachId = session('coach_id');
+        $assessorId = session('assessor_id');
 
-        if (!$coachId) {
-            return redirect()->route('coach.signup')->with('error', 'Session expired. Please sign up again.');
+        if (!$assessorId) {
+            return redirect()->route('assessor.signup')->with('error', 'Session expired. Please sign up again.');
         }
 
-        $coach = Coach::find($coachId);
+        $assessor = Assessors::find($assessorId);
 
-        if (!$coach) {
-            return redirect()->route('coach.signup')->with('error', 'Trainer not found.');
+        if (!$assessor) {
+            return redirect()->route('assessor.signup')->with('error', 'Trainer not found.');
         }
 
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-            'email' => 'required|email|unique:coaches,email,' . $coach->id,
-            'phone_number' => 'required|unique:coaches,phone_number,' . $coach->id,
-            'dob' => 'required|date',
+            'email' => 'required|email|unique:assessors,email,' . $assessor->id,
+            'phone_number' => 'required|unique:assessors,phone_number,' . $assessor->id,
             'phone_code' => 'required',
-            'address' => 'required',
+            'dob' => 'required|date',
+            'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
@@ -292,11 +292,12 @@ class CoachController extends Controller
             'national_id' => [
                 'required',
                 'min:10',
-                function ($attribute, $value, $fail) use ($coach) {
-                    $existsInCoach = Coach::where('national_id', $value)
-                        ->where('id', '!=', $coach->id)
+                function ($attribute, $value, $fail) use ($assessor) {
+                    $existsInAssessor = Assessors::where('national_id', $value)
+                        ->where('id', '!=', $assessor->id)
                         ->exists();
-                    if ($existsInCoach) {
+
+                    if ( $existsInAssessor) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -363,8 +364,8 @@ class CoachController extends Controller
 
         DB::beginTransaction();
 
-        // Update mentor profile
-        $coach->update([
+        // Update assessor profile
+        $assessor->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
@@ -382,8 +383,8 @@ class CoachController extends Controller
         // Save education
         foreach ($request->high_education as $index => $education) {
             EducationDetails::create([
-                'user_id' => $coach->id,
-                'user_type' => 'coach',
+                'user_id' => $assessor->id,
+                'user_type' => 'assessor',
                 'high_education' => $education,
                 'field_of_study' => $request->field_of_study[$index] ?? null,
                 'institution' => $request->institution[$index],
@@ -403,8 +404,8 @@ class CoachController extends Controller
                     : ($request->end_to[$index] ?? null);
 
                 WorkExperience::create([
-                    'user_id'       => $coach->id,
-                    'user_type'     => 'coach',
+                    'user_id'       => $assessor->id,
+                    'user_type'     => 'assessor',
                     'job_role'      => $role,
                     'organization'  => $request->organization[$index] ?? null,
                     'starts_from'   => $startDate,
@@ -415,8 +416,8 @@ class CoachController extends Controller
 
         // Save training experience
         TrainingExperience::create([
-            'user_id' => $coach->id,
-            'user_type' => 'coach',
+            'user_id' => $assessor->id,
+            'user_type' => 'assessor',
             'training_skills' => $request->training_skills,
             'area_of_interest' => $request->area_of_interest,
             'job_category' => $request->job_category,
@@ -426,16 +427,16 @@ class CoachController extends Controller
 
         // File uploads
         $uploadTypes = [
-            'resume' => 'coach_resume',
-            'profile_picture' => 'coach_profile_picture',
-            'training_certificate' => 'coach_training_certificate',
+            'resume' => 'assessor_resume',
+            'profile_picture' => 'assessor_profile_picture',
+            'training_certificate' => 'assessor_training_certificate',
         ];
 
         foreach ($uploadTypes as $field => $docType) {
             if ($request->hasFile($field)) {
                 $existing = AdditionalInfo::where([
-                    ['user_id', $coach->id],
-                    ['user_type', 'coach'],
+                    ['user_id', $assessor->id],
+                    ['user_type', 'assessor'],
                     ['doc_type', $docType],
                 ])->first();
 
@@ -446,8 +447,8 @@ class CoachController extends Controller
                     $request->file($field)->move('uploads/', $filename);
 
                     AdditionalInfo::create([
-                        'user_id' => $coach->id,
-                        'user_type' => 'coach',
+                        'user_id' => $assessor->id,
+                        'user_type' => 'assessor',
                         'doc_type' => $docType,
                         'document_name' => $originalName,
                         'document_path' => asset('uploads/' . $filename),
@@ -458,25 +459,23 @@ class CoachController extends Controller
 
         DB::commit();
 
-        session()->forget('coach_id');
-        return redirect()->route('coach.login')->with('success_popup', true);
+        session()->forget('assessor_id');
+        return redirect()->route('assessor.login')->with('success_popup', true);
     }
 
+    public function showSettingsAssessor(){
+        $assessor = Auth::guard('assessor')->user();
+        $assessorId = $assessor->id;
 
-    
-    public function showSettingscoach(){
-        $coach = Auth::guard('coach')->user();
-        $coachId = $coach->id;
-
-        // coach with training experience
-        $coachDetails = DB::table('coaches')
+        // assessor with training experience
+        $assessorDetails = DB::table('assessors')
             ->leftJoin('training_experience', function ($join) {
-                $join->on('training_experience.user_id', '=', 'coaches.id')
-                    ->where('training_experience.user_type', 'coach');
+                $join->on('training_experience.user_id', '=', 'assessors.id')
+                    ->where('training_experience.user_type', 'assessor');
             })
-            ->where('coaches.id', $coachId)
+            ->where('assessors.id', $assessorId)
             ->select(
-                'coaches.*',
+                'assessors.*',
                 'training_experience.training_experience',
                 'training_experience.training_skills',
                 'training_experience.area_of_interest',
@@ -485,84 +484,52 @@ class CoachController extends Controller
                 'training_experience.portfolio_link'
             )
             ->first();
-        // dd( $coachDetails);exit;        
+        // dd( $assessorDetails);exit;        
         $educationDetails = DB::table('education_details')
             ->where([
-                ['user_id', '=', $coachId],
-                ['user_type', '=', 'coach']
+                ['user_id', '=', $assessorId],
+                ['user_type', '=', 'assessor']
             ])
             ->get();
 
         $workExperiences = DB::table('work_experience')
             ->where([
-                ['user_id', '=', $coachId],
-                ['user_type', '=', 'coach']
+                ['user_id', '=', $assessorId],
+                ['user_type', '=', 'assessor']
             ])
             ->get();
 
         $categories = TrainingCategory::all();    
 
-        return view('site.coach.settings-coach', compact(
-            'coach',
-            'coachDetails',
+        return view('site.assessor.settings-assesor', compact(
+            'assessor',
+            'assessorDetails',
             'educationDetails',
             'workExperiences',
             'categories'
         ));
+        
     }
 
-    public function dashboardAction(Request $request)
+    public function assessorProfileUpdate(Request $request)
     {
-
-        // Find the session
-        $session = BookingSession::findOrFail($request->session_id);
-
-        if ($request->action_type === 'cancel') {
-            $session->status = 'cancelled';
-            $session->cancellation_reason = $request->cancel_reason;
-            // $session->cancelled_at = now();
-            $session->save();
-
-            return redirect()->back()->with('success', 'Session cancelled successfully.');
-        }
-
-        if ($request->action_type === 'reschedule') {
-            // Optional: Validate that both new_date and new_time are present
-            if (!$request->new_date || !$request->new_time) {
-                return redirect()->back()->withErrors(['new_date' => 'Both date and time are required to reschedule.']);
-            }
-
-            $session->slot_date_after_postpone = $request->new_date;
-            $session->slot_time_after_postpone = $request->new_time;
-            $session->status = 'rescheduled';
-            $session->rescheduled_at = now();
-            $session->save();
-
-            return redirect()->back()->with('success', 'Session rescheduled successfully.');
-        }
-
-        return redirect()->back()->with('error', 'Invalid action.');
-    }
-
-    public function coachProfileUpdate(Request $request)
-    {
-        $coach = auth()->guard('coach')->user();
+        $assessor = auth()->guard('assessor')->user();
 
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-            'email' => 'required|email|unique:coaches,email,' . $coach->id,
+            'email' => 'required|email|unique:assessors,email,' . $assessor->id,
             'phone' => 'required|digits:9',
             'dob' => 'required|date',
             'national_id' => 'required|string|max:15',
+            'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
-            'about_coach' => 'nullable|string',
+            'about_assessor' => 'nullable|string',
         ]);
 
-        $coach->update([
+        $assessor->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone'],
@@ -573,7 +540,7 @@ class CoachController extends Controller
             'state' => $validated['state'] ?? null,
             'country' => $validated['country'] ?? null,
             'pin_code' => $validated['pin_code'] ?? null,
-            'about_coach' => $validated['about_coach'] ?? null,
+            'about_assessor' => $validated['about_assessor'] ?? null,
         ]);
 
         return response()->json([
@@ -584,7 +551,7 @@ class CoachController extends Controller
 
 
 
-    public function updateCoachEducationInfo(Request $request)
+    public function updateAssessorEducationInfo(Request $request)
     {
         $user = auth()->user();
         $userId = $user->id;
@@ -598,7 +565,7 @@ class CoachController extends Controller
 
         $incomingIds = $request->input('education_id', []);
         $existingIds = EducationDetails::where('user_id', $userId)
-            ->where('user_type', 'coach')
+            ->where('user_type', 'assessor')
             ->pluck('id')
             ->toArray();
 
@@ -608,7 +575,7 @@ class CoachController extends Controller
         foreach ($request->input('high_education', []) as $i => $education) {
             $data = [
                 'user_id' => $userId,
-                'user_type' => 'coach',
+                'user_type' => 'assessor',
                 'high_education' => $request->high_education[$i],
                 'field_of_study' => $request->field_of_study[$i] ?? null,
                 'institution' => $request->institution[$i] ?? null,
@@ -625,9 +592,9 @@ class CoachController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Education details updated successfully!']);
     }
 
-    public function updateCoachWorkExperienceInfo(Request $request)
+    public function updateAssessorWorkExperienceInfo(Request $request)
     {
-        $user_id = auth()->guard('coach')->id(); // Use coach guard
+        $user_id = auth()->guard('assessor')->id(); // Use assessor guard
 
         $validated = $request->validate([
             'job_role.*' => 'required|string|max:255',
@@ -638,7 +605,7 @@ class CoachController extends Controller
 
         $incomingIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
-            ->where('user_type', 'coach')
+            ->where('user_type', 'assessor')
             ->pluck('id')
             ->toArray();
 
@@ -662,7 +629,7 @@ class CoachController extends Controller
 
             $data = [
                 'user_id' => $user_id,
-                'user_type' => 'coach',
+                'user_type' => 'assessor',
                 'job_role' => $role,
                 'organization' => $request->organization[$i],
                 'starts_from' => $start,
@@ -685,7 +652,7 @@ class CoachController extends Controller
 
 
 
-    public function updateCoachSkillsInfo(Request $request)
+    public function updateAssessorSkillsInfo(Request $request)
     {
         $user_id = auth()->id();
 
@@ -698,7 +665,7 @@ class CoachController extends Controller
         ]);
 
         $skills = TrainingExperience::where('user_id', $user_id)
-            ->where('user_type', 'coach')
+            ->where('user_type', 'assessor')
             ->first();
 
         if ($skills) {
@@ -706,7 +673,7 @@ class CoachController extends Controller
         } else {
             TrainingExperience::create([
                 'user_id' => $user_id,
-                'user_type' => 'coach',
+                'user_type' => 'assessor',
                 'training_skills' => $validated['training_skills'],
                 'area_of_interest' => $validated['area_of_interest'],
                 'job_category' => $validated['job_category'],
@@ -717,12 +684,12 @@ class CoachController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Coach skills updated successfully!',
+            'message' => 'Assessor skills updated successfully!',
         ]);
     }
 
 
-    public function updateCoachAdditionalInfo(Request $request)
+    public function updateAssessorAdditionalInfo(Request $request)
     {
         $userId = auth()->id();
 
@@ -733,9 +700,9 @@ class CoachController extends Controller
         ]);
 
         $documentTypes = [
-            'resume' => 'coach_resume',
-            'profile' => 'coach_profile_picture',
-            'training_certificate' => 'coach_training_certificate'
+            'resume' => 'assessor_resume',
+            'profile' => 'assessor_profile_picture',
+            'training_certificate' => 'assessor_training_certificate'
         ];
 
         foreach ($documentTypes as $field => $docType) {
@@ -746,7 +713,7 @@ class CoachController extends Controller
                 $path = asset('uploads/' . $fileName);
 
                 AdditionalInfo::updateOrCreate(
-                    ['user_id' => $userId, 'user_type' => 'coach', 'doc_type' => $docType],
+                    ['user_id' => $userId, 'user_type' => 'assessor', 'doc_type' => $docType],
                     ['document_path' => $path, 'document_name' => $fileName]
                 );
             }
@@ -754,19 +721,19 @@ class CoachController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'coach documents updated successfully!'
+            'message' => 'Assessor documents updated successfully!'
         ]);
     }
 
 
-    public function deleteCoachDocument($type)
+    public function deleteAssessorDocument($type)
     {
         $userId = auth()->id();
 
         $documentTypes = [
-            'resume' => 'coach_resume',
-            'profile' => 'coach_profile_picture',
-            'training_certificate' => 'coach_training_certificate'
+            'resume' => 'assessor_resume',
+            'profile' => 'assessor_profile_picture',
+            'training_certificate' => 'assessor_training_certificate'
         ];
 
         if (!isset($documentTypes[$type])) {
@@ -775,7 +742,7 @@ class CoachController extends Controller
 
         $deleted = AdditionalInfo::where([
             'user_id' => $userId,
-            'user_type' => 'coach',
+            'user_type' => 'assessor',
             'doc_type' => $documentTypes[$type]
         ])->delete();
 
@@ -786,19 +753,19 @@ class CoachController extends Controller
 
      public function deleteAccount()
      {
-          $coachId = auth()->id();
-          Coach::where('id', $coachId)->delete();
+          $assessorId = auth()->id();
+          Assessors::where('id', $assessorId)->delete();
           auth()->logout();
 
-          return redirect()->route('coach.login')->with('success', 'Your account has been deleted successfully.');
+          return redirect()->route('assessor.login')->with('success', 'Your account has been deleted successfully.');
      }
 
-    public function coachReviews()
+     public function assessorReviews()
     {
         $reviews = DB::table('reviews')
             ->leftJoin('jobseekers', 'jobseekers.id', '=', 'reviews.jobseeker_id')
             // ->leftJoin('courses', 'courses.id', '=', 'reviews.course_id')
-            ->where('reviews.user_type', 'coach')
+            ->where('reviews.user_type', 'assessor')
             ->select(
                 'reviews.id',
                 'reviews.reviews',
@@ -809,28 +776,28 @@ class CoachController extends Controller
             )
             ->get();
 
-        return view('site.coach.reviews', compact('reviews'));
+        return view('site.assessor.reviews', compact('reviews'));
     }
 
     public function deleteAssessorReview($id)
     {
         DB::table('reviews')
             ->where('id', $id)
-            ->where('user_type', 'coach')
+            ->where('user_type', 'assessor')
             ->delete();
 
-        return redirect()->route('coach.reviews')->with('success', 'Coach review deleted successfully.');
+        return redirect()->route('assessor.reviews')->with('success', 'Assessor review deleted successfully.');
     }
 
     // Controller method for initial view
     public function manageBooking()
     {
-        $coach = auth()->user();
+        $assessor = auth()->user();
 
         // Load all slots with their unavailable dates
         $allSlots = BookingSlot::with('unavailableDates')
-            ->where('user_type', 'coach')
-            ->where('user_id', $coach->id)
+            ->where('user_type', 'assessor')
+            ->where('user_id', $assessor->id)
             ->get();
 
         $onlineSlots = $allSlots->where('slot_mode', 'online')->values();
@@ -843,7 +810,7 @@ class CoachController extends Controller
             }
         }
 
-        return view('site.coach.manage-booking', [
+        return view('site.assessor.manage-booking', [
             'onlineSlots' => $onlineSlots,
             'offlineSlots' => $offlineSlots,
             'unavailableDatesMap' => $unavailableDatesMap,
@@ -851,7 +818,7 @@ class CoachController extends Controller
     }
 
     public function createBooking(){
-        return view('site.coach.create-booking'); 
+        return view('site.assessor.create-booking'); 
     }
 
     public function submitBooking(Request $request)
@@ -867,7 +834,7 @@ class CoachController extends Controller
             [$start, $end] = explode(' - ', $range);
 
             BookingSlot::create([
-                'user_type' => 'coach',
+                'user_type' => 'assessor',
                 'user_id' => auth()->id(),
                 'slot_mode' => $mode,
                 'start_time' => Carbon::createFromFormat('h:i a', $start)->format('H:i:s'),
@@ -876,7 +843,7 @@ class CoachController extends Controller
             ]);
         }
 
-        return redirect()->route('coach.manage-bookings')->with('success', 'Booking slots saved successfully.');
+        return redirect()->route('assessor.manage-bookings')->with('success', 'Booking slots saved successfully.');
     }
 
     public function updateStatus(Request $request)
@@ -941,7 +908,7 @@ class CoachController extends Controller
 
         $slot = BookingSlot::findOrFail($request->id);
         
-        // Optional: Ensure current mentor owns this slot
+        // Optional: Ensure current assessor owns this slot
         if ($slot->user_id !== auth()->id()) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
@@ -952,77 +919,4 @@ class CoachController extends Controller
 
         return response()->json(['status' => 'success']);
     }
-
-
-    public function processSubscriptionPayment(Request $request)
-    {
-        $request->validate([
-            'plan_id' => 'required|exists:subscription_plans,id',
-            'card_number' => 'required|string|min:12|max:19',
-            'expiry' => 'required|string',
-            'cvv' => 'required|string|min:3|max:4',
-        ]);
-
-        $plan = SubscriptionPlan::findOrFail($request->plan_id);
-
-        DB::beginTransaction();
-        try {
-            $coach = auth('coach')->user();
-
-            // Create the new subscription
-            $newSubscription = PurchasedSubscription::create([
-                'user_id' => $coach->id,
-                'user_type' => 'coach',
-                'subscription_plan_id' => $plan->id,
-                'start_date' => now(),
-                'end_date' => now()->addDays($plan->duration_days),
-                'amount_paid' => $plan->price,
-                'payment_status' => 'paid',
-            ]);
-
-            // Update trainer only if:
-            // - They have no active subscription, OR
-            // - The new subscription ends later than the current one
-            $shouldUpdate = false;
-
-            if (!$coach->active_subscription_plan_id) {
-                $shouldUpdate = true;
-            } else {
-                $currentActive = PurchasedSubscription::find($coach->active_subscription_plan_id);
-                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
-                    $shouldUpdate = true;
-                }
-            }
-
-            if ($shouldUpdate) {
-                $coach->isSubscribtionBuy = 'yes';
-                $coach->active_subscription_plan_id = $newSubscription->id;
-                $coach->save();
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Subscription purchased successfully!'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Something went wrong while purchasing the subscription.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function chatWithJobseekerCoach(){
-        return view('site.coach.chat-jobseeker-coach'); 
-    }
-
-    public function adminSupportCoach(){
-        return view('site.coach.admin-support-coach'); 
-    }
-
 }

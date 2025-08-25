@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -59,11 +59,11 @@ class ChatController extends Controller
       
     public function sendMessage(Request $request)
     {
-        $sender = $this->getSender();
+        //$sender = $this->getSender();
 
         $data = [
-            'sender_id'    => $sender['id'],
-            'sender_type'  => $sender['type'],
+            'sender_id'    => $request->sender_id,
+            'sender_type'  => $request->sender_type,            ,
             'receiver_id'  => $request->receiver_id,
             'receiver_type'=> $request->receiver_type,
             'type'         => 1, // default text
@@ -130,22 +130,22 @@ class ChatController extends Controller
     // ✅ Get chat messages between any 2 parties
     public function getMessages(Request $request)
     {
-        $sender = $this->getSender();
+        //$sender = $this->getSender();
 
-        if (!$sender['id'] || !$request->receiver_id || !$request->receiver_type) {
+        if (!$request->sender_id || !$request->receiver_id || !$request->receiver_type) {
             return response()->json(['error' => 'Invalid data'], 422);
         }
 
         $messages = Message::where(function ($q) use ($sender, $request) {
-            $q->where('sender_id', $sender['id'])
-                ->where('sender_type', $sender['type'])
+            $q->where('sender_id', $request->sender_id)
+                ->where('sender_type', $request->sender_type)
                 ->where('receiver_id', $request->receiver_id)
                 ->where('receiver_type', $request->receiver_type);
         })->orWhere(function ($q) use ($sender, $request) {
             $q->where('sender_id', $request->receiver_id)
                 ->where('sender_type', $request->receiver_type)
-                ->where('receiver_id', $sender['id'])
-                ->where('receiver_type', $sender['type']);
+                ->where('receiver_id', $request->sender_id)
+                ->where('receiver_type', $request->sender_type);
         })->orderBy('created_at')->get();
 
         return response()->json($messages);
@@ -157,9 +157,9 @@ class ChatController extends Controller
     {
         $message = Message::find($request->id);
 
-        $sender = $this->getSender();
+        //$sender = $this->getSender();
 
-        if ($message && $message->sender_id == $sender['id'] && $message->sender_type == $sender['type']) {
+        if ($message && $message->sender_id == $request->sender_id && $message->sender_type == $request->sender_type) {
             $receiverId = $message->receiver_id;
             $message->delete();
 
@@ -174,9 +174,9 @@ class ChatController extends Controller
 
     public function sendGroupMessage(Request $request)
     {
-        $sender = $this->getSender(); // returns ['id' => ..., 'type' => ...]
+        //$sender = $this->getSender(); // returns ['id' => ..., 'type' => ...]
 
-        if (!$sender['id'] || (!$request->message && !$request->hasFile('file'))) {
+        if (!$request->sender_id || (!$request->message && !$request->hasFile('file'))) {
             return response()->json(['error' => 'Message or file required'], 422);
         }
 
@@ -192,8 +192,8 @@ class ChatController extends Controller
         }
 
         $data = [
-            'sender_id' => $sender['id'],
-            'sender_type' => $sender['type'],
+            'sender_id' => $request->sender_id,
+            'sender_type' => $request->sender_type,
             'receiver_id' => $receiverId,
             'receiver_type' => $receiverType,
             'type' => 1,

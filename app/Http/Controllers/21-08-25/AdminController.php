@@ -38,7 +38,6 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Subscription;
-use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 
@@ -645,13 +644,8 @@ class AdminController extends Controller
         $experiences = $jobseeker->experiences()->orderBy('id', 'desc')->get();
         $skills = $jobseeker->skills()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','jobseeker')->get();
-        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
-                                                    ->where('purchased_subscriptions.user_id', $id)
-                                                    ->where('purchased_subscriptions.user_type', 'jobseeker')
-                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-                                                    ->get();
-        // print_r($subscriptionPlans); die;    
-        return view('admin.jobseeker.view', compact('jobseeker', 'experiences', 'educations', 'skills','additioninfos','subscriptionPlans'));
+        // print_r($additioninfos); die;    
+        return view('admin.jobseeker.view', compact('jobseeker', 'experiences', 'educations', 'skills','additioninfos'));
     }
 
 
@@ -1264,12 +1258,7 @@ class AdminController extends Controller
         $experiences = $trainer->experiences()->orderBy('id', 'desc')->get();
         $experience = $trainer->experience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','trainer')->get();
-        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
-                                                    ->where('purchased_subscriptions.user_id', $id)
-                                                    ->where('purchased_subscriptions.user_type', 'trainer')
-                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-                                                    ->get();
-        return view('admin.trainers.view', compact('trainer', 'educations', 'experiences', 'experience','additioninfos','subscriptionPlans'));
+        return view('admin.trainers.view', compact('trainer', 'educations', 'experiences', 'experience','additioninfos'));
     }
 
 
@@ -1766,27 +1755,16 @@ class AdminController extends Controller
 
         // Insert new plans
         foreach ($request->plans as $plan) {
-            $durationMonths = $plan['duration_months'];
-
-            // calculate duration_days
-            if ($durationMonths == 12) {
-                $durationDays = 365;
-            } else {
-                $durationDays = $durationMonths * 30;
-            }
-
             SubscriptionPlan::create([
                 'user_type'     => $request->user_type,
                 'title'         => $plan['title'],
                 'price'         => $plan['price'],
-                'duration_months' => $durationMonths,
-                'duration_days' => $durationDays,
-                'features'      => $plan['features'] ?? null,
+                'duration_days' => $plan['duration_months'] * 30,
+                'features' => $plan['features'] ?? null,
                 'description'   => $plan['description'] ?? null,
                 'is_active'     => true,
             ]);
         }
-
 
         return redirect()->back()->with('success', 'Subscription plans updated successfully!');
     }
@@ -1882,12 +1860,7 @@ class AdminController extends Controller
         $experiences = $mentor->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $mentor->trainingexperience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','mentor')->get();
-        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
-                                                    ->where('purchased_subscriptions.user_id', $id)
-                                                    ->where('purchased_subscriptions.user_type', 'mentor')
-                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-                                                    ->get();
-        return view('admin.mentors.view', compact('mentor', 'educations', 'experiences', 'trainingexperience','additioninfos','subscriptionPlans'));
+        return view('admin.mentors.view', compact('mentor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
     }
 
 
@@ -2069,12 +2042,7 @@ class AdminController extends Controller
         $experiences = $coach->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $coach->trainingexperience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','coach')->get();
-        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
-                                                    ->where('purchased_subscriptions.user_id', $id)
-                                                    ->where('purchased_subscriptions.user_type', 'coach')
-                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-                                                    ->get();
-        return view('admin.coach.view', compact('coach', 'educations', 'experiences', 'trainingexperience','additioninfos','subscriptionPlans'));
+        return view('admin.coach.view', compact('coach', 'educations', 'experiences', 'trainingexperience','additioninfos'));
     }
 
 
@@ -2253,12 +2221,7 @@ class AdminController extends Controller
         $experiences = $assessor->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $assessor->trainingexperience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','assessor')->get();
-        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
-                                                    ->where('purchased_subscriptions.user_id', $id)
-                                                    ->where('purchased_subscriptions.user_type', 'trainer')
-                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-                                                    ->get();
-        return view('admin.assessors.view', compact('assessor', 'educations', 'experiences', 'trainingexperience','additioninfos','subscriptionPlans'));
+        return view('admin.assessors.view', compact('assessor', 'educations', 'experiences', 'trainingexperience','additioninfos'));
     }
 
 

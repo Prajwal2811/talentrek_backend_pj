@@ -23,8 +23,8 @@ class AssesssorController extends Controller
     public function quizDetailsByTrainerId($trainerId)
     {
         try {
-            $selectedQuiz = TrainerAssessment::select('id', 'trainer_id', 'assessment_title', 'assessment_description', 'assessment_level')
-                ->where('trainer_id', $trainerId)
+            $selectedQuiz = TrainerAssessment::select('id', 'trainer_id', 'assessment_title', 'assessment_description', 'assessment_level','material_id')
+                ->where('material_id', $trainerId)
                 ->first();
 
             if (!$selectedQuiz) {

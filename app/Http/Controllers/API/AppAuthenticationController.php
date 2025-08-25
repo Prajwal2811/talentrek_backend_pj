@@ -16,6 +16,7 @@ use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\Api\TrainingPrograms;
 use App\Models\AdditionalInfo;
+use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 class AppAuthenticationController extends Controller
@@ -51,35 +52,38 @@ class AppAuthenticationController extends Controller
         ];
         $model = $modelMap[$type];
         $user = $model::where('email', $request->email)->first();
-        if (!$user || $user->status != 'active') {
-            return response()->json([
-                'status' => false,
-                'message' => 'Your account is inactive. Please contact admimnistrator.'
-            ], 401);
-        }
+        // if (!$user || $user->status != 'active') {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Your account is inactive. Please contact admimnistrator.'
+        //     ], 401);
+        // }
 //print_r($user);
-        if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
-            ], 401);
-        }
+        // if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
+        //     ], 401);
+        // }
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Invalid credentials.'
-            ], 401);
-        }
-
+        // if (!$user || !Hash::check($request->password, $user->password)) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Invalid credentials.'
+        //     ], 401);
+        // }
+        $firstName = $request->name;
+       $password = $firstName . '@talentrek';
          if (!$user) {
                 $user = $model::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'status' => 'active',
                 'google_id' => $request->google_id,
-                'password' => bcrypt(Str::random(16)), // Random placeholder password
+                'status' => 'active',
+                'password' => Hash::make($password),
+                'pass' => $password,
                 'email_verified_at' => now(),
+                //'is_registered' => false
             ]);
         }
         
@@ -97,7 +101,7 @@ class AppAuthenticationController extends Controller
             ]
         ]);
     }
-    
+
     public function signIn(Request $request)
     {
        $validator = Validator::make($request->all(), [
@@ -600,4 +604,6 @@ class AppAuthenticationController extends Controller
         //     return $this->errorResponse('An error occurred while fetching skills area of interest list.', 500,[]);
         // }
     }
+
+    
 }

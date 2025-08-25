@@ -574,10 +574,10 @@ class JobseekerController extends Controller
     public function processSubscriptionPayment(Request $request)
     {
         $request->validate([
-            'plan_id'     => 'required|exists:subscription_plans,id',
+            'plan_id' => 'required|exists:subscription_plans,id',
             'card_number' => 'required|string|min:12|max:19',
-            'expiry'      => 'required|string',
-            'cvv'         => 'required|string|min:3|max:4',
+            'expiry' => 'required|string',
+            'cvv' => 'required|string|min:3|max:4',
         ]);
 
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
@@ -585,56 +585,36 @@ class JobseekerController extends Controller
         DB::beginTransaction();
         try {
             $jobseeker = auth('jobseeker')->user();
-
-            // Create purchased subscription
-            $newSubscription = PurchasedSubscription::create([
-                'user_id'              => $jobseeker->id,
-                'user_type'            => 'jobseeker',
+            // echo "done"; exit; 
+            PurchasedSubscription::create([
+                'user_id' => $jobseeker->id,
+                'user_type' => 'jobseeker',
                 'subscription_plan_id' => $plan->id,
-                'start_date'           => now(),
-                'end_date'             => now()->addDays($plan->duration_days),
-                'amount_paid'          => $plan->price,
-                'payment_status'       => 'paid',
+                'start_date' => now(),
+                'end_date' => now()->addDays($plan->duration_days),
+                'price' => $plan->price,
+                'status' => 'active',
+                'payment_status' => 'paid',
             ]);
-
-            // Determine if jobseeker record should be updated
-            $shouldUpdate = false;
-
-            if (!$jobseeker->active_subscription_plan_id) {
-                $shouldUpdate = true;
-            } else {
-                $currentActive = PurchasedSubscription::find($jobseeker->active_subscription_plan_id);
-                if (!$currentActive || Carbon::parse($newSubscription->end_date)->gt($currentActive->end_date)) {
-                    $shouldUpdate = true;
-                }
-            }
-
-            if ($shouldUpdate) {
-                $jobseeker->isSubscribtionBuy = 'yes';
-                // Save purchased subscription id, not plan id
-                $jobseeker->active_subscription_plan_id = $newSubscription->id;
-                $jobseeker->save();
-            }
+            // echo "done"; exit; 
+            // $jobseeker->isSubscribtionBuy = 'yes';
+            // $jobseeker->save();
 
             DB::commit();
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Subscription purchased successfully!'
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'status'  => 'error',
-                'message' => 'Something went wrong while purchasing the subscription.',
-                'error'   => $e->getMessage()
+                'status' => 'error',
+                'message' => 'Something went wrong while purchasing the subscription.'
             ], 500);
         }
     }
-
-
-
 
 
 
@@ -1385,20 +1365,19 @@ class JobseekerController extends Controller
 
         $totalDays = 0;
 
+foreach ($experiences as $exp) {
+    $start = Carbon::parse($exp->starts_from);
 
-        foreach ($experiences as $exp) {
-            $start = Carbon::parse($exp->starts_from);
+    if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
+        $end = Carbon::parse($exp->end_to);
+    } else {
+        // Assume current date if still working
+        $end = Carbon::now();
+    }
 
-            if (!empty($exp->end_to) && strtolower($exp->end_to) !== 'work here') {
-                $end = Carbon::parse($exp->end_to);
-            } else {
-                // Assume current date if still working
-                $end = Carbon::now();
-            }
+    $totalDays += $start->diffInDays($end);
+}
 
-            $totalDays += $start->diffInDays($end);
-        }
-        
         $interval = CarbonInterval::days($totalDays)->cascade();
         $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
 
@@ -1446,7 +1425,6 @@ class JobseekerController extends Controller
 
             $totalDays += $start->diffInDays($end);
         }
-
 
         $interval = CarbonInterval::days($totalDays)->cascade();
         $totalExperience = sprintf('%d years %d months %d days', $interval->y, $interval->m, $interval->d);
@@ -2402,7 +2380,7 @@ class JobseekerController extends Controller
         }
 
         $request->validate([
-            'training_type' => 'required|in:online,classroom,recorded',
+            'training_type' => 'required|in:online,classroom',
             'session_type' => 'required_if:training_type,online|in:online,classroom',
             'batch' => 'required_if:training_type,online|exists:training_batches,id',
             'payment_method' => 'required|in:card,upi'

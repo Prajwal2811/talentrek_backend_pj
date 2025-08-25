@@ -23,7 +23,8 @@ use App\Models\Assessors;
 use Carbon\Carbon;
 use DB;
 use Auth;
-
+use App\Models\SubscriptionPlan;
+use App\Models\PurchasedSubscription;
 
 class AssessorController extends Controller
 {
@@ -251,7 +252,105 @@ class AssessorController extends Controller
 
     public function showAssessorDashboard()
     {
-        return view('site.assessor.assessor-dashboard');    
+       $sessions = BookingSession::select(
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
+            ->get()
+            ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
+                return [
+                    'session_id' => $session->session_id,
+                    'name' => $session->name,
+                    'role' => $latestExperience->job_role ?? 'N/A', 
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
+                    'status' => $session->status,
+                ];
+            })
+            ->groupBy('status');
+
+        // echo "<pre>";    
+        // print_r( $sessions);exit; 
+       
+        $today = \Carbon\Carbon::today()->format('Y-m-d');
+   
+        $todayCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->whereDate('jobseeker_saved_booking_session.slot_date', $today)
+            ->count();
+           
+        $upcomingCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->where('jobseeker_saved_booking_session.status', 'pending')
+            ->count();
+            
+        // ✅ Properly formatted cancelled sessions for modal use
+        $cancelled = BookingSession::select(
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
+            )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'assessor')
+            ->where('jobseeker_saved_booking_session.status', 'cancelled')
+            ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
+            ->leftJoin('additional_info', function ($join) {
+                $join->on('additional_info.user_id', '=', 'jobseekers.id')
+                    ->where('additional_info.user_type', 'jobseeker')
+                    ->where('additional_info.doc_type', 'profile_picture');
+            })
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
+            ->get()
+            ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
+                return [
+                    'session_id' => $session->session_id,
+                    'name' => $session->name,
+                    'role' => $latestExperience->job_role ?? 'N/A',
+                    'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
+                    'time' => $session->slot_time,
+                    'mode' => ucfirst($session->slot_mode),
+                    'img' => $session->img,
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
+                    'status' => $session->status,
+                ];
+            });
+        // echo "<pre>";    
+        // print_r($cancelled);exit; 
+
+        return view('site.assessor.assessor-dashboard', [
+            'upcoming' => $sessions['pending'] ?? [],
+            'completed' => $sessions['completed'] ?? [],
+            'cancelled' => $cancelled,
+            'todayCount' => $todayCount,
+            'upcomingCount' => $upcomingCount,
+        ]);   
     }
 
     public function logoutAssessor(Request $request)
@@ -918,5 +1017,76 @@ class AssessorController extends Controller
         $slot->delete();
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function processSubscriptionPayment(Request $request)
+    {
+        $request->validate([
+            'plan_id' => 'required|exists:subscription_plans,id',
+            'card_number' => 'required|string|min:12|max:19',
+            'expiry' => 'required|string',
+            'cvv' => 'required|string|min:3|max:4',
+        ]);
+
+        $plan = SubscriptionPlan::findOrFail($request->plan_id);
+
+        DB::beginTransaction();
+        try {
+            $assessor = auth('assessor')->user();
+
+            // Create the new subscription
+            $newSubscription = PurchasedSubscription::create([
+                'user_id' => $assessor->id,
+                'user_type' => 'assessor',
+                'subscription_plan_id' => $plan->id,
+                'start_date' => now(),
+                'end_date' => now()->addDays($plan->duration_days),
+                'amount_paid' => $plan->price,
+                'payment_status' => 'paid',
+            ]);
+
+            // Update trainer only if:
+            // - They have no active subscription, OR
+            // - The new subscription ends later than the current one
+            $shouldUpdate = false;
+
+            if (!$assessor->active_subscription_plan_id) {
+                $shouldUpdate = true;
+            } else {
+                $currentActive = PurchasedSubscription::find($assessor->active_subscription_plan_id);
+                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+                    $shouldUpdate = true;
+                }
+            }
+
+            if ($shouldUpdate) {
+                $assessor->isSubscribtionBuy = 'yes';
+                $assessor->active_subscription_plan_id = $newSubscription->id;
+                $assessor->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Subscription purchased successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while purchasing the subscription.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function chatWithJobseekerAssessor(){
+        return view('site.assessor.chat-jobseeker-assessor'); 
+    }
+
+    public function adminSupportAssessor(){
+        return view('site.assessor.admin-support-assessor'); 
     }
 }

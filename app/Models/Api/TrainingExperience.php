@@ -20,6 +20,8 @@ class TrainingExperience extends Model
         'training_skills',
         'website_link',
         'portfolio_link',
+        'area_of_interest',
+        'job_category'
     ];
 
 

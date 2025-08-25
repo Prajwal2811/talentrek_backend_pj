@@ -26,6 +26,7 @@ class Mentors extends Model
         'state',
         'national_id',
         'pin_code',
+        'about_mentor'
     ];
 
     /**
@@ -64,7 +65,7 @@ class Mentors extends Model
     public function additionalInfo()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'mentor');
+                    ->where('user_type', 'mentor')->where('doc_type', 'mentor_profile_picture');
     }
 
 }

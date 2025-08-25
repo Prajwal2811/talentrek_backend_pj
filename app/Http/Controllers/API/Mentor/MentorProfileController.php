@@ -117,6 +117,7 @@ class MentorProfileController extends Controller
             'location' => 'required|string',
             'address' => 'required|string',
             'pincode' => 'required',                
+            //'about_mentor' => 'required',                
             'city' => 'required|string',                
             'state' => 'required|string',                
             'country' => 'required|string',
@@ -181,6 +182,7 @@ class MentorProfileController extends Controller
                 'state'      => $request->state,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
+                'about_mentor'      => $request->about_mentor,
                 'national_id'      => $request->national_id,
             ]);
 

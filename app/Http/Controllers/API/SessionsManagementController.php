@@ -12,6 +12,8 @@ use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\AdditionalInfo;
 use App\Models\Api\BookingSlotUnavailableDate;
 use App\Models\Api\BookingSession;
+use App\Models\SubscriptionPlan;
+
 use DB;
 use Carbon\Carbon;
 class SessionsManagementController extends Controller
@@ -37,7 +39,6 @@ class SessionsManagementController extends Controller
             ], 422);
         }
 
-
         try {  
             // Common base query
             $baseQuery = BookingSession::select(
@@ -49,7 +50,7 @@ class SessionsManagementController extends Controller
             ->where('status', 'pending');
 
             // Clone the base query for each group
-            $totalSessions = (clone $baseQuery)->get();
+            $totalSessions = (clone $baseQuery)->whereDate('slot_date', '>=', Carbon::today())->get();
             $todaysSessions = (clone $baseQuery)->whereDate('slot_date', '=', Carbon::today())->get();
             $upcomingSessions = (clone $baseQuery)->whereDate('slot_date', '=', Carbon::today())->get();
             //$completedSessions = (clone $baseQuery)->whereDate('slot_date', '=', Carbon::today())->get();
@@ -298,4 +299,16 @@ class SessionsManagementController extends Controller
         }
     }
 
+    public function subscriptionPlanListForMCAJT($type='mentor')
+    {
+    //    try {
+            $SubscriptionPlan = SubscriptionPlan::select('*')->where('user_type',$type)->where('is_active',1)->get();
+            if ($SubscriptionPlan->isEmpty()) {
+                return $this->errorResponse('No Subscription list found for '.$type.' .', 200,[]);
+            }
+            return $this->successResponse($SubscriptionPlan, 'Subscription list for '.$type.' fetched successfully.');
+        // } catch (\Exception $e) {
+        //     return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
+        // }
+    }
 }

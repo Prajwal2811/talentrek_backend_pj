@@ -61,7 +61,7 @@ class TrainingController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $file = $request->file('thumbnail');
                 $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-                $file->move('uploads', $thumbnailFileName);
+                $file->move(public_path('uploads'), $thumbnailFileName);
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
 
@@ -132,7 +132,7 @@ class TrainingController extends Controller
                     if (isset($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
                         $uploadedFile = $section['file'];
                         $fileName = 'section_' . time() . '_' . $index . '.' . $uploadedFile->getClientOriginalExtension();
-                        $uploadedFile->move('uploads', $fileName);
+                        $uploadedFile->move(public_path('uploads'), $fileName);
                         $filePath = asset('uploads/' . $fileName);
                     }
 
@@ -221,63 +221,37 @@ class TrainingController extends Controller
 
     public function saveTrainingOnlineData(Request $request)
     {
-        $data = $request->all();
+        try {           
 
-        $rules = [
-            'trainerId'             => 'required',
-            'training_title'        => 'required|string|max:255',
-            'training_sub_title'    => 'nullable|string|max:255',
-            'training_objective'    => 'nullable|string',
-            'training_descriptions' => 'nullable|string',
-            'training_category'     => 'required|string',
-            'training_level'        => 'required|string',
-            'training_price'        => 'required|numeric',
-            'training_offer_price'  => 'required|numeric',
-            'thumbnail'             => 'nullable|image|max:2048',
-            'training_type'         => 'required|string',
-        ];
-
-        // Check if content_sections exist
-        if (!empty($data['content_sections'])) {
-            foreach ($data['content_sections'] as $index => $section) {
-                $rules["content_sections.$index.batch_no"]   = 'required|string|max:255';
-                $rules["content_sections.$index.batch_date"] = [
-                    'required',
-                    'date_format:d/m/Y',
-                    function ($attribute, $value, $fail) {
-                        $date = Carbon::createFromFormat('d/m/Y', $value);
-                        if ($date->isPast()) {
-                            $fail("$attribute should not be a past date.");
-                        }
-                    },
-                ];
+             $validator = Validator::make($request->all(), [
+                'trainerId' => 'required',
+                'training_title'         => 'required|string|max:255',
+                'training_sub_title'     => 'nullable|string|max:255',
+                'training_objective'     => 'nullable|string',
+                'training_descriptions'  => 'nullable|string',
+                'training_category'      => 'required|string',
+                'training_level'         => 'required|string',
+                'training_price'         => 'required|numeric',
+                'training_offer_price'   => 'required|numeric',
+                'thumbnail'              => 'nullable|image|max:2048',
+                'training_type'          => 'required|string',            
                 
-                // $rules["content_sections.$index.batch_date"] = 'required|date';
-                $rules["content_sections.$index.start_time"] = 'required|string';
-                $rules["content_sections.$index.end_time"]   = 'required|string';
-                $rules["content_sections.$index.duration"]   = 'required|string';
-                $rules["content_sections.$index.duration_type"]   = 'required|string';
-                $rules["content_sections.$index.strength"]   = 'required|integer|min:1';
-                $rules["content_sections.$index.days"]       = 'required';
+                'content_sections'               => 'required|array|min:1',
+                'content_sections.*.batch_no'    => 'required|string|max:255',
+                'content_sections.*.batch_date'  => 'required|date',
+                'content_sections.*.start_time'  => 'required|string',
+                'content_sections.*.end_time'    => 'required|string',
+                'content_sections.*.duration'    => 'required|string',
+                'content_sections.*.strength'   => 'required|integer|min:1',
+                'content_sections.*.days'       => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
+                ], 422);
             }
-        } else {
-            return response()->json([
-                'status'  => false,
-                'message' => 'At least one content section is required.'
-            ], 200);
-        }
-
-        $validator = Validator::make($data, $rules);
-
-        // Return only the first error
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => false,
-                'message' => $validator->errors()->first()
-            ], 200);
-        }
-
-        try {
 
             $trainerId = $request->trainerId ;
             $trainer = Trainers::where('id', $trainerId)->first();
@@ -288,7 +262,7 @@ class TrainingController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $file = $request->file('thumbnail');
                 $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-                $file->move('uploads', $thumbnailFileName);
+                $file->move(public_path('uploads'), $thumbnailFileName);
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
 
@@ -354,38 +328,6 @@ class TrainingController extends Controller
                 foreach ($request->content_sections as $index => $section) {
                     // Check if content section has an ID (for update)
 
-                    $startDate = Carbon::createFromFormat('d/m/Y', $section['batch_date']);
-                    //$document->start_date = $startDate;
-
-                    // Calculate end_date based on duration_type
-                    switch (strtolower($section['duration_type'])) {
-                        case 'days':
-                        case 'day':
-                            $endDate = $startDate->copy()->addDays((int)$section['duration']);
-                            break;
-
-                        case 'weeks':
-                        case 'week':
-                            $endDate = $startDate->copy()->addWeeks((int)$section['duration']);
-                            break;
-
-                        case 'months':
-                        case 'month':
-                            $endDate = $startDate->copy()->addMonths((int)$section['duration']);
-                            break;
-
-                        case 'years':
-                        case 'year':
-                            $endDate = $startDate->copy()->addYears((int)$section['duration']);
-                            break;
-
-                        default:
-                            $endDate = $startDate; // fallback: same as start
-                            break;
-                    }
-
-                  
-
                     $zoom = new ZoomService();
                     $date = Carbon::createFromFormat('d/m/Y', $section['batch_date'])->format('Y-m-d');
                     $startTime = $date . ' ' . $section['start_time'];
@@ -406,13 +348,12 @@ class TrainingController extends Controller
                             $document->trainer_id = $trainer->id;
                             $document->training_material_id = $training->id;
                             $document->batch_no     = $section['batch_no'];
-                            $document->start_date   = Carbon::createFromFormat('d/m/Y', $section['batch_date']) ;
-                            $document->end_date = $endDate;
+                            $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
                             $document->start_timing = date("H:i", strtotime($section['start_time']));
                             $document->end_timing   = date("H:i", strtotime($section['end_time']));
-                            $document->duration     = $section['duration'].' '.$section['duration_type'];
+                            $document->duration     = $section['duration'];
                             $document->strength     = $section['strength'];
-                            $document->days     =$section['days']; // convert from stringified JSON
+                            $document->days     =json_encode(json_decode($section['days'], true)); // convert from stringified JSON
                             $document->save();
                             continue;
                         }
@@ -423,13 +364,12 @@ class TrainingController extends Controller
                     $document->trainer_id = $trainer->id;
                     $document->training_material_id = $training->id;
                     $document->batch_no     = $section['batch_no'];
-                    $document->start_date   = Carbon::createFromFormat('d/m/Y', $section['batch_date']) ;
-                    $document->end_date = $endDate;
+                    $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
                     $document->start_timing = date("H:i", strtotime($section['start_time']));
                     $document->end_timing   = date("H:i", strtotime($section['end_time']));
-                    $document->duration     = $section['duration'].' '.$section['duration_type'];
+                    $document->duration     = $section['duration'];
                     $document->strength     = $section['strength'];
-                    $document->days     =$section['days']; // convert from stringified JSON
+                    $document->days     =json_encode(json_decode($section['days'], true)); // convert from stringified JSON
                     $document->zoom_start_url      = '';//$zoomMeeting['start_url'];
                     $document->zoom_join_url        = '';//$zoomMeeting['join_url'];
                     $document->save();
@@ -568,8 +508,7 @@ class TrainingController extends Controller
                     'thumbnail_file_path as image'
                 )
                 ->where('trainer_id', $trainer_id)
-                ->where('admin_status', 'superadmin_approved')
-                ->orderBy('training_title', 'asc') 
+                ->where('training_type','!=', 'recorded')
                 ->get();
 
             return response()->json([

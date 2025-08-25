@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Jobseeker;
 use App\Models\Api\CMS;
+use App\Models\Setting;
 use App\Models\Api\Mentors;
 use App\Models\Api\Testimonial;
 use App\Models\Api\TrainingMaterial;
@@ -12,6 +13,7 @@ use App\Models\Api\JobseekerCartItem;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class CartManagementController extends Controller
@@ -138,6 +140,10 @@ class CartManagementController extends Controller
                 $item->training_offer_price = $material->training_offer_price;
                 $item->designation = $latestWorkExperience->job_role ?? 'N/A';
                 
+                $item->actual_price = (!empty($material->training_price))
+                    ? $material->training_price
+                    : $material->training_offer_price;
+
                 $item->final_price = (!empty($material->training_offer_price))
                     ? $material->training_offer_price
                     : $material->training_price;
@@ -148,12 +154,17 @@ class CartManagementController extends Controller
             });
 
             // 💰 Get sum of final_price
-            $totalPrice = $items->sum('final_price');
+            $actualPrice = $items->sum('actual_price');
+            $courseTotalPrice = $items->sum('final_price');
+            $savedPrice = $actualPrice - $courseTotalPrice;
+            $gstTax = $this->getSlotPercentage('material') ;
+            $totalPrice = number_format($courseTotalPrice + ($courseTotalPrice * $gstTax / 100), 2, '.', '');
+
             if ($items->isEmpty()) {
                 return response()->json(['status' => false, 'message' => 'No items found in cart.'], 404);
             }
 
-            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','gstTax' => 5,'totalPrice' => $totalPrice, 'data' => $items]);
+            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','courseTotalPrice' => $courseTotalPrice,'savedPrice' => $savedPrice,'gstTax' => $gstTax,'totalPrice' => $totalPrice, 'data' => $items]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
@@ -238,24 +249,47 @@ class CartManagementController extends Controller
     {
         $data = $request->all();
 
-        $rules = [
-            'material_id' => 'required|integer',
-            'jobseekerId'  => 'required|integer',
-            'trainer_id' => 'required',
-            //'training_type' => 'required',
-           // 'batch_id' => 'required|integer',
-            //'purchase_for' => 'required',
+        // $rules = [
+        //     'material_id' => 'required|integer',
+        //     'jobseekerId'  => 'required|integer',
+        //     'trainer_id' => 'required',
+        //     'training_type' => 'required|in:online,classroom,recorded',
+        //     'session_type' => 'required_if:training_type,online|in:online,classroom,recorded',
+        //     'batch' => 'required_if:training_type,online|exists:training_batches,id',
+        //     'payment_method' => 'required|in:card,upi'
             
-        ];        
-        $validator = Validator::make($data, $rules);
+        // ];        
+        // $validator = Validator::make($data, $rules);
 
-        // Return only the first error
+        // // Return only the first error
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => $validator->errors()->first()
+        //     ], 200);
+        // }    
+
+        $rules = [
+            'material_id'    => 'required|integer',
+            'jobseekerId'    => 'required|integer',
+            'trainer_id'     => 'required',
+            'training_type'  => 'required|in:online,classroom,recorded',
+            'payment_method' => 'required|in:card,upi',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        // ✅ Apply batch validation only if training_type = online
+        $validator->sometimes('batch', 'required|exists:training_batches,id', function ($input) {
+            return in_array($input->training_type, ['online', 'classroom']);
+        });
+         $validator->sometimes('session_type', 'required', function ($input) {
+            return in_array($input->training_type, ['online', 'classroom']);
+        });
+
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 200);
-        }    
+            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 200);
+        }
 
         try {
             
@@ -272,15 +306,26 @@ class CartManagementController extends Controller
                 return response()->json(['status' => false, 'message' => 'This material already purchased.'], 200);
             }
 
+            $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
+
+            $actualPrice = $material->training_price;
+            $offerPrice = $material->training_offer_price;
+            $savedAmount = $actualPrice - $offerPrice;
+            $tax = round($offerPrice * 0.10, 2);
+            $total = $offerPrice + $tax;
+
             JobseekerTrainingMaterialPurchase::create([
                 'jobseeker_id' => $jobseekerId,
-                'material_id' => $request->material_id,
-                'batch_id' => 1,
-                'training_type' => 'recorded',
-                'purchase_for' => 'individual',
-                'session_type' => 'online',
-                'trainer_id' => $request->trainer_id,
-                'payment_id'=>1
+                'trainer_id' => $material->trainer_id,
+                'material_id' => $material->id,
+                'training_type' => $request->training_type,
+                'session_type' => $request->session_type,
+                'batch_id' => $request->batch,
+                'payment_method' => $request->payment_method,
+                'amount' => $total,
+                'tax' => $tax,
+                'discount' => $savedAmount,
+                'status' => 'paid',
             ]);
 
             return response()->json(['status' => true, 'message' => $request->user_type.' material purchased successfully.']);
@@ -292,5 +337,181 @@ class CartManagementController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function showTrainingMaterialsBatches($id,$jobseekerId)
+    {      
+        $material = DB::table('training_materials')->where('id', $id)->first();
+        if (!$material) {
+            abort(404, 'Course not found');
+        }
+
+        $actualPrice = (!empty($material->training_price))
+            ? $material->training_price
+            : $material->training_offer_price;
+
+        $courseTotalPrice = (!empty($material->training_offer_price))
+            ? $material->training_offer_price
+            : $material->training_price;
+            
+        $savedPrice = $actualPrice - $courseTotalPrice;
+        $gstTax = $this->getSlotPercentage('batch') ;
+        $totalPrice = number_format($courseTotalPrice + ($courseTotalPrice * $gstTax / 100), 2, '.', '');
+
+        
+        $material->documents = DB::table('training_materials_documents')
+            ->where('training_material_id', $material->id)
+            ->get();
+
+        $material->batches = DB::table('training_batches')
+            ->where('training_material_id', $material->id)
+            ->get()->map(function ($batch) use ($jobseekerId) {
+
+            // ✅ 1. Check if user already purchased
+            $alreadyPurchased = DB::table('jobseeker_training_material_purchases')
+                ->where('batch_id', $batch->id)
+                ->where('jobseeker_id', $jobseekerId)
+                ->exists();
+
+            // ✅ 2. Check if batch is full
+            $buyersCount = DB::table('jobseeker_training_material_purchases')
+                ->where('batch_id', $batch->id)
+                ->count();
+
+            $isFull = $buyersCount >= $batch->strength; // strength = max capacity
+
+            // ✅ 3. Check if expired
+            $isExpired = Carbon::now()->gt(Carbon::parse($batch->end_date));
+
+            // ✅ 4. Final Status
+            if ($alreadyPurchased) {
+                $batch->status = "Already Purchased";
+                $batch->available = false;
+            } elseif ($isFull) {
+                $batch->status = "Batch Full";
+                $batch->available = false;
+            } elseif ($isExpired) {
+                $batch->status = "Expired";
+                $batch->available = false;
+            } else {
+                $batch->status = "Available";
+                $batch->available = true;
+            }
+
+            return $batch;
+        });
+
+        $userType = null;
+        $userId = null;
+        $user = null;
+
+        // Detect user type and get basic info
+        if (!empty($material->trainer_id)) {
+            $userType = 'trainer';
+            $userId = $material->trainer_id;
+            $user = DB::table('trainers')->where('id', $userId)->first();
+        } elseif (!empty($material->mentor_id)) {
+            $userType = 'mentor';
+            $userId = $material->mentor_id;
+            $user = DB::table('mentors')->where('id', $userId)->first();
+        } elseif (!empty($material->coach_id)) {
+            $userType = 'coach';
+            $userId = $material->coach_id;
+            $user = DB::table('coaches')->where('id', $userId)->first();
+        } elseif (!empty($material->assessor_id)) {
+            $userType = 'assessor';
+            $userId = $material->assessor_id;
+            $user = DB::table('assessors')->where('id', $userId)->first();
+        }
+
+        if (!$userType || !$userId || !$user) {
+            abort(404, 'User info not found');
+        }
+
+        // Fetch profile picture from talentrek_additional_info
+        $profile = DB::table('additional_info')
+            ->where('user_id', $userId)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'trainer_profile_picture')
+            ->orderByDesc('id')
+            ->first();
+
+        $material->user_name = $user->name ?? '';
+        $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
+
+        // Ratings and reviews
+        $total = DB::table('reviews')
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->count();
+
+        $average = $total > 0
+            ? round(DB::table('reviews')
+                ->where('user_type', $userType)
+                ->where('user_id', $userId)
+                ->when($userType === 'trainer', function ($q) use ($material) {
+                    $q->where('trainer_material', $material->id);
+                })
+                ->avg('ratings'), 1)
+            : 0;
+
+        $ratings = DB::table('reviews')
+            ->select('ratings', DB::raw('COUNT(*) as count'))
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('trainer_material', $material->id);
+            })
+            ->groupBy('ratings')
+            ->pluck('count', 'ratings');
+
+        $ratingsPercent = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = $ratings[$i] ?? 0;
+            $ratingsPercent[$i] = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+        }
+
+        $reviews = DB::table('reviews as r')
+            ->join('jobseekers as j', 'r.jobseeker_id', '=', 'j.id')
+            ->select('r.*', 'j.name as jobseeker_name')
+            ->where('r.user_type', $userType)
+            ->where('r.user_id', $userId)
+            ->when($userType === 'trainer', function ($q) use ($material) {
+                $q->where('r.trainer_material', $material->id);
+            })
+            ->latest('r.created_at')
+            ->limit(10)
+            ->get();
+
+        return response()->json(['status' => true, 'message' => 'material batches fetched  successfully.','courseTotalPrice' => $courseTotalPrice,'savedPrice' => $savedPrice,'gstTax' => $gstTax,'totalPrice' => $totalPrice,'data' =>[
+            'material'       => $material,
+            'user'           => $user,
+            'userType'       => $userType,
+            'userId'         => $userId,
+            'average'        => $average,
+            'ratingsPercent' => $ratingsPercent,
+            'reviews'        => $reviews,
+        ]]);
+        
+    }
+
+    private function getSlotPercentage($type)
+    {
+        if ($type == 'material') 
+        {
+            $MentorsDetails = Setting::select('trainingMaterialTax')->where('id', 1)->first();
+            return $MentorsDetails->trainingMaterialTax ;
+        } 
+        elseif ($type == 'batch') 
+        {
+            $MentorsDetails = Setting::select('trainingMaterialBatchTax')->where('id', 1)->first();
+            return $MentorsDetails->trainingMaterialBatchTax ;
+        }
+        
+       
+        return 1 ;
     }
 }

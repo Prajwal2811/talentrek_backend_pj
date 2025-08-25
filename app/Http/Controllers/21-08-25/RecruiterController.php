@@ -20,8 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use Carbon\Carbon;
-use App\Models\SubscriptionPlan;
-use App\Models\PurchasedSubscription;
+
 class RecruiterController extends Controller
 {
      public function showSignInForm(){
@@ -174,14 +173,12 @@ class RecruiterController extends Controller
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'national_id' => $validated['national_id'],
-                    'company_id' => $validated['company_id'],
-                    'role' => 'main',
                ]);
 
                // Step 3: Update company with recruiter_id
-               // $company->update([
-               //      'recruiter_id' => $recruiter->id,
-               // ]);
+               $company->update([
+                    'recruiter_id' => $recruiter->id,
+               ]);
 
                // Step 4: Upload company profile
                if ($request->hasFile('company_profile')) {
@@ -239,7 +236,7 @@ class RecruiterController extends Controller
                'password'  => 'required'
           ]);
 
-          $recruiter = Recruiters::where('email', $request->email)->first();
+          $recruiter = RecruiterCompany::where('business_email', $request->email)->first();
 
           if (!$recruiter) {
                session()->flash('error', 'Recruiter account not found.');
@@ -252,7 +249,7 @@ class RecruiterController extends Controller
           }
 
           if (Auth::guard('recruiter')->attempt([
-               'email' => $request->email,
+               'business_email' => $request->email,
                'password' => $request->password
           ])) {
                return redirect()->route('recruiter.dashboard');
@@ -266,8 +263,10 @@ class RecruiterController extends Controller
      public function logoutrecruiter(Request $request)
      {
           Auth::guard('recruiter')->logout();
+          
           $request->session()->invalidate(); 
           $request->session()->regenerateToken(); 
+
           return redirect()->route('recruiter.login')->with('success', 'Logged out successfully');
      }
 
@@ -872,148 +871,6 @@ class RecruiterController extends Controller
 
 
 
-     public function processSubscriptionPayment(Request $request)
-    {
-        $request->validate([
-            'plan_id' => 'required|exists:subscription_plans,id',
-            'card_number' => 'required|string|min:12|max:19',
-            'expiry' => 'required|string',
-            'cvv' => 'required|string|min:3|max:4',
-        ]);
-
-        $plan = SubscriptionPlan::findOrFail($request->plan_id);
-
-        DB::beginTransaction();
-        try {
-            $recruiter = auth('recruiter')->user();
-
-            // Create the new subscription
-            $newSubscription = PurchasedSubscription::create([
-                'user_id' => $recruiter->id,
-                'user_type' => 'recruiter',
-                'subscription_plan_id' => $plan->id,
-                'start_date' => now(),
-                'end_date' => now()->addDays($plan->duration_days),
-                'amount_paid' => $plan->price,
-                'payment_status' => 'paid',
-            ]);
-
-            // Update trainer only if:
-            // - They have no active subscription, OR
-            // - The new subscription ends later than the current one
-            $shouldUpdate = false;
-
-            if (!$recruiter->active_subscription_plan_id) {
-                $shouldUpdate = true;
-            } else {
-                $currentActive = PurchasedSubscription::find($recruiter->active_subscription_plan_id);
-                if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
-                    $shouldUpdate = true;
-                }
-            }
-
-            if ($shouldUpdate) {
-                $recruiter->isSubscribtionBuy = 'yes';
-               //  $recruiter->active_subscription_plan_id = $plan->id;
-                $recruiter->active_subscription_plan_slug = $plan->slug;
-                $recruiter->save();
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Subscription purchased successfully!'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Something went wrong while purchasing the subscription.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-
-     public function addOthers(Request $request)
-     {
-          $validated = $request->validate([
-               'main_recruiter_id' => 'required|exists:recruiters,id',
-               'company_id'        => 'required|exists:recruiters_company,id',
-               'recruiters'        => 'required|array',
-               'recruiters.*.name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-               'recruiters.*.email' => 'required|email|unique:recruiters,email',
-               'recruiters.*.national_id' => [
-                    'required',
-                    'min:10',
-                    function ($attribute, $value, $fail) {
-                         if (Recruiters::where('national_id', $value)->exists()) {
-                              $fail('The national ID has already been taken in another account.');
-                         }
-                    },
-               ],
-               ], [
-               // Global / General messages
-               'main_recruiter_id.required' => 'Main recruiter is required.',
-               'main_recruiter_id.exists'   => 'The selected main recruiter does not exist.',
-               'company_id.required'        => 'Company is required.',
-               'company_id.exists'          => 'The selected company does not exist.',
-               'recruiters.required'        => 'Please add at least one recruiter.',
-
-               // Name messages
-               'recruiters.*.name.required' => 'Recruiter name is required.',
-               'recruiters.*.name.regex'    => 'Recruiter name can only contain letters and spaces.',
-
-               // Email messages
-               'recruiters.*.email.required' => 'Recruiter email is required.',
-               'recruiters.*.email.email'    => 'Enter a valid email address.',
-               'recruiters.*.email.unique'   => 'This email is already in use.',
-
-               // National ID messages
-               'recruiters.*.national_id.required' => 'National ID is required.',
-               'recruiters.*.national_id.min'      => 'National ID must be at least 10 characters.',
-               ]);
-
-     DB::beginTransaction();
-
-     try {
-          $company = RecruiterCompany::find($validated['company_id']);
-          $addedCount = 0;
-
-          foreach ($validated['recruiters'] as $rec) {
-               $username = strtolower(str_replace(' ', '', $rec['name']));
-               $password = $username . '@talentrek';
-
-               Recruiters::create([
-                    'name'        => $rec['name'],
-                    'email'       => $rec['email'],
-                    'company_id'  => $validated['company_id'],
-                    'national_id' => $rec['national_id'],
-                    'password'    => Hash::make($password),
-                    'pass'        => $password,
-               ]);
-
-               $addedCount++;
-          }
-
-          $company->increment('recruiter_count', $addedCount);
-
-          // Update additional fields
-          $company->update([
-               'active_subscription_plan_id' => $request->subscription_id,
-          ]);
-          DB::commit();
-          return redirect()->back()->with('success', 'Recruiters added successfully.');
-     } catch (\Exception $e) {
-          DB::rollBack();
-          return response()->json([
-               'status'  => 'error',
-               'message' => $e->getMessage()
-          ], 500);
-     }
-     }
 
 
 

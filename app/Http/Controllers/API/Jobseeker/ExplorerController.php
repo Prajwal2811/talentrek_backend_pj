@@ -79,6 +79,8 @@ class ExplorerController extends Controller
             $trainingMaterials = TrainingMaterial::select('id', 'trainer_id', 'training_title', 'training_price', 'training_offer_price', 'thumbnail_file_path as image')
                 ->with(['trainer:id,name', 'latestWorkExperience'])
                 ->withAvg('trainerReviews', 'ratings')
+                ->where('admin_status', 'superadmin_approved')
+                ->orderBy('training_title', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $avg = $item->trainer_reviews_avg_ratings;
@@ -108,6 +110,7 @@ class ExplorerController extends Controller
             $mentorsList = Mentors::select('id', 'name', 'email', 'phone_code', 'phone_number', 'date_of_birth', 'city')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('mentorReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
@@ -164,6 +167,7 @@ class ExplorerController extends Controller
             $assessorList = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','about_assessor as description')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('assessorReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
@@ -221,6 +225,7 @@ class ExplorerController extends Controller
             $coachList = Coach::select('id', 'name', 'email', 'phone_code', 'phone_number', 'date_of_birth', 'city')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('coachReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
@@ -273,7 +278,7 @@ class ExplorerController extends Controller
             $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
                 ->withCount('trainingMaterialDocuments')
                 ->with('trainingMaterialDocuments')
-                ->with(['trainer:id,name', 'latestWorkExperience'])
+                ->with(['trainer:id,name', 'latestWorkExperience','additionalInfo'])
                 ->with('trainerReviews')
                 ->withAvg('trainerReviews', 'ratings')
                 ->where('id', $trainingId)
@@ -366,7 +371,9 @@ class ExplorerController extends Controller
                 })
                 ->first();
                 $MentorsDetails->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
-                $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+                
+                    $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+                
                 unset($MentorsDetails->additionalInfo);
                 unset(
                     $MentorsDetails->mentorReviews,
