@@ -72,7 +72,7 @@ class MessageSent implements ShouldBroadcast
 
     //     return array_map(fn($ch) => new Channel($ch), $channels);
     // }
-     public function broadcastOn()
+    public function broadcastOn()
     {
         $channels = [];
 

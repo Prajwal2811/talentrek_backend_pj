@@ -752,15 +752,15 @@ class TrainerController extends Controller
         
             // Insert batches
             foreach ($request->input('content_sections', []) as $section) {
-                $zoom = new ZoomService();
+                // $zoom = new ZoomService();
                 
-                $startTime = $section['batch_date'] . ' ' . $section['start_time'];
+                // $startTime = $section['batch_date'] . ' ' . $section['start_time'];
                
-                $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+                // $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
              
-                if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
-                    throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
-                }
+                // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+                // }
    
                 DB::table('training_batches')->insert([
                     'trainer_id'           => $trainer->id,
@@ -773,8 +773,8 @@ class TrainerController extends Controller
                     'duration'             => $section['duration'],
                     'strength'             => $section['strength'],
                     'days'                 => json_encode(json_decode($section['days'], true)), // convert from stringified JSON
-                    'zoom_start_url'       => $zoomMeeting['start_url'],
-                    'zoom_join_url'        => $zoomMeeting['join_url'],
+                    // 'zoom_start_url'       => $zoomMeeting['start_url'],
+                    // 'zoom_join_url'        => $zoomMeeting['join_url'],
                     'created_at'           => now(),
                     'updated_at'           => now(),
                 ]);
