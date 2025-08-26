@@ -129,6 +129,28 @@ class ChatController extends Controller
 
 
     // ✅ Get chat messages between any 2 parties
+    // public function getMessages(Request $request)
+    // {
+    //     $sender = $this->getSender();
+
+    //     if (!$sender['id'] || !$request->receiver_id || !$request->receiver_type) {
+    //         return response()->json(['error' => 'Invalid data'], 422);
+    //     }
+
+    //     $messages = Message::where(function ($q) use ($sender, $request) {
+    //         $q->where('sender_id', $sender['id'])
+    //             ->where('sender_type', $sender['type'])
+    //             ->where('receiver_id', $request->receiver_id)
+    //             ->where('receiver_type', $request->receiver_type);
+    //     })->orWhere(function ($q) use ($sender, $request) {
+    //         $q->where('sender_id', $request->receiver_id)
+    //             ->where('sender_type', $request->receiver_type)
+    //             ->where('receiver_id', $sender['id'])
+    //             ->where('receiver_type', $sender['type']);
+    //     })->orderBy('created_at')->get();
+
+    //     return response()->json($messages);
+    // }
     public function getMessages(Request $request)
     {
         $sender = $this->getSender();
@@ -137,17 +159,29 @@ class ChatController extends Controller
             return response()->json(['error' => 'Invalid data'], 422);
         }
 
+        // ✅ Step 1: Mark as read (unread → read)
+        Message::where('sender_id', $request->receiver_id)
+            ->where('sender_type', $request->receiver_type)
+            ->where('receiver_id', $sender['id'])
+            ->where('receiver_type', $sender['type'])
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        // ✅ Step 2: Fetch conversation messages
         $messages = Message::where(function ($q) use ($sender, $request) {
-            $q->where('sender_id', $sender['id'])
-                ->where('sender_type', $sender['type'])
-                ->where('receiver_id', $request->receiver_id)
-                ->where('receiver_type', $request->receiver_type);
-        })->orWhere(function ($q) use ($sender, $request) {
-            $q->where('sender_id', $request->receiver_id)
-                ->where('sender_type', $request->receiver_type)
-                ->where('receiver_id', $sender['id'])
-                ->where('receiver_type', $sender['type']);
-        })->orderBy('created_at')->get();
+                $q->where('sender_id', $sender['id'])
+                    ->where('sender_type', $sender['type'])
+                    ->where('receiver_id', $request->receiver_id)
+                    ->where('receiver_type', $request->receiver_type);
+            })
+            ->orWhere(function ($q) use ($sender, $request) {
+                $q->where('sender_id', $request->receiver_id)
+                    ->where('sender_type', $request->receiver_type)
+                    ->where('receiver_id', $sender['id'])
+                    ->where('receiver_type', $sender['type']);
+            })
+            ->orderBy('created_at')
+            ->get();
 
         return response()->json($messages);
     }
@@ -307,6 +341,7 @@ class ChatController extends Controller
                     ->where('m.receiver_type', '=', 'group')    
                     ->where('m.is_read', '=', 0);               
             })
+            ->where('j.status', '=', 'active')
             ->groupBy('j.id', 'j.name')
             ->get();
 
@@ -327,13 +362,55 @@ class ChatController extends Controller
                     ->where('m.receiver_type', '=', 'group')    
                     ->where('m.is_read', '=', 0);               
             })
+            ->where('j.status', '=', 'active')
             ->groupBy('j.id', 'j.name')
             ->get();
-        print_r($mentors);exit;    
+         
         return response()->json($mentors);
     }
 
+    public function getAssessorsList()
+    {
+        $assessors = DB::table('assessors as j')
+            ->select(
+                'j.id as user_id',
+                'j.name as assessor_name',
+                DB::raw('COUNT(talentrek_m.id) as unread_count')
+            )
+            ->leftJoin('admin_group_chats as m', function ($join) {
+                $join->on('j.id', '=', 'm.sender_id')
+                    ->where('m.sender_type', '=', 'assessor')   
+                    ->where('m.receiver_type', '=', 'group')    
+                    ->where('m.is_read', '=', 0);            
+                                  
+            })
+            ->where('j.status', '=', 'active')
+            ->groupBy('j.id', 'j.name')
+            ->get();
+         
+        return response()->json($assessors);
+    }
 
+    public function getCoachesList()
+    {
+        $coaches = DB::table('coaches as j')
+            ->select(
+                'j.id as user_id',
+                'j.name as coach_name',
+                DB::raw('COUNT(talentrek_m.id) as unread_count')
+            )
+            ->leftJoin('admin_group_chats as m', function ($join) {
+                $join->on('j.id', '=', 'm.sender_id')
+                    ->where('m.sender_type', '=', 'coach')   
+                    ->where('m.receiver_type', '=', 'group')    
+                    ->where('m.is_read', '=', 0);               
+            })
+            ->where('j.status', '=', 'active')
+            ->groupBy('j.id', 'j.name')
+            ->get();
+         
+        return response()->json($coaches);
+    }
 
 
 
