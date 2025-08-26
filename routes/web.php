@@ -185,6 +185,9 @@ Route::group(['middleware' => 'admin.auth'], function() {
 
     Route::get('/admin/jobseekers/list', [ChatController::class, 'getJobseekersList'])->name('admin.jobseekers.list');
     Route::get('/admin/mentors/list', [ChatController::class, 'getMentorsList'])->name('admin.mentors.list');
+    Route::get('/admin/recruiters/list', [ChatController::class, 'getRecruitersList'])->name('admin.recruiters.list');
+    Route::get('/admin/coaches/list', [ChatController::class, 'getCoachesList'])->name('admin.coaches.list');
+    Route::get('/admin/assessors/list', [ChatController::class, 'getAssessorsList'])->name('admin.assessors.list');
     Route::get('/admin/group/chat/fetch', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
     Route::post('/admin/group/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
     Route::post('/admin/group/chat/seen', [ChatController::class, 'markMessagesAsRead'])->name('admin.group.chat.seen');
