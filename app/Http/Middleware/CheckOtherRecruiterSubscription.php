@@ -20,8 +20,8 @@ class CheckOtherRecruiterSubscription
         // Show "Add Other Recruiter" modal only if subscription is bought
         // but no recruiters have been added yet
         $otherRecruiterSubscription = $companyData 
-            && $companyData->isSubscribtionBuy === 'yes' 
-            && (int) $companyData->recruiter_count === 0;
+            && $companyData->isSubscribtionBuy === 'yes'
+            && $companyData->recruiter_count === null;
 
         view()->share('otherRecruiterSubscription', $otherRecruiterSubscription);
 

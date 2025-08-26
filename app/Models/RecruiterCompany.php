@@ -69,8 +69,8 @@ class RecruiterCompany extends Authenticatable
     ];
 
 
-    public function recruiter()
+    public function recruiters()
     {
-        return $this->belongsTo(Recruiters::class, 'recruiter_id');
+        return $this->hasMany(Recruiters::class, 'company_id');
     }
 }

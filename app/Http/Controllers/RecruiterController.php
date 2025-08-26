@@ -704,38 +704,36 @@ class RecruiterController extends Controller
 
      public function showRecruitmentSettingForm()
      {
-          $recruiterId = auth()->id();
-          
-          // $companyDetails = RecruiterCompany::where('id', $recruiterId)->first();
+     $recruiter = auth('recruiter')->user(); // logged in recruiter
+     $recruiterRole = $recruiter->role;
 
-          // $recruiterDetails = Recruiters::where('company_id', $recruiterId)->first();
+     // Get company of this recruiter (assuming recruiter table has recruiter_company_id)
+     $recruiterId = auth('recruiter')->id();
 
-          $companyDetails = DB::table('recruiters_company as rc')
-               ->leftJoin('recruiters as r', 'r.id', '=', 'rc.recruiter_id')
-               ->where('rc.id', $recruiterId)
-               ->select(
-                    'rc.id',
-                    'rc.*',
-                    'r.id as recruiter_id',
-                    'r.*'
-               )
-               ->first();
+     $companyDetails = RecruiterCompany::with('recruiters')
+     ->whereHas('recruiters', function ($q) use ($recruiterId) {
+          $q->where('id', $recruiterId);
+     })
+     ->first();
 
-          $companyProfile = AdditionalInfo::where('user_id', auth()->id())->where('doc_type', 'company_profile')->first();
-          $registrationDoc = AdditionalInfo::where('user_id', auth()->id())->where('doc_type', 'register_document')->first();
-          
-          
 
-          // dd($companyDetails);exit;
-          return view('site.recruiter.setting', compact('companyDetails','companyProfile', 'registrationDoc'));
+     // Documents (common for the company or per recruiter depending on your schema)
+     $companyProfile = AdditionalInfo::where('user_id', $recruiter->id)
+          ->where('doc_type', 'company_profile')
+          ->first();
+
+     $registrationDoc = AdditionalInfo::where('user_id', $recruiter->id)
+          ->where('doc_type', 'register_document')
+          ->first();
+
+     return view('site.recruiter.setting', compact('companyDetails', 'companyProfile', 'registrationDoc'));
      }
+
 
    
      public function updateCompanyProfile(Request $request)
      {
-     $user = auth()->user();
-
-     // Recruiter and company data
+     $user      = auth()->user();
      $recruiter = Recruiters::find($user->id);
      $company   = RecruiterCompany::find($recruiter->company_id);
 
@@ -743,87 +741,91 @@ class RecruiterController extends Controller
           return response()->json(['message' => 'Profile not found.'], 404);
      }
 
-     // Validation rules
      $rules = [
-          // Company fields
-          'company_name'         => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-          'company_phone_number' => 'required|digits:10',
+          'company_name'         => 'required|string|max:255',
+          'company_phone_number' => 'required|digits:9',
           'business_email'       => [
-               'required',
-               'email',
+               'required', 'email',
                Rule::unique('recruiters_company', 'business_email')->ignore($company->id),
           ],
           'industry_type'      => 'required|string',
-          'establishment_date' => 'required|date_format:d-m-Y',
+          'establishment_date' => 'required|date',
           'company_website'    => 'nullable|url',
 
-          // Recruiter (logged in) fields
-          'name'        => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-          'email'       => [
-               'required',
-               'email',
-               Rule::unique('recruiters', 'email')->ignore($recruiter->id),
-          ],
-          'national_id' => [
-               'required',
-               'min:10',
-               function ($attribute, $value, $fail) use ($recruiter) {
-                    $duplicate = Recruiters::where('national_id', $value)
-                         ->where('id', '!=', $recruiter->id)
-                         ->exists() ||
-                         Trainers::where('national_id', $value)->exists() ||
-                         Jobseekers::where('national_id', $value)->exists();
-
-                    if ($duplicate) {
-                         $fail('The national ID has already been taken.');
-                    }
-               },
-          ],
+          // Recruiters validation
+          'recruiters.*.id'         => 'required|exists:recruiters,id',
+          'recruiters.*.name'       => 'required|string|max:255',
+          'recruiters.*.email'      => 'required|email',
+          'recruiters.*.national_id'=> 'required|min:15',
+          'recruiters.*.mobile'     => 'required|digits:9',
      ];
 
-     // Sub recruiter validation (only if main recruiter)
-     if ($recruiter->role === 'main') {
-          $rules['name.*']        = 'required|string';
-          $rules['email.*']       = 'required|email';
-          $rules['national_id.*'] = 'required|min:10';
+     $validator = Validator::make($request->all(), $rules);
+
+     // Custom validation for recruiter email and national ID uniqueness
+     $validator->after(function ($validator) use ($request) {
+          foreach ($request->recruiters as $recData) {
+               $recId = $recData['id'] ?? null;
+
+               // ✅ Email check (exclude current recruiter being updated)
+               if (!empty($recData['email'])) {
+                    $exists = Recruiters::where('email', $recData['email'])
+                         ->where('id', '!=', $recId)
+                         ->exists();
+                    if ($exists) {
+                         $validator->errors()->add("recruiters.$recId.email", 'The email has already been taken.');
+                    }
+               }
+
+               // ✅ National ID check across all user types
+               if (!empty($recData['national_id'])) {
+                    $duplicate = Recruiters::where('national_id', $recData['national_id'])
+                         ->where('id', '!=', $recId)
+                         ->exists()
+                         || Trainers::where('national_id', $recData['national_id'])->exists()
+                         || Jobseekers::where('national_id', $recData['national_id'])->exists();
+
+                    if ($duplicate) {
+                         $validator->errors()->add("recruiters.$recId.national_id", 'The national ID has already been taken.');
+                    }
+               }
+          }
+     });
+
+     if ($validator->fails()) {
+          return response()->json([
+               'status' => 'error',
+               'errors' => $validator->errors(),
+          ], 422);
      }
 
-     $validated = $request->validate($rules, [
-          'name.*.required'        => 'Each sub recruiter name is required.',
-          'email.*.required'       => 'Each sub recruiter email is required.',
-          'email.*.email'          => 'Each sub recruiter email must be valid.',
-          'national_id.*.required' => 'Each sub recruiter national ID is required.',
-          'national_id.*.min'      => 'Each sub recruiter national ID must be at least 10 characters.',
-     ]);
+     $validated = $validator->validated();
 
-     // Update company
+     // ✅ Update company
      $company->update([
           'company_name'         => $validated['company_name'],
           'company_phone_number' => $validated['company_phone_number'],
           'business_email'       => $validated['business_email'],
           'industry_type'        => $validated['industry_type'],
-          'establishment_date'   => Carbon::createFromFormat('d-m-Y', $validated['establishment_date'])->format('Y-m-d'),
+          'establishment_date'   => Carbon::parse($validated['establishment_date'])->format('Y-m-d'),
           'company_website'      => $validated['company_website'] ?? null,
      ]);
 
-     // Update logged-in recruiter
-     $recruiter->update([
-          'name'        => $validated['name'],
-          'email'       => $validated['email'],
-          'national_id' => $validated['national_id'],
-     ]);
-
-     // If main recruiter, update sub recruiters
-     if ($recruiter->role === 'main' && $request->has('name')) {
-          foreach ($request->name as $index => $subName) {
-               $sub = Recruiters::where('recruiter_of', $recruiter->id)->skip($index)->first();
-               if ($sub) {
-                    $sub->update([
-                         'name'        => $request->name[$index],
-                         'email'       => $request->email[$index],
-                         'national_id' => $request->national_id[$index],
-                    ]);
+     // ✅ Update recruiters
+     foreach ($request->recruiters as $data) {
+          $rec = Recruiters::find($data['id']);
+          if ($rec) {
+               // Sub recruiters can only update themselves
+               if ($recruiter->role === 'sub_recruiter' && $rec->id !== $recruiter->id) {
+                    continue;
                }
+
+               $rec->update([
+                    'name'        => $data['name'],
+                    'email'       => $data['email'],
+                    'national_id' => $data['national_id'],
+                    'mobile'      => $data['mobile'],
+               ]);
           }
      }
 
@@ -832,6 +834,8 @@ class RecruiterController extends Controller
           'message' => 'Company and recruiter profile updated successfully!',
      ]);
      }
+
+
 
 
 
@@ -881,7 +885,7 @@ class RecruiterController extends Controller
      {
           $userId = auth()->id();
 
-          $record = \App\Models\AdditionalInfo::where('user_id', $userId)
+          $record = AdditionalInfo::where('user_id', $userId)
                          ->where('doc_type', $type)
                          ->first();
 
@@ -1091,6 +1095,12 @@ class RecruiterController extends Controller
                $companyData->save();
           }
 
+           // Reset recruiter count if exists
+          if ($recruiter->recruiter_count > 0) {
+               $recruiter->recruiter_count = null;
+               $recruiter->save();
+          }
+
           DB::commit();
 
           return response()->json([
@@ -1111,80 +1121,93 @@ class RecruiterController extends Controller
 
 
 
-     public function addOthers(Request $request)
-     {
-     $validated = $request->validate([
-          'main_recruiter_id'       => 'required|exists:recruiters,id',
-          'company_id'              => 'required|exists:recruiters_company,id', // ✅ fixed table name
-          'recruiters'              => 'required|array',
-          'recruiters.*.name'       => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-          'recruiters.*.email'      => 'required|email|unique:recruiters,email',
-          'recruiters.*.national_id'=> [
-               'required',
-               'min:10',
-               function ($attribute, $value, $fail) {
-                    if (Recruiters::where('national_id', $value)->exists()) {
-                         $fail('The national ID has already been taken in another account.');
-                    }
-               },
-          ],
-     ], [
-          'main_recruiter_id.required' => 'Main recruiter is required.',
-          'main_recruiter_id.exists'   => 'The selected main recruiter does not exist.',
-          'company_id.required'        => 'Company is required.',
-          'company_id.exists'          => 'The selected company does not exist.',
-          'recruiters.required'        => 'Please add at least one recruiter.',
+    public function addOthers(Request $request)
+{
+    $validated = $request->validate([
+        'main_recruiter_id'        => 'required|exists:recruiters,id',
+        'company_id'               => 'required|exists:recruiters_company,id',
+        'recruiters'               => 'required|array',
+        'recruiters.*.name'        => 'required|string|max:100',
+        'recruiters.*.email'       => 'required|email',
+        'recruiters.*.national_id' => 'required|digits_between:10,15',
+    ]);
 
-          'recruiters.*.name.required' => 'Recruiter name is required.',
-          'recruiters.*.name.regex'    => 'Recruiter name can only contain letters and spaces.',
+    DB::beginTransaction();
 
-          'recruiters.*.email.required'=> 'Recruiter email is required.',
-          'recruiters.*.email.email'   => 'Enter a valid email address.',
-          'recruiters.*.email.unique'  => 'This email is already in use.',
+    try {
+        $company    = RecruiterCompany::findOrFail($validated['company_id']);
+        $addedCount = 0;
 
-          'recruiters.*.national_id.required' => 'National ID is required.',
-          'recruiters.*.national_id.min'      => 'National ID must be at least 10 characters.',
-     ]);
+        foreach ($validated['recruiters'] as $i => $rec) {
+            // Case 1: Existing recruiter (id present)
+            if (!empty($rec['id'])) {
+                Recruiters::where('id', $rec['id'])->update([
+                    'name'        => $rec['name'],
+                    'email'       => $rec['email'],
+                    'national_id' => $rec['national_id'],
+                ]);
+                continue;
+            }
 
-     DB::beginTransaction();
+            // Case 2: No id → check if recruiter already exists by email or national_id
+            $existing = Recruiters::where('email', $rec['email'])
+                ->orWhere('national_id', $rec['national_id'])
+                ->first();
 
-     try {
-          $company = RecruiterCompany::findOrFail($validated['company_id']);
-          $addedCount = 0;
+            if ($existing) {
+                // Update existing recruiter
+                $existing->update([
+                    'name'        => $rec['name'],
+                    'email'       => $rec['email'],
+                    'national_id' => $rec['national_id'],
+                ]);
+            } else {
+                // Case 3: Create new recruiter
+                $username = strtolower(str_replace(' ', '', $rec['name']));
+                $password = $username . '@talentrek';
 
-          foreach ($validated['recruiters'] as $rec) {
-               $username = strtolower(str_replace(' ', '', $rec['name']));
-               $password = $username . '@talentrek';
-
-               Recruiters::create([
+                Recruiters::create([
                     'name'         => $rec['name'],
                     'email'        => $rec['email'],
                     'company_id'   => $validated['company_id'],
                     'national_id'  => $rec['national_id'],
-                    'role'         => 'sub_recruiter',                  // ✅ set role
-                    'recruiter_of' => $validated['main_recruiter_id'],  // ✅ link to main recruiter
+                    'role'         => 'sub_recruiter',
+                    'recruiter_of' => $validated['main_recruiter_id'],
                     'password'     => Hash::make($password),
-                    'pass'         => $password,
-               ]);
+                    'pass'         => $password, // ⚠️ temporary only
+                ]);
 
-               $addedCount++;
-          }
+                $addedCount++;
+            }
+        }
 
-          // ✅ Safe recruiter_count update (handles null values)
-          $company->recruiter_count = (int) $company->recruiter_count + $addedCount;
-          $company->save();
+        // update recruiter_count if new recruiters added
+        if ($addedCount > 0) {
+            $company->recruiter_count = (int) $company->recruiter_count + $addedCount;
+            $company->save();
+        }
 
-          DB::commit();
-          return redirect()->back()->with('success', 'Recruiters added successfully.');
+        DB::commit();
 
-     } catch (\Exception $e) {
-          DB::rollBack();
-          return response()->json([
-               'status'  => 'error',
-               'message' => $e->getMessage()
-          ], 500);
-     }
-     }
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Recruiters saved successfully.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status'  => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
+
+
+
+
 
 
 

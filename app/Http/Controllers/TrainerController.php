@@ -646,7 +646,7 @@ class TrainerController extends Controller
             'thumbnail_file_name'    => $thumbnailFileName,
             'training_objective'     => null,
             'session_type'           => null,
-            'admin_status'           => 'pending',
+            'admin_status'           => null,
             'rejection_reason'       => null,
             'created_at'             => now(),
             'updated_at'             => now(),

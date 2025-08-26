@@ -47,7 +47,7 @@ class Recruiters extends Authenticatable
     // One-to-One relationship
     public function company()
     {
-        return $this->hasOne(RecruiterCompany::class, 'recruiter_id');
+        return $this->belongsTo(RecruiterCompany::class, 'company_id');
     }
 
     

@@ -11,23 +11,22 @@
         </div>
     </div>
 
-    @if($recruiterNeedsSubscription)
+	@if($recruiterNeedsSubscription)
         @include('site.recruiter.subscription.index')
     @endif
-        @if($otherRecruiterSubscription)
+     @if($otherRecruiterSubscription)
         @include('site.recruiter.subscription.add-other-recruiters')
     @endif
-
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
-            <!-- Sidebar -->
-            @include('site.recruiter.componants.sidebar')	
-            <div class="flex-1 flex flex-col">
-                @include('site.recruiter.componants.navbar')	
-                
 
-            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-             <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
+           <!-- Sidebar -->
+            @include('site.recruiter.componants.sidebar')	
+
+            <div class="flex-1 flex flex-col">
+                 @include('site.recruiter.componants.navbar')
+
+                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
                     <h2 class="text-2xl font-semibold mb-6">Settings</h2>
 
                     <div class="flex">
@@ -259,23 +258,10 @@
                                                         <label class="block mb-1 font-medium">National ID <span class="text-red-600">*</span></label>
                                                         <input type="text" name="recruiters[{{ $index }}][national_id]"
                                                             value="{{ old("recruiters.$index.national_id", $r->national_id) }}"
-                                                            class="w-full border rounded px-3 py-2"  maxlength="15"
-                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
-                                                            {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
-                                                    </div>
-
-                                                    {{-- ✅ Recruiter Mobile Number --}}
-                                                    <div>
-                                                        <label class="block mb-1 font-medium">Mobile Number <span class="text-red-600">*</span></label>
-                                                        <input type="text" name="recruiters[{{ $index }}][mobile]"
-                                                            value="{{ old("recruiters.$index.mobile", $r->mobile) }}"
-                                                            class="w-full border rounded px-3 py-2"  maxlength="9"
-                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);" 
+                                                            class="w-full border rounded px-3 py-2"
                                                             {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
                                                     </div>
                                                 @endforeach
-
-
 
                                                 <div class="col-span-2 mt-6 flex justify-end space-x-3">
                                                     <button @click.prevent="activeSubTab = 'documents'"
@@ -583,7 +569,6 @@
                                     @php
                                         $userId = auth()->user('recruiter')->id;
                                         $userRole = auth()->user('recruiter')->role;
-                                        $companyId = auth()->user('recruiter')->company_id;
                                         // Fetch available plans for this user type
                                         $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'recruiter')->get();
 
@@ -591,8 +576,7 @@
                                         $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*', 'purchased_subscriptions.*')
                                                                 ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
                                                                 ->where('subscription_plans.user_type', 'recruiter')
-                                                                // ->where('purchased_subscriptions.user_id', $userId)
-                                                                ->where('purchased_subscriptions.company_id', $companyId)
+                                                                ->where('purchased_subscriptions.user_id', $userId)
                                                                 ->orderBy('purchased_subscriptions.created_at', 'desc')
                                                                 ->get();
 
@@ -616,95 +600,93 @@
                                     });
                                     </script>
 
-                                    @if(auth()->user('recruiter')->role === 'main')
-                                        <!-- Subscription Card -->
-                                        <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                                            <div>
-                                                <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
-                                                <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features</p>
-                                            </div>
-                                            <button onclick="document.getElementById('plansModal').classList.remove('hidden')"
-                                                class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
-                                                View Plans
-                                            </button>
+                                    <!-- Subscription Card -->
+                                    <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                                        <div>
+                                            <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
+                                            <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features</p>
                                         </div>
+                                        <button onclick="document.getElementById('plansModal').classList.remove('hidden')"
+                                            class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                                            View Plans
+                                        </button>
+                                    </div>
 
-                                        <!-- Plans Modal -->
-                                        <div id="plansModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50 hidden">
-                                            <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
-                                                <button onclick="document.getElementById('plansModal').classList.add('hidden')"
-                                                    class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
+                                     <!-- Plans Modal -->
+                                    <div id="plansModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50 hidden">
+                                        <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
+                                            <button onclick="document.getElementById('plansModal').classList.add('hidden')"
+                                                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
 
-                                                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+                                            <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
 
-                                                <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-4">
-                                                    @foreach($subscriptions as $plan)
-                                                        <div class="border rounded-lg p-4 shadow-sm text-center">
-                                                            <div class="flex flex-col items-center">
-                                                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                                                                <h4 class="font-semibold">{{ $plan->title }}</h4>
-                                                                <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
-                                                            </div>
-                                                            <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
-                                                            @php
-                                                                $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
-                                                            @endphp
-                                                            <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
-                                                                @foreach($features as $feature)
-                                                                    <li>{{ trim($feature) }}</li>
-                                                                @endforeach
-                                                            </ul>
-                                                            <button type="button"
-                                                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
-                                                                data-plan-id="{{ $plan->id }}">
-                                                                Buy subscription
-                                                            </button>
+                                            <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+                                                @foreach($subscriptions as $plan)
+                                                    <div class="border rounded-lg p-4 shadow-sm text-center">
+                                                        <div class="flex flex-col items-center">
+                                                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                            <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                                            <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                                                         </div>
-                                                    @endforeach
-                                                </div>
+                                                        <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                                                        @php
+                                                            $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
+                                                        @endphp
+                                                        <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                                            @foreach($features as $feature)
+                                                                <li>{{ trim($feature) }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                        <button type="button"
+                                                            class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                                            data-plan-id="{{ $plan->id }}">
+                                                            Buy subscription
+                                                        </button>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
-                                            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                                                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                                                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+                                    <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
+                                        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                                            <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                                            <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
 
-                                                <form id="paymentForm">
-                                                    @csrf
-                                                    <input type="hidden" name="plan_id" id="selectedPlanId">
+                                            <form id="paymentForm">
+                                                @csrf
+                                                <input type="hidden" name="plan_id" id="selectedPlanId">
 
-                                                    <div class="mb-4">
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                                        <input type="text" name="card_number" value="4242424242424242"
+                                                <div class="mb-4">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                                    <input type="text" name="card_number" value="4242424242424242"
+                                                        class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                </div>
+
+                                                <div class="mb-4 flex space-x-2">
+                                                    <div class="w-1/2">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                                        <input type="text" name="expiry" value="12/30"
                                                             class="w-full border border-gray-300 rounded-md px-4 py-2">
                                                     </div>
-
-                                                    <div class="mb-4 flex space-x-2">
-                                                        <div class="w-1/2">
-                                                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                                                            <input type="text" name="expiry" value="12/30"
-                                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                                                        </div>
-                                                        <div class="w-1/2">
-                                                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                                            <input type="text" name="cvv" value="123"
-                                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                                                        </div>
+                                                    <div class="w-1/2">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                                        <input type="text" name="cvv" value="123"
+                                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
                                                     </div>
-                                                    <button type="submit"
-                                                        class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                                                        Pay Now
-                                                    </button>
-                                                </form>
-                                                <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
-                                                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
-                                                    ×
+                                                </div>
+                                                <button type="submit"
+                                                    class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                                                    Pay Now
                                                 </button>
-                                            </div>
+                                            </form>
+                                            <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
+                                            <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                                                ×
+                                            </button>
                                         </div>
+                                    </div>
 
-                                    @endif
                                     <h4 class="text-lg font-semibold mb-3">Subscription History</h4>
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full border border-gray-200 text-sm">
@@ -887,6 +869,9 @@
                 </main>
 
 
+       
+
+
 
             </div>
         </div>
@@ -895,11 +880,9 @@
         <script>
             feather.replace()
         </script>
-
+    
 
     </div>
            
-
-
 
 @include('site.recruiter.componants.footer')

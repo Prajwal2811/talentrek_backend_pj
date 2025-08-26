@@ -753,12 +753,10 @@ class AdminController extends Controller
 
 
     public function recruiters()
-    {   
-        $recruiters = Recruiters::select('recruiters.*','recruiters_company.*','recruiters_company.id as company_id')
-                                ->join('recruiters_company','recruiters.id','=','recruiters_company.recruiter_id')
+    {
+        $recruiters = Recruiters::with('company')
                                 ->orderBy('recruiters.id', 'desc')
                                 ->get();
-    //    echo "<pre>"; print_r($recruiters); exit;
         return view('admin.recruiter.index', compact('recruiters'));
     }
 

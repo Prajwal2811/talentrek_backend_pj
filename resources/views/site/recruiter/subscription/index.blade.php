@@ -12,16 +12,33 @@
     </div>
 
 
+
         @php
             // Get mentor standard subscription plans
             $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'recruiter')->get();
+            $recruiterId = auth()->user('recruiter')->id;
+            $isExpired = App\Models\PurchasedSubscription::where('user_id', $recruiterId)
+                            ->where('user_type', 'recruiter')->where('end_date', '<', now())
+                            ->exists();
+
+         
         @endphp
 
+    @if(auth()->user('recruiter')->role === 'main')
         <!-- Subscription Modal -->
         <div id="subscriptionModal"
             class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
-                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+                @if($isExpired)
+                    <h3 class="text-xl font-semibold mb-6 text-red-600">
+                        Your subscription has expired.
+                    </h3>
+                @else 
+                    <h3 class="text-xl font-semibold mb-6">
+                        Available Subscription Plans
+                    </h3>
+                @endif
+
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     @foreach($subscriptions as $plan)
                         <div class="border rounded-lg p-4 shadow-sm text-center">
@@ -162,3 +179,34 @@
             });
         });
         </script>
+
+    @else
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
+            <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl relative transform transition-all duration-300 scale-95 hover:scale-100">
+                
+                <!-- Warning Icon -->
+                <div class="flex justify-center mb-4">
+                    <div class="bg-yellow-100 text-yellow-600 w-16 h-16 flex items-center justify-center rounded-full shadow-md">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h3 class="text-2xl font-bold text-center text-blue-600">⚠ Subscription Expired</h3>
+
+                <!-- Message -->
+                <div class="mt-4 text-center">
+                    <p class="text-gray-700 text-lg">
+                        Your subscription has <span class="font-semibold text-red-500">expired</span>.<br>
+                        Please contact your <span class="font-semibold text-blue-600">Head Recruiter</span> for assistance.
+                    </p>
+                </div>
+                <div class="my-6 border-t border-gray-200"></div>
+            </div>
+        </div>
+
+    @endif
