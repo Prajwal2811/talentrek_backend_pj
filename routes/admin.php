@@ -183,5 +183,26 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
 			
 		});
+
+
+		// ==================== TAXATION ====================
+		Route::middleware('admin.module:Taxation')->group(function () {
+			Route::get('/taxations', [AdminController::class, 'index'])->name('admin.taxations.index');
+			Route::get('/taxations/create', [AdminController::class, 'create'])->name('admin.taxations.create');
+			Route::post('/taxations', [AdminController::class, 'store'])->name('admin.taxations.store');
+			Route::get('/taxations/{id}/edit', [AdminController::class, 'edit'])->name('admin.taxations.edit');
+			Route::put('/taxations/{id}', [AdminController::class, 'update'])->name('admin.taxations.update');
+			Route::delete('/taxations/{id}', [AdminController::class, 'destroy'])->name('admin.taxations.destroy');
+		});
+
+		// ==================== COUPONS ====================
+		Route::middleware('admin.module:Coupons')->group(function () {
+			Route::get('/coupons', [AdminController::class, 'index'])->name('admin.coupons.index');
+			Route::get('/coupons/create', [AdminController::class, 'create'])->name('admin.coupons.create');
+			Route::post('/coupons', [AdminController::class, 'store'])->name('admin.coupons.store');
+			Route::get('/coupons/{id}/edit', [AdminController::class, 'edit'])->name('admin.coupons.edit');
+			Route::put('/coupons/{id}', [AdminController::class, 'update'])->name('admin.coupons.update');
+			Route::delete('/coupons/{id}', [AdminController::class, 'destroy'])->name('admin.coupons.destroy');
+		});
 	});
 });

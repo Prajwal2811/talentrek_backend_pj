@@ -36,6 +36,7 @@ return new class extends Migration
             $table->string('shortlist')->nullable(); // Removed ->after('status')
             $table->string('admin_recruiter_status')->nullable(); // Removed ->after('status')
             $table->string('google_id')->nullable()->unique();
+            $table->string('per_slot_price')->nullable();
             $table->string('avatar')->nullable();
             $table->text('about_coach')->nullable();
             $table->string('is_registered')->default('0');  

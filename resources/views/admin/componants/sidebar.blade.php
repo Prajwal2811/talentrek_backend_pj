@@ -171,6 +171,41 @@
                 @endif
 
 
+
+                @php
+                    $hasOtherPermissions = $role === 'superadmin' || (in_array('Taxation', $permissions) && in_array('Coupons', $permissions));
+                    $taxationActive = request()->routeIs('admin.taxations.*');
+                    $couponsActive = request()->routeIs('admin.coupons.*');
+                @endphp
+
+                @if($hasOtherPermissions)
+                    <li class="header">Other</li>
+
+                    <li class="{{ $taxationActive || $couponsActive ? 'active' : '' }}">
+                        <a href="#" class="has-arrow"><i class="fa fa-tags"></i> <span>Other</span></a>
+                        <ul class="{{ $taxationActive || $couponsActive ? 'collapse in' : 'collapse' }}">
+                            
+                            {{-- Taxation Manage --}}
+                            @if($role === 'superadmin' || in_array('Taxation', $permissions))
+                                <li class="{{ $taxationActive ? 'active' : '' }}">
+                                    <a href="{{ route('admin.taxations.index') }}">Taxation Manage</a>
+                                </li>
+                            @endif
+                            
+                            {{-- Coupon Code Manage --}}
+                            @if($role === 'superadmin' || in_array('Coupons', $permissions))
+                                <li class="{{ $couponsActive ? 'active' : '' }}">
+                                    <a href="{{ route('admin.coupons.index') }}">Coupon Code Manage</a>
+                                </li>
+                            @endif
+
+                        </ul>
+                    </li>
+                @endif
+
+
+
+
                 {{-- ===================== SYSTEM LOG ===================== --}}
                 @if($role === 'superadmin' || in_array('Activity Log', $permissions))
                     <li class="header">System Log</li>

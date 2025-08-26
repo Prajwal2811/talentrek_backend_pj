@@ -416,8 +416,8 @@ class TrainerController extends Controller
     public function loginTrainer(Request $request)
     {
         $this->validate($request, [
-            'email'     => 'required|email',
-            'password'  => 'required'
+            'email'    => 'required|email',
+            'password' => 'required'
         ]);
 
         $trainer = Trainers::where('email', $request->email)->first();
@@ -434,15 +434,26 @@ class TrainerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // Now attempt login only if status is active
+        // ✅ Check admin_status
+        if ($trainer->admin_status === 'superadmin_reject' || $trainer->admin_status === 'rejected') {
+            session()->flash('error', 'Your account has been rejected by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        if ($trainer->admin_status !== 'superadmin_approved') {
+            session()->flash('error', 'Your account is not yet approved by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        // ✅ Attempt login only if status = active and admin_status = approved
         if (Auth::guard('trainer')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            // return view('site.trainer.trainer-dashboard');
             return redirect()->route('trainer.dashboard');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
 
     public function logoutTrainer(Request $request)

@@ -814,11 +814,33 @@ class AdminController extends Controller
     public function recruiterView($id)
     {
         $recruiter = Recruiters::findOrFail($id);
-        $company = $recruiter->company; 
-        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','recruiter')->get();
-        // print_r($recruiter); die;    
-        return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos'));
+        $company   = $recruiter->company;
+
+        // ✅ Additional Info of recruiter
+        $additioninfos = AdditionalInfo::where('user_id', $id)
+                                    ->where('user_type', 'recruiter')
+                                    ->get();
+
+        // ✅ Fetch subscriptions purchased by company (not recruiter)
+        $subscriptionPlans = [];
+        if ($company) {
+            $subscriptionPlans = PurchasedSubscription::select(
+                            'subscription_plans.*',
+                            'purchased_subscriptions.*',
+                            'recruiters_company.active_subscription_plan_id'
+                        )
+                        ->where('purchased_subscriptions.company_id', $company->id)
+                        ->where('purchased_subscriptions.user_type', 'recruiter')
+                        ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                        ->join('recruiters_company', 'recruiters_company.id', '=', 'purchased_subscriptions.company_id')
+                        ->get();
+
+        }
+
+        return view('admin.recruiter.view', compact('recruiter', 'company', 'additioninfos', 'subscriptionPlans'));
     }
+
+
 
     public function viewShortlistedJobseekers($id)
     {

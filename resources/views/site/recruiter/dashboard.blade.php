@@ -31,219 +31,206 @@
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
                         <p class="text-xl text-black-500">Jobseeker Shortlisted</p>
-                        <h3 class="text-3xl font-bold mt-2">24</h3>
+                        <h3 class="text-3xl font-bold mt-2">{{ $totalShortlisted}}</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
                         <p class="text-xl text-black-500">Interviews scheduled</p>
-                        <h3 class="text-3xl font-bold mt-2">15</h3>
+                        <h3 class="text-3xl font-bold mt-2">{{ $totalScheduled }}</h3>
                     </div>
                 </div>
 
 
-
+                @php
+                    
+                @endphp
                 <!-- Jobseekers contacted -->
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-semibold mb-4">Jobseekers contacted</h3>
+                    <h3 class="text-xl font-semibold mb-4">Scheduled Interviews</h3>
                      <hr class="border-t border-gray-300 mb-4">
-                    <template x-for="(jobseeker, index) in paginatedJobseekers()" :key="jobseeker.name">
-                    <div class="flex justify-between items-center border-b py-4">
-                        <div class="flex items-center space-x-4">
-                        <img :src="jobseeker.img" class="w-14 h-14 rounded-full object-cover" alt="Profile" />
-                        <div class="w-48">
-                            <h4 class="font-semibold text-sm" x-text="jobseeker.name"></h4>
-                            <p class="text-sm text-gray-500" x-text="jobseeker.role"></p>
-                        </div>
-                        </div>
+                        @foreach($scheduled_jobseekers->unique('jobseeker_id') as $scheduled_jobseeker)
+                            @php
+                                $isApproved = $scheduled_jobseeker->shortlist_admin_status === 'superadmin_approved';
+                                $jobseekerId = $scheduled_jobseeker->id;
 
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 w-full justify-between ml-20">
-                        <div class="text-sm text-gray-700">
-                            <p><strong>Experience</strong><br><span x-text="jobseeker.experience"></span></p>
-                        </div>
-                        <div class="text-sm text-gray-700">
-                            <p><strong>Skills</strong><br><span x-text="jobseeker.skills"></span></p>
-                        </div>
-                        <div class="flex items-center space-x-2 mt-3 sm:mt-0">
-                            <template x-if="jobseeker.feedbackGiven">
-                            <button
-                                @click="openFeedbackModal(jobseeker)"
-                                class="border border-gray-600 px-3 py-1.5 rounded hover:bg-gray-100 text-sm"
-                            >
-                                Share feedback
-                            </button>
-                            </template>
+                                $interviewDateTime = null;
+                                if ($scheduled_jobseeker->interview_date && $scheduled_jobseeker->interview_time) {
+                                    $interviewDateTime = Carbon\Carbon::parse(
+                                        $scheduled_jobseeker->interview_date . ' ' . $scheduled_jobseeker->interview_time
+                                    );
+                                }
 
-                            <template x-if="!jobseeker.feedbackGiven">
-                            <button
-                                @click="requestInterview(jobseeker)"
-                                class="border border-blue-600 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-50 text-sm"
-                            >
-                                Request interview
-                            </button>
-                            </template>
+                                $status = strtolower($scheduled_jobseeker->interview_status ?? 'pending');
+                                $statusLabel = ucfirst($status);
+                                $statusClass = 'text-yellow-600';
+                                $joinDisabled = true; // default: disabled
 
-                            <button class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 text-sm">
-                            View profile
-                            </button>
-                        </div>
-                        </div>
-                    </div>
-                    </template>
+                                if ($status === 'completed') {
+                                    $statusLabel = 'Completed';
+                                    $statusClass = 'text-green-600 font-semibold';
+                                } elseif ($status === 'cancelled') {
+                                    $statusLabel = 'Cancelled';
+                                    $statusClass = 'text-red-600 font-semibold';
+                                } elseif ($status === 'scheduled' && $interviewDateTime) {
+                                    // Expired after 1 hour of scheduled time
+                                    if (now()->greaterThan($interviewDateTime->copy()->addHour())) {
+                                        $statusLabel = 'Expired';
+                                        $statusClass = 'text-red-600 font-semibold';
+                                        $status = 'expired';
+                                    }
 
-                    <!-- Interview Confirmation Modal -->
-                    <div
-                    x-show="isModalOpen"
-                    x-transition
-                    style="display: none;"
-                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                    >
-                    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative" @click.away="closeModal()">
-                        <button @click="closeModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✕</button>
-                        <h3 class="text-xl font-semibold mb-4">Request Interview</h3>
-                        <p class="mb-4">Send interview request to <strong x-text="selectedJobseeker?.name"></strong>?</p>
-                        <div class="flex justify-end space-x-3">
-                        <button @click="closeModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
-                        <button @click="submitRequest()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirm</button>
-                        </div>
-                    </div>
-                    </div>
+                                    // Join button active only between -10min and +10min
+                                    if (
+                                        now()->between(
+                                            $interviewDateTime->copy()->subMinutes(10),
+                                            $interviewDateTime->copy()->addMinutes(10)
+                                        )
+                                    ) {
+                                        $joinDisabled = false;
+                                    }
+                                }
+                            @endphp
 
-                    <!-- Feedback Modal -->
-                    <div x-show="showFeedbackModal" x-transition style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" >
-                    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative" @click.away="closeFeedbackModal()">
-                        <button @click="closeFeedbackModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✕</button>
-                        <h3 class="text-xl font-semibold mb-4">Share Feedback for <span x-text="selectedJobseeker?.name"></span></h3>
-                        <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Feedback</label>
-                            <textarea x-model="feedbackText" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Interview Status</label>
-                            <select x-model="interviewStatus" class="w-full border rounded p-2 text-sm">
-                            <option value="" disabled>Select status</option>
-                            <option value="selected">Selected</option>
-                            <option value="on-hold">On Hold</option>
-                            <option value="rejected">Rejected</option>
-                            </select>
-                        </div>
-                        <div class="flex justify-end space-x-2">
-                            <button @click="closeFeedbackModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
-                            <button @click="submitFeedback()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Submit</button>
-                        </div>
-                        </div>
-                    </div>
-                    </div>
+                            <div class="jobseeker-shortlisted flex justify-between items-center py-4">
+                                <!-- Profile -->
+                                <div class="flex items-center space-x-4 w-1/3">
+                                    <img src="{{ $scheduled_jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}"
+                                        class="w-12 h-12 rounded-full object-cover"
+                                        alt="{{ $scheduled_jobseeker->name }}" />
+                                    <div>
+                                        <h4 class="font-semibold text-sm">{{ $scheduled_jobseeker->name }}</h4>
+                                        <p class="text-sm text-gray-500">
+                                            {{ $scheduled_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
+                                        </p>
+                                    </div>
+                                </div>
 
-                    <!-- Pagination -->
-                    <div class="flex justify-end mt-6 space-x-2 items-center">
-                    <button @click="prevPage()" :disabled="currentPage === 1"
-                        class="p-1.5 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <template x-for="page in totalPages()" :key="page">
-                        <button @click="currentPage = page"
-                        :class="{'bg-blue-600 text-white': currentPage === page, 'bg-gray-200': currentPage !== page}"
-                        class="px-3 py-1 rounded">
-                        <span x-text="page"></span>
-                        </button>
-                    </template>
-                    <button @click="nextPage()" :disabled="currentPage === totalPages()"
-                        class="p-1.5 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                    </div>
+                                <!-- Interview Info -->
+                                <div class="w-40 text-sm">
+                                    <p class="font-semibold">Interview Date/Time</p>
+                                    <p>
+                                        @if($interviewDateTime)
+                                            {{ $interviewDateTime->format('d M Y, h:i A') }}
+                                        @else
+                                            Not Scheduled
+                                        @endif
+                                    </p>
+                                </div>
+
+                                <!-- Status -->
+                                <div class="w-32 text-sm">
+                                    <p class="font-semibold">Interview Status</p>
+                                    <p class="{{ $statusClass }}">
+                                        {{ $statusLabel }}
+                                    </p>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="ml-4 flex space-x-2 items-center">
+                                    @if($status === 'completed')
+                                        <!-- Show Interview Result -->
+                                        <div class="w-32 text-sm mr-4">
+                                            <p class="font-semibold">Interview Result</p>
+                                            <p class="{{ $scheduled_jobseeker->interview_result === 'pass' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold' }}">
+                                                {{ $scheduled_jobseeker->interview_result ? ucfirst($scheduled_jobseeker->interview_result) : 'Not Provided' }}
+                                            </p>
+                                        </div>
+
+                                        <!-- Share Feedback Button -->
+                                        <button type="button"
+                                                class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#feedbackModal-{{ $jobseekerId }}">
+                                            Share Feedback
+                                        </button>
+
+                                        <!-- Feedback Modal -->
+                                        <div class="modal fade" id="feedbackModal-{{ $jobseekerId }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    {{-- Modal Header --}}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Share interview feedback</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+
+                                                    {{-- Modal Body --}}
+                                                    <form action="{{ route('recruiter.feedback.reply') }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
+
+                                                        <div class="modal-body">
+                                                            {{-- Feedback Textarea --}}
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold">Feedback</label>
+                                                                <textarea name="feedback" rows="3" class="form-control" placeholder="Write here...">{{ old('feedback', $scheduled_jobseeker->feedback ?? '') }}</textarea>
+                                                            </div>
+
+                                                            {{-- Interview Result Dropdown --}}
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold">Select interview status</label>
+                                                                <select name="interview_result" class="form-select" required>
+                                                                    <option value="">Select option</option>
+                                                                    <option value="pass" @if($scheduled_jobseeker->interview_result === 'pass') selected @endif>Pass</option>
+                                                                    <option value="fail" @if($scheduled_jobseeker->interview_result === 'fail') selected @endif>Fail</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Modal Footer --}}
+                                                        <div class="modal-footer">
+                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    @elseif($status !== 'expired' && $status !== 'cancelled')
+                                        <!-- Update Status Form -->
+                                        <form action="{{ route('recruiter.interview.updateStatus') }}" method="POST" class="flex items-center space-x-2">
+                                            @csrf
+                                            <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
+
+                                            <select name="status" class="border rounded px-2 py-1 text-sm">
+                                                <option value="" disabled>Update Status</option>
+                                                <option value="cancelled" @if ($status === 'cancelled') selected @endif>Cancelled</option>
+                                                <option value="scheduled" @if ($status === 'scheduled') selected @endif>Scheduled</option>
+                                                <option value="completed"
+                                                    @if ($status === 'completed') selected @endif
+                                                    @if (!$interviewDateTime || now()->lessThan($interviewDateTime) || now()->greaterThan($interviewDateTime->copy()->addHour())) disabled @endif>
+                                                    Completed
+                                                </option>
+                                            </select>
+
+                                            <button type="submit" class="bg-gray-700 text-white text-xs px-2 py-1 rounded">
+                                                Save
+                                            </button>
+                                        </form>
+
+                                        <!-- Join Button -->
+                                        <a href="{{ !$joinDisabled && $isApproved ? $scheduled_jobseeker->zoom_join_url : '#' }}"
+                                        target="_blank"
+                                        class="text-white text-xs px-2 py-1 rounded inline-block 
+                                                {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
+                                        {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
+                                        Join
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+
+
+
+
+
                 </div>
                 </main>
 
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-            <script>
-            function dashboard() {
-                return {
-                jobseekers: [
-                    { name: 'Peter Parker', role: 'UI UX designer', experience: '2 years', skills: 'UX, UI, Wireframing', img: 'https://i.pravatar.cc/100?img=3', feedbackGiven: false },
-                    { name: 'Mary Jane', role: 'Graphic Designer', experience: '3 years', skills: 'Photoshop, Branding', img: 'https://i.pravatar.cc/100?img=4', feedbackGiven: true },
-                    { name: 'Tony Stark', role: 'Frontend Developer', experience: '5 years', skills: 'React, Vue, JS', img: 'https://i.pravatar.cc/100?img=5', feedbackGiven: false },
-                    { name: 'Natasha Romanoff', role: 'UI UX designer', experience: '3 years', skills: 'User Journey, UX research', img: 'https://i.pravatar.cc/100?img=6', feedbackGiven: true },
-                    { name: 'Bruce Banner', role: 'Backend Developer', experience: '4 years', skills: 'Node.js, APIs, DBs', img: 'https://i.pravatar.cc/100?img=7', feedbackGiven: false },
-                    { name: 'Steve Rogers', role: 'Project Manager', experience: '6 years', skills: 'Agile, Scrum, Leadership', img: 'https://i.pravatar.cc/100?img=8', feedbackGiven: true },
-                    { name: 'Clint Barton', role: 'QA Engineer', experience: '3 years', skills: 'Testing, Automation, Selenium', img: 'https://i.pravatar.cc/100?img=9', feedbackGiven: false },
-                    { name: 'Wanda Maximoff', role: 'Frontend Developer', experience: '2 years', skills: 'Vue.js, HTML, CSS', img: 'https://i.pravatar.cc/100?img=10', feedbackGiven: true },
-                    { name: 'Sam Wilson', role: 'DevOps Engineer', experience: '4 years', skills: 'CI/CD, Docker, Jenkins', img: 'https://i.pravatar.cc/100?img=11', feedbackGiven: false },
-                    { name: 'Bucky Barnes', role: 'System Analyst', experience: '5 years', skills: 'Systems, Requirements, SQL', img: 'https://i.pravatar.cc/100?img=12', feedbackGiven: true },
-                    { name: 'Stephen Strange', role: 'Software Architect', experience: '10 years', skills: 'Architecture, Design Patterns', img: 'https://i.pravatar.cc/100?img=13', feedbackGiven: true },
-                    { name: 'Scott Lang', role: 'Mobile Developer', experience: '3 years', skills: 'React Native, Flutter', img: 'https://i.pravatar.cc/100?img=14', feedbackGiven: false },
-                    { name: 'Hope Van Dyne', role: 'Business Analyst', experience: '4 years', skills: 'Analysis, Documentation', img: 'https://i.pravatar.cc/100?img=15', feedbackGiven: true },
-                    { name: 'Nick Fury', role: 'CTO', experience: '12 years', skills: 'Leadership, Strategy, Tech Vision', img: 'https://i.pravatar.cc/100?img=16', feedbackGiven: false },
-                    { name: 'Shuri', role: 'AI Engineer', experience: '2 years', skills: 'ML, AI, Python', img: 'https://i.pravatar.cc/100?img=17', feedbackGiven: true },
-                    { name: 'T\'Challa', role: 'Security Analyst', experience: '4 years', skills: 'Cybersecurity, Auditing', img: 'https://i.pravatar.cc/100?img=18', feedbackGiven: false },
-                    { name: 'Gamora', role: 'Database Admin', experience: '6 years', skills: 'MySQL, Oracle, Backup', img: 'https://i.pravatar.cc/100?img=19', feedbackGiven: true },
-                    { name: 'Rocket Raccoon', role: 'Support Engineer', experience: '3 years', skills: 'Troubleshooting, Tech Support', img: 'https://i.pravatar.cc/100?img=20', feedbackGiven: false },
-                    { name: 'Groot', role: 'Data Entry Operator', experience: '1 year', skills: 'Typing, Accuracy', img: 'https://i.pravatar.cc/100?img=21', feedbackGiven: false },
-                    { name: 'Drax the Destroyer', role: 'Tech Recruiter', experience: '4 years', skills: 'Hiring, Screening', img: 'https://i.pravatar.cc/100?img=22', feedbackGiven: true }
-                    ],
-                // State
-                currentPage: 1,
-                pageSize: 4,
+           <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 
-                showFeedbackModal: false,
-                isModalOpen: false,
-                selectedJobseeker: null,
-                feedbackText: '',
-                interviewStatus: '',
-
-                // Pagination
-                paginatedJobseekers() {
-                    const start = (this.currentPage - 1) * this.pageSize;
-                    return this.jobseekers.slice(start, start + this.pageSize);
-                },
-                totalPages() {
-                    return Math.ceil(this.jobseekers.length / this.pageSize);
-                },
-                nextPage() {
-                    if (this.currentPage < this.totalPages()) this.currentPage++;
-                },
-                prevPage() {
-                    if (this.currentPage > 1) this.currentPage--;
-                },
-
-                // Interview
-                requestInterview(jobseeker) {
-                    this.selectedJobseeker = jobseeker;
-                    this.isModalOpen = true;
-                },
-                closeModal() {
-                    this.isModalOpen = false;
-                    this.selectedJobseeker = null;
-                },
-                submitRequest() {
-                    this.closeModal();
-                },
-
-                // Feedback
-                openFeedbackModal(jobseeker) {
-                    this.selectedJobseeker = jobseeker;
-                    this.feedbackText = '';
-                    this.interviewStatus = '';
-                    this.showFeedbackModal = true;
-                },
-                closeFeedbackModal() {
-                    this.showFeedbackModal = false;
-                    this.selectedJobseeker = null;
-                },
-                submitFeedback() {
-                    if (!this.feedbackText || !this.interviewStatus) {
-                    return;
-                    }
-                    alert(`Feedback submitted for ${this.selectedJobseeker.name}`);
-                    this.closeFeedbackModal();
-                },
-                };
-            }
-            </script>
 
 
 

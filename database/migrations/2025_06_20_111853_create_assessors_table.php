@@ -37,6 +37,7 @@ return new class extends Migration
             $table->string('admin_recruiter_status')->nullable(); // Removed ->after('status')
             $table->string('google_id')->nullable()->unique();
             $table->string('avatar')->nullable();
+            $table->string('per_slot_price')->nullable();
             $table->text('about_assessor')->nullable();
             $table->string('is_registered')->default('0');  
             $table->string('isSubscribtionBuy')->default('no');  

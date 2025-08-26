@@ -312,27 +312,33 @@
                                                             $('#save-company-profile').prop('disabled', true).text('Updating...');
                                                         },
                                                         success: function (response) {
-                                                            $('#success-message').text(response.message ?? 'Profile updated successfully!').show();
+                                                            $('#success-message')
+                                                                .removeClass('hidden')
+                                                                .text(response.message ?? 'Profile updated successfully!')
+                                                                .fadeIn();
+
+                                                            $('html, body').animate({ scrollTop: 0 }, 'fast'); // scroll to top
                                                         },
                                                         error: function (xhr) {
                                                             if (xhr.status === 422) {
                                                                 let errors = xhr.responseJSON.errors;
-
                                                                 $.each(errors, function (key, messages) {
-                                                                    // Laravel returns keys like "recruiters.0.name"
-                                                                    let fieldName = key.replace(/\.(\d+)\./g, '[$1]['); 
-                                                                    fieldName = fieldName.replace(/\./g, ']['); 
-                                                                    fieldName = fieldName + ']'; 
-
+                                                                    let fieldName = key.replace(/\.(\d+)\./g, '[$1][');
+                                                                    fieldName = fieldName.replace(/\./g, '][');
+                                                                    fieldName = fieldName + ']';
                                                                     let field = $('[name="' + key + '"], [name="' + fieldName + '"]');
                                                                     if (field.length > 0) {
                                                                         field.after('<p class="text-red-600 text-sm mt-1">' + messages[0] + '</p>');
                                                                     }
                                                                 });
                                                             } else {
-                                                                $('#error-message').text('Something went wrong! Please try again.').show();
+                                                                $('#error-message')
+                                                                    .removeClass('hidden')
+                                                                    .text('❌ Something went wrong! Please try again.')
+                                                                    .fadeIn();
                                                             }
                                                         },
+
                                                         complete: function () {
                                                             $('#save-company-profile').prop('disabled', false).text('Update');
                                                         }

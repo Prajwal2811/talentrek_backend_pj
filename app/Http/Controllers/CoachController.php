@@ -238,15 +238,26 @@ class CoachController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // Now attempt login only if status is active
+        // ✅ Check admin_status
+        if ($coach->admin_status === 'superadmin_reject' || $coach->admin_status === 'rejected') {
+            session()->flash('error', 'Your account has been rejected by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        if ($coach->admin_status !== 'superadmin_approved') {
+            session()->flash('error', 'Your account is not yet approved by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        // ✅ Now attempt login only if status is active and admin_status is approved
         if (Auth::guard('coach')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            // return view('site.trainer.trainer-dashboard');
             return redirect()->route('coach.dashboard');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
     public function showCoachDashboard()
     {

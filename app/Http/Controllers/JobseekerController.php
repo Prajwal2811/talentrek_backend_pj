@@ -573,46 +573,58 @@ class JobseekerController extends Controller
     public function loginJobseeker(Request $request)
     {
         $this->validate($request, [
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required'
         ]);
 
         $jobseeker = Jobseekers::where('email', $request->email)->first();
 
         if (!$jobseeker) {
-            session()->flash('error', 'Invalid email ya password.');
+            session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
 
         if ($jobseeker->status !== 'active') {
-            session()->flash('error', 'your account is inactive, contact to administrator.');
+            session()->flash('error', 'Your account is inactive. Please contact administrator.');
             return back()->withInput($request->only('email'));
         }
 
+        // ✅ Check admin_status
+        if ($jobseeker->admin_status === 'superadmin_reject' || $jobseeker->admin_status === 'rejected') {
+            session()->flash('error', 'Your account has been rejected by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        if ($jobseeker->admin_status !== 'superadmin_approved') {
+            session()->flash('error', 'Your account is not yet approved by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        // ✅ Check registration completion
         if ($jobseeker->is_registered == 0) {
             session([
-                'jobseeker_id' => $jobseeker->id,
-                'email' => $jobseeker->email,
-                'phone_number' => $jobseeker->phone_number,
+                'jobseeker_id'  => $jobseeker->id,
+                'email'         => $jobseeker->email,
+                'phone_number'  => $jobseeker->phone_number,
             ]);
-
 
             return redirect()->route('jobseeker.registration')
                 ->with([
-                    'info' => 'Please complete your registration.',
+                    'info'  => 'Please complete your registration.',
                     'email' => session('email'),
                     'phone' => session('phone_number'),
                 ]);
         }
 
-
+        // ✅ Attempt login only if all checks pass
         if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
             return redirect()->route('jobseeker.profile');
         } else {
-            session()->flash('error', 'Invalid email ya password.');
+            session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
 
     public function processSubscriptionPayment(Request $request)

@@ -83,7 +83,7 @@
                                 <div class="space-x-6 font-medium text-sm">
                                     <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">Jobseekers</button>
                                     <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">Shortlisted</button>
-                                    <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">Scheduled Interview</button>
+                                    {{-- <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">Scheduled Interview</button> --}}
 
                                 </div>
                             </div>
@@ -181,7 +181,7 @@
                             </div>
 
                             <!-- Contacted Tab -->
-                            <div id="scheduledList" data-tab-content="scheduled" class="divide-y hidden">
+                            {{-- <div id="scheduledList" data-tab-content="scheduled" class="divide-y hidden">
                                 @foreach($scheduled_jobseekers->unique('jobseeker_id') as $scheduled_jobseeker)
                                     @php
                                         $isApproved = $scheduled_jobseeker->shortlist_admin_status === 'superadmin_approved';
@@ -310,7 +310,7 @@
 
 
                                 <div id="scheduledPagination" class="mt-6 flex justify-center space-x-2"></div>
-                            </div>
+                            </div> --}}
 
 
 

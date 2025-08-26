@@ -56,6 +56,7 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::get('/admin-support', [RecruiterController::class, 'showAdminSupportForm'])->name('recruiter.admin.support');
 
 		Route::post('/recruiter/add-others', [RecruiterController::class, 'addOthers'])->name('recruiter.add.others');
+		Route::post('/recruiter/feedback/reply', [RecruiterController::class, 'replyFeedback'])->name('recruiter.feedback.reply');
 
 	});
 });
