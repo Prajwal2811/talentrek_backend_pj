@@ -1013,25 +1013,84 @@ class JobseekerController extends Controller
     }
 
 
+    // public function updateAdditionalInfo(Request $request)
+    // {
+    //     $userId = auth()->id();
+
+    //     $validated = $request->validate([
+    //         'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+    //         'profile' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+    //     ], [
+    //         // Resume Messages
+    //         'resume.file' => 'The resume must be a valid file.',
+    //         'resume.mimes' => 'The resume must be a file of type: PDF, DOC, or DOCX.',
+    //         'resume.max' => 'The resume must not be larger than 2MB.',
+
+    //         // Profile Messages
+    //         'profile.file' => 'The profile must be a valid file.',
+    //         'profile.mimes' => 'The profile must be a file of type: JPG, JPEG, PNG, or PDF.',
+    //         'profile.max' => 'The profile file must not exceed 2MB.',
+    //     ]);
+
+    //     foreach (['resume', 'profile'] as $type) {
+    //         if ($request->hasFile($type)) {
+    //             $file = $request->file($type);
+    //             $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads'), $fileName);
+    //             $path = asset('uploads/' . $fileName);
+
+    //             // Change doc_type name if 'profile' to 'profile_picture'
+    //             $docType = $type === 'profile' ? 'profile_picture' : $type;
+
+    //             AdditionalInfo::updateOrCreate(
+    //                 ['user_id' => $userId, 'doc_type' => $docType],
+    //                 ['document_path' => $path, 'document_name' => $fileName]
+    //             );
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Additional information updated successfully!'
+    //     ]);
+    // }
     public function updateAdditionalInfo(Request $request)
     {
         $userId = auth()->id();
 
-        $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'profile' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ], [
+        // Check existing docs for this user
+        $existingResume = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'resume')->exists();
+        $existingProfile = AdditionalInfo::where('user_id', $userId)->where('doc_type', 'profile_picture')->exists();
+
+        // Dynamic rules
+        $rules = [];
+        if (!$existingResume) {
+            $rules['resume'] = 'required|file|mimes:pdf,doc,docx|max:2048';
+        } elseif ($request->hasFile('resume')) {
+            $rules['resume'] = 'file|mimes:pdf,doc,docx|max:2048';
+        }
+
+        if (!$existingProfile) {
+            $rules['profile'] = 'required|file|mimes:jpg,jpeg,png,pdf|max:2048';
+        } elseif ($request->hasFile('profile')) {
+            $rules['profile'] = 'file|mimes:jpg,jpeg,png,pdf|max:2048';
+        }
+
+        $validated = $request->validate($rules, [
             // Resume Messages
-            'resume.file' => 'The resume must be a valid file.',
-            'resume.mimes' => 'The resume must be a file of type: PDF, DOC, or DOCX.',
-            'resume.max' => 'The resume must not be larger than 2MB.',
+            'resume.required' => 'The resume is required.',
+            'resume.file'     => 'The resume must be a valid file.',
+            'resume.mimes'    => 'The resume must be a file of type: PDF, DOC, or DOCX.',
+            'resume.max'      => 'The resume must not be larger than 2MB.',
 
             // Profile Messages
-            'profile.file' => 'The profile must be a valid file.',
-            'profile.mimes' => 'The profile must be a file of type: JPG, JPEG, PNG, or PDF.',
-            'profile.max' => 'The profile file must not exceed 2MB.',
+            'profile.required' => 'The profile is required.',
+            'profile.file'     => 'The profile must be a valid file.',
+            'profile.mimes'    => 'The profile must be a file of type: JPG, JPEG, PNG, or PDF.',
+            'profile.max'      => 'The profile file must not exceed 2MB.',
         ]);
 
+        // Save files
         foreach (['resume', 'profile'] as $type) {
             if ($request->hasFile($type)) {
                 $file = $request->file($type);
@@ -1039,7 +1098,6 @@ class JobseekerController extends Controller
                 $file->move(public_path('uploads'), $fileName);
                 $path = asset('uploads/' . $fileName);
 
-                // Change doc_type name if 'profile' to 'profile_picture'
                 $docType = $type === 'profile' ? 'profile_picture' : $type;
 
                 AdditionalInfo::updateOrCreate(
@@ -1054,6 +1112,7 @@ class JobseekerController extends Controller
             'message' => 'Additional information updated successfully!'
         ]);
     }
+
 
 
 
