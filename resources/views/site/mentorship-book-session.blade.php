@@ -314,7 +314,7 @@
                                             btn.innerHTML = `
                                                 <p class="font-medium">${slot.start_time} - ${slot.end_time}</p>
                                                 <p class="text-xs ${
-                                                    isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-600'
+                                                    isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-400'
                                                 }">
                                                     ${isUnavailable ? 'Unavailable' : isBooked ? 'Already Booked' : 'Available'}
                                                 </p>

@@ -683,6 +683,7 @@
 
                         <!-- Admin Tab -->
                         <div id="admin" class="tab-content">
+                            @if ($jobseekerId)
                             <div class="chat-user" 
                                 onclick="openChat(1, 'admin', 'Talententrek Contact Support', 'https://static.vecteezy.com/system/resources/previews/021/162/989/non_2x/3d-male-customer-call-service-wearing-cap-png.png')">
 
@@ -694,8 +695,8 @@
                                 </div>
                                 <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                             </div>
+                            @endif
                         </div>
-
 
 
 

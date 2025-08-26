@@ -175,8 +175,21 @@ Route::group(['middleware' => 'assessor.auth'], function() {
 
 
 Route::group(['middleware' => 'admin.auth'], function() {
-	Route::post('/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
-	Route::get('/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
+	// Route::post('/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
+	// Route::get('/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
+    // Route::post('admin/chat/messages/markSeen', [ChatController::class, 'markMessagesAsRead'])->name('admin.group.chat.seen');
+
+    // // Jobseekers list with unread counts
+    // Route::get('/admin/jobseekers/list', [App\Http\Controllers\ChatController::class, 'getJobseekersList'])
+    //     ->name('admin.jobseekers.list');
+
+    Route::get('/admin/jobseekers/list', [ChatController::class, 'getJobseekersList'])->name('admin.jobseekers.list');
+    Route::get('/admin/mentors/list', [ChatController::class, 'getMentorsList'])->name('admin.mentors.list');
+    Route::get('/admin/group/chat/fetch', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
+    Route::post('/admin/group/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
+    Route::post('/admin/group/chat/seen', [ChatController::class, 'markMessagesAsRead'])->name('admin.group.chat.seen');
+    
+
 
 });
 

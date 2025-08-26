@@ -2,10 +2,24 @@
     //All jobseeker chat list
     $jobseekersList = [];
 
-    $jobseekersList = DB::table('jobseekers as j')
-        ->select('j.id as user_id', 'j.name as jobseeker_name')
-        ->where('j.status', 'active')
-        ->get();
+    // $jobseekersList = DB::table('jobseekers as j')
+    //     ->select('j.id as user_id', 'j.name as jobseeker_name')
+    //     ->where('j.status', 'active')
+    //     ->get();
+    // $jobseekers = DB::table('jobseekers')
+    // ->select('id as user_id','name as jobseeker_name')
+    // ->get()
+    // ->map(function($jobseeker){
+    //     $jobseeker->unread_count = DB::table('admin_group_chats')
+    //         ->where('sender_id',$jobseeker->user_id)
+    //         ->where('sender_type','jobseeker')
+    //         ->where('receiver_type','admin')
+    //         ->where('is_read',0)
+    //         ->count();
+    //     return $jobseeker;
+    // });
+    // echo "<pre>";
+    // print_r($jobseekers);exit;
     
     $recruitersCompanyList = DB::table('recruiters_company as rc')
         ->select('rc.id as user_id', 'rc.company_name')
@@ -28,6 +42,8 @@
         ->get();  
     // echo "<pre>";
     // print_r($assessorsList);exit;
+
+    
 ?>
 
 @include('admin.componants.header')
@@ -76,17 +92,27 @@
                                                             data-id="{{ $jobseeker->user_id }}" 
                                                             data-name="{{ $jobseeker->jobseeker_name }}" 
                                                             data-type="Jobseeker">
-                                                                <img class="media-object" src="../assets/images/xs/avatar1.jpg" alt="">
-                                                                <div class="media-body">
+
+                                                                <div class="media-body d-flex justify-content-between align-items-center">
                                                                     <span class="name">
                                                                         {{ $jobseeker->jobseeker_name }}
-                                                                        <small class="text-muted font-12">Active</small>
+                                                                        <small class="text-muted font-12 d-block">Active</small>
                                                                     </span>
+
+                                                                    @if($jobseeker->unread_count > 0)
+                                                                        <span class="badge badge-danger ml-2" id="new-message-{{ $jobseeker->user_id }}">
+                                                                            {{ $jobseeker->unread_count }}
+                                                                        </span>
+                                                                    @endif
+                                                                </div>
+
+                                                                <div class="media-body">
                                                                     <span class="message">Click to chat</span>
                                                                     <span class="badge badge-outline status"></span>
                                                                 </div>
                                                             </a>
                                                         </li>
+
                                                     @endforeach
                                                 </ul>
                                             </div>
@@ -338,131 +364,153 @@
                                 </script> -->
 
 
-                                <!-- jQuery -->
                                 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-                                <!-- Pusher (keep only one) -->
                                 <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
-
-                                <!-- Laravel Echo -->
                                 <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.3/echo.iife.js"></script>
 
-                                <meta name="csrf-token" content="{{ csrf_token() }}">
-
                                 <script>
-                                    // Debug logs
-                                    // Pusher.logToConsole = true;
+                                let currentUserId = null;
+                                let currentUserType = null;
+                                let authUserId = "{{ auth()->id() }}";
 
-                                    // Current user
-                                    let currentUserId = null;
-                                    let currentUserType = null;
-                                    let authUserId = "{{ auth()->id() }}";
+                                // ✅ Echo Init
+                                window.Echo = new Echo({
+                                    broadcaster: 'pusher',
+                                    key: '{{ env("PUSHER_APP_KEY") }}',
+                                    wsHost: window.location.hostname,
+                                    wsPort: 6001,
+                                    forceTLS: false,
+                                    authEndpoint: '/broadcasting/auth',
+                                    withCredentials: true,
+                                    auth: {
+                                        headers: {
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        }
+                                    }
+                                });
 
-                                    // ✅ Setup Echo only once
-                                    window.Echo = new Echo({
-                                        broadcaster: 'pusher',
-                                        key: '{{ env("PUSHER_APP_KEY") }}',
-                                        wsHost: window.location.hostname,
-                                        wsPort: 6001,
-                                        forceTLS: false,
-                                        enableStats: false,
-                                        enabledTransports: ['ws', 'wss'],
-                                        authEndpoint: '/broadcasting/auth',
-                                        withCredentials: true,
-                                        auth: {
-                                            headers: {
-                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                            }
+                                // ✅ Jobseeker List Load with Unread Badges
+                                function loadUserList() {
+                                    $.ajax({
+                                        url: "{{ route('admin.jobseekers.list') }}",
+                                        method: "GET",
+                                        success: function (res) {
+                                            $(".right_chat").html('');
+
+                                            res.forEach(user => {
+                                                let hasUnread = user.unread_count > 0;
+                                                let unreadClass = hasUnread ? 'has-unread' : '';
+                                                let unreadBadge = hasUnread
+                                                    ? `<span class="badge badge-danger" id="new-message-${user.user_id}">${user.unread_count}</span>`
+                                                    : '';
+
+                                                $(".right_chat").append(`
+                                                    <li class="online ${unreadClass}" data-id="${user.user_id}">
+                                                        <a href="javascript:void(0);" 
+                                                            class="media openChat" 
+                                                            data-id="${user.user_id}" 
+                                                            data-type="jobseeker"
+                                                            data-name="${user.jobseeker_name}">
+                                                            <div class="media-body">
+                                                                <span class="name">${user.jobseeker_name}</span>
+                                                                ${unreadBadge}
+                                                                <span class="message">Click to chat</span>
+                                                            </div>
+                                                        </a>
+                                                    </li>
+                                                `);
+                                            });
+
+                                            // ✅ Click Chat → Open Chat Box + Clear Badge
+                                            $(".openChat").off("click").on("click", function () {
+                                                $(".right_chat li").removeClass("active-chat");
+                                                $(this).closest("li").addClass("active-chat").removeClass("has-unread");
+
+                                                currentUserId = $(this).data('id');
+                                                currentUserType = $(this).data('type').toLowerCase();
+                                                let userName = $(this).data('name');
+
+                                                $("#chatBox").removeClass('d-none');
+                                                $("#chatUserName").text(userName);
+                                                $("#chatUserType").text(currentUserType);
+
+                                                loadMessages();
+
+                                                // ✅ Seen mark karte hi unread badge hata do
+                                                $.post("{{ route('admin.group.chat.seen') }}", {
+                                                    receiver_id: currentUserId,
+                                                    receiver_type: currentUserType,
+                                                    _token: "{{ csrf_token() }}"
+                                                }, function (res) {
+                                                    $(`#new-message-${currentUserId}`).remove();
+                                                });
+                                            });
                                         }
                                     });
+                                }
 
-                                    // ✅ Listen on admin channel
-                                    Echo.channel('chat.admin')
-                                        .listen('.message.sent', (e) => {
-                                            if (e.sender_id != authUserId) appendMessage(e);
-                                        });
+                                // ✅ Jobseeker List Load with Unread Badges
+                                function loadMentorList() {
+                                    $.ajax({
+                                        url: "{{ route('admin.mentors.list') }}",
+                                        method: "GET",
+                                        success: function (res) {
+                                            $(".right_chat").html('');
 
-                                    // ✅ Document Ready
-                                    $(document).ready(function () {
+                                            res.forEach(user => {
+                                                let hasUnread = user.unread_count > 0;
+                                                let unreadClass = hasUnread ? 'has-unread' : '';
+                                                let unreadBadge = hasUnread
+                                                    ? `<span class="badge badge-danger" id="new-message-${user.user_id}">${user.unread_count}</span>`
+                                                    : '';
 
-                                        // Open chat
-                                        $(document).on('click', '.openChat', function (e) {
-                                            e.preventDefault();
-
-                                            currentUserId = $(this).data('id');
-                                            currentUserType = $(this).data('type').toLowerCase();
-                                            let userName = $(this).data('name');
-
-                                            $(".right_chat li").removeClass("active-chat");
-                                            $(this).closest("li").addClass("active-chat");
-
-                                            $("#chatBox").removeClass('d-none');
-                                            $("#chatUserName").text(userName);
-                                            $("#chatUserType").text(currentUserType);
-
-                                            loadMessages();
-                                        });
-
-                                        // File input preview
-                                        $("#fileInput").on('change', function () {
-                                            let file = this.files[0];
-                                            if (file) $("#messageInput").val(file.name);
-                                        });
-
-                                        // File upload button
-                                        $("#fileBtn").click(function () {
-                                            $("#fileInput").click();
-                                        });
-
-                                        // Send message
-                                        $("#sendBtn").click(function () {
-                                            let msg = $("#messageInput").val();
-                                            let file = $("#fileInput")[0].files[0];
-                                            if (!msg.trim() && !file) return;
-
-                                            let formData = new FormData();
-                                            formData.append('_token', "{{ csrf_token() }}");
-                                            formData.append('receiver_id', currentUserId);
-                                            formData.append('receiver_type', currentUserType);
-
-                                            if (file) formData.append('file', file);
-                                            else formData.append('message', msg);
-
-                                            $.ajax({
-                                                url: "{{ route('admin.group.chat.send') }}",
-                                                method: "POST",
-                                                data: formData,
-                                                contentType: false,
-                                                processData: false,
-                                                success: function (res) {
-                                                    appendMessage({ ...res, sender_id: authUserId });
-                                                    $("#messageInput").val('');
-                                                    $("#fileInput").val('');
-                                                }
+                                                $(".right_chat").append(`
+                                                    <li class="online ${unreadClass}" data-id="${user.user_id}">
+                                                        <a href="javascript:void(0);" 
+                                                            class="media openChat" 
+                                                            data-id="${user.user_id}" 
+                                                            data-type="jobseeker"
+                                                            data-name="${user.jobseeker_name}">
+                                                            <div class="media-body">
+                                                                <span class="name">${user.jobseeker_name}</span>
+                                                                ${unreadBadge}
+                                                                <span class="message">Click to chat</span>
+                                                            </div>
+                                                        </a>
+                                                    </li>
+                                                `);
                                             });
-                                        });
+
+                                            // ✅ Click Chat → Open Chat Box + Clear Badge
+                                            $(".openChat").off("click").on("click", function () {
+                                                $(".right_chat li").removeClass("active-chat");
+                                                $(this).closest("li").addClass("active-chat").removeClass("has-unread");
+
+                                                currentUserId = $(this).data('id');
+                                                currentUserType = $(this).data('type').toLowerCase();
+                                                let userName = $(this).data('name');
+
+                                                $("#chatBox").removeClass('d-none');
+                                                $("#chatUserName").text(userName);
+                                                $("#chatUserType").text(currentUserType);
+
+                                                loadMessages();
+
+                                                // ✅ Seen mark karte hi unread badge hata do
+                                                $.post("{{ route('admin.group.chat.seen') }}", {
+                                                    receiver_id: currentUserId,
+                                                    receiver_type: currentUserType,
+                                                    _token: "{{ csrf_token() }}"
+                                                }, function (res) {
+                                                    $(`#new-message-${currentUserId}`).remove();
+                                                });
+                                            });
+                                        }
                                     });
+                                }
 
-                                    // ✅ Load messages
-                                    function loadMessages() {
-                                        if (!currentUserId || !currentUserType) return;
-
-                                        $.ajax({
-                                            url: "{{ route('admin.group.chat.fetch') }}",
-                                            method: "GET",
-                                            data: {
-                                                receiver_id: currentUserId,
-                                                receiver_type: currentUserType,
-                                                _token: "{{ csrf_token() }}"
-                                            },
-                                            success: function (res) {
-                                                $("#chatMessages").html('');
-                                                res.forEach(msg => appendMessage(msg));
-                                            }
-                                        });
-                                    }
-
-                                    // ✅ Append message
+                               
+                                // ✅ Append message
                                     function appendMessage(msg) {
                                         let isSelf = (msg.sender_type === 'admin');
                                         let content = '';
@@ -521,10 +569,109 @@
                                         $('#chatMessages').append(html);
                                         $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
                                     }
+
+                                // ✅ Load Chat Messages
+                                function loadMessages() {
+                                    if (!currentUserId || !currentUserType) return;
+
+                                    $.get("{{ route('admin.group.chat.fetch') }}", {
+                                        receiver_id: currentUserId,
+                                        receiver_type: currentUserType,
+                                        _token: "{{ csrf_token() }}"
+                                    }, function (res) {
+                                        $("#chatMessages").html('');
+                                        res.forEach(msg => appendMessage(msg));
+                                    });
+                                }
+
+                                // ✅ Page Load → Setup Everything
+                                $(document).ready(function () {
+                                    loadUserList();
+
+                                    // ✅ Message Send
+                                    $("#sendBtn").click(function () {
+                                        let msg = $("#messageInput").val();
+                                        let file = $("#fileInput")[0].files[0];
+                                        if (!msg.trim() && !file) return;
+
+                                        let formData = new FormData();
+                                        formData.append('_token', "{{ csrf_token() }}");
+                                        formData.append('receiver_id', currentUserId);
+                                        formData.append('receiver_type', currentUserType);
+                                        if (file) formData.append('file', file);
+                                        else formData.append('message', msg);
+
+                                        $.ajax({
+                                            url: "{{ route('admin.group.chat.send') }}",
+                                            method: "POST",
+                                            data: formData,
+                                            contentType: false,
+                                            processData: false,
+                                            success: function (res) {
+                                                appendMessage({ ...res, sender_id: authUserId });
+                                                $("#messageInput").val('');
+                                                $("#fileInput").val('');
+                                            }
+                                        });
+                                    });
+
+                                    // ✅ Realtime Pusher Events
+                                    Echo.channel('chat.admin')
+                                        .listen('.message.sent', (e) => {
+                                            if (e.sender_id != authUserId) {
+                                                // ✅ Agar user ka chat open hai to message dikhao
+                                                if (e.sender_id == currentUserId && e.sender_type === currentUserType) {
+                                                    appendMessage(e);
+                                                } else {
+                                                    // ✅ Badge update karo, message window me mat dikhao
+                                                    let badge = $(`#new-message-${e.sender_id}`);
+                                                    if (badge.length) {
+                                                        badge.text((parseInt(badge.text()) || 0) + 1);
+                                                    } else {
+                                                        let $targetUser = $(`.right_chat li[data-id="${e.sender_id}"]`);
+                                                        if ($targetUser.length) {
+                                                            $targetUser.addClass("has-unread");
+                                                            $targetUser.find('.media-body .name').after(
+                                                                `<span class="badge badge-danger" id="new-message-${e.sender_id}">1</span>`
+                                                            );
+                                                        } else {
+                                                            loadUserList(); // fallback if user not found
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        })
+                                        .listen('.message.seen', (e) => {
+                                            if (e.to_id == authUserId && e.to_type == 'admin') {
+                                                $(`#new-message-${e.sender_id}`).remove();
+                                            }
+                                        });
+                                });
                                 </script>
 
-        
 
+
+
+
+
+        
+                                <style>
+                                    .has-unread {
+                                        background-color: #b2f0fb !important;  /* Light blue background */
+                                        border-radius: 5px;
+                                        transition: background-color 0.3s ease;
+                                    }
+
+                                    .badge-danger {
+                                        background-color: red;
+                                        color: white;
+                                        border-radius: 10px;
+                                        padding: 2px 6px;
+                                        font-size: 12px;
+                                        margin-left: 5px;
+                                    }
+
+                                </style>
 
                                 
                                 
