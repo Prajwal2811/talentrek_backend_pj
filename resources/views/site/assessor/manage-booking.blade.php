@@ -129,7 +129,9 @@
                                 <template x-for="(slot, index) in activeSlots" :key="index">
                                     <tr class="border-b">
                                         <td class="px-4 py-2" x-text="index + 1"></td>
-                                        <td class="px-4 py-2" x-text="slot.start_time + ' - ' + slot.end_time"></td>
+                                        <!-- <td class="px-4 py-2" x-text="slot.start_time + ' - ' + slot.end_time"></td> -->
+                                        <td class="px-4 py-2" x-text="formatTime12Hour(slot.start_time) + ' - ' + formatTime12Hour(slot.end_time)"></td>
+
                                         <td class="px-4 py-2">
                                             <div class="flex items-center gap-2" x-data="{ updateUrl: @js(route('assessor.update-slot-status')) }">
                                                 <input 
@@ -276,277 +278,277 @@
                     unavailableDatesMap: @json($unavailableDatesMap),
                 };
 
-function createBookingSlots() {
-    const today = new Date();
-    const thisYear = today.getFullYear();
+                function createBookingSlots() {
+                    const today = new Date();
+                    const thisYear = today.getFullYear();
 
-    return {
-        // ✅ Default selections
-        today: today,
-        currentMonth: today.getMonth(),   // 0–11 → used in dropdown
-        currentYear: thisYear,                   // e.g. 2025
-        selectedDate: today.getDate(),          // Select today's date initially
+                    return {
+                        // ✅ Default selections
+                        today: today,
+                        currentMonth: today.getMonth(),   // 0–11 → used in dropdown
+                        currentYear: thisYear,                   // e.g. 2025
+                        selectedDate: today.getDate(),          // Select today's date initially
 
-        // ✅ Dropdown options
-        monthNames: ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'],
-        weekDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-        yearRange: Array.from({ length: 10 }, (_, i) => thisYear - 5 + i), // ±5 year range
+                        // ✅ Dropdown options
+                        monthNames: ['January', 'February', 'March', 'April', 'May', 'June',
+                                    'July', 'August', 'September', 'October', 'November', 'December'],
+                        weekDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                        yearRange: Array.from({ length: 10 }, (_, i) => thisYear - 5 + i), // ±5 year range
 
-        // ✅ Booking Data
-        activeMode: 'online',
-        onlineSlots: window.bookingData?.onlineSlots || [],
-        offlineSlots: window.bookingData?.offlineSlots || [],
-        unavailableDatesMap: window.bookingData?.unavailableDatesMap || {},
-        successMessage: '',
+                        // ✅ Booking Data
+                        activeMode: 'online',
+                        onlineSlots: window.bookingData?.onlineSlots || [],
+                        offlineSlots: window.bookingData?.offlineSlots || [],
+                        unavailableDatesMap: window.bookingData?.unavailableDatesMap || {},
+                        successMessage: '',
 
-        // ✅ Calendar Logic
-        get daysInMonth() {
-            return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
-        },
-        get blanks() {
-            return new Date(this.currentYear, this.currentMonth, 1).getDay();
-        },
-        isToday(day) {
-            const d = new Date(this.currentYear, this.currentMonth, day);
-            return d.toDateString() === this.today.toDateString();
-        },
-        selectedDateFormatted() {
-            if (!this.selectedDate) return 'Select a date';
-            const date = new Date(this.currentYear, this.currentMonth, this.selectedDate);
-            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-        },
-
-        get activeSlots() {
-            return this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
-        },
-        isSlotUnavailable(slotId) {
-            if (!this.selectedDate) return false;
-            const selected = new Date(this.currentYear, this.currentMonth, this.selectedDate);
-            const formattedDate = selected.toISOString().split('T')[0];
-            return (this.unavailableDatesMap[slotId] || []).includes(formattedDate);
-        },
-        isUnavailable(day) {
-            const dateObj = new Date(this.currentYear, this.currentMonth, day);
-            const formattedDate = dateObj.toISOString().split('T')[0];
-            return this.activeSlots.some(slot => {
-                const slotUnavailableDates = this.unavailableDatesMap[slot.id] || [];
-                return slotUnavailableDates.includes(formattedDate);
-            });
-        },
-        areAllSlotsUnavailable(day) {
-            const dateObj = new Date(this.currentYear, this.currentMonth, day);
-            const formattedDate = dateObj.toISOString().split('T')[0];
-            return this.activeSlots.length > 0 && this.activeSlots.every(slot => {
-                const slotUnavailableDates = this.unavailableDatesMap[slot.id] || [];
-                return slotUnavailableDates.includes(formattedDate);
-            });
-        },
-
-        markUnavailable() {
-            if (!this.selectedDate) {
-                alert('Please select a date first');
-                return;
-            }
-
-            const selectedFullDate = new Date(this.currentYear, this.currentMonth, this.selectedDate);
-            const formattedDate = selectedFullDate.toISOString().split('T')[0];
-
-            const allSlots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
-            const updateUrl = '{{ route('assessor.update-slot-status') }}';
-
-            Promise.all(
-                allSlots.map(slot => {
-                    if (!this.unavailableDatesMap[slot.id]) {
-                        this.unavailableDatesMap[slot.id] = [];
-                    }
-
-                    if (!this.unavailableDatesMap[slot.id].includes(formattedDate)) {
-                        this.unavailableDatesMap[slot.id].push(formattedDate);
-                    }
-
-                    return fetch(updateUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        // ✅ Calendar Logic
+                        get daysInMonth() {
+                            return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
                         },
-                        body: JSON.stringify({
-                            slot_id: slot.id,
-                            is_available: 0,
-                            date: formattedDate
-                        })
-                    });
-                })
-            )
-            .then(() => {
-                this.successMessage = 'All slots marked as unavailable for selected date!';
-                setTimeout(() => this.successMessage = '', 3000);
-            })
-            .catch(err => {
-                console.error('Failed to mark slots as unavailable', err);
-                alert('Something went wrong. Please try again.');
-            });
-        },
+                        get blanks() {
+                            return new Date(this.currentYear, this.currentMonth, 1).getDay();
+                        },
+                        isToday(day) {
+                            const d = new Date(this.currentYear, this.currentMonth, day);
+                            return d.toDateString() === this.today.toDateString();
+                        },
+                        selectedDateFormatted() {
+                            if (!this.selectedDate) return 'Select a date';
+                            const date = new Date(this.currentYear, this.currentMonth, this.selectedDate);
+                            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                        },
 
-        showEditModal: false,
-        editSlot: {
-            id: null,
-            start_time: '',
-            end_time: ''
-        },
-        openEditModal(slot) {
-            this.editSlot = {
-                id: slot.id,
-                start_time: this.formatTime12Hour(slot.start_time),
-                end_time: this.formatTime12Hour(slot.end_time)
-            };
-            this.showEditModal = true;
-        },
-        formatTime12Hour(time24) {
-            const [hourStr, minuteStr] = time24.split(':');
-            let hour = parseInt(hourStr);
-            const minute = minuteStr;
-            const ampm = hour >= 12 ? 'pm' : 'am';
-            hour = hour % 12;
-            hour = hour === 0 ? 12 : hour;
-            return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
-        },
-        // updateSlotTime() {
-        //     fetch('{{ route('assessor.update-slot-time') }}', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        //         },
-        //         body: JSON.stringify(this.editSlot)
-        //     })
-        //     .then(res => res.json())
-        //     .then(data => {
-        //         if (data.status === 'success') {
-        //             const slots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
-        //             const idx = slots.findIndex(s => s.id === this.editSlot.id);
-        //             if (idx !== -1) {
-        //                 slots[idx].start_time = this.editSlot.start_time;
-        //                 slots[idx].end_time = this.editSlot.end_time;
-        //             }
-        //             this.successMessage = 'Slot time updated successfully!';
-        //             setTimeout(() => this.successMessage = '', 3000);
-        //             this.showEditModal = false;
-        //         }
-        //     })
-        //     .catch(err => {
-        //         console.error('Failed to update slot time', err);
-        //     });
-        // },
-        updateSlotTime() {
-            this.editSlot.error = ''; // clear previous error
+                        get activeSlots() {
+                            return this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
+                        },
+                        isSlotUnavailable(slotId) {
+                            if (!this.selectedDate) return false;
+                            const selected = new Date(this.currentYear, this.currentMonth, this.selectedDate);
+                            const formattedDate = selected.toISOString().split('T')[0];
+                            return (this.unavailableDatesMap[slotId] || []).includes(formattedDate);
+                        },
+                        isUnavailable(day) {
+                            const dateObj = new Date(this.currentYear, this.currentMonth, day);
+                            const formattedDate = dateObj.toISOString().split('T')[0];
+                            return this.activeSlots.some(slot => {
+                                const slotUnavailableDates = this.unavailableDatesMap[slot.id] || [];
+                                return slotUnavailableDates.includes(formattedDate);
+                            });
+                        },
+                        areAllSlotsUnavailable(day) {
+                            const dateObj = new Date(this.currentYear, this.currentMonth, day);
+                            const formattedDate = dateObj.toISOString().split('T')[0];
+                            return this.activeSlots.length > 0 && this.activeSlots.every(slot => {
+                                const slotUnavailableDates = this.unavailableDatesMap[slot.id] || [];
+                                return slotUnavailableDates.includes(formattedDate);
+                            });
+                        },
 
-            fetch('{{ route('assessor.update-slot-time') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(this.editSlot)
-            })
-            .then(async res => {
-                if (!res.ok) {
-                    // Handle Laravel validation errors
-                    const errorData = await res.json();
-                    if (errorData.errors) {
-                        // Take first validation error message
-                        this.editSlot.error = Object.values(errorData.errors)[0][0];
-                    } else if (errorData.message) {
-                        this.editSlot.error = errorData.message;
-                    } else {
-                        this.editSlot.error = 'Something went wrong.';
-                    }
-                    throw new Error('Request failed');
+                        markUnavailable() {
+                            if (!this.selectedDate) {
+                                alert('Please select a date first');
+                                return;
+                            }
+
+                            const selectedFullDate = new Date(this.currentYear, this.currentMonth, this.selectedDate);
+                            const formattedDate = selectedFullDate.toISOString().split('T')[0];
+
+                            const allSlots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
+                            const updateUrl = '{{ route('assessor.update-slot-status') }}';
+
+                            Promise.all(
+                                allSlots.map(slot => {
+                                    if (!this.unavailableDatesMap[slot.id]) {
+                                        this.unavailableDatesMap[slot.id] = [];
+                                    }
+
+                                    if (!this.unavailableDatesMap[slot.id].includes(formattedDate)) {
+                                        this.unavailableDatesMap[slot.id].push(formattedDate);
+                                    }
+
+                                    return fetch(updateUrl, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        },
+                                        body: JSON.stringify({
+                                            slot_id: slot.id,
+                                            is_available: 0,
+                                            date: formattedDate
+                                        })
+                                    });
+                                })
+                            )
+                            .then(() => {
+                                this.successMessage = 'All slots marked as unavailable for selected date!';
+                                setTimeout(() => this.successMessage = '', 3000);
+                            })
+                            .catch(err => {
+                                console.error('Failed to mark slots as unavailable', err);
+                                alert('Something went wrong. Please try again.');
+                            });
+                        },
+
+                        showEditModal: false,
+                        editSlot: {
+                            id: null,
+                            start_time: '',
+                            end_time: ''
+                        },
+                        openEditModal(slot) {
+                            this.editSlot = {
+                                id: slot.id,
+                                start_time: this.formatTime12Hour(slot.start_time),
+                                end_time: this.formatTime12Hour(slot.end_time)
+                            };
+                            this.showEditModal = true;
+                        },
+                        formatTime12Hour(time24) {
+                            const [hourStr, minuteStr] = time24.split(':');
+                            let hour = parseInt(hourStr);
+                            const minute = minuteStr;
+                            const ampm = hour >= 12 ? 'pm' : 'am';
+                            hour = hour % 12;
+                            hour = hour === 0 ? 12 : hour;
+                            return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
+                        },
+                        // updateSlotTime() {
+                        //     fetch('{{ route('assessor.update-slot-time') }}', {
+                        //         method: 'POST',
+                        //         headers: {
+                        //             'Content-Type': 'application/json',
+                        //             'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        //         },
+                        //         body: JSON.stringify(this.editSlot)
+                        //     })
+                        //     .then(res => res.json())
+                        //     .then(data => {
+                        //         if (data.status === 'success') {
+                        //             const slots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
+                        //             const idx = slots.findIndex(s => s.id === this.editSlot.id);
+                        //             if (idx !== -1) {
+                        //                 slots[idx].start_time = this.editSlot.start_time;
+                        //                 slots[idx].end_time = this.editSlot.end_time;
+                        //             }
+                        //             this.successMessage = 'Slot time updated successfully!';
+                        //             setTimeout(() => this.successMessage = '', 3000);
+                        //             this.showEditModal = false;
+                        //         }
+                        //     })
+                        //     .catch(err => {
+                        //         console.error('Failed to update slot time', err);
+                        //     });
+                        // },
+                        updateSlotTime() {
+                            this.editSlot.error = ''; // clear previous error
+
+                            fetch('{{ route('assessor.update-slot-time') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify(this.editSlot)
+                            })
+                            .then(async res => {
+                                if (!res.ok) {
+                                    // Handle Laravel validation errors
+                                    const errorData = await res.json();
+                                    if (errorData.errors) {
+                                        // Take first validation error message
+                                        this.editSlot.error = Object.values(errorData.errors)[0][0];
+                                    } else if (errorData.message) {
+                                        this.editSlot.error = errorData.message;
+                                    } else {
+                                        this.editSlot.error = 'Something went wrong.';
+                                    }
+                                    throw new Error('Request failed');
+                                }
+                                return res.json();
+                            })
+                            .then(data => {
+                                if (data.status === 'error') {
+                                    // Laravel custom error
+                                    this.editSlot.error = data.message;
+                                    return;
+                                }
+
+                                if (data.status === 'success') {
+                                    const slots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
+                                    const idx = slots.findIndex(s => s.id === this.editSlot.id);
+                                    if (idx !== -1) {
+                                        slots[idx].start_time = this.editSlot.start_time;
+                                        slots[idx].end_time = this.editSlot.end_time;
+                                    }
+                                    location.reload();
+                                    this.successMessage = 'Slot time updated successfully!';
+                                    setTimeout(() => this.successMessage = '', 3000);
+                                    this.showEditModal = false;
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Failed to update slot time', err);
+                            });
+                        },
+
+
+                        // Delete
+                        deleteSlotId: null,
+                        showDeleteModal: false,
+                        prepareDelete(slotId) {
+                            this.deleteSlotId = slotId;
+                            this.showDeleteModal = true;
+                        },
+                        confirmDelete() {
+                            fetch('{{ route('assessor.delete-slot') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({ id: this.deleteSlotId })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    const slotArray = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
+                                    const index = slotArray.findIndex(s => s.id === this.deleteSlotId);
+                                    if (index !== -1) {
+                                        slotArray.splice(index, 1);
+                                    }
+                                    delete this.unavailableDatesMap[this.deleteSlotId];
+                                    this.successMessage = 'Slot deleted successfully!';
+                                    setTimeout(() => this.successMessage = '', 3000);
+                                }
+                                this.showDeleteModal = false;
+                                this.deleteSlotId = null;
+                            })
+                            .catch(err => {
+                                console.error('Delete failed', err);
+                                alert('Something went wrong. Try again.');
+                                this.showDeleteModal = false;
+                                this.deleteSlotId = null;
+                            });
+                        },
+
+                        // Time options
+                        timeOptions: [
+                            // AM
+                            '01:00 am', '01:30 am', '02:00 am', '02:30 am', '03:00 am', '03:30 am',
+                            '04:00 am', '04:30 am', '05:00 am', '05:30 am', '06:00 am', '06:30 am',
+                            '07:00 am', '07:30 am', '08:00 am', '08:30 am', '09:00 am', '09:30 am',
+                            '10:00 am', '10:30 am', '11:00 am', '11:30 am', '12:00 pm',
+
+                            // PM
+                            '12:30 pm', '01:00 pm', '01:30 pm', '02:00 pm', '02:30 pm', '03:00 pm',
+                            '03:30 pm', '04:00 pm', '04:30 pm', '05:00 pm', '05:30 pm', '06:00 pm',
+                            '06:30 pm', '07:00 pm', '07:30 pm', '08:00 pm', '08:30 pm', '09:00 pm',
+                            '09:30 pm', '10:00 pm', '10:30 pm', '11:00 pm', '11:30 pm', '12:00 am'
+                        ]
+                    };
                 }
-                return res.json();
-            })
-            .then(data => {
-                if (data.status === 'error') {
-                    // Laravel custom error
-                    this.editSlot.error = data.message;
-                    return;
-                }
-
-                if (data.status === 'success') {
-                    const slots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
-                    const idx = slots.findIndex(s => s.id === this.editSlot.id);
-                    if (idx !== -1) {
-                        slots[idx].start_time = this.editSlot.start_time;
-                        slots[idx].end_time = this.editSlot.end_time;
-                    }
-                    location.reload();
-                    this.successMessage = 'Slot time updated successfully!';
-                    setTimeout(() => this.successMessage = '', 3000);
-                    this.showEditModal = false;
-                }
-            })
-            .catch(err => {
-                console.error('Failed to update slot time', err);
-            });
-        },
-
-
-        // Delete
-        deleteSlotId: null,
-        showDeleteModal: false,
-        prepareDelete(slotId) {
-            this.deleteSlotId = slotId;
-            this.showDeleteModal = true;
-        },
-        confirmDelete() {
-            fetch('{{ route('assessor.delete-slot') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ id: this.deleteSlotId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const slotArray = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
-                    const index = slotArray.findIndex(s => s.id === this.deleteSlotId);
-                    if (index !== -1) {
-                        slotArray.splice(index, 1);
-                    }
-                    delete this.unavailableDatesMap[this.deleteSlotId];
-                    this.successMessage = 'Slot deleted successfully!';
-                    setTimeout(() => this.successMessage = '', 3000);
-                }
-                this.showDeleteModal = false;
-                this.deleteSlotId = null;
-            })
-            .catch(err => {
-                console.error('Delete failed', err);
-                alert('Something went wrong. Try again.');
-                this.showDeleteModal = false;
-                this.deleteSlotId = null;
-            });
-        },
-
-        // Time options
-        timeOptions: [
-            // AM
-            '01:00 am', '01:30 am', '02:00 am', '02:30 am', '03:00 am', '03:30 am',
-            '04:00 am', '04:30 am', '05:00 am', '05:30 am', '06:00 am', '06:30 am',
-            '07:00 am', '07:30 am', '08:00 am', '08:30 am', '09:00 am', '09:30 am',
-            '10:00 am', '10:30 am', '11:00 am', '11:30 am', '12:00 pm',
-
-            // PM
-            '12:30 pm', '01:00 pm', '01:30 pm', '02:00 pm', '02:30 pm', '03:00 pm',
-            '03:30 pm', '04:00 pm', '04:30 pm', '05:00 pm', '05:30 pm', '06:00 pm',
-            '06:30 pm', '07:00 pm', '07:30 pm', '08:00 pm', '08:30 pm', '09:00 pm',
-            '09:30 pm', '10:00 pm', '10:30 pm', '11:00 pm', '11:30 pm', '12:00 am'
-        ]
-    };
-}
 
 
             </script>

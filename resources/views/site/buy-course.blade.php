@@ -111,7 +111,7 @@
                                                 <th class="px-4 py-2">Duration</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <!-- <tbody>
                                             @if($material->batches->isNotEmpty())
                                                 @foreach ($material->batches as $batch)
                                                     @php
@@ -173,7 +173,76 @@
 
 
 
+                                        </tbody> -->
+                                        <tbody>
+                                            @if($material->batches->isNotEmpty())
+                                                @foreach ($material->batches as $batch)
+                                                    @php
+                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
+                                                        $now = \Carbon\Carbon::now();
+
+                                                        // Parse duration
+                                                        $duration = strtolower($batch->duration);
+                                                        preg_match('/\d+/', $duration, $matches);
+                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
+
+                                                        // Calculate end date
+                                                        if (str_contains($duration, 'day')) {
+                                                            $endDate = $startDate->copy()->addDays($durationValue);
+                                                        } elseif (str_contains($duration, 'month')) {
+                                                            $endDate = $startDate->copy()->addMonths($durationValue);
+                                                        } elseif (str_contains($duration, 'year')) {
+                                                            $endDate = $startDate->copy()->addYears($durationValue);
+                                                        } else {
+                                                            $endDate = $startDate;
+                                                        }
+
+                                                        $isStarted = $startDate->isPast();
+                                                        $isEnded = $endDate->isPast();
+
+                                                        // Check batch strength
+                                                        $bookedCount = \DB::table('jobseeker_training_material_purchases')
+                                                                        ->where('batch_id', $batch->id)
+                                                                        ->count();
+                                                        $isFull = $bookedCount >= $batch->strength;
+                                                    @endphp
+
+                                                    <tr class="border-t {{ $isEnded || $isFull ? 'bg-gray-200 text-red-500' : 'cursor-pointer' }}" 
+                                                        onclick="{{ ($isEnded || $isFull) ? '' : 'selectRadio(' . $batch->id . ')' }}">
+                                                        
+                                                        <td class="px-4 py-3">
+                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
+                                                                id="batch-radio-{{ $batch->id }}" {{ ($isEnded || $isFull) ? 'disabled' : '' }}>
+                                                        </td>
+
+                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
+
+                                                        <td class="px-4 py-3">
+                                                            {{ $startDate->format('d M Y') }}
+                                                            @if ($isFull)
+                                                                <div class="text-sm font-semibold text-red-600">Batch Full</div>
+                                                            @elseif ($isStarted && !$isEnded)
+                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
+                                                            @elseif ($isEnded)
+                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
+                                                            @endif
+                                                        </td>
+
+                                                        <td class="px-4 py-3">
+                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
+                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                        </td>
+
+                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
+                                                </tr>
+                                            @endif
                                         </tbody>
+
                                     </table>
                                     @error('batch')
                                         <small class="text-danger">{{ $message }}</small>
