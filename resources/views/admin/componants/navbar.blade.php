@@ -43,49 +43,66 @@
 
                     <!-- Notifications -->
                     <li class="dropdown">
-                        <a href="javascript:void(0);" class="dropdown-toggle icon-menu" data-toggle="dropdown">
-                            <i class="fa fa-bell-o text"></i>
-                            <span class="notification-dot info">4</span>
-                        </a>
-                        <ul class="dropdown-menu feeds_widget mt-0 animation-li-delay">
-                            <li class="header theme-bg mt-0 text-light">You have 4 New Notifications</li>
-                            <li>
-                                <a href="javascript:void(0);">
-                                    <div class="mr-4"><i class="fa fa-check text-red"></i></div>
-                                    <div class="feeds-body">
-                                        <h4 class="title text-danger">Issue Fixed <small class="float-right text-muted font-12">9:10 AM</small></h4>
-                                        <small>We have fixed all design bugs with responsiveness.</small>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);">
-                                    <div class="mr-4"><i class="fa fa-user text-info"></i></div>
-                                    <div class="feeds-body">
-                                        <h4 class="title text-info">New User <small class="float-right text-muted font-12">9:15 AM</small></h4>
-                                        <small>I feel great! Thanks team</small>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);">
-                                    <div class="mr-4"><i class="fa fa-question-circle text-warning"></i></div>
-                                    <div class="feeds-body">
-                                        <h4 class="title text-warning">Server Warning <small class="float-right text-muted font-12">9:17 AM</small></h4>
-                                        <small>Your connection is not private</small>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);">
-                                    <div class="mr-4"><i class="fa fa-thumbs-o-up text-success"></i></div>
-                                    <div class="feeds-body">
-                                        <h4 class="title text-success">2 New Feedback <small class="float-right text-muted font-12">9:22 AM</small></h4>
-                                        <small>It will give a smart finishing to your site</small>
-                                    </div>
-                                </a>
-                            </li>
-                        </ul>
+                        <div id="notify">
+                            @php $notifications = notificationSent(); @endphp
+                            <a href="javascript:void(0);" class="dropdown-toggle icon-menu" data-toggle="dropdown">
+                                <i class="fa fa-bell text"></i>
+                                <span class="notification-dot info">{{ $notifications->count() }}</span>
+                            </a>
+                            <ul class="dropdown-menu feeds_widget mt-0 animation-li-delay">
+                                <li class="header theme-bg mt-0 text-light">You have {{ $notifications->count() }} New Notifications</li>
+                                
+                                @foreach($notifications as $notification)
+                                    <li>
+                                        <a href="{{ route('admin.notifications.view',['id' => $notification->id]) }}">
+                                            <div class="mr-4"><i class="fa fa-check text-red"></i></div>
+                                            <div class="feeds-body">
+                                                <h4 class="title text-info">Jobseeker Registration<small class="float-right text-muted font-12">{{ date('H:i A', strtotime($notification->created_at)) }}</small></h4>
+                                                <small>{{ $notification->message }}</small>
+                                            </div>
+                                        </a>
+                                    </li>
+                                @endforeach
+                                @if($notifications->count() < 0)
+                                   <h4>No Data Found</h4>
+                                @endif
+                                <!-- <li>
+                                    <a href="javascript:void(0);">
+                                        <div class="mr-4"><i class="fa fa-user text-info"></i></div>
+                                        <div class="feeds-body">
+                                            <h4 class="title text-info">New User <small class="float-right text-muted font-12">9:15 AM</small></h4>
+                                            <small>I feel great! Thanks team</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0);">
+                                        <div class="mr-4"><i class="fa fa-question-circle text-warning"></i></div>
+                                        <div class="feeds-body">
+                                            <h4 class="title text-warning">Server Warning <small class="float-right text-muted font-12">9:17 AM</small></h4>
+                                            <small>Your connection is not private</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0);">
+                                        <div class="mr-4"><i class="fa fa-thumbs-o-up text-success"></i></div>
+                                        <div class="feeds-body">
+                                            <h4 class="title text-success">2 New Feedback <small class="float-right text-muted font-12">9:22 AM</small></h4>
+                                            <small>It will give a smart finishing to your site</small>
+                                        </div>
+                                    </a>
+                                </li> -->
+                            </ul>
+                            <script>
+                                function refreshSection() {
+                                document.getElementById("notify").refresh();
+                                }
+
+                                // Refresh every 5 seconds
+                                setInterval(refreshSection, 5000);
+                            </script>
+                        </div>
                     </li>
 
                     <!-- Logout -->

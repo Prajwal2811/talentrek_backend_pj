@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
-
+use App\Http\Controllers\NotificationController;
 
 // Admin Routes
 Route::group(['prefix' => 'admin'], function() {
@@ -203,6 +203,12 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::get('/coupons/{id}/edit', [AdminController::class, 'edit'])->name('admin.coupons.edit');
 			Route::put('/coupons/{id}', [AdminController::class, 'update'])->name('admin.coupons.update');
 			Route::delete('/coupons/{id}', [AdminController::class, 'destroy'])->name('admin.coupons.destroy');
+		});
+
+		// ==================== Notifications ====================
+		Route::middleware('admin.module:Notifications')->group(function () {
+			Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
+			Route::get('/notifications/view/{id}', [NotificationController::class, 'view'])->name('admin.notifications.view');
 		});
 	});
 });

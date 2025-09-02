@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class PaymentHistory extends Model
+class Notification extends Model
 {
     use HasFactory;
 
-    protected $table = 'payments_history';
+    protected $table = 'notifications';
     protected $fillable = [
         'jobseeker_id',
         'course_id',
@@ -29,13 +29,4 @@ class PaymentHistory extends Model
 
     // Relationships
 
-    public function jobseeker()
-    {
-        return $this->belongsTo(Jobseekers::class);
-    }
-
-    public function course()
-    {
-        return $this->belongsTo(TrainingMaterial::class, 'course_id');
-    }
 }

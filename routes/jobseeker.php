@@ -54,6 +54,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
     });
 
 
+
 	Route::middleware(['jobseeker.auth', 'check.jobseeker.subscription'])->group(function () {
 		Route::get('/dashboard',[JobseekerController::class, 'dashboard'])->name('jobseeker.dashboard');
 		Route::post('/login',[JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
