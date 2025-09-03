@@ -311,7 +311,20 @@ $assessor = Auth()->user();
                                         });
                                     });
                                 </script>
-
+                                <!-- Delete Account Section -->
+                                <div x-show="activeSection === 'delete'" x-transition>
+                                    <h3 class="text-xl font-semibold mb-4 text-red-600">Delete Account</h3>
+                                    <p>This action is irreversible. Are you sure you want to delete your account?</p>
+                                    <!-- <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Account</button> -->
+                                    <form id="
+                                    " action="{{ route('assessor.destroy') }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" id="deleteAccountBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            Delete Account
+                                        </button>
+                                    </form>
+                                </div>
 
                                    <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
                                 <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
@@ -741,7 +754,16 @@ $assessor = Auth()->user();
                                                     <label class="block font-medium mb-1">About assessor</label>
                                                     <textarea name="about_assessor" class="w-full border rounded px-3 py-2 h-24">{{ $assessor->about_assessor }}</textarea>
                                                 </div>
+                                                <!-- <h3 class="text-lg font-semibold mt-5">Session Price</h3> -->
+                                                <h3 class="text-2xl font-bold mt-5">Session Price</h3>
 
+                                                    <div class="grid grid-cols-2 gap-6 mt-3">
+                                                        <!-- Price Per Session -->
+                                                        <div>
+                                                            <label class="block mb-1 font-medium">Price Per Session</label>
+                                                            <input type="text" name="per_slot_price" value="{{ $assessor->per_slot_price }}" class="w-full border rounded px-3 py-2" />
+                                                        </div>
+                                                    </div>
                                                 <!-- Buttons -->
                                                 <div class="mt-6 flex justify-end gap-4">
                                                     <button @click.prevent="activeSubTab = 'education'" class="border px-6 py-2 rounded hover:bg-gray-100">Next</button>
@@ -1357,7 +1379,6 @@ $assessor = Auth()->user();
                                                             <input type="file" name="training_certificate" accept=".pdf,.jpg,.jpeg,.png" class="border rounded p-2 w-full" />
                                                         </div>
                                                     </div>
-
                                                     <!-- Submit Button -->
                                                     <div class="flex justify-end mt-6">
                                                         <button type="button" id="save-trainer-additional-info" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800">Save</button>
@@ -1526,20 +1547,7 @@ $assessor = Auth()->user();
                                 <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Log Out</button>
                                 </div>
 
-                                <!-- Delete Account Section -->
-                                <div x-show="activeSection === 'delete'" x-transition>
-                                    <h3 class="text-xl font-semibold mb-4 text-red-600">Delete Account</h3>
-                                    <p>This action is irreversible. Are you sure you want to delete your account?</p>
-                                    <!-- <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Account</button> -->
-                                    <form id="
-                                    " action="{{ route('assessor.destroy') }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" id="deleteAccountBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                            Delete Account
-                                        </button>
-                                    </form>
-                                </div>
+                                
                             </div>
                         </section>
                     </div>
