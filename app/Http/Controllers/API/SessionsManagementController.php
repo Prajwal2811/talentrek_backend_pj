@@ -331,11 +331,11 @@ class SessionsManagementController extends Controller
             $relationships = [];
             $type = $request->type;
             if ($type === 'mentor') {
-                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot'];
+                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot','jobseekerWorkExperience'];
             } elseif ($type === 'assessor') {
-                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot'];
+                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot','jobseekerWorkExperience'];
             } elseif ($type === 'coach') {
-                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot'];
+                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot','jobseekerWorkExperience'];
             }
             $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
                 ->whereDate('slot_date', '<=', Carbon::today())                
@@ -358,9 +358,11 @@ class SessionsManagementController extends Controller
                     $expRelation = $type === 'mentor' ? 'WorkExperience' : ($type === 'assessor' ? 'AssessorWorkExperience' : 'coachWorkExperience');
                     $infoRelation = $type === 'mentor' ? 'mentorAdditionalInfo' : ($type === 'assessor' ? 'assessorAdditionalInfo' : 'coachAdditionalInfo');
                     $profilePicture = $type === 'mentor' ? 'mentor_profile_picture' : ($type === 'assessor' ? 'assessor_profile_picture' : 'coach_profile_picture');
+                    $jobseekerWorkExperience = 'jobseekerWorkExperience';
 
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $item->recent_job_role  = collect($item->$expRelation)->reduce(function ($carry, $exp) {
+                    $item->recent_job_role  = collect($item->$jobseekerWorkExperience)->reduce(function ($carry, $exp) {
+                        //print_r($exp);exit;
                         $start = Carbon::parse($exp->starts_from);
 
                         $endRaw = strtolower(trim($exp->end_to));
@@ -381,10 +383,16 @@ class SessionsManagementController extends Controller
                             $image = $jobseekerAdditionalInfos->document_path ;
                         }                
                     }
+                    //print_r($item->bookingSlot) ;exit;
                     $item->image = $image ?? null;
-                    // $item->startTime =  date('h:i A',strtotime($item->bookingSlot->start_time)) ?? null;
-                    // $item->endTime =  date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
-                    // $item->slotStartEndTime =  date('h:i A',strtotime($item->bookingSlot->start_time)).' - '.date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+                    $startTime = optional($item->bookingSlot)->start_time 
+                        ? Carbon::parse($item->bookingSlot->start_time)->format('h:i A') 
+                        : '00:00:00';
+
+                    $endTime = optional($item->bookingSlot)->end_time 
+                        ? Carbon::parse($item->bookingSlot->end_time)->format('h:i A') 
+                        : '00:00:00';
+                    $item->slotStartEndTime =  $startTime.' - '.$endTime ?? null;
 
                     unset($item->$infoRelation);
                     unset($item->$relationName, $item->$expRelation,$item->bookingSlot);

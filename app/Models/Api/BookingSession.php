@@ -98,6 +98,8 @@ class BookingSession extends Model
         ->where('user_type', 'mentor');
     }
 
+    
+
     public function mentorAdditionalInfo()
     {
         return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')

@@ -9,4 +9,5 @@ return [
     'payment_url'   => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
     'callback_url'  => env('APP_URL').env('NEOLEAP_SUCCESS_URL '),
     'return_url'    => env('APP_URL').env('NEOLEAP_SUCCESS_URL'),
+    'iv' => env('NEOLEAP_IV', 'PGKEYENCDECIVSPC'),
 ];
