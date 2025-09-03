@@ -862,7 +862,48 @@ class RecruiterController extends Controller
           'recruiters.*.mobile'      => 'required|digits:9',
      ];
 
-     $validator = Validator::make($request->all(), $rules);
+     $messages = [
+          'company_name.required'          => 'Company name is required.',
+          'company_name.string'            => 'Company name must be a valid string.',
+          'company_name.max'               => 'Company name cannot exceed 255 characters.',
+
+          'company_phone_number.required'  => 'Company phone number is required.',
+          'company_phone_number.digits'    => 'Company phone number must be exactly 9 digits.',
+
+          'business_email.required'        => 'Business email is required.',
+          'business_email.email'           => 'Business email must be a valid email address.',
+          'business_email.unique'          => 'This business email is already taken.',
+
+          'industry_type.required'         => 'Industry type is required.',
+          'industry_type.string'           => 'Industry type must be a valid string.',
+
+          'establishment_date.required'    => 'Establishment date is required.',
+          'establishment_date.date'        => 'Establishment date must be a valid date.',
+
+          'company_website.url'            => 'Company website must be a valid URL.',
+
+          // Recruiters messages
+          'recruiters.*.id.required'       => 'Recruiter ID is required.',
+          'recruiters.*.id.exists'         => 'Recruiter ID must exist in the system.',
+
+          'recruiters.*.name.required'     => 'Recruiter name is required.',
+          'recruiters.*.name.string'       => 'Recruiter name must be a valid string.',
+          'recruiters.*.name.max'          => 'Recruiter name cannot exceed 255 characters.',
+
+          'recruiters.*.email.required'    => 'Recruiter email is required.',
+          'recruiters.*.email.email'       => 'Recruiter email must be a valid email address.',
+
+          'recruiters.*.national_id.required' => 'Recruiter national ID is required.',
+          'recruiters.*.national_id.digits'   => 'Recruiter national ID must be exactly 15 digits.',
+
+          'recruiters.*.mobile.required'   => 'Recruiter mobile number is required.',
+          'recruiters.*.mobile.digits'     => 'Recruiter mobile number must be exactly 9 digits.',
+          ];
+
+          // Usage
+          $validated = $request->validate($rules, $messages);
+
+
 
      // ✅ Custom validation for recruiter email & national_id uniqueness
      $validator->after(function ($validator) use ($request) {
@@ -966,7 +1007,7 @@ class RecruiterController extends Controller
                     $file->move(public_path('uploads'), $fileName);
                     $path = asset('uploads/' . $fileName);
 
-                    \App\Models\AdditionalInfo::updateOrCreate(
+                    AdditionalInfo::updateOrCreate(
                          ['user_id' => $userId, 'doc_type' => $type],
                          [
                               'document_path' => $path,
@@ -1224,52 +1265,58 @@ class RecruiterController extends Controller
 
 
 
-    public function addOthers(Request $request)
-{
-    $validated = $request->validate([
-        'main_recruiter_id'        => 'required|exists:recruiters,id',
-        'company_id'               => 'required|exists:recruiters_company,id',
-        'recruiters'               => 'required|array',
-        'recruiters.*.name'        => 'required|string|max:100',
-        'recruiters.*.email'       => 'required|email',
-        'recruiters.*.national_id' => 'required|digits_between:10,15',
-    ]);
+     public function addOthers(Request $request)
+     {
+          $validated = $request->validate([
+     'main_recruiter_id'        => 'required|exists:recruiters,id',
+     'company_id'               => 'required|exists:recruiters_company,id',
+     'recruiters'               => 'required|array',
+     'recruiters.*.name'        => 'required|string|max:100',
+     'recruiters.*.email'       => 'required|email',
+     'recruiters.*.national_id' => 'required|digits_between:10,15',
+     ], [
+     'main_recruiter_id.required'        => 'Main recruiter is required.',
+     'main_recruiter_id.exists'          => 'Selected main recruiter does not exist.',
+     'company_id.required'               => 'Company is required.',
+     'company_id.exists'                 => 'Selected company does not exist.',
+     'recruiters.required'               => 'At least one recruiter must be added.',
+     'recruiters.array'                  => 'Recruiters must be an array.',
+     'recruiters.*.name.required'        => 'Recruiter name is required.',
+     'recruiters.*.name.string'          => 'Recruiter name must be a string.',
+     'recruiters.*.name.max'             => 'Recruiter name may not be greater than 100 characters.',
+     'recruiters.*.email.required'       => 'Recruiter email is required.',
+     'recruiters.*.email.email'          => 'Recruiter email must be a valid email address.',
+     'recruiters.*.national_id.required' => 'Recruiter national ID is required.',
+     'recruiters.*.national_id.digits_between' => 'Recruiter national ID must be between 10 and 15 digits.',
+     ]);
 
-    DB::beginTransaction();
 
-    try {
-        $company    = RecruiterCompany::findOrFail($validated['company_id']);
-        $addedCount = 0;
+     DB::beginTransaction();
 
-        foreach ($validated['recruiters'] as $i => $rec) {
-            // Case 1: Existing recruiter (id present)
-            if (!empty($rec['id'])) {
-                Recruiters::where('id', $rec['id'])->update([
-                    'name'        => $rec['name'],
-                    'email'       => $rec['email'],
-                    'national_id' => $rec['national_id'],
-                ]);
-                continue;
-            }
+     try {
+          $company    = RecruiterCompany::findOrFail($validated['company_id']);
+          $addedCount = 0;
 
-            // Case 2: No id → check if recruiter already exists by email or national_id
-            $existing = Recruiters::where('email', $rec['email'])
-                ->orWhere('national_id', $rec['national_id'])
-                ->first();
+          foreach ($validated['recruiters'] as $i => $rec) {
 
-            if ($existing) {
-                // Update existing recruiter
-                $existing->update([
-                    'name'        => $rec['name'],
-                    'email'       => $rec['email'],
-                    'national_id' => $rec['national_id'],
-                ]);
-            } else {
-                // Case 3: Create new recruiter
-                $username = strtolower(str_replace(' ', '', $rec['name']));
-                $password = $username . '@talentrek';
+               // Skip update, now we want to throw error if exists
+               $existing = Recruiters::where('email', $rec['email'])
+                    ->orWhere('national_id', $rec['national_id'])
+                    ->first();
 
-                Recruiters::create([
+               if ($existing) {
+                    DB::rollBack();
+                    return response()->json([
+                         'status'  => 'duplicate',
+                         'message' => "Recruiter with email '{$rec['email']}' or National ID '{$rec['national_id']}' already exists."
+                    ], 422);
+               }
+
+               // Create new recruiter
+               $username = strtolower(str_replace(' ', '', $rec['name']));
+               $password = $username . '@talentrek';
+
+               Recruiters::create([
                     'name'         => $rec['name'],
                     'email'        => $rec['email'],
                     'company_id'   => $validated['company_id'],
@@ -1278,34 +1325,31 @@ class RecruiterController extends Controller
                     'recruiter_of' => $validated['main_recruiter_id'],
                     'password'     => Hash::make($password),
                     'pass'         => $password, // ⚠️ temporary only
-                ]);
+               ]);
 
-                $addedCount++;
-            }
-        }
-
-        // update recruiter_count if new recruiters added
-          if ($company->recruiter_count === null) {
-               $company->recruiter_count = (int) $company->recruiter_count + $addedCount;
-               $company->save();
+               $addedCount++;
           }
 
+          // Update recruiter count
+          $company->recruiter_count = ($company->recruiter_count ?? 0) + $addedCount;
+          $company->save();
 
-        DB::commit();
+          DB::commit();
 
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Recruiters saved successfully.'
-        ], 200);
+          return response()->json([
+               'status'  => 'success',
+               'message' => 'Recruiters added successfully.'
+          ], 200);
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'status'  => 'error',
-            'message' => $e->getMessage()
-        ], 500);
-    }
-}
+     } catch (\Exception $e) {
+          DB::rollBack();
+          return response()->json([
+               'status'  => 'error',
+               'message' => $e->getMessage()
+          ], 500);
+     }
+     }
+
 
 
 

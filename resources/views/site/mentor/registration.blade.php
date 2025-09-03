@@ -455,6 +455,15 @@
                                     <!-- Step 5: Additional Information -->
                                     <div id="step-5" class="step hidden">
                                    
+                                        {{-- <div>
+                                            <label class="block text-sm font-medium mb-1">Price Per Slot <span style="color: red; font-size: 17px;">*</span></label>
+                                            <div class="flex gap-2 items-center">
+                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm mt-1" />
+                                            </div>
+                                            @error('resume')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div> --}}
                                         <!-- Upload Resume -->
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Upload resume <span style="color: red; font-size: 17px;">*</span></label>

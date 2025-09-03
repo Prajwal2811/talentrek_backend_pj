@@ -88,7 +88,10 @@
                                 <!-- Sidebar -->
                                 <div class="bg-white rounded border p-6 shadow-sm space-y-4">
                                     <!-- Performance Progress Bar -->
-                                @php
+                                    @php
+                                        $assessmentData = App\Models\TrainerAssessment::where('id', $assessment->id)->first();
+                                        $actualPercentage = $assessmentData->passing_percentage;
+
                                         $correctAnswers = $score; // Use actual correct count if available
                                         $rawPercentage = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
                                         $percentage = min(100, max(0, round($rawPercentage))); // ensure 0–100%
@@ -123,6 +126,38 @@
                                             </template>
                                         </div>
                                     </div>
+                                    <!-- Show Re-assessment button if failed -->
+                                    @if ($percentage < $actualPercentage)
+                                        <div class="mt-4">
+                                            <a class="w-full px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700 transition" href="#" data-bs-toggle="modal" data-bs-target="#assessmentModal">
+                                               Re-assessment
+                                            </a>
+                                        </div>
+                                         <!-- Assessment Modal -->
+                                            <div class="modal fade" id="assessmentModal" tabindex="-1" aria-labelledby="assessmentModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="assessmentModalLabel">Assessment Instructions</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <ul>
+                                                        <li>Make sure you're in a quiet environment.</li>
+                                                        <li>Once started, the assessment must be completed in one go.</li>
+                                                        <li>No external help or switching tabs.</li>
+                                                        <li>Timer will start once you begin.</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="{{ route('assessment.view', $assessment->id) }}" class="btn btn-primary">Start Assessment</a>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    @endif
+
                                 </div>
                             </div>
 

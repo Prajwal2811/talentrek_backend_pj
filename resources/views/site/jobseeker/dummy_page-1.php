@@ -1,31 +1,4 @@
-@include('site.componants.header')
-<body>
-<div class="loading-area">
-    <div class="loading-box"></div>
-        <div class="loading-pic">
-            <div class="wrapper">
-                <div class="cssload-loader"></div>
-            </div>
-        </div>
-    </div>
-
-    @include('site.componants.navbar')	
-
-   
-        <div class="page-content">
-            <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset//images/banner/service page banner.png') }}');">
-                <div class="absolute inset-0 bg-white bg-opacity-10"></div>
-                <div class="relative z-10 container mx-auto px-4">
-                    <div class="space-y-2">
-                        <h2 class="text-3xl font-bold text-white ml-[10%]">Profile</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-
-        {{-- @if($alreadySubmitted || session()->has('quiz_result'))
+@if($alreadySubmitted || session()->has('quiz_result'))
             @php
                 $result = session('quiz_result') ?? [
                     'score' => App\Models\JobseekerAssessmentData::where([
@@ -51,6 +24,16 @@
                                     Congratulations! You have finished the<br />
                                     assessment quiz successfully.
                                 </h2>
+                                {{-- <p class="text-lg text-gray-700 mb-2">
+                                    You scored <span class="font-bold text-blue-600">{{ $result['score'] }}</span> out of
+                                    <span class="font-bold text-blue-600">{{ $result['total'] }}</span>.
+                                </p>
+
+                                @if($result['score'] >= ceil($result['total'] * 0.6))
+                                    <p class="text-green-600 font-semibold mb-4">✅ You passed the quiz!</p>
+                                @else
+                                    <p class="text-red-600 font-semibold mb-4">❌ You did not pass. Please try again after admin reset.</p>
+                                @endif --}}
 
                                 <a href="{{ route('jobseeker.assessment.result', $assessment->id) }}">
                                     <button class="mt-4 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-6 py-2.5 rounded">
@@ -62,7 +45,8 @@
                     </div>
                 </div>
             </main>
-        @else --}}
+        
+        @else
             <main class="w-11/12 mx-auto py-8">
                 <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
                     <div class="flex-1">
@@ -319,8 +303,7 @@
                                                 this.errorMessage = `Quiz Submitted!`;
 
                                                 setTimeout(() => {
-                                                    // ✅ Redirect to profile after successful submission
-                                                    window.location.href = '{{ route("jobseeker.profile") }}';
+                                                    window.location.href = '{{ url()->current() }}';
                                                 }, 2000);
                                             },
                                             error: () => {
@@ -334,32 +317,4 @@
                     </div>
                 </div>
             </main>
-        {{-- @endif --}}
-
-
-
-    
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-    @include('site.jobseeker.componants.footer')
-
-
-
-
-
-
+        @endif

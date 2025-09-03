@@ -42,6 +42,8 @@ use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 use App\Services\ZoomService;
+use App\Models\Coupon;
+use App\Models\Taxation;
 
 
 use DB;
@@ -2537,7 +2539,160 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Profile updated successfully.');
     }
 
+    public function coupons()
+    {
+        $coupons = Coupon::latest()->paginate(10); // you can change per-page
+        return view('admin.coupons.index', compact('coupons'));
+    }
+
+    public function createCoupon()
+    {
+        return view('admin.coupons.create');
+    }
+
+    public function storeCoupon(Request $request)
+    {
+        $request->validate([
+            'code'          => 'required|unique:coupons,code',
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_value'=> 'required|numeric|min:0',
+            'valid_from'    => 'nullable|date',
+            'valid_to'      => 'nullable|date|after_or_equal:valid_from',
+            'is_active'     => 'boolean'
+        ]);
+
+        Coupon::create($request->all());
+
+        return redirect()->route('admin.coupons.coupons')
+                         ->with('success', 'Coupon created successfully.');
+    }
+
+   
+    public function editCoupon($id)
+    {
+        $coupon = Coupon::findOrFail($id);
+        return view('admin.coupons.edit', compact('coupon'));
+    }
+
+   
+    public function updateCoupon(Request $request, $id)
+    {
+        $coupon = Coupon::findOrFail($id);
+
+        $request->validate([
+            'code'          => 'required|unique:coupons,code,' . $coupon->id,
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_value'=> 'required|numeric|min:0',
+            'valid_from'    => 'nullable|date',
+            'valid_to'      => 'nullable|date|after_or_equal:valid_from',
+            'is_active'     => 'boolean'
+        ]);
+
+        $coupon->update($request->all());
+
+        return redirect()->route('admin.coupons.coupons')
+                         ->with('success', 'Coupon updated successfully.');
+    }
+
+    public function destroyCoupon($id)
+    {
+        $coupon = Coupon::findOrFail($id);
+        $coupon->delete();
+
+        return redirect()->route('admin.coupons.coupons')
+                         ->with('success', 'Coupon deleted successfully.');
+    }
 
 
+    /**
+     * Display a listing of the taxations.
+     */
+    public function taxations()
+    {
+        $taxations = Taxation::latest()->paginate(10);
+        return view('admin.taxations.index', compact('taxations'));
+    }
+
+    /**
+     * Show the form for creating a new taxation.
+     */
+    public function createTax()
+    {
+        return view('admin.taxations.create');
+    }
+
+    /**
+     * Store a newly created taxation in storage.
+     */
+    public function showTaxations($type)
+    {
+        // Normalize type (make first letter uppercase for consistency)
+        $type = ucfirst(strtolower($type));
+        // Pass data to view
+        return view('admin.taxations.view', compact('type'));
+    }
+
+    /**
+     * Show the form for editing the specified taxation.
+     */
+    public function editTax($id)
+    {
+        $taxation = Taxation::findOrFail($id);
+        return view('admin.taxations.edit', compact('taxation'));
+    }
+
+    /**
+     * Update the specified taxation in storage.
+     */
+    public function updateTax(Request $request)
+    {
+        $request->validate([
+            'user_type' => 'required|string|in:mentor,trainer,assessor,coach',
+            'rate'      => 'required|numeric|min:0',
+        ]);
+
+        $userType = strtolower($request->input('user_type'));
+        $rate     = $request->input('rate');
+
+        // Map user types to setting fields
+        $fieldMap = [
+            'trainer'   => 'trainingMaterialTax',
+            'mentor'    => 'mentorTax',
+            'assessor'  => 'assessorTax',
+            'coach'     => 'coachTax',
+        ];
+
+        if (isset($fieldMap[$userType])) {
+            // Get settings row (always only 1 row)
+            $settings = Setting::first();
+            if (!$settings) {
+                $settings = Setting::create(); // create empty row if not exists
+            }
+
+            // Update only the required field
+            $settings->{$fieldMap[$userType]} = $rate;
+            $settings->save();
+        }
+
+        return redirect()
+            ->route('admin.taxations.taxations')
+            ->with('success', ucfirst($userType) . ' taxation updated successfully!');
+    }
+
+
+
+
+
+    /**
+     * Remove the specified taxation from storage.
+     */
+    public function destroyTax($id)
+    {
+        $taxation = Taxation::findOrFail($id);
+        $taxation->delete();
+
+        return redirect()->route('admin.taxations.taxations')
+                         ->with('success', 'Taxation deleted successfully.');
+    }
     
 }

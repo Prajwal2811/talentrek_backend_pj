@@ -27,6 +27,7 @@ $skills = $user->skills->first();
         @include('site.jobseeker.subscription.index')
     @endif
 
+
         <div class="page-content">
             <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset//images/banner/service page banner.png') }}');">
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
@@ -37,6 +38,21 @@ $skills = $user->skills->first();
                 </div>
             </div>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        @if(session('success'))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: "{{ session('success') }}",
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            </script>
+        @endif
+        @include('admin.errors')
         <main class="w-11/12 mx-auto py-8" x-data="{ tab: 'personal' }">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
                 <!-- Left/Main Content -->

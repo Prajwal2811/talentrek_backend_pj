@@ -99,94 +99,98 @@
                                 @error('session_type')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
-                                <div>
-                                    <h3 class="text-sm font-medium mb-2">Select batch</h3>
-                                    <table class="w-full border border-gray-200 rounded">
-                                        <thead class="bg-gray-100 text-gray-700 text-left text-sm">
-                                            <tr>
-                                                <th class="px-4 py-2">Select</th>
-                                                <th class="px-4 py-2">Batch No</th>
-                                                <th class="px-4 py-2">Start Date</th>
-                                                <th class="px-4 py-2">Timings</th>
-                                                <th class="px-4 py-2">Duration</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if($material->batches->isNotEmpty())
-                                                @foreach ($material->batches as $batch)
-                                                    @php
-                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
-                                                        $now = \Carbon\Carbon::now();
+                               <div>
+                                <h3 class="text-sm font-medium mb-2">Select batch</h3>
+                                <table class="w-full border border-gray-200 rounded">
+                                    <thead class="bg-gray-100 text-gray-700 text-left text-sm">
+                                        <tr>
+                                            <th class="px-4 py-2">Select</th>
+                                            <th class="px-4 py-2">Batch No</th>
+                                            <th class="px-4 py-2">Start Date</th>
+                                            <th class="px-4 py-2">Timings</th>
+                                            <th class="px-4 py-2">Duration</th>
+                                            <th class="px-4 py-2">Strength</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if($material->batches->isNotEmpty())
+                                            @foreach ($material->batches as $batch)
+                                                @php
+                                                    $startDate = \Carbon\Carbon::parse($batch->start_date);
+                                                    $now = \Carbon\Carbon::now();
 
-                                                        // Parse duration
-                                                        $duration = strtolower($batch->duration);
-                                                        preg_match('/\d+/', $duration, $matches);
-                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
+                                                    // Parse duration
+                                                    $duration = strtolower($batch->duration);
+                                                    preg_match('/\d+/', $duration, $matches);
+                                                    $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
 
-                                                        // Calculate end date
-                                                        if (str_contains($duration, 'day')) {
-                                                            $endDate = $startDate->copy()->addDays($durationValue);
-                                                        } elseif (str_contains($duration, 'month')) {
-                                                            $endDate = $startDate->copy()->addMonths($durationValue);
-                                                        } elseif (str_contains($duration, 'year')) {
-                                                            $endDate = $startDate->copy()->addYears($durationValue);
-                                                        } else {
-                                                            $endDate = $startDate;
-                                                        }
+                                                    // Calculate end date
+                                                    if (str_contains($duration, 'day')) {
+                                                        $endDate = $startDate->copy()->addDays($durationValue);
+                                                    } elseif (str_contains($duration, 'month')) {
+                                                        $endDate = $startDate->copy()->addMonths($durationValue);
+                                                    } elseif (str_contains($duration, 'year')) {
+                                                        $endDate = $startDate->copy()->addYears($durationValue);
+                                                    } else {
+                                                        $endDate = $startDate;
+                                                    }
 
-                                                        $isStarted = $startDate->isPast();
-                                                        $isEnded = $endDate->isPast();
-                                                    @endphp
+                                                    $isStarted = $startDate->isPast();
+                                                    $isEnded = $endDate->isPast();
+                                                @endphp
 
-                                                    <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
-                                                        onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
-                                                        
-                                                        <td class="px-4 py-3">
-                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
-                                                                id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
-                                                        </td>
+                                                <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
+                                                    onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
+                                                    
+                                                    <td class="px-4 py-3">
+                                                        <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
+                                                            id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
+                                                    </td>
 
-                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
+                                                    <td class="px-4 py-3">{{ $batch->batch_no }}</td>
 
-                                                        <td class="px-4 py-3">
-                                                            {{ $startDate->format('d M Y') }}
-                                                            @if ($isStarted && !$isEnded)
-                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
-                                                            @elseif ($isEnded)
-                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
-                                                            @endif
-                                                        </td>
+                                                    <td class="px-4 py-3">
+                                                        {{ $startDate->format('d M Y') }}
+                                                        @if ($isStarted && !$isEnded)
+                                                            <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
+                                                        @elseif ($isEnded)
+                                                            <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
+                                                        @endif
+                                                    </td>
 
-                                                        <td class="px-4 py-3">
-                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                                        </td>
+                                                    <td class="px-4 py-3">
+                                                        {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
+                                                        {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                    </td>
 
-                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
+                                                    <td class="px-4 py-3">{{ $batch->duration }}</td>
+
+                                                    <!-- Strength Column -->
+                                                    <td class="px-4 py-3">
+                                                        {{ $batch->strength ?? 'N/A' }}
+                                                    </td>
                                                 </tr>
-                                            @endif
-
-
-
-                                        </tbody>
-                                    </table>
-                                    @error('batch')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                    <script>
-                                        function selectRadio(id) {
-                                            const radio = document.getElementById('batch-radio-' + id);
-                                            if (radio) {
-                                                radio.checked = true;
-                                            }
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="6" class="text-center text-gray-500 py-4">No batches available.</td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                </table>
+                                @error('batch')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                                <script>
+                                    function selectRadio(id) {
+                                        const radio = document.getElementById('batch-radio-' + id);
+                                        if (radio) {
+                                            radio.checked = true;
                                         }
-                                    </script>
-                                </div>
+                                    }
+                                </script>
+                            </div>
+
                                 <div class="flex border rounded p-4 space-x-4">
                                     <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
                                         alt="Course" class="w-28 h-20 object-cover rounded">

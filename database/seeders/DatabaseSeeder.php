@@ -45,7 +45,10 @@ class DatabaseSeeder extends Seeder
             JobseekerSavedBookingSessionSeeder::class,
             JobseekerTrainingMaterialPurchasesSeeder::class,
             JobseekerCartItemSeeder::class,
-            SubscriptionPlanSeeder::class
+            SubscriptionPlanSeeder::class,
+            CouponSeeder::class,
+            TaxationSeeder::class,
+            TeamCourseMembersSeeder::class
         ]);
         
     }

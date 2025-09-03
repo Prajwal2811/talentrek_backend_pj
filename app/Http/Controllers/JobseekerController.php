@@ -690,6 +690,21 @@ class JobseekerController extends Controller
     }
 
 
+    public function paymentResponse(Request $request)
+    {
+        Log::info("=== Neoleap Response ===", $request->all());
+
+        return response()->json($request->all());
+    }
+
+
+    public function paymentError(Request $request)
+    {
+        return redirect()->route('dashboard')->with('error', 'Payment cancelled or failed.');
+    }
+
+
+
 
 
 
@@ -2559,6 +2574,104 @@ class JobseekerController extends Controller
 
 
 
+
+    public function teamPurchaseCourse(Request $request)
+    {
+        if (!auth('jobseeker')->check()) {
+            return redirect()->back()->with('error', 'Please log in as a Jobseeker to purchase a course.');
+        }
+
+        $request->validate([
+            'training_type'   => 'required|in:online,classroom,recorded',
+            'session_type'    => 'required_if:training_type,online,classroom|in:online,classroom',
+            'batch'           => 'required_if:training_type,online,classroom|exists:training_batches,id',
+            'payment_method'  => 'required|in:card,upi,bank',
+            'member_count'    => 'required|integer|min:2',
+            'member_emails'   => 'required|array|min:2',
+            'member_emails.*' => 'required|email'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
+
+            $actualPrice = $material->training_price;
+            $offerPrice  = $material->training_offer_price;
+            $savedAmount = $actualPrice - $offerPrice;
+
+            // Total price per member
+            $taxPerMember   = round($offerPrice * 0.10, 2); // 10% tax
+            $totalPerMember = $offerPrice + $taxPerMember;
+
+            // Multiply by team size
+            $memberCount = (int)$request->member_count;
+            $grandTotal  = $totalPerMember * $memberCount;
+            $grandTax    = $taxPerMember * $memberCount;
+            $grandSaved  = $savedAmount * $memberCount;
+
+            // Create purchase
+            $purchase = JobseekerTrainingMaterialPurchase::create([
+                'jobseeker_id'   => auth('jobseeker')->id(),
+                'trainer_id'     => $material->trainer_id,
+                'material_id'    => $material->id,
+                'training_type'  => $request->training_type,
+                'session_type'   => $request->session_type ?? null,
+                'batch_id'       => $request->batch ?? null,
+                'payment_method' => $request->payment_method,
+                'amount'         => $grandTotal,
+                'tax'            => $grandTax,
+                'discount'       => $grandSaved,
+                'status'         => 'paid',
+                'member_count'   => $memberCount,
+            ]);
+
+            // Save member emails in both tables
+            foreach ($request->member_emails as $email) {
+                // Insert into team_course_members
+                DB::table('team_course_members')->insert([
+                    'purchase_id' => $purchase->id,
+                    'email'       => $email,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+
+                // Create Jobseeker account if not exists
+                // Create Jobseeker account if not exists
+                $existing = Jobseekers::where('email', $email)->first();
+                if (!$existing) {
+                    $username = strstr($email, '@', true);
+
+                    // Create new password based on email prefix
+                    $password = $username . '@talentrek';
+
+                    Jobseekers::create([
+                        'name'     => 'Team Member', // optional, you can customize
+                        'email'    => $email,
+                        'password' => Hash::make($password), // store securely
+                        'pass'     => $password,             // store plain text if column exists
+                    ]);
+
+                    // Optional: send credentials via email
+                    // Mail::to($email)->send(new TeamMemberCredentialsMail($email, $password));
+                }
+
+            }
+
+            DB::commit();
+
+            return redirect()->route('course.details', $material->id)
+                ->with('success', 'Course purchased successfully for your team!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Team course purchase failed: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Something went wrong while processing your purchase.');
+        }
+    }
+
+
+
     public function viewAssessment($id)
     {
         $assessment = TrainerAssessment::where('material_id', $id)
@@ -2617,13 +2730,20 @@ class JobseekerController extends Controller
         ])->exists();
 
 
+        $resultStatus = JobseekerAssessmentStatus::where([
+                            ['assessment_id', '=', $assessment->id],
+                            ['jobseeker_id', '=', $jobseekerId],
+                            ['submitted', '=', true],
+                        ])->first();
+
         return view('site.jobseeker.assessment', compact(
             'assessment',
             'quizQuestions',
             'answeredIds',
             'remainingTime',
             'lastIndex',
-            'alreadySubmitted' // ✅ Add this
+            'alreadySubmitted',
+            'resultStatus'
         ));
 
     }
@@ -2660,69 +2780,88 @@ class JobseekerController extends Controller
     }
 
     public function submitQuiz(Request $request)
-    {
-        $request->validate([
-            'answers' => 'required|array',
-        ]);
+{
+    $request->validate([
+        'answers' => 'required|array',
+    ]);
 
-        $jobseekerId = Auth::guard('jobseeker')->id();
-        $correctCount = 0;
-        $assessmentId = null;
+    $jobseekerId = Auth::guard('jobseeker')->id();
+    $correctCount = 0;
+    $assessmentId = null;
 
-        foreach ($request->answers as $answer) {
-            if (!isset($answer['trainer_id'], $answer['material_id'], $answer['assessment_id'], $answer['question_id'], $answer['selected_answer'], $answer['correct_answer'])) {
-                continue;
-            }
-
-            $assessmentId = $answer['assessment_id'];
-
-            if ($answer['selected_answer'] === $answer['correct_answer']) {
-                $correctCount++;
-            }
-
-            JobseekerAssessmentData::updateOrCreate(
-                [
-                    'trainer_id' => $answer['trainer_id'],
-                    'training_id' => $answer['material_id'],
-                    'assessment_id' => $answer['assessment_id'],
-                    'question_id' => $answer['question_id'],
-                    'jobseeker_id' => $jobseekerId,
-                ],
-                [
-                    'selected_answer' => $answer['selected_answer'],
-                    'correct_answer' => $answer['correct_answer'],
-                ]
-            );
+    foreach ($request->answers as $answer) {
+        if (!isset($answer['trainer_id'], 
+                $answer['material_id'], 
+                $answer['assessment_id'], 
+                $answer['question_id'], 
+                $answer['selected_answer'], 
+                $answer['correct_answer']
+            )) {
+            continue;
         }
 
-        if ($assessmentId) {
-            // Save status as submitted
-            JobseekerAssessmentStatus::updateOrCreate(
-                [
-                    'jobseeker_id' => $jobseekerId,
-                    'assessment_id' => $assessmentId,
-                ],
-                ['submitted' => true]
-            );
+        $assessmentId = $answer['assessment_id'];
 
-            // Remove timer
-            $sessionKey = 'quiz_start_time_' . $assessmentId . '_' . $jobseekerId;
-            session()->forget($sessionKey);
-
-            // Store score in session
-            session()->flash('quiz_result', [
-                'score' => $correctCount,
-                'total' => count($request->answers)
-            ]);
+        if ($answer['selected_answer'] === $answer['correct_answer']) {
+            $correctCount++;
         }
 
-        return response()->json([
-            'message' => 'Quiz submitted successfully.',
-            'score' => $correctCount,
-            'total' => count($request->answers),
-            'status' => 'success',
+        JobseekerAssessmentData::updateOrCreate(
+            [
+                'trainer_id'   => $answer['trainer_id'],
+                'training_id'  => $answer['material_id'],
+                'assessment_id'=> $answer['assessment_id'],
+                'question_id'  => $answer['question_id'],
+                'jobseeker_id' => $jobseekerId,
+            ],
+            [
+                'selected_answer' => $answer['selected_answer'],
+                'correct_answer'  => $answer['correct_answer'],
+            ]
+        );
+    }
+
+    if ($assessmentId) {
+        $assessmentData = TrainerAssessment::find($assessmentId);
+        $totalQuestions = count($request->answers);
+
+        $rawPercentage = $totalQuestions > 0 ? ($correctCount / $totalQuestions) * 100 : 0;
+        $percentage = min(100, max(0, round($rawPercentage)));
+
+        $passingPercentage = $assessmentData ? $assessmentData->passing_percentage : 0;
+        $resultStatus = $percentage >= $passingPercentage ? 'pass' : 'fail';
+
+        JobseekerAssessmentStatus::updateOrCreate(
+            [
+                'jobseeker_id' => $jobseekerId,
+                'assessment_id' => $assessmentId,
+            ],
+            [
+                'submitted'     => true,
+                'score'         => $correctCount,
+                'total'         => $totalQuestions,
+                'percentage'    => $percentage,
+                'result_status' => $resultStatus,
+            ]
+        );
+
+        // Clear quiz timer
+        $sessionKey = 'quiz_start_time_' . $assessmentId . '_' . $jobseekerId;
+        session()->forget($sessionKey);
+
+        // Flash result to session (for showing in UI after redirect)
+        session()->flash('quiz_result', [
+            'score'         => $correctCount,
+            'total'         => $totalQuestions,
+            'percentage'    => $percentage,
+            'result_status' => $resultStatus,
         ]);
     }
+
+    // ✅ Redirect instead of returning JSON
+    return redirect()->route('jobseeker.profile')->with('success', 'Quiz submitted successfully.');
+}
+
 
 
     public function quizSuccess()
