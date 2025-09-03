@@ -11,7 +11,13 @@
         </div>
     </div>
 
-	
+    @if($recruiterNeedsSubscription)
+        @include('site.recruiter.subscription.index')
+    @endif
+        @if($otherRecruiterSubscription)
+        @include('site.recruiter.subscription.add-other-recruiters')
+    @endif
+
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             <!-- Sidebar -->
@@ -24,20 +30,21 @@
                 <!-- Stat Cards -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
-                    <p class="text-gray-500">Jobseeker Shortlisted</p>
-                    <h3 class="text-3xl font-bold mt-2">24</h3>
+                        <p class="text-xl text-black-500">Jobseeker Shortlisted</p>
+                        <h3 class="text-3xl font-bold mt-2">24</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
-                    <p class="text-gray-500">Interviews scheduled</p>
-                    <h3 class="text-3xl font-bold mt-2">15</h3>
+                        <p class="text-xl text-black-500">Interviews scheduled</p>
+                        <h3 class="text-3xl font-bold mt-2">15</h3>
                     </div>
                 </div>
+
 
 
                 <!-- Jobseekers contacted -->
                 <div class="bg-white p-6 rounded-lg shadow">
                     <h3 class="text-xl font-semibold mb-4">Jobseekers contacted</h3>
-
+                     <hr class="border-t border-gray-300 mb-4">
                     <template x-for="(jobseeker, index) in paginatedJobseekers()" :key="jobseeker.name">
                     <div class="flex justify-between items-center border-b py-4">
                         <div class="flex items-center space-x-4">
@@ -254,36 +261,4 @@
 
 
 
-          
-
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+@include('site.recruiter.componants.footer')

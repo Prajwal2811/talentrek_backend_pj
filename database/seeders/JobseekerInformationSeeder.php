@@ -9,6 +9,7 @@ use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class JobseekerInformationSeeder extends Seeder
 {
@@ -21,6 +22,7 @@ class JobseekerInformationSeeder extends Seeder
         $genders = ['Male', 'Female', 'Male', 'Female', 'Male'];
 
         foreach (range(0, 4) as $i) {
+            $password = 'Password@' . ($i + 1); 
             $jobseeker = Jobseekers::create([
                 'name' => $names[$i],
                 'email' => $emails[$i],
@@ -29,6 +31,8 @@ class JobseekerInformationSeeder extends Seeder
                 'city' => $cities[$i],
                 'address' => 'Address for ' . $names[$i],
                 'gender' => $genders[$i],
+                'password' => Hash::make($password), // hashed password
+                'pass' => $password, // hashed password
             ]);
 
             // Education Details
@@ -71,7 +75,7 @@ class JobseekerInformationSeeder extends Seeder
                 'user_type' => 'jobseeker',
                 'doc_type' => 'resume',
                 'document_name' => 'resume_' . $jobseeker->name . '.pdf',
-                'document_path' => asset('uploads/resume_sample.pdf'),
+                'document_path' =>'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
             ]);
 
             // Profile Picture
@@ -80,7 +84,7 @@ class JobseekerInformationSeeder extends Seeder
                 'user_type' => 'jobseeker',
                 'doc_type' => 'profile_picture',
                 'document_name' => 'profile_' . $jobseeker->name . '.png',
-                'document_path' => asset('uploads/profile_sample.png'),
+                'document_path' => 'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
             ]);
         }
     }

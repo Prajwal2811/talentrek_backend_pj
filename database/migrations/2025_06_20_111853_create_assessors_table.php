@@ -15,15 +15,29 @@ return new class extends Migration
     {
         Schema::create('assessors', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name')->nullable();
-            $table->string('company_email')->unique();
-            $table->string('phone_code')->nullable();              // e.g., +91
-            $table->string('company_phone_number')->nullable();    // e.g., 9876543210
-            $table->date('company_instablishment_date')->nullable(); // e.g., 2005-06-15
-            $table->string('industry_type')->nullable();           // e.g., Education, IT
-            $table->string('company_website')->nullable();         // e.g., https://company.com
+            $table->string('name')->nullable();
+            $table->string('email')->unique();
+            $table->string('national_id')->unique()->nullable();
+            $table->string('phone_code')->nullable();       // e.g., +91, +1
+            $table->string('phone_number')->nullable();     // e.g., 9876543210
+            $table->date('date_of_birth')->nullable();      // e.g., 1985-12-20
+            $table->string('city')->nullable();
+            $table->string('password')->nullable(); 
+            $table->string('pass')->nullable();    
+            $table->string('otp')->nullable();            
+            $table->string('status')->default('active');          
+            $table->string('admin_status')->nullable();            
+            $table->string('inactive_reason')->nullable(); // Removed ->after('status')
+            $table->string('rejection_reason')->nullable(); // Removed ->after('status')
+            $table->string('shortlist')->nullable(); // Removed ->after('status')
+            $table->string('admin_recruiter_status')->nullable(); // Removed ->after('status')
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
+            $table->text('about_assessor')->nullable();
+            $table->string('isSubscribtionBuy')->default('no');        // e.g., New York, Delhi
             $table->timestamps();
         });
+
     }
 
     /**

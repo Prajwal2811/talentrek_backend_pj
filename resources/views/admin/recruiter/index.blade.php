@@ -58,12 +58,12 @@
                                             </tr>
                                         </tfoot>
                                         <tbody>
-                                            @foreach($recruiters->unique('company_id') as $index => $recruiter)
+                                            @foreach($recruiters as $index => $recruiter)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $recruiter->name }}</td>
                                                 <td>{{ $recruiter->email }}</td>
-                                                <td>{{ $recruiter->company_name }}</td>
+                                                <td>{{ $recruiter->company->company_name ?? '-' }}</td>
                                                 <td>
                                                     <label class="switch"
                                                         @if($recruiter->status === 'inactive' && !empty($recruiter->inactive_reason))
@@ -189,8 +189,8 @@
 
                                                 <td>{{ \Carbon\Carbon::parse($recruiter->created_at)->format('d/m/Y') }}</td>
                                                 <td>
-                                                    <a href="{{ route('admin.recruiter.view', $recruiter->company_id) }}" class="btn btn-sm btn-primary">View Profile</a>
-                                                    <a href="{{ route('admin.recruiter.shortlisted-jobseekers', $recruiter->company_id) }}"  class="btn btn-sm btn-warning text-light">Shortlisted Jobseekers</a>
+                                                    <a href="{{ route('admin.recruiter.view', $recruiter->id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                                                    <a href="{{ route('admin.recruiter.shortlisted-jobseekers', $recruiter->id) }}"  class="btn btn-sm btn-warning text-light">Shortlisted Jobseekers</a>
                                                 </td>
                                             </tr>
                                             @endforeach

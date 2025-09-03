@@ -32,3 +32,27 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
 //     enabledTransports: ['ws', 'wss'],
 // });
+
+
+
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,  // .env wali key
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER, 
+    forceTLS: true,   // 🔑 LIVE SERVER par ye on hona hi chahiye
+    enabledTransports: ['ws', 'wss'],
+});
+
+// Check connection status
+window.Echo.connector.pusher.connection.bind('connected', () => {
+    console.log('✅ WebSocket connected!');
+});
+
+window.Echo.connector.pusher.connection.bind('error', (err) => {
+    console.error('❌ WebSocket connection error:', err);
+});

@@ -24,9 +24,13 @@ class Jobseekers extends Authenticatable
         'phone_code',
         'phone_number',
         'date_of_birth',
+        'national_id',
         'city',
+        'state',
         'address',
         'password',
+        'pin_code',
+        'country',
         'pass',
         'role',
         'otp',
@@ -36,7 +40,9 @@ class Jobseekers extends Authenticatable
         'rejection_reason', 
         'shortlist',
         'admin_recruiter_status',
-        'google_id'
+        'google_id',
+        'isSubscribtionBuy',
+        'is_registered'
     ];
 
     /**
@@ -90,5 +96,18 @@ class Jobseekers extends Authenticatable
 
         return "$years years, $months months";
     }
+
+    public function payments()
+    {
+        return $this->hasMany(PaymentHistory::class);
+    }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture');
+    }
+    
 
 }

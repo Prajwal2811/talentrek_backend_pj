@@ -21,6 +21,7 @@ return new class extends Migration
             // Training details
             $table->string('training_type')->nullable();                 // Online, Offline, Hybrid
             $table->string('training_title')->nullable();
+            $table->string('training_level')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
 
@@ -32,7 +33,7 @@ return new class extends Migration
             $table->string('thumbnail_file_path')->nullable();          // Storage path
             $table->string('thumbnail_file_name')->nullable();          // Original name
 
-
+            $table->string('total_duration')->nullable();                // e.g. 2 hours
 
             // Objective and status
             $table->text('training_objective')->nullable();
