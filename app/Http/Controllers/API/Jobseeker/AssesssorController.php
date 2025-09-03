@@ -6,7 +6,8 @@ use App\Models\Api\AssessmentQuestion;
 use App\Models\Api\Assessors;
 use App\Models\Api\AssessmentOption;
 use App\Models\Api\AssessmentJobseekerData;
-
+use App\Models\Api\TrainerAssessment;
+use Illuminate\Support\Facades\Validator;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -19,42 +20,45 @@ class AssesssorController extends Controller
     {
         return view('home');
     }
-
-    public function quizFaqList($assessorId , $userId)
+    public function quizDetailsByTrainerId($trainerId)
     {
-        // Get selected answers by user for this assessment
-        $selectedAnswers = AssessmentJobseekerData::where('assessment_id', $assessorId)
-            ->where('jobseeker_id', $userId)
-            ->pluck('selected_answer', 'question_id'); // [question_id => answer_id]
+        try {
+            $selectedQuiz = TrainerAssessment::select('id', 'trainer_id', 'assessment_title', 'assessment_description', 'assessment_level','material_id')
+                ->where('material_id', $trainerId)
+                ->first();
 
-        // Fetch all questions with options
-        $questions = AssessmentQuestion::select('id', 'assessment_id', 'questions_title')->with(['options' => function ($query) use ($selectedAnswers) {
-            $query->select('id', 'question_id', 'options'); // select needed columns only
-        }])
-        ->where('assessment_id', $assessorId)
-        ->get();
-
-        // Append 'is_selected' flag to each option
-        $questions->transform(function ($question) use ($selectedAnswers) {
-            foreach ($question->options as $option) {
-                $option->is_selected = isset($selectedAnswers[$question->id]) && $selectedAnswers[$question->id] == $option->id;
+            if (!$selectedQuiz) {
+                return $this->successResponse(null, 'No quiz found for the given trainer ID.');
             }
-            return $question;
-        });
 
-        return $this->successResponse($questions, 'Assessor quiz list fetched successfully.');
+            return $this->successResponse($selectedQuiz, 'Quiz detail fetched successfully.');
+            
+        } catch (\Exception $e) {
+            return $this->errorResponse('Something went wrong while fetching quiz details.', 500, [
+                'error' => $e->getMessage()
+            ]);
+        }
     }
+
 
     public function submitQuizAnswer(Request $request)
     {
-        $request->validate([
-            'training_id'    => 'required|integer',
-            'trainer_id'     => 'required|integer',
-            'jobseeker_id'   => 'required|integer',
-            'assessment_id'  => 'required|integer',
-            'question_id'    => 'required|integer',
-            'selected_answer'=> 'required|integer',
+        
+        $validator = Validator::make($request->all(), [
+            'training_id'     => 'required|integer',
+            'trainer_id'      => 'required|integer',
+            'jobseeker_id'    => 'required|integer',
+            'assessment_id'   => 'required|integer',
+            'question_id'     => 'required|integer',
+            'selected_answer' => 'required|integer',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ return only one error message
+            ], 422);
+        }
 
         // Optional: You may fetch correct_answer from the options table
         $correctAnswerId = AssessmentOption::where('question_id', $request->question_id)
@@ -83,69 +87,205 @@ class AssesssorController extends Controller
 
         return $this->successResponse(null, 'Answer submitted successfully.');
     }
-
-
-    public function quizNavigatorList($assessorId , $userId)
+    
+    public function quizFaqList(Request $request)
     {
-        // Get selected answers by user for this assessment
-        $selectedAnswers = AssessmentJobseekerData::where('assessment_id', $assessorId)
-            ->where('jobseeker_id', $userId)
-            ->pluck('selected_answer', 'question_id'); // [question_id => answer_id]
+        try {
+           $validator = Validator::make($request->all(), [
+                'training_id'    => 'required|integer',
+                'trainer_id'     => 'required|integer',
+                'jobseeker_id'   => 'required|integer',
+                'assessment_id'  => 'required|integer',
+            ]);
 
-        // Fetch all questions with options
-        $questions = AssessmentQuestion::select('id', 'assessment_id', 'questions_title')->with(['options' => function ($query) use ($selectedAnswers) {
-            $query->select('id', 'question_id', 'options'); // select needed columns only
-        }])
-        ->where('assessment_id', $assessorId)
-        ->get();
-
-        // Append 'is_selected' flag to each option
-        $questions->transform(function ($question) use ($selectedAnswers) {
-            $question->is_selected = isset($selectedAnswers[$question->id]);
-            unset($question->options); // remove options field from output
-            return $question;
-        });
-
-        return $this->successResponse($questions, 'Assessor quiz list fetched successfully.');
-    }
-
-   public function quizScorecardResult($assessorId , $userId)
-    {
-        // Get selected and correct answers by user for this assessment
-        $selectedAnswersRaw = AssessmentJobseekerData::where('assessment_id', $assessorId)
-            ->where('jobseeker_id', $userId)
-            ->select('question_id', 'selected_answer', 'correct_answer')
-            ->get();
-
-        // Transform into array: [question_id => ['selected' => ..., 'correct' => ...]]
-        $selectedAnswers = $selectedAnswersRaw->keyBy('question_id')->map(function ($item) {
-            return [
-                'selected' => $item->selected_answer,
-                'correct' => $item->correct_answer,
-            ];
-        });
-
-        // Fetch questions with options (if needed)
-        $questions = AssessmentQuestion::select('id', 'assessment_id', 'questions_title')
-            ->with(['options' => function ($query) {
-                $query->select('id', 'question_id', 'options');
-            }])
-            ->where('assessment_id', $assessorId)
-            ->get();
-
-        // Append flags: is_selected and is_correct_answer
-        $questions->transform(function ($question) use ($selectedAnswers) {
-            $question->is_selected = isset($selectedAnswers[$question->id]);
-            $question->is_correct_answer = false;
-
-            if ($question->is_selected) {
-                $question->is_correct_answer = $selectedAnswers[$question->id]['selected'] == $selectedAnswers[$question->id]['correct'];
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Show only one error message
+                ], 422);
             }
 
-            unset($question->options); // remove options if not needed
-            return $question;
-        });
+            $jobseeker_id   = $request->jobseeker_id;
+            $training_id    = $request->training_id;
+            $trainer_id     = $request->trainer_id;
+            $assessment_id  = $request->assessment_id;
 
-        return $this->successResponse($questions, 'Quiz data fetched successfully.');        
+            // Fetch user's selected answers
+            $selectedAnswers = AssessmentJobseekerData::where('assessment_id', $assessment_id)
+                ->where('trainer_id', $trainer_id)
+                ->where('training_id', $training_id)
+                ->where('jobseeker_id', $jobseeker_id)
+                ->pluck('selected_answer', 'question_id');
+
+            // Fetch all assessment questions with their options
+            $questions = AssessmentQuestion::select('id', 'assessment_id', 'questions_title')
+                ->with(['options' => function ($query) {
+                    $query->select('id', 'question_id', 'options');
+                }])
+                ->where('assessment_id', $assessment_id)
+                ->get();
+
+            // Mark selected answers
+            $questions->transform(function ($question) use ($selectedAnswers) {
+                foreach ($question->options as $option) {
+                    $option->is_selected = isset($selectedAnswers[$question->id]) && $selectedAnswers[$question->id] == $option->id;
+                }
+                return $question;
+            });
+
+            return $this->successResponse($questions, 'Assessor quiz list fetched successfully.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->errorResponse('Validation failed.', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Something went wrong while fetching quiz questions.', 500, [
+                'error' => $e->getMessage()
+            ]);
+        }
     }
+ 
+
+    public function quizNavigatorList(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'training_id'    => 'required|integer',
+                'trainer_id'     => 'required|integer',
+                'jobseeker_id'   => 'required|integer',
+                'assessment_id'  => 'required|integer',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Show only one error message
+                ], 422);
+            }
+
+            $jobseekerId   = $request->jobseeker_id;
+            $trainingId    = $request->training_id;
+            $trainerId     = $request->trainer_id;
+            $assessmentId  = $request->assessment_id;
+
+            // Get user's selected answers
+            $selectedAnswers = AssessmentJobseekerData::where('assessment_id', $assessmentId)
+                ->where('trainer_id', $trainerId)
+                ->where('training_id', $trainingId)
+                ->where('jobseeker_id', $jobseekerId)
+                ->pluck('selected_answer', 'question_id');
+
+            // Fetch questions (without options in response)
+            $questions = AssessmentQuestion::select('id', 'assessment_id', 'questions_title')
+                ->with(['options' => function ($query) {
+                    $query->select('id', 'question_id'); // Only used to check existence, not returned
+                }])
+                ->where('assessment_id', $assessmentId)
+                ->get();
+
+            // Mark which questions have a selected answer
+            $questions->transform(function ($question) use ($selectedAnswers) {
+                $question->is_selected = isset($selectedAnswers[$question->id]);
+                unset($question->options); // Optional: Remove if not needed in response
+                return $question;
+            });
+
+            return $this->successResponse($questions, 'Quiz navigator data fetched successfully.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->errorResponse('Validation failed.', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to fetch quiz navigator data.', 500, [
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+
+   public function quizScorecardResult(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'training_id'    => 'required|integer',
+                'trainer_id'     => 'required|integer',
+                'jobseeker_id'   => 'required|integer',
+                'assessment_id'  => 'required|integer',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Show only one error message
+                ], 422);
+            }
+
+            $jobseekerId  = $request->jobseeker_id;
+            $trainingId   = $request->training_id;
+            $trainerId    = $request->trainer_id;
+            $assessmentId = $request->assessment_id;
+
+            // Get user's submitted answers and correct answers
+            $submittedAnswers = AssessmentJobseekerData::where('assessment_id', $assessmentId)
+                ->where('trainer_id', $trainerId)
+                ->where('training_id', $trainingId)
+                ->where('jobseeker_id', $jobseekerId)
+                ->select('question_id', 'selected_answer', 'correct_answer')
+                ->get();
+
+            // Count how many selected answers are correct
+            $correctAnswerCount = $submittedAnswers->filter(function ($item) {
+                return $item->selected_answer == $item->correct_answer;
+            })->count();
+
+            // Fetch passing threshold from assessment settings
+            $passingQuestions = TrainerAssessment::where('id', $assessmentId)
+                ->value('passing_questions') ?? 0;
+
+            // Determine pass/fail
+            $isPass = $correctAnswerCount >= $passingQuestions;
+
+            // Prepare answer lookup array: [question_id => ['selected' => ..., 'correct' => ...]]
+            $answerMap = $submittedAnswers->keyBy('question_id')->map(function ($item) {
+                return [
+                    'selected' => $item->selected_answer,
+                    'correct'  => $item->correct_answer,
+                ];
+            });
+
+            // Fetch all questions and append result info
+            $questions = AssessmentQuestion::select('id', 'assessment_id', 'questions_title')
+                ->with(['options' => function ($query) {
+                    $query->select('id', 'question_id', 'options');
+                }])
+                ->where('assessment_id', $assessmentId)
+                ->get()
+                ->transform(function ($question) use ($answerMap) {
+                    $question->is_selected = isset($answerMap[$question->id]);
+                    $question->is_correct_answer = false;
+
+                    if ($question->is_selected) {
+                        $selected  = $answerMap[$question->id]['selected'];
+                        $correct   = $answerMap[$question->id]['correct'];
+                        $question->is_correct_answer = $selected == $correct;
+                    }
+
+                    unset($question->options); // Optional: Remove if not needed
+                    return $question;
+                });
+
+            // Final response
+            return $this->successWithCmsResponse(
+                $questions,
+                ['is_pass' => $isPass],
+                'Quiz data fetched successfully.'
+            );
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->errorResponse('Validation failed.', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to fetch quiz result.', 500, [
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
 }

@@ -32,8 +32,8 @@
                 <button
                     @click="open = !open"
                     class="flex items-center px-4 py-2 text-white rounded-md hover:bg-blue-600 transition duration-200 focus:outline-none"
-                    :class="sidebarOpen ? '' : 'justify-center'"
-                    :title="!sidebarOpen ? 'My Training' : ''">
+                    :class="sidebarOpen ? '' : 'justify-center' "
+                    :title="!sidebarOpen ? 'My Training' : '' ">
                     <i data-feather="book-open" class="mr-3"></i>
                     <span x-show="sidebarOpen">My Training</span>
                     <svg x-show="sidebarOpen" :class="{ 'rotate-90': open }" class="ml-auto w-4 h-4 transition-transform duration-200"
@@ -87,7 +87,7 @@
                     ['route' => 'batch', 'icon' => 'layers', 'label' => 'Batch'],
                     ['route' => 'trainees.jobseekers', 'icon' => 'users', 'label' => 'Trainees / Jobseeker'],
                     ['route' => 'chat.with.jobseeker', 'icon' => 'message-circle', 'label' => 'Chat with jobseeker'],
-                    ['route' => 'reviews', 'icon' => 'star', 'label' => 'Reviews'],
+                    ['route' => 'trainer.reviews', 'icon' => 'star', 'label' => 'Reviews'],
                     ['route' => 'trainer.settings', 'icon' => 'settings', 'label' => 'Settings'],
                 ];
             @endphp
@@ -108,7 +108,10 @@
             <!-- Logout -->
             <a href="{{ route('trainer.logout') }}"
                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-               class="flex items-center px-4 py-2 rounded-md hover:bg-blue-600"
+               :class="[
+                   active === 'trainer.logout' ? 'bg-white text-blue-900 font-semibold' : 'hover:bg-white hover:text-blue-900',
+                   'flex items-center px-4 py-2 rounded-md transition duration-200'
+               ]"
                :title="!sidebarOpen ? 'Logout' : ''">
                 <i data-feather="log-out" class="mr-3"></i>
                 <span x-show="sidebarOpen" x-transition>Logout</span>

@@ -1,3 +1,60 @@
+<?php
+    
+    use Illuminate\Support\Facades\DB;
+
+    // Fetch all trainers
+    $trainers = DB::table('trainers')->get();
+
+    foreach ($trainers as $trainer) {
+        $profile = DB::table('additional_info')
+            ->where('user_id', $trainer->id)
+            ->where('user_type', 'trainer')
+            ->where('doc_type', 'trainer_profile_picture')
+            ->first();
+        
+        $trainer->profile_picture = $profile ? $profile->document_path : null;
+        
+        // Fetch materials for each trainer
+        $trainer->materials = DB::table('training_materials')
+            ->where('trainer_id', $trainer->id)
+            ->get();
+        //     echo "<pre>";
+        // print_r($trainer->materials);exit;
+        foreach ($trainer->materials as $material) {
+            // Fetch documents for each material
+            $material->documents = DB::table('training_materials_documents')
+                ->where('training_material_id', $material->id)
+                ->get();
+
+            // Fetch batches for each material
+            $material->batches = DB::table('training_batches')
+                ->where('training_material_id', $material->id)
+                ->get();
+
+            $material->rating = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->avg('ratings');
+
+            $material->rating_count = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->count();
+
+            $material->reviews = DB::table('reviews')
+                ->where('user_type', 'trainer')
+                ->where('user_id', $trainer->id)
+                ->where('trainer_material', $material->id)
+                ->select('ratings', 'reviews')
+                ->get();    
+        }
+    }
+
+
+?>
+
 @include('site.componants.header')
 <body>
     <div class="loading-area">
@@ -57,10 +114,12 @@
                         <i id="iconTopic" class="ph ph-caret-down transition-transform duration-300"></i>
                         </div>
                         <div id="topicSection" class="space-y-2">
-                        <label class="block"><input type="checkbox" class="mr-2" value="Design" @change="$dispatch('filter-change')">Design</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Coding" @change="$dispatch('filter-change')">Coding</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Mechanical" @change="$dispatch('filter-change')">Mechanical</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Language" @change="$dispatch('filter-change')">Language</label>
+                            @php
+                                $categories = App\Models\TrainingCategory::all();
+                            @endphp
+                            @foreach ($categories as $category)
+                                <label class="block"><input type="checkbox" class="mr-2" value="Design" @change="$dispatch('filter-change')">{{ $category->category }}</label>
+                            @endforeach
                         </div>
                     </div>
 
@@ -92,200 +151,177 @@
                     </div>
                 </aside>
 
-                <main 
-                x-data="courseApp()" 
-                x-init="init()" 
-                @filter-change.window="updateFilters($event)" 
-                class="w-3/4"
-                >
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-xl font-semibold">Courses</h1>
-                    <span class="text-sm text-gray-500">
-                    showing <span x-text="filteredCourses.length"></span> total results
-                    </span>
-                </div>
+                <main class="w-3/4 mx-auto">
 
-                <!-- Search input -->
-                <div class="mb-4 relative">
-                    <input
-                    type="text"
-                    placeholder="Search here..."
-                    class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12"
-                    x-model="searchTerm"
-                    @input.debounce.300ms="filterCourses()"
-                    />
-                    <button
-                    type="button"
-                    class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                    aria-label="Search"
-                    @click="filterCourses()"
-                    >
-                    <!-- Search Icon SVG -->
-                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
-                    </svg>
-                    </button>
-                </div>
-
-                <!-- Course cards -->
-                <template x-for="course in paginatedCourses" :key="course.id">
-                    <div class="flex border rounded-md overflow-hidden shadow-sm mb-4 course-card">
-                    <img :src="course.image" alt="Course" class="w-1/4 object-cover" />
-                    <div class="p-4 flex-1">
-                        <a href="{{route('training-detail')}}">
-                            <h2 class="font-semibold text-lg text-gray-800 course-title" x-text="course.title"></h2>
-                        </a>
-                        <p class="text-sm text-gray-600 mt-1" x-text="course.description"></p>
-                        <div class="flex items-center mt-2 space-x-2">
-                        <div class="flex text-yellow-500 text-sm">
-                            <template x-for="i in 5" :key="i">
-                            <i
-                                :class="i <= Math.floor(course.rating) ? 'ph ph-star-fill' : 'ph ph-star'"
-                            ></i>
-                            </template>
-                        </div>
-                        <span class="text-sm text-gray-500" x-text="`(${course.rating}/5)`"></span>
-                        <span class="text-sm text-gray-700 font-medium">Rating</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-700 space-x-6 mt-4">
-                        <div class="flex items-center space-x-1">
-                            <img :src="course.instructorImage" alt="Instructor" class="rounded-full w-6 h-6" />
-                            <span x-text="course.instructor"></span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i class="ph ph-play-circle text-blue-500"></i><span x-text="course.lessons + ' lessons'"></span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i class="ph ph-clock text-blue-500"></i><span x-text="course.duration"></span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i class="ph ph-trend-up text-blue-500"></i><span x-text="course.level"></span>
-                        </div>
-                        </div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-xl font-semibold">Courses</h1>
+                        <span class="text-sm text-gray-500">
+                            Showing <span id="total-results">0</span> total results
+                        </span>
                     </div>
-                    <div class="flex flex-col justify-center items-end p-4 w-32 text-right">
-                        <span class="text-gray-400 line-through text-sm" x-text="course.originalPrice"></span>
-                        <span class="text-xl font-semibold text-gray-800" x-text="course.discountedPrice"></span>
+
+                    <!-- Course List -->
+                    <div id="course-list">
+                        @foreach($trainers as $trainer)
+                            @foreach($trainer->materials as $material)
+                                <div class="course-item flex border rounded-md overflow-hidden shadow-sm mb-4 bg-white">
+                                    <!-- Thumbnail -->
+                                    <div style="min-width: 250px; max-width: 250px; overflow: hidden;">
+                                        <img src="{{ asset($material->thumbnail_file_path) }}"
+                                            alt="Thumbnail"
+                                            class="h-full w-full object-cover" />
+                                    </div>
+
+                                    <!-- Details -->
+                                    <div class="p-4 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <a href="{{ route('course.details', $material->id) }}">
+                                                <h2 class="font-semibold text-lg text-gray-800">{{ $material->training_title }}</h2>
+                                            </a>
+                                            <p class="text-sm text-gray-600 mt-1">{{ $material->training_sub_title }}</p>
+                                            @php
+                                                $avgRating = round($material->rating ?? 0, 1); // rounded to 1 decimal place
+                                                $filledStars = floor($avgRating); // for star display
+                                            @endphp
+
+                                            <p class="mt-1 text-yellow-500">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
+                                                @endfor
+                                                <span class="text-gray-700 font-medium ml-2">({{ $avgRating }}/5)</span>
+                                            </p>
+                                        </div>
+
+
+                                        <div class="flex items-center text-sm text-gray-700 space-x-6 mt-4 flex-wrap">
+                                            <div class="flex items-center space-x-1">
+                                                <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/?name=' . urlencode($trainer->name) }}"
+                                                    alt="{{ $trainer->name }}"
+                                                    class="rounded-full w-6 h-6" />
+                                                <span>{{ $trainer->name }}</span>
+                                            </div>
+                                            <div class="flex items-center space-x-1">📘 {{ count($material->documents) }} lessons</div>
+                                            <div class="flex items-center space-x-1">
+                                                ⏱️ 
+                                                @php
+                                                    $totalHours = 0;
+                                                    foreach ($material->batches as $batch) {
+                                                        $start = strtotime($batch->start_timing);
+                                                        $end = strtotime($batch->end_timing);
+                                                        $totalHours += ($end - $start) / 3600;
+                                                    }
+                                                @endphp
+                                                {{ $totalHours }} hrs
+                                            </div>
+                                            <div>📈 {{ $material->training_level ?? 'Beginner' }}</div>
+                                            <div>🎥 {{ $material->session_type ?? 'Recorded' }}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="flex flex-col justify-center items-end p-4 w-32 text-right">
+                                        <span class="text-gray-400 line-through text-sm">
+                                            SAR {{ number_format($material->training_price, 0) }}
+                                        </span>
+                                        <span class="text-xl font-semibold text-gray-800">
+                                            SAR {{ number_format($material->training_offer_price, 0) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
                     </div>
-                    </div>
-                </template>
 
-                <!-- Pagination controls -->
-                <div class="flex justify-center items-center space-x-2 mt-6">
-                    <button
-                    class="px-3 py-1 rounded border"
-                    :disabled="currentPage === 1"
-                    @click="currentPage--"
-                    >
-                    Previous
-                    </button>
+                    <!-- Pagination -->
+                    <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
 
-                    <template x-for="page in totalPages" :key="page">
-                    <button
-                        class="px-3 py-1 rounded border"
-                        :class="{'bg-blue-500 text-white': currentPage === page}"
-                        @click="currentPage = page"
-                    >
-                        <span x-text="page"></span>
-                    </button>
-                    </template>
-
-                    <button
-                    class="px-3 py-1 rounded border"
-                    :disabled="currentPage === totalPages"
-                    @click="currentPage++"
-                    >
-                    Next
-                    </button>
-                </div>
                 </main>
 
+                <!-- JS Pagination Script -->
+                <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const items = document.querySelectorAll('.course-item');
+                    const perPage = 10;
+                    let currentPage = 1;
+                    const totalPages = Math.ceil(items.length / perPage);
+                    const pagination = document.getElementById('pagination-controls');
+                    document.getElementById('total-results').textContent = items.length;
+
+                    function showPage(page) {
+                        const start = (page - 1) * perPage;
+                        const end = start + perPage;
+
+                        items.forEach((item, index) => {
+                            item.style.display = (index >= start && index < end) ? 'flex' : 'none';
+                        });
+
+                        renderPagination(page);
+                    }
+
+                    function renderPagination(page) {
+                        pagination.innerHTML = '';
+
+                        // Prev button
+                        const prevBtn = document.createElement('button');
+                        prevBtn.textContent = 'Previous';
+                        prevBtn.className = 'px-3 py-1 rounded border';
+                        prevBtn.disabled = page === 1;
+                        prevBtn.onclick = () => showPage(page - 1);
+                        pagination.appendChild(prevBtn);
+
+                        // Page numbers
+                        for (let i = 1; i <= totalPages; i++) {
+                            const btn = document.createElement('button');
+                            btn.textContent = i;
+                            btn.className = `px-3 py-1 rounded border ${i === page ? 'bg-blue-500 text-white' : ''}`;
+                            btn.onclick = () => showPage(i);
+                            pagination.appendChild(btn);
+                        }
+
+                        // Next button
+                        const nextBtn = document.createElement('button');
+                        nextBtn.textContent = 'Next';
+                        nextBtn.className = 'px-3 py-1 rounded border';
+                        nextBtn.disabled = page === totalPages;
+                        nextBtn.onclick = () => showPage(page + 1);
+                        pagination.appendChild(nextBtn);
+                    }
+
+                    showPage(currentPage);
+                });
+                </script>
+
+
+
+                @php
+                    $trainings = \App\Models\TrainingMaterial::select('*')
+                                ->where('admin_status', 'approved', 'superadmin_approved')
+                                ->get();
+
+                @endphp
                 <script>
                     function courseApp() {
                         return {
                         searchTerm: '',
                         courses: [
-                            {
-                                id: 1,
-                                title: "Mobile App Development",
-                                description: "Build apps for Android and iOS from scratch.",
-                                image: "{{ asset('asset/images/gallery/pic-4.png') }}",
-                                rating: 4,
-                                instructor: "Lisa Turner",
-                                instructorImage: "https://randomuser.me/api/portraits/women/6.jpg",
-                                lessons: 18,
-                                duration: "30hrs",
-                                level: "Intermediate",
-                                topic: "Coding",
-                                trainingType: "Virtual/Online",
-                                originalPrice: "SAR 200",
-                                discountedPrice: "SAR 180",
-                            },
-                            {
-                                id: 2,
-                                title: "Web Design Basics",
-                                description: "Learn the fundamentals of web design with HTML, CSS, and more.",
-                                image: "{{ asset('asset/images/gallery/pic-2.png') }}",
-                                rating: 5,
-                                instructor: "Mark Wilson",
-                                instructorImage: "https://randomuser.me/api/portraits/men/12.jpg",
-                                lessons: 12,
-                                duration: "25hrs",
-                                level: "Beginner",
-                                topic: "Design",
-                                trainingType: "Offline in classroom",
-                                originalPrice: "SAR 150",
-                                discountedPrice: "SAR 130",
-                            },
-                            {
-                                id: 3,
-                                title: "Advanced JavaScript",
-                                description: "Deep dive into JavaScript ES6+ and modern frameworks.",
-                                image: "{{ asset('asset/images/gallery/pic-3.png') }}",
-                                rating: 4.5,
-                                instructor: "Anna Smith",
-                                instructorImage: "https://randomuser.me/api/portraits/women/21.jpg",
-                                lessons: 20,
-                                duration: "40hrs",
-                                level: "Advanced",
-                                topic: "Coding",
-                                trainingType: "Recorded lectures",
-                                originalPrice: "SAR 250",
-                                discountedPrice: "SAR 220",
-                            },
-                            {
-                                id: 4,
-                                title: "Graphic Design Masterclass",
-                                description: "Become a pro at graphic design with practical projects.",
-                                image: "{{ asset('asset/images/gallery/pic-4.png') }}",
-                                rating: 4.2,
-                                instructor: "Jessica Lee",
-                                instructorImage: "https://randomuser.me/api/portraits/women/25.jpg",
-                                lessons: 15,
-                                duration: "28hrs",
-                                level: "Intermediate",
-                                topic: "Design",
-                                trainingType: "Virtual/Online",
-                                originalPrice: "SAR 190",
-                                discountedPrice: "SAR 170",
-                            },
-                            {
-                                id: 5,
-                                title: "Mechanical Engineering Basics",
-                                description: "Introductory course on mechanical engineering concepts.",
-                                image: "{{ asset('asset/images/gallery/pic-1.png') }}",
-                                rating: 3.8,
-                                instructor: "John Doe",
-                                instructorImage: "https://randomuser.me/api/portraits/men/31.jpg",
-                                lessons: 10,
-                                duration: "20hrs",
-                                level: "Beginner",
-                                topic: "Mechanical",
-                                trainingType: "Offline in classroom",
-                                originalPrice: "SAR 140",
-                                discountedPrice: "SAR 120",
-                            },
+                            @foreach($trainings as $course)
+                                {
+                                    id: {{ $course->id }},
+                                    title: @json($course->training_title),
+                                    description: @json($course->training_sub_title),
+                                    image: "{{ asset('storage/' . $course->thumbnail_file_path) }}",
+                                    rating: {{ $course->rating ?? 0 }},
+                                    instructor: @json($course->instructor_name),
+                                    instructorImage: "{{ $course->instructor_image ?? 'https://randomuser.me/api/portraits/lego/1.jpg' }}",
+                                    lessons: {{ $course->lessons ?? 0 }},
+                                    duration: @json($course->duration ?? 'N/A'),
+                                    level: @json($course->level ?? 'N/A'),
+                                    topic: @json($course->topic ?? 'N/A'),
+                                    trainingType: @json($course->training_type ?? 'N/A'),
+                                    originalPrice: @json($course->original_price ?? 'N/A'),
+                                    discountedPrice: @json($course->discounted_price ?? 'N/A'),
+                                },
+                            @endforeach
                         ],
 
                         filteredCourses: [],

@@ -7,7 +7,7 @@ use App\Models\TrainingCategory;
 
 class TrainingCategorySeeder extends Seeder
 {
-    public function run(): void
+     public function run(): void
     {
         $categories = [
             'Technical Skills',
@@ -19,12 +19,15 @@ class TrainingCategorySeeder extends Seeder
             'Customer Service',
             'Sales Training',
             'Compliance Training',
-            'Health & Safety'
+            'Health & Safety',
+            'Other',
         ];
 
         foreach ($categories as $category) {
             TrainingCategory::create([
-                'category' => $category
+                'category' => $category,
+                'image_path' => 'uploads/training_categories/default.png', // Default placeholder
+                'image_name' => 'default.png'
             ]);
         }
     }

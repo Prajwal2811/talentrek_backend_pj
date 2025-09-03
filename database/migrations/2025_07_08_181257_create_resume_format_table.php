@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('resumes_format', function (Blueprint $table) {
             $table->id();
-            $table->string('resume')->nullable(); // PDF/DOC/DOCX file path
+            $table->text('resume')->nullable(); // PDF/DOC/DOCX file path
             $table->timestamps();
         });
     }

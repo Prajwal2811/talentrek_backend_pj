@@ -11,119 +11,176 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
     <div class="page-wraper">
-        <div class="flex h-screen">
-          
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             @include('site.trainer.componants.sidebar')
-
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
-                        Talent<span class="text-blue-500">rek</span>
-                    </div>
-                    <!-- <div class="relative w-full">
-                        <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.trainer.componants.navbar')
 
            <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="reviewsDashboard()">
             <h2 class="text-2xl font-semibold mb-6">Reviews</h2>
             <div class="bg-white p-4">
                 <h3 class="text-md font-semibold mb-4">Jobseeker reviews</h3>
+                @if(session('success'))
+                    <span id="successMessage" class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="text-sm font-medium">{{ session('success') }}</span>
+                    </span>
+
+                    <script>
+                        setTimeout(() => {
+                            const el = document.getElementById('successMessage');
+                            if (el) {
+                                el.classList.add('opacity-0'); 
+                                setTimeout(() => el.style.display = 'none', 2000); 
+                            }
+                        }, 10000); 
+                    </script>
+                @endif
+
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-left border-collapse">
-                        <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                            <tr>
-                                <th class="px-4 py-3">Sr. No.</th>
-                                <th class="px-4 py-3">Course</th>
-                                <th class="px-4 py-3">Jobseeker name</th>
-                                <th class="px-4 py-3">Review</th>
-                                <th class="px-4 py-3">Rating</th>
-                                <th class="px-4 py-3">Date</th>
-                                <th class="px-4 py-3">Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700">
-                            <template x-for="(review, index) in paginatedReviews()" :key="index">
-                                <tr class="border-b hover:bg-gray-50">
-                                    <td class="px-4 py-3" x-text="(currentPage - 1) * perPage + index + 1"></td>
-                                    <td class="px-4 py-3">
-                                        <span class="font-medium block" x-text="review.course"></span>
-                                        <span class="text-gray-500 text-xs block" x-text="review.level"></span>
-                                    </td>
-                                    <td class="px-4 py-3" x-text="review.name"></td>
-                                    <td class="px-4 py-3 max-w-xs">
-                                        <span x-text="review.text.substring(0, 50) + '...'"></span>
-                                        <a href="#" class="text-blue-500 text-xs">Read more</a>
-                                    </td>
-                                    <td class="px-4 py-3" x-text="review.rating"></td>
-                                    <td class="px-4 py-3" x-text="review.date"></td>
-                                    <td class="px-4 py-3">
-                                        <button class="bg-red-600 hover:bg-red-800 text-white rounded-full p-2">
-                                            <i class="fa fa-trash" aria-hidden="true"></i>
-                                        </button>
-                                    </td>
-
+                    <div x-data="mentorReviews()" x-init="fetchReviews()" class="overflow-x-auto ">
+                        <table class="min-w-full text-sm text-left border-collapse">
+                            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3">Sr. No.</th>
+                                    <!-- <th class="px-4 py-3">Course</th> -->
+                                    <th class="px-4 py-3">Jobseeker Name</th>
+                                    <th class="px-4 py-3">Review</th>
+                                    <th class="px-4 py-3">Rating</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">Delete</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Pagination Aligned Right -->
-                <div class="flex justify-end mt-6">
-                    <div class="flex space-x-1">
-                        <button class="px-3 py-1 bg-white border rounded text-gray-600 hover:bg-gray-100"
-                            @click="prevPage()" :disabled="currentPage === 1">&lt;</button>
-
-                        <template x-for="page in totalPages()" :key="page">
-                            <button
-                                class="px-3 py-1 border rounded"
-                                :class="currentPage === page ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'"
-                                @click="goToPage(page)" x-text="page">
-                            </button>
-                        </template>
-
-                        <button class="px-3 py-1 bg-white border rounded text-gray-600 hover:bg-gray-100"
-                            @click="nextPage()" :disabled="currentPage === totalPages()">&gt;</button>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach($reviews as $index => $review)
+                                    <tr class="review-row border-b hover:bg-gray-50">
+                                        <td class="px-4 py-3">{{ $index + 1 }}</td>
+                                        <!-- <td class="px-4 py-3">{{ $review->course_title ?? 'N/A' }}</td> -->
+                                        <td class="px-4 py-3">{{ $review->jobseeker_name ?? 'N/A' }}</td>
+                                        <td class="px-4 py-3 max-w-xs">{{ \Illuminate\Support\Str::limit($review->reviews, 50) }}</td>
+                                        <td class="px-4 py-3">{{ $review->ratings }}/5</td>
+                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($review->created_at)->format('d-m-Y') }}</td>
+                                        <td class="px-4 py-3">
+                                            <form action="{{ route('trainer.review.delete', $review->id) }}" method="POST" class="delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="bg-red-600 hover:bg-red-800 text-white rounded-full p-2">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+                <div id="reviewsPagination" class="mt-6 flex justify-center space-x-2"></div>
             </div>
         </main>
+       
+        <script>
+            $(document).ready(function () {
+                const itemsPerPage = 10;
+                const $rows = $('.review-row');
+                const totalItems = $rows.length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                let currentPage = 1;
+
+                function showPage(page) {
+                    const start = (page - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    $rows.hide().slice(start, end).show();
+                    currentPage = page;
+                    updatePagination();
+                }
+
+                function updatePagination() {
+                    $('.page-btn').removeClass('bg-blue-500 text-white').addClass('bg-gray-200 text-black');
+                    $(`.page-btn[data-page="${currentPage}"]`).addClass('bg-blue-500 text-white').removeClass('bg-gray-200 text-black');
+
+                    $('#prev-btn').prop('disabled', currentPage === 1);
+                    $('#next-btn').prop('disabled', currentPage === totalPages);
+                }
+
+                function createPagination() {
+                    $('#reviewsPagination').empty();
+
+                    // Prev Button
+                    $('#reviewsPagination').append(`
+                        <button id="prev-btn" class="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition">&lt;</button>
+                    `);
+
+                    // Page Buttons
+                    for (let i = 1; i <= totalPages; i++) {
+                        $('#reviewsPagination').append(`
+                            <button class="page-btn px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition" data-page="${i}">${i}</button>
+                        `);
+                    }
+
+                    // Next Button
+                    $('#reviewsPagination').append(`
+                        <button id="next-btn" class="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-blue-200 transition">&gt;</button>
+                    `);
+
+                    // Event Handlers
+                    $('.page-btn').on('click', function () {
+                        const page = $(this).data('page');
+                        showPage(page);
+                    });
+
+                    $('#prev-btn').on('click', function () {
+                        if (currentPage > 1) showPage(currentPage - 1);
+                    });
+
+                    $('#next-btn').on('click', function () {
+                        if (currentPage < totalPages) showPage(currentPage + 1);
+                    });
+                }
+
+                if (totalItems > 0) {
+                    createPagination();
+                    showPage(1);
+                } else {
+                    $('#reviewsPagination').html('<p class="text-center text-gray-500">No reviews found.</p>');
+                }
+            });
+        </script>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('.delete-form').on('submit', function (e) {
+                    e.preventDefault(); // prevent immediate submit
+                    const form = this;
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "Are you sure you want to delete this jobseeker review?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit(); // submit the form if confirmed
+                        }
+                    });
+                });
+            });
+        </script>
+
 
 
         <script>
@@ -197,35 +254,4 @@
 
 
           
-
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+@include('site.trainer.componants.footer')

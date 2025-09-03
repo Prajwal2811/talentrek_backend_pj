@@ -25,4 +25,5 @@ class AssessmentQuestion extends Model
     {
         return $this->hasMany(AssessmentOption::class, 'question_id');
     }
+
 }

@@ -20,7 +20,7 @@
                         </div>
                     </div>
 
-                    @if ($cms->slug === 'banner' || $cms->slug === "join-talentrek")
+                    @if ($cms->slug === 'banner' || $cms->slug === "join-talentrek" || $cms->slug === 'web_banner')
                          <div class="row clearfix">
                             <div class="col-md-12">
                                 <div class="card">
@@ -89,7 +89,7 @@
                                                 <!-- Submit Button -->
                                                 <div class="col-md-12 mt-3">
                                                     <a  href="{{ route('admin.cms') }}" class="btn btn-dark theme-bg">Back</a>
-                                                    @if ($cms->slug === 'banner' ) 
+                                                    @if ($cms->slug === 'banner' || $cms->slug === 'web_banner')
                                                         <button type="submit" class="btn btn-primary theme-bg">Update Banner</button>
                                                     @elseif($cms->slug === 'join-talentrek' )
                                                         <button type="submit" class="btn btn-primary theme-bg">Update Section</button>

@@ -9,62 +9,20 @@
             </div>
         </div>
     </div>
-
-	
+@if($recruiterNeedsSubscription)
+        @include('site.recruiter.subscription.index')
+    @endif
+	 @if($otherRecruiterSubscription)
+        @include('site.recruiter.subscription.add-other-recruiters')
+    @endif
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             <!-- Sidebar -->
             @include('site.recruiter.componants.sidebar')	
 
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                        <button 
-                                @click="sidebarOpen = !sidebarOpen" 
-                                class="text-gray-700 hover:text-blue-600 focus:outline-none"
-                                title="Toggle Sidebar"
-                                aria-label="Toggle Sidebar"
-                                type="button"
-                                >
-                                <i data-feather="menu" class="w-6 h-6"></i>
-                            </button>
-                        <!-- <div class="relative w-full">
-                            <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.recruiter.componants.navbar')	
+
 
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeTab: 'personal' }">
                     <nav aria-label="breadcrumb" class="mb-6">
@@ -87,9 +45,29 @@
                             </div>
                             
                         </div>
-                        <button class="border border-blue-600 text-blue-600 text-sm px-4 py-1.5 rounded hover:bg-blue-50 transition">
+                        <!-- <button class="border border-blue-600 text-blue-600 text-sm px-4 py-1.5 rounded hover:bg-blue-50 transition" >
                             Request interview
-                        </button>
+                        </button> -->
+                            @php
+                                $jobseekerId = $jobseeker->id;
+                                $isApproved = $jobseeker->shortlist_admin_status === 'superadmin_approved';
+                                $interviewRequested = strtolower($jobseeker->interview_request ?? '') === 'yes';
+                            @endphp
+
+                            <!-- Interview Request Button -->
+                            <button
+                                id="interview-btn-{{ $jobseekerId }}"
+                                onclick="confirmInterviewRequest({{ $jobseekerId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
+                                class="text-white text-base px-4 py-1.5 rounded
+                                    {{ $isApproved 
+                                        ? ($interviewRequested 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-purple-500 hover:bg-purple-600') 
+                                        : 'bg-gray-600 cursor-not-allowed' }}"
+                                {{ ($interviewRequested || !$isApproved) ? 'disabled' : '' }}
+                            >
+                                {{ $interviewRequested ? 'Interview Requested' : 'Interview Request' }}
+                            </button>
                         </div>
                         <hr>
 
@@ -297,6 +275,127 @@
             </div>
         </div>
     </div>
+
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .swal2-popup-sm {
+        font-size: 15px;
+        border-radius: 10px;
+        padding: 1.2em;
+    }
+
+    .swal2-title-sm {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .swal2-text-sm {
+        font-size: 15px;
+        color: #333;
+    }
+
+    .swal2-confirm-sm,
+    .swal2-cancel-sm {
+        font-size: 14px !important;
+        padding: 8px 20px !important;
+        border-radius: 6px !important;
+    }
+</style>
+<script>
+    function confirmInterviewRequest(jobseekerId, isApproved, interviewRequested) {
+        if (!isApproved || interviewRequested) return;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to send interview request?",
+            icon: 'question',
+            width: '400px',
+            padding: '1.2em',
+            showCancelButton: true,
+            confirmButtonColor: '#4CAF50',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, send it!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'swal2-popup-sm',
+                title: 'swal2-title-sm',
+                htmlContainer: 'swal2-text-sm',
+                confirmButton: 'swal2-confirm-sm',
+                cancelButton: 'swal2-cancel-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sendInterviewRequest(jobseekerId);
+            }
+        });
+    }
+
+    function sendInterviewRequest(jobseekerId) {
+        const btn = document.getElementById('interview-btn-' + jobseekerId);
+
+        // Optimistically disable button
+        btn.disabled = true;
+        btn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+        btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+        btn.innerText = 'Interview Requested';
+
+        fetch("{{ route('recruiter.interview.request.submit') }}", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ jobseeker_id: jobseekerId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Interview request sent successfully.',
+                    icon: 'success',
+                    width: '400px',
+                    customClass: {
+                        popup: 'swal2-popup-sm',
+                        title: 'swal2-title-sm',
+                        htmlContainer: 'swal2-text-sm',
+                        confirmButton: 'swal2-confirm-sm'
+                    }
+                });
+            } else {
+                handleRequestFailure(btn, data.message || 'Something went wrong.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            handleRequestFailure(btn, 'Failed to send request.');
+        });
+    }
+
+    function handleRequestFailure(btn, errorMessage) {
+        Swal.fire({
+            title: 'Error!',
+            text: errorMessage,
+            icon: 'error',
+            width: '400px',
+            customClass: {
+                popup: 'swal2-popup-sm',
+                title: 'swal2-title-sm',
+                htmlContainer: 'swal2-text-sm',
+                confirmButton: 'swal2-confirm-sm'
+            }
+        });
+
+        // Re-enable button if request failed
+        btn.disabled = false;
+        btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        btn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+        btn.innerText = 'Interview Request';
+    }
+</script>    
 
 <script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
 <script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->

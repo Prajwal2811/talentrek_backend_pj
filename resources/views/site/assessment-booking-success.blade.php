@@ -16,6 +16,7 @@
             background: white;
         }
     </style>
+    
       @include('site.componants.navbar')
 
   <div class="page-content">

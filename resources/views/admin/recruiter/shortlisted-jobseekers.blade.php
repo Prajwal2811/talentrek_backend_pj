@@ -88,7 +88,7 @@
                                                                         Final Decision
                                                                     </button>
                                                                 @elseif($superadminStatusOnly === 'approved')
-                                                                    <span class="badge bg-success">Superadmin Approved</span>
+                                                                    <span class="badge bg-success text-light">Superadmin Approved</span>
                                                                 @elseif($superadminStatusOnly === 'rejected')
                                                                     <span class="badge bg-danger text-light">Superadmin Rejected</span>
                                                                 @elseif($adminStatusOnly === 'rejected')
@@ -117,7 +117,7 @@
                                                                     </div>
                                                                     <div class="modal-body">
                                                                         <label>Status</label>
-                                                                        <select name="status" class="form-select status-select" data-target="#adminReason{{ $shortlistJobseeker->id }}">
+                                                                        <select name="status" class="form-select status-select form-control" data-target="#adminReason{{ $shortlistJobseeker->id }}">
                                                                             <option selected disabled>Select status</option>
                                                                             <option value="approved">Approve</option>
                                                                             <option value="rejected">Reject</option>
@@ -152,14 +152,27 @@
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <label>Status</label>
-                                                                    <select name="status" class="form-select status-select" data-target="#superadminReason{{ $shortlistJobseeker->id }}">
+                                                                    <select name="status" class="form-select status-select form-control"
+                                                                            data-reject="#superadminReason{{ $shortlistJobseeker->id }}"
+                                                                            data-approve="#superadminInterview{{ $shortlistJobseeker->id }}">
                                                                         <option selected disabled>Select status</option>
                                                                         <option value="approved">Final Approve</option>
                                                                         <option value="rejected">Final Reject</option>
                                                                     </select>
+
+                                                                    <!-- Reject reason -->
                                                                     <div class="mt-3 d-none reason-field" id="superadminReason{{ $shortlistJobseeker->id }}">
                                                                         <label>Reason for Rejection</label>
                                                                         <textarea name="reason" class="form-control" placeholder="Enter reason"></textarea>
+                                                                    </div>
+
+                                                                    <!-- Interview Schedule -->
+                                                                    <div class="mt-3 d-none interview-field" id="superadminInterview{{ $shortlistJobseeker->id }}">
+                                                                        <label>Interview Date</label>
+                                                                        <input type="date" name="interview_date" class="form-control mb-2">
+
+                                                                        <label>Interview Time</label>
+                                                                        <input type="time" name="interview_time" class="form-control">
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer">
@@ -175,16 +188,34 @@
                                                 document.addEventListener("DOMContentLoaded", function () {
                                                     document.querySelectorAll('.status-select').forEach(function (select) {
                                                         select.addEventListener('change', function () {
-                                                            const target = document.querySelector(this.getAttribute('data-target'));
+                                                            const rejectTarget = document.querySelector(this.getAttribute('data-reject'));
+                                                            const approveTarget = document.querySelector(this.getAttribute('data-approve'));
+
                                                             if (this.value === 'rejected') {
-                                                                target.classList.remove('d-none');
-                                                            } else {
-                                                                target.classList.add('d-none');
+                                                                rejectTarget.classList.remove('d-none');
+                                                                approveTarget.classList.add('d-none');
+
+                                                                // Make rejection reason required
+                                                                rejectTarget.querySelector('textarea').setAttribute('required', true);
+                                                                approveTarget.querySelectorAll('input').forEach(inp => inp.removeAttribute('required'));
+                                                            } 
+                                                            else if (this.value === 'approved') {
+                                                                approveTarget.classList.remove('d-none');
+                                                                rejectTarget.classList.add('d-none');
+
+                                                                // Make interview date/time required
+                                                                approveTarget.querySelectorAll('input').forEach(inp => inp.setAttribute('required', true));
+                                                                rejectTarget.querySelector('textarea').removeAttribute('required');
+                                                            } 
+                                                            else {
+                                                                rejectTarget.classList.add('d-none');
+                                                                approveTarget.classList.add('d-none');
                                                             }
                                                         });
                                                     });
                                                 });
                                             </script>
+
 
                                             </td>
                                         </tr>

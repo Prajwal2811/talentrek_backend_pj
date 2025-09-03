@@ -11,7 +11,10 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
+    
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
@@ -20,17 +23,15 @@
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
 
-                <main class="p-6 ">
+                <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
-
-                    
                     <form action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Course Title -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Title</label>
-                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" value="{{old('training_title')}}"/>
                             @error('training_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -39,7 +40,7 @@
                         <!-- Course Sub Title -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Course Sub Title</label>
-                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" />
+                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" value="{{old('training_sub_title')}}"/>
                             @error('training_sub_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -48,7 +49,7 @@
                         <!-- Description -->
                         <div class="mb-4">
                             <label class="block font-medium mb-1">Description</label>
-                            <textarea name="training_descriptions" placeholder="Enter the Description" class="w-full border rounded-md p-2 h-24"></textarea>
+                            <textarea name="training_descriptions" placeholder="Enter the Description" class="w-full border rounded-md p-2 h-24">{{old('training_descriptions')}}</textarea>
                             @error('training_descriptions')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -67,9 +68,28 @@
                                     </label>
                                 @endforeach
                             </div>
+                            @error('training_category')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <!-- Training Level -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block font-medium mb-1">Training Level</label>
+                                <select name="training_level" class="w-full border rounded-md p-2">
+                                    <option value="">Select Training Level</option>
+                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
+                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                </select>
+                                @error('training_level')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
-                       
+
+
                         <!-- Course Content Structure -->
                         <div class="mb-4">
                             <label class="block font-medium mb-2">Course Content Structure</label>
@@ -93,11 +113,12 @@
                                             <th class="p-2 border">Title</th>
                                             <th class="p-2 border">Description</th>
                                             <th class="p-2 border">Upload</th>
+                                            <th class="p-2 border">File Duration</th>
                                             <th class="p-2 border">Delete</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Yahan rows dynamically JavaScript se add honge -->
+                                        <!--  rows dynamically JavaScript add  -->
                                     </tbody>
                                 </table>
                             </div>
@@ -116,7 +137,7 @@
                             <!-- Course Price -->
                             <div>
                                 <label class="block font-medium mb-1">Course Price</label>
-                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
+                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" value="{{old('training_price')}}"/>
                                 @error('training_price')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -125,7 +146,7 @@
                             <!-- Course Offer Price -->
                             <div>
                                 <label class="block font-medium mb-1">Course Offer Price</label>
-                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" />
+                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" value="{{old('training_offer_price')}}"/>
                                 @error('training_offer_price')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -140,8 +161,6 @@
                             </button>
                         </div>
                     </form>
-   
-                     
                 </main>
 
 
@@ -283,7 +302,11 @@
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input  accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
+                                <input accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
+                            </td>
+                            <td class="p-2 border text-center duration-cell">
+                                --
+                                <input type="hidden" name="content_sections[${index}][file_duration]" value="">
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
@@ -317,9 +340,35 @@
                     tableBody.addEventListener('change', (e) => {
                         if (e.target.type === 'file') {
                             const fileInput = e.target;
-                            const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
+                            const file = fileInput.files[0];
                             const btn = fileInput.previousElementSibling;
-                            btn.textContent = fileName;
+
+                            if (file) {
+                                btn.textContent = file.name;
+
+                                const video = document.createElement('video');
+                                video.preload = 'metadata';
+
+                                video.onloadedmetadata = function () {
+                                    window.URL.revokeObjectURL(video.src);
+                                    const durationInSeconds = video.duration;
+
+                                    const minutes = Math.floor(durationInSeconds / 60);
+                                    const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
+                                    const formatted = `${minutes}:${seconds}`;
+
+                                    const tr = fileInput.closest('tr');
+                                    const durationCell = tr.querySelector('.duration-cell');
+                                    const hiddenInput = durationCell.querySelector('input');
+
+                                    durationCell.innerHTML = `
+                                        ${formatted}
+                                        <input type="hidden" name="${hiddenInput.name}" value="${formatted}">
+                                    `;
+                                };
+
+                                video.src = URL.createObjectURL(file);
+                            }
                         }
                     });
 
@@ -329,7 +378,8 @@
                         });
                     }
                 });
-            </script>
+                </script>
+
 
 
 
@@ -341,36 +391,4 @@
 
 
 
-          
-
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+          @include('site.trainer.componants.footer')

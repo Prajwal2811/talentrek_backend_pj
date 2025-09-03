@@ -2,17 +2,20 @@
     $user = auth()->user();
     $role = $user->role ?? null;
     $permissions = $user->permissions ?? [];
+    $headerLogo = App\Models\Setting::value('header_logo');
 @endphp
 
 <div id="left-sidebar" class="sidebar">
     <a href="javascript:void(0);" class="menu_toggle"><i class="fa fa-angle-left"></i></a>
     <div class="navbar-brand">
-        <a href="{{ route('home') }}" target="_blank">
-            <img src="{{ asset('asset/backend/images/icon.svg') }}" alt="Talentrek Logo" class="img-fluid logo">
-            <span>Talentrek</span>
-        </a>
-        <button type="button" class="btn-toggle-offcanvas btn btn-sm float-right"><i class="fa fa-close"></i></button>
-    </div>
+    <a href="{{ route('home') }}" target="_blank">
+        <img src="{{ $headerLogo }}" alt="Talentrek Logo" class="img-fluid logo" style="height: 60px; width: auto;">
+    </a>
+    <button type="button" class="btn-toggle-offcanvas btn btn-sm float-right">
+        <i class="fa fa-close"></i>
+    </button>
+</div>
+
 
     <div class="sidebar-scroll">
         <div class="user-account">
@@ -20,12 +23,18 @@
                 <img src="{{ asset('asset/backend/images/user.png') }}" class="user-photo" alt="User Profile Picture">
             </div>
             <div class="dropdown">
-                <span>{{ $role }}</span>
+                <span>{{ $role === 'superadmin' ? 'Super Admin' : 'Admin' }}</span>
                 <a href="javascript:void(0);" class="dropdown-toggle user-name" data-toggle="dropdown">
                     <strong>{{ $user->name }}</strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right account vivify flipInY">
-                    <li><a href="{{ route('admin.profile') }}"><i class="fa fa-user"></i>My Profile</a></li>
+                    <li>
+                       <a href="{{ route('admin.profile') }}">
+                            <i class="fa fa-user"></i> My Profile
+                        </a>
+
+
+                    </li>
                     <li><a href="{{ route('admin.settings') }}"><i class="fa fa-gear"></i>Settings</a></li>
                     <li class="divider"></li>
                     <li><a href="{{ route('admin.signOut') }}"><i class="fa fa-power-off"></i>Logout</a></li>
@@ -56,7 +65,7 @@
                 @endif
 
 
-                @if($role === 'superadmin' || $role === 'admin')
+                {{-- @if($role === 'superadmin' || $role === 'admin')
                     <li class="header">User</li>
                     <li class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'active' : '' }}">
                         <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>User</span></a>
@@ -69,7 +78,7 @@
                             </li>
                         </ul>
                     </li>
-                @endif
+                @endif --}}
 
                 <li class="header">User Roles</li>
 
@@ -81,7 +90,7 @@
                         'Trainers' => ['route' => 'admin.trainers', 'icon' => 'fa-chalkboard-teacher'],
                         'Assessors' => ['route' => 'admin.assessors', 'icon' => 'fa-check-circle'],
                         'Coach' => ['route' => 'admin.coach', 'icon' => 'fa-user-check'],
-                        'Mentors' => ['route' => 'admin.mentors', 'icon' => 'fa-user-graduate'],
+                        'Mentors' => ['route' => 'admin.mentor', 'icon' => 'fa-user-graduate'],
                     ];
                 @endphp
 
@@ -95,11 +104,11 @@
                     @endif
                 @endforeach
 
-                <li class="header">Site Activity</li>
+                {{-- ===================== SITE MANAGEMENT ===================== --}}
+                <li class="header">Site Management</li>
 
                 @php
-                    $menuItems = [
-                        'Training Category' => ['route' => 'admin.training-category', 'icon' => 'fa-file-alt'],
+                    $siteManagementMenu = [
                         'Reviews' => ['route' => 'admin.reviews', 'icon' => 'fa-file-alt'],
                         'CMS' => ['route' => 'admin.cms', 'icon' => 'fa-file-alt'],
                         'Subscriptions' => ['route' => 'admin.subscriptions', 'icon' => 'fa-credit-card'],
@@ -107,12 +116,12 @@
                         'Payments' => ['route' => 'admin.payments', 'icon' => 'fa-money-check-alt'],
                         'Languages' => ['route' => 'admin.languages', 'icon' => 'fa-language'],
                         'Settings' => ['route' => 'admin.settings', 'icon' => 'fa-cog'],
-                        'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-cog'],
+                        'Contact Support' => ['route' => 'admin.contact_support', 'icon' => 'fa-headset'],
                         'Resume Format' => ['route' => 'admin.resume', 'icon' => 'fa-file-word'],
                     ];
                 @endphp
 
-                @foreach ($menuItems as $label => $data)
+                @foreach ($siteManagementMenu as $label => $data)
                     @if($role === 'superadmin' || in_array($label, $permissions))
                         <li class="{{ request()->routeIs($data['route']) ? 'active' : '' }}">
                             <a href="{{ route($data['route']) }}">
@@ -123,7 +132,31 @@
                 @endforeach
 
 
+                {{-- ===================== TRAINING MANAGEMENT ===================== --}}
+                @if($role === 'superadmin' || in_array('Training Category', $permissions))
+                    <li class="header">Training Management</li>
+
+                    <li class="{{ request()->routeIs('admin.trainingcategory.*') ? 'active' : '' }}">
+                        <a href="#" class="has-arrow">
+                            <i class="fa fa-book"></i>
+                            <span>Training Category</span>
+                        </a>
+                        <ul class="{{ request()->routeIs('admin.trainingcategory.*') ? 'collapse in' : 'collapse' }}">
+                            <li class="{{ request()->routeIs('admin.trainingcategory.add') ? 'active' : '' }}">
+                                <a href="{{ route('admin.trainingcategory.add') }}">Add Training Category</a>
+                            </li>
+                            <li class="{{ request()->routeIs('admin.training-category') ? 'active' : '' }}">
+                                <a href="{{ route('admin.training-category') }}">Manage Training Category</a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+
+                {{-- ===================== FEEDBACK & SUPPORT ===================== --}}
                 @if($role === 'superadmin' || in_array('Testimonials', $permissions))
+                    <li class="header">Feedback & Support</li>
+
                     <li class="{{ request()->routeIs('admin.testimonials.*') ? 'active' : '' }}">
                         <a href="#" class="has-arrow"><i class="fa fa-comments"></i><span>Testimonials</span></a>
                         <ul class="{{ request()->routeIs('admin.testimonials.*') ? 'collapse in' : 'collapse' }}">
@@ -137,10 +170,15 @@
                     </li>
                 @endif
 
+
+                {{-- ===================== SYSTEM LOG ===================== --}}
                 @if($role === 'superadmin' || in_array('Activity Log', $permissions))
                     <li class="header">System Log</li>
+
                     <li class="{{ request()->routeIs('admin.activity.log') ? 'active' : '' }}">
-                        <a href="{{ route('admin.activity.log') }}"><i class="fa fa-history"></i><span>Logs</span></a>
+                        <a href="{{ route('admin.activity.log') }}">
+                            <i class="fa fa-history"></i><span>Logs</span>
+                        </a>
                     </li>
                 @endif
             </ul>

@@ -19,7 +19,9 @@
             </div>
         </div>
     </div>
-
+ @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
 	
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
@@ -88,232 +90,360 @@
                                 </li>
                             </ul>
                         </aside>
+                        
 
                         <!-- Main Content -->
                         <section class="flex-1 p-6">
+                            
                             <div class="bg-white rounded-lg shadow p-6">
-                                <!-- Profile Section -->
+                                
                                 <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
                                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">Subscription</h3>
 
-                                    <!-- Include Alpine.js -->
-                                    <script src="//unpkg.com/alpinejs" defer></script>
+                                    @php
+                                        $userId = auth()->user('trainer')->id;
+                                        // Fetch available plans for this user type
+                                        $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'trainer')->get();
 
-                                    <!-- Main Section -->
-                                    <div x-data="{ showPlans: false }">
-                                        <!-- Subscription Card -->
-                                        <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                                            <div>
-                                                <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
-                                                <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features of Talentrek</p>
-                                            </div>
-                                            <button @click="showPlans = true"
-                                                class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
-                                                View Plans
-                                            </button>
+                                        // Fetch purchased subscriptions for current user
+                                        $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*', 'purchased_subscriptions.*')
+                                            ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                            ->where('subscription_plans.user_type', 'trainer')
+                                            ->where('purchased_subscriptions.user_id', $userId)
+                                            ->orderBy('purchased_subscriptions.created_at', 'desc')
+                                            ->get();
+
+                                        $showPlansModal = false;
+
+                                        if ($purchasedSubscriptions->count() > 0) {
+                                            $latest = $purchasedSubscriptions->first();
+                                            $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
+
+                                            if ($daysLeft > 0 && $daysLeft <= 30) {
+                                                $showPlansModal = true;
+                                            }
+                                        }
+                                    @endphp
+
+                                    <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        @if($showPlansModal)
+                                            document.getElementById('plansModal').classList.remove('hidden');
+                                        @endif
+                                    });
+                                    </script>
+
+                                    <!-- Subscription Card -->
+                                    <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                                        <div>
+                                            <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
+                                            <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features</p>
                                         </div>
+                                        <button onclick="document.getElementById('plansModal').classList.remove('hidden')"
+                                            class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                                            View Plans
+                                        </button>
+                                    </div>
 
-                                        <!-- Modal Overlay -->
-                                        <div
-                                            x-show="showPlans"
-                                            x-transition
-                                            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-                                            style="display: none;"
-                                        >
-                                            <!-- Modal Content -->
-                                            <div @click.outside="showPlans = false"
-                                                class="bg-white rounded-lg p-6 w-full max-w-5xl mx-auto shadow-lg">
-                                                <div class="flex justify-between items-center mb-6">
-                                                    <h2 class="text-xl font-semibold">Choose Your Plan</h2>
-                                                    <button @click="showPlans = false" class="text-gray-600 hover:text-black text-2xl">&times;</button>
-                                                </div>
+                                    <!-- Plans Modal -->
+                                    <div id="plansModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50 hidden">
+                                        <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative">
+                                            <button onclick="document.getElementById('plansModal').classList.add('hidden')"
+                                                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
 
-                                                <!-- Plans Grid -->
-                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <!-- Plan Example -->
-                                                    <template x-for="(plan, index) in ['Silver', 'Gold', 'Platinum']" :key="index">
-                                                        <div class="border rounded-xl shadow p-5 text-center">
-                                                            <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-b from-gray-300 to-gray-200 mb-3"></div>
-                                                            <h3 class="font-semibold" x-text="plan"></h3>
-                                                            <p class="text-2xl font-bold my-2">$100</p>
-                                                            <hr class="my-3">
-                                                            <p class="text-sm text-gray-600 mb-3">Access premium features with this plan.</p>
-                                                            <ul class="text-left text-sm space-y-1 mb-4 text-gray-700">
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature A</li>
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature B</li>
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature C</li>
-                                                            </ul>
-                                                            <button class="bg-orange-500 text-white w-full py-2 rounded hover:bg-orange-600 transition">
-                                                                Buy subscription
-                                                            </button>
+                                            <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+
+                                            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4">
+                                                @foreach($subscriptions as $plan)
+                                                    <div class="border rounded-lg p-4 shadow-sm text-center">
+                                                        <div class="flex flex-col items-center">
+                                                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                            <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                                            <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                                                         </div>
-                                                    </template>
-                                                </div>
+                                                        <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                                                        @php
+                                                            $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
+                                                        @endphp
+                                                        <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                                            @foreach($features as $feature)
+                                                                <li>{{ trim($feature) }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                        <button type="button"
+                                                            class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                                            data-plan-id="{{ $plan->id }}">
+                                                            Buy subscription
+                                                        </button>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- Payment Modal -->
+                                    <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
+                                        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                                            <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                                            <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+
+                                            <form id="paymentForm">
+                                                @csrf
+                                                <input type="hidden" name="plan_id" id="selectedPlanId">
+
+                                                <div class="mb-4">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                                    <input type="text" name="card_number" value="4242424242424242"
+                                                        class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                </div>
+
+                                                <div class="mb-4 flex space-x-2">
+                                                    <div class="w-1/2">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                                        <input type="text" name="expiry" value="12/30"
+                                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                    </div>
+                                                    <div class="w-1/2">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                                        <input type="text" name="cvv" value="123"
+                                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                    </div>
+                                                </div>
+                                                <button type="submit"
+                                                    class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                                                    Pay Now
+                                                </button>
+                                            </form>
+                                            <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
+                                            <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
 
                                     <!-- Subscription History Table -->
                                     <h4 class="text-lg font-semibold mb-3">Subscription History</h4>
                                     <div class="overflow-x-auto">
-                                        <table class="min-w-full bg-white border border-gray-200 text-sm text-left">
-                                        <thead class="bg-gray-100 text-gray-700">
-                                            <tr>
-                                            <th class="px-4 py-2 border-b">Sr. No.</th>
-                                            <th class="px-4 py-2 border-b">Paid to</th>
-                                            <th class="px-4 py-2 border-b">Date</th>
-                                            <th class="px-4 py-2 border-b">Amount</th>
-                                            <th class="px-4 py-2 border-b">Payment status</th>
-                                            <th class="px-4 py-2 border-b">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="text-gray-700">
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">1.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <!-- Add more rows as needed -->
-                                        </tbody>
+                                        <table class="min-w-full border border-gray-200 text-sm">
+                                            <thead class="bg-gray-100 text-left">
+                                                <tr>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Sr. No.</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Subscription</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Duration</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Purchased on</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Expired on</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($purchasedSubscriptions as $index => $subscription)
+                                                    <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
+                                                        <td class="px-4 py-3">{{ $index + 1 }}.</td>
+                                                        <td class="px-4 py-3">{{ $subscription->title }}</td>
+                                                        <td class="px-4 py-3">{{ $subscription->duration_days }} {{ Str::plural('days', $subscription->duration_days) }}</td>
+                                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->start_date)->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->end_date)->format('d/m/Y') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
                                         </table>
                                     </div>
                                 </div>
 
+                               <!-- Include SweetAlert2 -->
+                                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-                                   <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
+                                <script>
+                                    function openPaymentModal(planId) {
+                                        document.getElementById('selectedPlanId').value = planId;
+                                        document.getElementById('paymentModal').classList.remove('hidden');
+                                    }
 
-                                <!-- Scrollable notification list -->
-                                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                    <!-- Notification Items -->
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
+                                    function closePaymentModal() {
+                                        document.getElementById('paymentModal').classList.add('hidden');
+                                    }
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
+                                    document.addEventListener('DOMContentLoaded', () => {
+                                        document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                                            button.addEventListener('click', function () {
+                                                openPaymentModal(this.getAttribute('data-plan-id'));
+                                            });
+                                        });
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        document.addEventListener('keydown', function (e) {
+                                            if (e.key === 'Escape') closePaymentModal();
+                                        });
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
-                                    </div>
-                                    </div>
+                                        document.getElementById('paymentForm').addEventListener('submit', function (e) {
+                                            e.preventDefault();
+                                            let formData = new FormData(this);
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Approved your request</p>
-                                        <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
-                                    </div>
-                                    </div>
+                                            fetch("{{ route('trainer.subscription.payment') }}", {
+                                                method: "POST",
+                                                headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                                                body: formData
+                                            })
+                                            .then(async response => {
+                                                let data = await response.json();
+                                                if (!response.ok) throw data;
+                                                return data;
+                                            })
+                                            .then(data => {
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Payment Successful',
+                                                    text: data.message,
+                                                    confirmButtonColor: '#3085d6',
+                                                    timer: 2000,
+                                                    timerProgressBar: true
+                                                }).then(() => {
+                                                    closePaymentModal();
+                                                    location.reload();
+                                                });
+                                            })
+                                            .catch(error => {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Payment Failed',
+                                                    text: error.message || "Something went wrong!",
+                                                    confirmButtonColor: '#d33'
+                                                });
+                                            });
+                                        });
+                                    });
+                                </script>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> New comment on your post</p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
-                                    </div>
-                                    </div>
+                                <!-- Delete Account Section -->
+                                <div 
+                                    x-show="activeSection === 'delete'" 
+                                    x-transition 
+                                    class="bg-white p-6 rounded-lg border border-red-200 shadow-md mt-4"
+                                >
+                                    <h3 class="text-xl font-semibold mb-3 text-red-600">Delete Account</h3>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
-                                        <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
-                                    </div>
-                                    </div>
+                                    <p class="text-gray-700 leading-relaxed mb-4">
+                                        This action is <span class="font-semibold text-red-700">irreversible</span>. 
+                                        Are you sure you want to permanently delete your account?
+                                    </p>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
-                                    </div>
-                                    </div>
+                                    <form id="deleteAccountForm" action="{{ route('trainer.destroy') }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
+                                        <button 
+                                            type="button" 
+                                            id="deleteAccountBtn" 
+                                            class="bg-red-600 text-white px-5 py-2.5 rounded hover:bg-red-700 transition-colors duration-200"
+                                        >
+                                            Delete Account
+                                        </button>
+                                    </form>
                                 </div>
+
+    
+                                <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
+
+                                    <!-- Scrollable notification list -->
+                                    <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                        <!-- Notification Items -->
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Approved your request</p>
+                                            <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> New comment on your post</p>
+                                            <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
+                                            <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
+                                            <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
+                                            <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                        <div>
+                                            <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
+                                            <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                        </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
 
@@ -322,77 +452,77 @@
 
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden">
-                                        <thead class="bg-gray-100 text-gray-700">
-                                            <tr>
-                                            <th class="px-4 py-2 border">Sr. No.</th>
-                                            <th class="px-4 py-2 border">Paid to</th>
-                                            <th class="px-4 py-2 border">Date</th>
-                                            <th class="px-4 py-2 border">Amount</th>
-                                            <th class="px-4 py-2 border">Payment status</th>
-                                            <th class="px-4 py-2 border">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="text-gray-700">
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">1.</td>
-                                            <td class="px-4 py-2">Session1</td>
-                                            <td class="px-4 py-2">24/04/2025</td>
-                                            <td class="px-4 py-2">200</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Session2</td>
-                                            <td class="px-4 py-2">26/04/2025</td>
-                                            <td class="px-4 py-2">100</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <!-- Add more rows dynamically if needed -->
-                                        </tbody>
+                                            <thead class="bg-gray-100 text-gray-700">
+                                                <tr>
+                                                <th class="px-4 py-2 border">Sr. No.</th>
+                                                <th class="px-4 py-2 border">Paid to</th>
+                                                <th class="px-4 py-2 border">Date</th>
+                                                <th class="px-4 py-2 border">Amount</th>
+                                                <th class="px-4 py-2 border">Payment status</th>
+                                                <th class="px-4 py-2 border">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="text-gray-700">
+                                                <tr class="border-b">
+                                                <td class="px-4 py-2">1.</td>
+                                                <td class="px-4 py-2">Session1</td>
+                                                <td class="px-4 py-2">24/04/2025</td>
+                                                <td class="px-4 py-2">200</td>
+                                                <td class="px-4 py-2">Paid</td>
+                                                <td class="px-4 py-2">
+                                                    <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                                                    View invoice
+                                                    </button>
+                                                </td>
+                                                </tr>
+                                                <tr class="border-b">
+                                                <td class="px-4 py-2">2.</td>
+                                                <td class="px-4 py-2">Session2</td>
+                                                <td class="px-4 py-2">26/04/2025</td>
+                                                <td class="px-4 py-2">100</td>
+                                                <td class="px-4 py-2">Paid</td>
+                                                <td class="px-4 py-2">
+                                                    <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                                                    View invoice
+                                                    </button>
+                                                </td>
+                                                </tr>
+                                                <!-- Add more rows dynamically if needed -->
+                                            </tbody>
                                         </table>
                                     </div>
-                                    </div>
+                                </div>
 
                                 <!-- Notifications Section -->
                                 <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
 
                                 <!-- Scrollable notification list -->
                                 <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                                     <!-- Notification Items -->
                                     <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                            <div>
+                                                <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
+                                                <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
+                                            </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                            <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                            <div>
+                                                <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
+                                                <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
+                                            </div>
+                                        </div>
 
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
+                                        <div class="flex items-start gap-4 border-b pb-4">
+                                            <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                                <div>
+                                                    <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
+                                                    <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
+                                                </div>
+                                            </div>
 
                                     <div class="flex items-start gap-4 border-b pb-4">
                                     <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
@@ -478,7 +608,10 @@
                                         @php
                                             $user = auth()->user();
                                             $userId = $user->id;
-                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
+                                            $profile = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                ->where('user_type', 'trainer')
+                                                ->where('doc_type', 'trainer_profile_picture')
+                                                ->first();
                                         @endphp
 
                                         @if($profile && $profile->document_path)
@@ -486,6 +619,7 @@
                                         @else
                                             <img src="{{ asset('images/default-profile.png') }}" alt="Default" class="w-20 h-20 rounded-lg object-cover" />
                                         @endif
+
 
                                         <div>
                                             <h3 class="text-xl font-semibold">{{$user->name}}</h3>
@@ -548,49 +682,107 @@
                                             <!-- Trainer Info Form -->
                                             <form id="trainer-info-form" action="{{ route('trainer.profile.update') }}" method="POST">
                                                 @csrf
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                                    <!-- Full Name -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Full Name</label>
+                                                        <input type="text" name="name" value="{{ $trainerSkills->name ?? '' }}" placeholder="John Doe" class="w-full border rounded px-3 py-2" />
+                                                        @error('name')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
-                                                <!-- Full Name -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Full Name</label>
-                                                    <input type="text" name="name" value="{{ $trainerSkills->name ?? '' }}" placeholder="John Doe" class="w-full border rounded px-3 py-2" />
-                                                    @error('name')
+                                                    <!-- Email -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Email</label>
+                                                        <input type="email" name="email" value="{{ $trainerSkills->email ?? '' }}" placeholder="john.doe@example.com" class="w-full border rounded px-3 py-2" />
+                                                        @error('email')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                                    <!-- Phone Number -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Phone Number</label>
+                                                        <input type="text" name="phone" value="{{ $trainerSkills->phone_number ?? '' }}" placeholder="+91 9876543210" class="w-full border rounded px-3 py-2" />
+                                                        @error('phone')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Date of Birth -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Date of Birth</label>
+                                                        <input type="date" name="dob" value="{{ $trainerSkills->date_of_birth ?? '' }}" class="w-full border rounded px-3 py-2" />
+                                                        @error('dob')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium">National ID Number</label>
+                                                        <span class="text-xs text-blue-600">
+                                                            National ID should start with 1 for male and 2 for female.
+                                                        </span>
+                                                        <input 
+                                                            type="text" 
+                                                            name="national_id" 
+                                                            id="national_id" 
+                                                            class="w-full border rounded-md p-2 mt-1" 
+                                                            placeholder="Enter national id number" 
+                                                            value="{{ $trainerSkills->national_id ?? '' }}"
+                                                            maxlength="15"
+                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                        />
+                                                        @error('national_id')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <!-- Address -->
+                                                <div class="md:col-span-2 mt-3">
+                                                    <label class="block mb-1 font-medium">Address</label>
+                                                    <textarea name="address" placeholder="Enter address" class="w-full border rounded px-3 py-2">{{ $trainerSkills->address ?? '' }}</textarea>
+                                                    @error('address')
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                <!-- Email -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Email</label>
-                                                    <input type="email" name="email" value="{{ $trainerSkills->email ?? '' }}" placeholder="john.doe@example.com" class="w-full border rounded px-3 py-2" />
-                                                    @error('email')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <!-- City -->
+                                                <div class="mt-3">
+                                                    <label class="block font-medium mb-1">City</label>
+                                                    <input type="text" name="city" value="{{ $trainerSkills->city }}" class="w-full border rounded px-3 py-2" />
+                                                    @error('city')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                <!-- Phone Number -->
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Phone Number</label>
-                                                    <input type="text" name="phone" value="{{ $trainerSkills->phone_number ?? '' }}" placeholder="+91 9876543210" class="w-full border rounded px-3 py-2" />
-                                                    @error('phone')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <!-- State -->
+                                                <div class="mt-3">
+                                                    <label class="block font-medium mb-1">State</label>
+                                                    <input type="text" name="state" placeholder="Enter State" value="{{ $trainerSkills->state }}" class="w-full border rounded px-3 py-2" />
+                                                    @error('state')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                <!-- Date of Birth -->
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Date of Birth</label>
-                                                    <input type="date" name="dob" value="{{ $trainerSkills->date_of_birth ?? '' }}" class="w-full border rounded px-3 py-2" />
-                                                    @error('dob')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <!-- Country -->
+                                                <div class="mt-3">
+                                                    <label class="block font-medium mb-1">Country</label>
+                                                    <input type="text" name="country" value="{{ $trainerSkills->country }}" class="w-full border rounded px-3 py-2" />
+                                                    @error('country')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                <!-- Location -->
-                                                <div class="md:col-span-2">
-                                                    <label class="block mb-1 font-medium">Location</label>
-                                                    <input type="text" name="location" value="{{ $trainerSkills->city ?? '' }}" placeholder="City, State, Country" class="w-full border rounded px-3 py-2" />
-                                                    @error('location')
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <!-- Pin code -->
+                                                <div class="mt-3">
+                                                    <label class="block font-medium mb-1">Pin code</label>
+                                                    <input type="text" name="pin_code" value="{{ $trainerSkills->pin_code }}" class="w-full border rounded px-3 py-2" />
+                                                    @error('pin_code')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
@@ -818,7 +1010,7 @@
                                                 <strong>Success!</strong> <span class="message-text"></span>
                                             </div>
 
-                                            <form id="work-info-form" method="POST" action="{{ route('trainer.workexprience.update') }}" class="space-y-6">
+                                            <form id="work-info-form" method="POST" action="{{ route('trainer.workexprience.update')}}"   class="space-y-6">
                                                 @csrf
 
                                                 <div id="work-container" class="space-y-6">
@@ -854,11 +1046,13 @@
 
                                                                 <label class="inline-flex items-center mt-2">
                                                                     <input 
-                                                                        type="checkbox" 
-                                                                        name="currently_working[]" 
-                                                                        onchange="toggleEndDate(this)" 
-                                                                        {{ is_null($work->end_to) || $work->end_to === 'Work here' ? 'checked' : '' }} 
-                                                                    />
+                                                                            type="checkbox" 
+                                                                            name="currently_working[{{ $loop->index }}]" 
+                                                                            value="1"
+                                                                            onchange="toggleEndDate(this)" 
+                                                                            {{ is_null($work->end_to) || $work->end_to === 'Work here' ? 'checked' : '' }} 
+                                                                        />
+
                                                                     <span class="ml-2">I currently work here</span>
                                                                 </label>
                                                             </div>
@@ -931,6 +1125,17 @@
                                                     }
                                                 });
 
+                                                // function toggleEndDate(checkbox) {
+                                                //     const endDateInput = checkbox.closest('.work-entry').querySelector('input[name="end_to[]"]');
+                                                //     if (checkbox.checked) {
+                                                //         endDateInput.value = '';
+                                                //         endDateInput.disabled = true;
+                                                //     } else {
+                                                //         endDateInput.disabled = false;
+                                                //     }
+                                                // }
+
+
                                                 // Toggle End Date when checkbox clicked
                                                 window.toggleEndDate = function (checkbox) {
                                                     const container = checkbox.closest('div');
@@ -995,11 +1200,6 @@
                                                 });
                                             });
                                         </script>
-    
-
-
-
-
                                         
                                         <!-- Skills & Training Tab -->
                                         <div x-show="activeSubTab === 'skills'" x-transition>
@@ -1026,8 +1226,8 @@
 
                                                     <!-- Training Experience -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Area of Interests</label>
-                                                        <input type="text" name="training_experience" placeholder="E.g., Web Development, Teaching"
+                                                        <label class="block text-sm font-medium mb-1">Training Experience</label>
+                                                        <input type="text" name="training_experience" placeholder="training experience"
                                                             class="w-full border rounded px-3 py-2"
                                                             value="{{ old('training_experience', $trainerSkills->training_experience ?? '') }}" />
                                                         @error('training_experience')
@@ -1121,15 +1321,24 @@
                                         <!-- Additional Information Tab -->
                                         <div x-show="activeSubTab === 'additional'" x-transition>
                                             <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
-                                            @php
-                                                $userId = auth()->id();
-                                                
-                                                $resume = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
-                                                
-                                                $profile = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
-                                                
-                                                $certificate = \App\Models\AdditionalInfo::where('user_id', $userId)->where('user_type', 'trainer')->first();
-                                               
+                                           
+                                             @php
+                                                $user = auth()->user();
+                                                $userId = $user->id;
+                                                $profile = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                    ->where('user_type', 'trainer')
+                                                    ->where('doc_type', 'trainer_profile_picture')
+                                                    ->first();
+
+                                                $resume = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                    ->where('user_type', 'trainer')
+                                                    ->where('doc_type', 'resume')
+                                                    ->first();  
+
+                                                $certificate = \App\Models\AdditionalInfo::where('user_id', $userId)
+                                                    ->where('user_type', 'trainer')
+                                                    ->where('doc_type', 'training_certificate')
+                                                    ->first();  
                                             @endphp
 
                                             <!-- Success Message -->
@@ -1163,10 +1372,10 @@
                                                             @if($profile)
                                                                 <div class="flex items-center gap-4">
                                                                     <a href="{{ asset($profile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 text-xs rounded hover:bg-green-700">📄 View Profile</a>
-                                                                    <button type="button" class="delete-file text-red-600 text-sm" data-type="profile">Delete</button>
+                                                                    <button type="button" class="delete-file text-red-600 text-sm" data-type="profile_picture">Delete</button>
                                                                 </div>
                                                             @endif
-                                                            <input type="file" name="profile" accept="image/*" class="border rounded p-2 w-full" />
+                                                            <input type="file" name="profile_picture" accept="image/*" class="border rounded p-2 w-full" />
                                                         </div>
                                                     </div>
 
@@ -1233,7 +1442,7 @@
                                                         successBox.style.display = 'none';
                                                         successText.textContent = '';
                                                         location.reload(); // 🔄 Reload after success
-                                                    }, 3000);
+                                                    }, 1000);
                                                 })
                                                 .catch(error => {
                                                     const errors = error.errors || {};
@@ -1304,72 +1513,56 @@
 
 
                                 <!-- Privacy Policy Section -->
-                              <div x-show="activeSection === 'privacy'" x-transition>
-                                <h3 class="text-xl font-semibold mb-4">Privacy Policy</h3>
-                                
-                                <p class="mb-4">At XYZ Infotech, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your personal information.</p>
+                                <div x-show="activeSection === 'privacy'" x-transition>
+                                    <h3 class="text-xl font-semibold mb-4">Privacy Policy</h3>
+                                    
+                                    <p class="mb-4">At XYZ Infotech, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your personal information.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">1. Information We Collect</h4>
-                                <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
-                                    <li>Personal information such as name, email address, phone number, and address.</li>
-                                    <li>Usage data including pages visited, time spent, and actions taken on our platform.</li>
-                                    <li>Device and browser information for improving user experience.</li>
-                                </ul>
+                                    <h4 class="text-lg font-semibold mb-2">1. Information We Collect</h4>
+                                    <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
+                                        <li>Personal information such as name, email address, phone number, and address.</li>
+                                        <li>Usage data including pages visited, time spent, and actions taken on our platform.</li>
+                                        <li>Device and browser information for improving user experience.</li>
+                                    </ul>
 
-                                <h4 class="text-lg font-semibold mb-2">2. How We Use Your Information</h4>
-                                <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
-                                    <li>To provide and maintain our services.</li>
-                                    <li>To improve customer support and experience.</li>
-                                    <li>To send transactional and promotional communications.</li>
-                                    <li>To comply with legal obligations.</li>
-                                </ul>
+                                    <h4 class="text-lg font-semibold mb-2">2. How We Use Your Information</h4>
+                                    <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
+                                        <li>To provide and maintain our services.</li>
+                                        <li>To improve customer support and experience.</li>
+                                        <li>To send transactional and promotional communications.</li>
+                                        <li>To comply with legal obligations.</li>
+                                    </ul>
 
-                                <h4 class="text-lg font-semibold mb-2">3. Data Security</h4>
-                                <p class="mb-4 text-sm text-gray-700">We implement a variety of security measures to maintain the safety of your personal information. However, no method of transmission over the Internet is 100% secure.</p>
+                                    <h4 class="text-lg font-semibold mb-2">3. Data Security</h4>
+                                    <p class="mb-4 text-sm text-gray-700">We implement a variety of security measures to maintain the safety of your personal information. However, no method of transmission over the Internet is 100% secure.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">4. Third-Party Services</h4>
-                                <p class="mb-4 text-sm text-gray-700">We may use third-party services (e.g., analytics providers, payment gateways) that collect, monitor, and analyze data. These services have their own privacy policies.</p>
+                                    <h4 class="text-lg font-semibold mb-2">4. Third-Party Services</h4>
+                                    <p class="mb-4 text-sm text-gray-700">We may use third-party services (e.g., analytics providers, payment gateways) that collect, monitor, and analyze data. These services have their own privacy policies.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">5. Your Rights</h4>
-                                <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
-                                    <li>Access and update your personal information.</li>
-                                    <li>Request deletion of your data.</li>
-                                    <li>Opt out of marketing communications.</li>
-                                </ul>
+                                    <h4 class="text-lg font-semibold mb-2">5. Your Rights</h4>
+                                    <ul class="list-disc list-inside mb-4 text-sm text-gray-700">
+                                        <li>Access and update your personal information.</li>
+                                        <li>Request deletion of your data.</li>
+                                        <li>Opt out of marketing communications.</li>
+                                    </ul>
 
-                                <h4 class="text-lg font-semibold mb-2">6. Changes to This Policy</h4>
-                                <p class="mb-4 text-sm text-gray-700">We may update this Privacy Policy periodically. We will notify you of any significant changes via email or on our platform.</p>
+                                    <h4 class="text-lg font-semibold mb-2">6. Changes to This Policy</h4>
+                                    <p class="mb-4 text-sm text-gray-700">We may update this Privacy Policy periodically. We will notify you of any significant changes via email or on our platform.</p>
 
-                                <h4 class="text-lg font-semibold mb-2">7. Contact Us</h4>
-                                <p class="text-sm text-gray-700">If you have any questions or concerns about this policy, please contact us at <a href="mailto:support@xyzinfotech.com" class="text-blue-600 underline">support@xyzinfotech.com</a>.</p>
+                                    <h4 class="text-lg font-semibold mb-2">7. Contact Us</h4>
+                                    <p class="text-sm text-gray-700">If you have any questions or concerns about this policy, please contact us at <a href="mailto:support@xyzinfotech.com" class="text-blue-600 underline">support@xyzinfotech.com</a>.</p>
                                 </div>
 
 
                                 <!-- Log Out Section -->
                                 <div x-show="activeSection === 'logout'" x-transition>
-                                <h3 class="text-xl font-semibold mb-4">Log Out</h3>
-                                <p>Are you sure you want to log out?</p>
-                                <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Log Out</button>
+                                    <h3 class="text-xl font-semibold mb-4">Log Out</h3>
+                                    <p>Are you sure you want to log out?</p>
+                                    <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Log Out</button>
                                 </div>
 
-                                <!-- Delete Account Section -->
-                                <div x-show="activeSection === 'delete'" x-transition>
-                                    <h3 class="text-xl font-semibold mb-4 text-red-600">Delete Account</h3>
-                                    <p>This action is irreversible. Are you sure you want to delete your account?</p>
-                                    <!-- <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Account</button> -->
-                                    <form id="deleteAccountForm" action="{{ route('trainer.destroy') }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button 
-                                            type="button" 
-                                            id="deleteAccountBtn" 
-                                            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                                        >
-                                            Delete Account
-                                        </button>
-                                    </form>
+                                
 
-                                </div>
                             </div>
                         </section>
                     </div>
@@ -1391,82 +1584,10 @@
 
 
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const workContainer = document.getElementById('work-container');
-        const addWorkBtn = document.getElementById('add-work');
-
-        // Add new work block
-        addWorkBtn.addEventListener('click', function () {
-            const firstEntry = workContainer.querySelector('.work-entry');
-            const clone = firstEntry.cloneNode(true);
-
-            // Clear input values
-            clone.querySelectorAll('input').forEach(input => {
-                if (input.type === 'hidden') {
-                    input.remove();
-                } else if (input.type === 'checkbox') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
-                if (input.name === 'end_to[]') input.disabled = false;
-            });
-
-            // Show remove button
-            const removeBtn = clone.querySelector('.remove-work');
-            removeBtn.style.display = 'block';
-
-            workContainer.appendChild(clone);
-        });
-
-        // Remove work block
-        workContainer.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-work')) {
-                const allEntries = workContainer.querySelectorAll('.work-entry');
-                if (allEntries.length > 1) {
-                    e.target.closest('.work-entry').remove();
-                }
-            }
-        });
-    });
-
-    // Toggle "currently working" checkbox
-    function toggleEndDate(checkbox) {
-        const input = checkbox.closest('div').querySelector('input[type="date"]');
-        input.disabled = checkbox.checked;
-        if (checkbox.checked) input.value = '';
-    }
-</script>
 
 
-          
 
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
+      
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -1487,10 +1608,4 @@ document.getElementById('deleteAccountBtn').addEventListener('click', function (
     });
 });
 </script>
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+@include('site.trainer.componants.footer')
