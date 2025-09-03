@@ -182,8 +182,8 @@ class ExplorerController extends Controller
                     }, 0);
                     $item->total_experience_days = $totalDays;
                     $years = floor($totalDays / 365);
-                $months = floor(($totalDays % 365) / 30);
-                $item->total_experience_years =  $years.'.'.$months ;
+                    $months = floor(($totalDays % 365) / 30);
+                    $item->total_experience_years =  $years.'.'.$months ;
                     // Get the most recent job_role based on nearest end_to (null means current)
                     $mostRecentExp = $item->WorkExperience
                     ->sortByDesc(function ($exp) {
@@ -245,15 +245,17 @@ class ExplorerController extends Controller
                     $avg = $item->coach_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $mostRecentExp = $item->WorkExperience
-                    ->sortByDesc(function ($exp) {
-                        $endTo = strtolower(trim($exp->end_to));
-                        return $endTo === 'work here'
-                            ? Carbon::now()->timestamp
-                            : Carbon::parse($exp->end_to)->timestamp;
-                    })
-                    ->first();
-                    $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                   $item->recent_job_role  = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? $exp->job_role 
+                            : $exp->job_role;
+
+                        return $end;
+                    }, 0);
+                    //$item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->image = $item->additionalInfo->document_path ?? null;
                     unset($item->additionalInfo,$item->coach_reviews_avg_ratings, $item->WorkExperience);
                     return $item;
@@ -356,7 +358,9 @@ class ExplorerController extends Controller
                 return $carry + $start->diffInDays($end);
             }, 0);
             $MentorsDetails->total_experience_days = $totalDays;
-            $MentorsDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $MentorsDetails->total_experience_years =  $years.'.'.$months ;
             
             // Set average rating and clean raw data
             $avg = $MentorsDetails->mentor_reviews_avg_ratings;
@@ -409,7 +413,10 @@ class ExplorerController extends Controller
                     return $carry + $start->diffInDays($end);
                 }, 0);
             $AssessorDetails->total_experience_days = $totalDays;
-            $AssessorDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $AssessorDetails->total_experience_years =  $years.'.'.$months ;
+            //$AssessorDetails->total_experience_years = round($totalDays / 365, 1);
             
             // Set average rating
             $avg = $AssessorDetails->assessor_reviews_avg_ratings;
@@ -460,7 +467,9 @@ class ExplorerController extends Controller
                     return $carry + $start->diffInDays($end);
                 }, 0);
             $CoachDetails->total_experience_days = $totalDays;
-            $CoachDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $CoachDetails->total_experience_years =  $years.'.'.$months ;
             
             // Set average rating
             $avg = $CoachDetails->coach_reviews_avg_ratings;

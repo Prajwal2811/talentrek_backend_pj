@@ -12,6 +12,9 @@
         </div>
     </div>
 
+@if($coachNeedsSubscription)
+    @include('site.coach.subscription.index')
+@endif
 
     <!-- Add this script at the end of your body or inside a script tag -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -47,11 +50,11 @@
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
                         <p class="text-gray-500">Total upcoming sessions</p>
-                        <h3 class="text-3xl font-bold mt-2">24</h3>
+                        <h3 class="text-3xl font-bold mt-2">{{$upcomingCount ?? 0}}</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
                         <p class="text-gray-500">Today’s sessions</p>
-                        <h3 class="text-3xl font-bold mt-2">15</h3>
+                        <h3 class="text-3xl font-bold mt-2">{{$todayCount ?? 0}}</h3>
                     </div>
                 </div>
 
@@ -96,13 +99,29 @@
                                     <div class="flex space-x-2">
                                         <button
                                             class="border border-red-500 text-red-500 px-4 py-1.5 rounded hover:bg-red-50 text-sm"
-                                            @click="openCancelModal(session)">Cancel</button>
-                                        <button
-                                            class="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 text-sm"
-                                            @click="joinSession(session)">Join</button>
+                                            @click="openCancelModal(session)">
+                                            Cancel
+                                        </button>
+
+                                        <template x-if="session.mode && session.mode.trim().toLowerCase() === 'offline'">
+                                            <button
+                                                class="bg-gray-600 text-white px-4 py-1.5 rounded hover:bg-gray-700 text-sm"
+                                                @click="visitSession(session)">
+                                                Visit
+                                            </button>
+                                        </template>
+
+                                        <template x-if="session.mode && session.mode.trim().toLowerCase() === 'online'">
+                                            <button
+                                                class="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 text-sm"
+                                                @click="joinSession(session)">
+                                                Join
+                                            </button>
+                                        </template>
                                     </div>
                                 </template>
 
+                                  
                                 <template x-if="currentTab === 'completed'">
                                     <button
                                         class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm"
@@ -309,7 +328,13 @@
 
                 </div>
 
-              
+                <script>
+                    window.coachSessions = {
+                        upcoming: @json($upcoming),
+                        cancelled: @json($cancelled),
+                        completed: @json($completed),
+                    };
+                </script>
                 <script>
                     function sessionManager() {
                         return {

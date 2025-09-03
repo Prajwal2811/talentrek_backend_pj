@@ -16,6 +16,11 @@
             background: white;
         }
     </style>
+<<<<<<< HEAD
+    
+=======
+
+>>>>>>> c940fdd120030686d7e494d3cb15f2a500449522
 @include('site.componants.navbar')
 
     <div class="page-content">
@@ -284,8 +289,9 @@
                                             return;
                                         }
 
+                                        
                                         const bookedSlotIds = data.booked_slot_ids || [];
-
+                                        
                                         data.slots.forEach(slot => {
                                             const isUnavailable = slot.is_unavailable;
                                             const isBooked = bookedSlotIds.includes(slot.id);
@@ -293,29 +299,29 @@
                                             const btn = document.createElement('button');
                                             btn.type = 'button';
 
-                                            let baseClass = 'border rounded py-2 px-3 w-full';
+                                            let baseClass = 'border rounded py-2 px-3 w-full transition';
                                             if (isUnavailable) {
                                                 baseClass += ' text-red-600 border-red-500 cursor-not-allowed bg-red-50';
                                             } else if (isBooked) {
-                                                baseClass += ' bg-yellow-200 border-yellow-500 text-yellow-800'; // highlight booked
+                                                baseClass += ' bg-yellow-200 border-yellow-500 text-yellow-800 cursor-not-allowed';
                                             } else {
-                                                baseClass += ' text-gray-900';
+                                                baseClass += ' text-gray-900 hover:bg-blue-400';
                                             }
 
                                             btn.className = baseClass;
-                                            btn.disabled = isUnavailable;
+                                            btn.disabled = isUnavailable || isBooked;
 
                                             btn.innerHTML = `
                                                 <p class="font-medium">${slot.start_time} - ${slot.end_time}</p>
                                                 <p class="text-xs ${
-                                                    isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-600'
-                                                }">${isUnavailable ? 'Unavailable' : isBooked ? 'Already Booked' : 'Available'}</p>
+                                                    isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-400'
+                                                }">
+                                                    ${isUnavailable ? 'Unavailable' : isBooked ? 'Already Booked' : 'Available'}
+                                                </p>
                                             `;
 
-                                            btn.disabled = isUnavailable || isBooked;
-
-
-                                            if (!isUnavailable) {
+                                            // only allow click if slot available
+                                            if (!isUnavailable && !isBooked) {
                                                 btn.setAttribute('data-available', 'true');
                                                 btn.setAttribute('data-slot-id', slot.id);
                                                 btn.onclick = function () {
@@ -330,7 +336,8 @@
                                         console.error('Failed to fetch slots:', error);
                                         container.innerHTML = `<p class="col-span-4 text-center text-red-600">Error loading slots</p>`;
                                     });
-                            }
+
+                                }
 
                             function selectTimeSlot(selectedButton) {
                                 document.querySelectorAll('#slotContainer button[data-available="true"]').forEach(btn => {

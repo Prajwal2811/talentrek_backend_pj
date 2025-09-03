@@ -115,7 +115,7 @@ class MyLearningController extends Controller
             $today = Carbon::today();
 
             $allPurchases = JobseekerBookingSession::select('*')
-            ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo','mentors','WorkExperience','bookingSlot'])
+                ->with(['mentorLatestWorkExperience', 'mentorAdditionalInfo','mentors','WorkExperience','bookingSlot'])
                 ->where('jobseeker_id', $jobseekerId)
                 ->where('status','pending')
                 ->where('user_type','mentor')
@@ -137,11 +137,18 @@ class MyLearningController extends Controller
                     $timeRange = explode(' - ', $session->slot_time);
                     // $startTime = $timeRange[0] ?? '00:00:00';
                     // $endTime = $timeRange[1] ?? '00:00:00';
-                    $startTime = Carbon::parse($session->bookingSlot->start_time)->format('H:i') ?? '00:00:00';
-                    $endTime = Carbon::parse($session->bookingSlot->end_time)->format('H:i') ?? '00:00:00';
+                    $startTime = optional($session->bookingSlot)->start_time 
+                        ? Carbon::parse($session->bookingSlot->start_time)->format('H:i') 
+                        : '00:00:00';
 
-                    // Build datetime objects
-                    $slotEnd = Carbon::parse($session->slot_date . ' ' . $endTime);
+                    $endTime = optional($session->bookingSlot)->end_time 
+                        ? Carbon::parse($session->bookingSlot->end_time)->format('H:i') 
+                        : '00:00:00';
+
+                    $slotEnd = $endTime 
+                        ? Carbon::parse($session->slot_date . ' ' . $endTime)
+                        : null;
+
 
                     // Determine status
                     $session->session_status = $slotEnd->isPast() ? 'completed' : 'upcoming';
@@ -149,7 +156,17 @@ class MyLearningController extends Controller
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
                     $session->userName = $session->mentors->name ?? '' ;                   
-                    $session->designation = $session->mentorLatestWorkExperience->job_role ?? 'N/A' ;
+                    $session->address = $session->mentors->address ?? '' ;
+                    $mostRecentExp = $session->WorkExperience
+                    ->sortByDesc(function ($exp) {
+                        $endTo = strtolower(trim($exp->end_to));
+                        return $endTo === 'work here'
+                            ? Carbon::now()->timestamp
+                            : Carbon::parse($exp->end_to)->timestamp;
+                    })
+                    ->first();
+                    $session->designation = $mostRecentExp ? $mostRecentExp->job_role : 'N/A';                    
+                    
                     $image = '' ;
                     foreach($session->mentorAdditionalInfo as $jobseekerAdditionalInfos){
                         if($jobseekerAdditionalInfos->doc_type == 'mentor_profile_picture'){
@@ -157,8 +174,19 @@ class MyLearningController extends Controller
                         }                
                     }
                     $session->image = $image ;
-                    $session->sessionStartTime = Carbon::parse($session->bookingSlot->start_time)->format('h:i A'); // 17:25
-                    $session->sessionEndTime   = Carbon::parse($session->bookingSlot->end_time)->format('h:i A');   // 19:35
+                    $session->sessionStartTime = optional($session->bookingSlot)->start_time 
+                        ? Carbon::parse($session->bookingSlot->start_time)->format('h:i A') 
+                        : '00:00:00';
+                    $session->sessionEndTime   = optional($session->bookingSlot)->end_time 
+                        ? Carbon::parse($session->bookingSlot->end_time)->format('h:i A') 
+                        : '00:00:00';  // 19:35
+
+                    $now = Carbon::now();
+                    $sessionDate = Carbon::parse($session->slot_date);
+                    $slotStart = Carbon::parse($session->sessionStartTime);
+                    $slotEnd = Carbon::parse($session->sessionEndTime);
+                    $slotStartMinus10 = $slotStart->copy()->subMinutes(10);
+                    $session->joinLink = $sessionDate->isToday() && $now->between($slotStartMinus10 , $slotEnd);
                     unset($session->mentorAdditionalInfo, $session->mentorLatestWorkExperience, $session->mentors,$session->WorkExperience,$session->bookingSlot);
 
                     return $session;
@@ -207,14 +235,24 @@ class MyLearningController extends Controller
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $session->total_experience_days = $totalDays;
-                    $session->experiance = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                    $months = floor(($totalDays % 365) / 30);
+                    $session->experiance =  $years.'.'.$months ;
+                    //$session->experiance = round($totalDays / 365, 1);
 
                     // Extract start and end times from slot_time
                     $timeRange = explode(' - ', $session->slot_time);
                     // $startTime = $timeRange[0] ?? '00:00:00';
                     // $endTime = $timeRange[1] ?? '00:00:00';
-                    $startTime = Carbon::parse($session->bookingSlot->start_time)->format('H:i') ?? '00:00:00';
-                    $endTime = Carbon::parse($session->bookingSlot->end_time)->format('H:i') ?? '00:00:00';
+                    // $startTime = Carbon::parse($session->bookingSlot->start_time)->format('H:i A') ?? '00:00:00';
+                    // $endTime = Carbon::parse($session->bookingSlot->end_time)->format('H:i A') ?? '00:00:00';
+                    $startTime = optional($session->bookingSlot)->start_time 
+                        ? Carbon::parse($session->bookingSlot->start_time)->format('H:i') 
+                        : '00:00:00';
+
+                    $endTime = optional($session->bookingSlot)->end_time 
+                        ? Carbon::parse($session->bookingSlot->end_time)->format('H:i') 
+                        : '00:00:00';
 
                     // Build datetime objects
                     $slotEnd = Carbon::parse($session->slot_date . ' ' . $endTime);
@@ -224,8 +262,17 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
-                    $session->userName = $session->assessors->name ?? '' ;                   
-                    $session->designation = $session->assessorLatestWorkExperience->job_role ?? 'N/A' ;
+                    $session->userName = $session->assessors->name ?? '' ; 
+                    $session->address = $session->assessors->address ?? '' ;
+                    $mostRecentExp = $session->AssessorWorkExperience
+                    ->sortByDesc(function ($exp) {
+                        $endTo = strtolower(trim($exp->end_to));
+                        return $endTo === 'work here'
+                            ? Carbon::now()->timestamp
+                            : Carbon::parse($exp->end_to)->timestamp;
+                    })
+                    ->first();
+                    $session->designation = $mostRecentExp ? $mostRecentExp->job_role : 'N/A'; //$session->assessorLatestWorkExperience->job_role ?? 'N/A' ;
                     
                     $image = '' ;
                     foreach($session->assessorAdditionalInfo as $jobseekerAdditionalInfos){
@@ -234,8 +281,20 @@ class MyLearningController extends Controller
                         }                
                     }
                     $session->image = $image ;
-                    $session->sessionStartTime = Carbon::parse($session->bookingSlot->start_time)->format('h:i A'); // 17:25
-                    $session->sessionEndTime   = Carbon::parse($session->bookingSlot->end_time)->format('h:i A');   // 19:35
+                    
+                    $session->sessionStartTime  = optional($session->bookingSlot)->start_time 
+                        ? Carbon::parse($session->bookingSlot->start_time)->format('h:i A') 
+                        : '00:00:00';
+
+                    $session->sessionEndTime = optional($session->bookingSlot)->end_time 
+                        ? Carbon::parse($session->bookingSlot->end_time)->format('h:i A') 
+                        : '00:00:00';
+                    $now = Carbon::now();
+                    $sessionDate = Carbon::parse($session->slot_date);
+                    $slotStart = Carbon::parse($session->sessionStartTime);
+                    $slotEnd = Carbon::parse($session->sessionEndTime);
+                    $slotStartMinus10 = $slotStart->copy()->subMinutes(10);
+                    $session->joinLink = $sessionDate->isToday() && $now->between($slotStartMinus10 , $slotEnd);
                     unset($session->assessorAdditionalInfo, $session->assessorLatestWorkExperience, $session->assessors,$session->AssessorWorkExperience,$session->bookingSlot);
 
                     return $session;
@@ -290,8 +349,14 @@ class MyLearningController extends Controller
                     $timeRange = explode(' - ', $session->slot_time);
                     // $startTime = $timeRange[0] ?? '00:00:00';
                     // $endTime = $timeRange[1] ?? '00:00:00';
-                    $startTime = Carbon::parse($session->bookingSlot->start_time)->format('H:i') ?? '00:00:00';
-                    $endTime = Carbon::parse($session->bookingSlot->end_time)->format('H:i') ?? '00:00:00';
+                    $startTime = optional($session->bookingSlot)->start_time 
+                        ? Carbon::parse($session->bookingSlot->start_time)->format('H:i') 
+                        : '00:00:00';
+
+                    $endTime = optional($session->bookingSlot)->end_time 
+                        ? Carbon::parse($session->bookingSlot->end_time)->format('H:i') 
+                        : '00:00:00';
+                    
 
                     // Build datetime objects
                     $slotEnd = Carbon::parse($session->slot_date . ' ' . $endTime);
@@ -301,8 +366,18 @@ class MyLearningController extends Controller
                     $session->session_start_time = $startTime ;
                     $session->session_end_time = $endTime ;
                     $session->session_date = $session->slot_date ;
-                    $session->userName = $session->coaches->name ?? '' ;                   
-                    $session->designation = $session->coachLatestWorkExperience->job_role ?? 'N/A' ;
+                    $session->userName = $session->coaches->name ?? '' ; 
+                    $session->address = $session->coaches->address ?? '' ;                   
+                    $mostRecentExp = $session->coachWorkExperience
+                    ->sortByDesc(function ($exp) {
+                        $endTo = strtolower(trim($exp->end_to));
+                        return $endTo === 'work here'
+                            ? Carbon::now()->timestamp
+                            : Carbon::parse($exp->end_to)->timestamp;
+                    })
+                    ->first();
+                    $session->designation = $mostRecentExp ? $mostRecentExp->job_role : 'N/A'; 
+                   
                     $image = '' ;
                     foreach($session->coachAdditionalInfo as $jobseekerAdditionalInfos){
                         if($jobseekerAdditionalInfos->doc_type == 'coach_profile_picture'){
@@ -310,9 +385,20 @@ class MyLearningController extends Controller
                         }                
                     }
                     $session->image = $image ;
-                    $session->sessionStartTime = Carbon::parse($session->bookingSlot->start_time)->format('h:i A'); // 17:25
-                    $session->sessionEndTime   = Carbon::parse($session->bookingSlot->end_time)->format('h:i A');   // 19:35
-                    unset($session->coachAdditionalInfo, $session->coachLatestWorkExperience, $session->coaches,$session->WorkExperience,$session->bookingSlot);
+                    $session->sessionStartTime  = optional($session->bookingSlot)->start_time 
+                        ? Carbon::parse($session->bookingSlot->start_time)->format('h:i A') 
+                        : '00:00:00';
+
+                    $session->sessionEndTime = optional($session->bookingSlot)->end_time 
+                        ? Carbon::parse($session->bookingSlot->end_time)->format('h:i A') 
+                        : '00:00:00';
+                    $now = Carbon::now();
+                    $sessionDate = Carbon::parse($session->slot_date);
+                    $slotStart = Carbon::parse($session->sessionStartTime);
+                    $slotEnd = Carbon::parse($session->sessionEndTime);
+                    $slotStartMinus10 = $slotStart->copy()->subMinutes(10);
+                    $session->joinLink = $sessionDate->isToday() && $now->between($slotStartMinus10 , $slotEnd);
+                    unset($session->coachAdditionalInfo, $session->coachLatestWorkExperience, $session->coaches,$session->coachWorkExperience,$session->bookingSlot);
 
                     return $session;
                 });
@@ -391,17 +477,50 @@ class MyLearningController extends Controller
 
            $sessionDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->sessionDate)->format('Y-m-d');
 
-            $bookingSlots = BookingSlot::select('id','user_type','user_id','slot_mode','start_time',DB::raw("DATE_FORMAT(start_time, '%h:%i %p') as startTime"))
+            $bookingSlots = BookingSlot::select('id','user_type','user_id','slot_mode','start_time','end_time',DB::raw("DATE_FORMAT(start_time, '%h:%i %p') as startTime"))
                 ->where('user_id', $request->userId)
                 ->where('slot_mode',$request->trainingMode)
                 ->where('user_type',$request->roleType)
                 ->get()
                 ->map(function ($slot) use ($sessionDate) {
+
+                    $now = Carbon::now();
+                    $sessionDateCarbon = Carbon::parse($sessionDate);
+                    
                     $isUnavailable = BookingSlotUnavailableDate::where('booking_slot_id', $slot->id)
                                         ->whereDate('unavailable_date', $sessionDate)
                                         ->exists();
+                    $isBooked = DB::table('jobseeker_saved_booking_session')
+                        ->where('booking_slot_id', $slot->id)
+                        ->where('slot_date', $sessionDate)
+                        ->where('status', 'pending')
+                        ->exists();
 
-                    $slot->is_available = !$isUnavailable;
+                    // 3. Check if time has already passed (only for today)
+                    $isTimePassed = false;
+                    if ($sessionDateCarbon->isToday()) {
+                        $slotStartTime = Carbon::parse($slot->start_time)->format('H:i:s');
+                        $currentTime   = $now->format('H:i:s');
+                        $isTimePassed  = $slotStartTime < $currentTime;
+                    }
+                    
+                    if($isBooked){
+                        $is_available = false ;
+                        $availabilityStatus = 'Booked';
+                    } elseif($isUnavailable){
+                        $is_available = false ;
+                        $availabilityStatus = 'Unavailable';
+                    } elseif ($isTimePassed) {
+                        $is_available = false;
+                        $availabilityStatus = 'Time Passed';
+                    } 
+                    else{
+                        $is_available = true ; 
+                        $availabilityStatus = '';
+                    }
+                    $slot->is_available = $is_available;
+                    $slot->availabilityStatus = $availabilityStatus;
+
                     return $slot;
             });
 
@@ -505,5 +624,101 @@ class MyLearningController extends Controller
             // Log error if needed: Log::error($e);
             return $this->errorResponse('An error occurred while fetching training courses.', 500,[]);
         }
+    }
+
+    public function sessionDetailByIdForMCA($id,$sessionId,$type)
+    {
+        //try {
+            $relationships = [];
+            //$type = $request->type;
+            if ($type === 'mentor') {
+                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot'];
+            } elseif ($type === 'assessor') {
+                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot'];
+            } elseif ($type === 'coach') {
+                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot'];
+            }
+            // Fetch mentor with all required relationships
+            $MentorsDetails = Mentors::select('*')
+                ->with(['mentorReviews', 'WorkExperience', 'mentorEducations','additionalInfo'])
+                ->withAvg('mentorReviews', 'ratings')
+                ->where('id', $id)
+                ->first();
+            if (!$MentorsDetails) {
+                return $this->errorResponse( 'Mentor not found.', 404,[]);
+            }
+            // Calculate total experience
+            $totalDays = collect($MentorsDetails->WorkExperience)->reduce(function ($carry, $exp) {
+                $start = Carbon::parse($exp->starts_from);
+
+                $endRaw = strtolower(trim($exp->end_to));
+                $end = ($endRaw === 'work here' || empty($endRaw)) 
+                    ? now() 
+                    : Carbon::parse($endRaw);
+
+                return $carry + $start->diffInDays($end);
+            }, 0);
+            $MentorsDetails->total_experience_days = $totalDays;
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $MentorsDetails->total_experience_years =  $years.'.'.$months ;
+            
+            // Set average rating and clean raw data
+            $avg = $MentorsDetails->mentor_reviews_avg_ratings;
+            $MentorsDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+            // Get the most recent job_role based on nearest end_to (null means current)
+                $mostRecentExp = $MentorsDetails->WorkExperience
+                ->sortByDesc(function ($exp) {
+                    $endTo = strtolower(trim($exp->end_to));
+                    return $endTo === 'work here'
+                        ? Carbon::now()->timestamp
+                        : Carbon::parse($exp->end_to)->timestamp;
+                })
+                ->first();
+                $MentorsDetails->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                
+                $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+
+              $booking = JobseekerBookingSession::where('id', $sessionId)
+                    ->with('bookingSlot')
+                    ->first();
+                // $MentorsDetails->booking = $booking;
+                if ($booking) {
+                    // If postponed date exists, use that, otherwise use slot_date
+                    $slotDate = $booking->slot_date;
+                    
+
+                    // Related booking slot times
+                    $startTime = $booking->bookingSlot->start_time ?? null;
+                    $endTime   = $booking->bookingSlot->end_time ?? null;
+
+                    // Default joinLink flag
+                    $joinLink = false;
+
+                    if ($slotDate && $startTime && $endTime) {
+                        $today = Carbon::today()->toDateString();
+                        $now   = Carbon::now()->format('H:i:s');
+
+                        if ($slotDate == $today && $now >= $startTime && $now <= $endTime) {
+                            $joinLink = true;
+                        }
+                    }
+
+                    // Append to response
+                   $MentorsDetails->joinLink = $joinLink;
+                }
+                
+                unset($MentorsDetails->additionalInfo);
+                unset(
+                    $MentorsDetails->mentorReviews,
+                    $MentorsDetails->mentorEducations,
+                    $MentorsDetails->mentor_reviews_avg_ratings,
+                    $MentorsDetails->WorkExperience // if not needed on frontend
+                );
+            return $this->successResponse($MentorsDetails,'Mentor details with review percentage fetched successfully.');
+        // } catch (\Exception $e) {
+        //     // Log::error('Mentor detail fetch failed: ' . $e->getMessage());
+        //     return $this->errorResponse( 'An error occurred while fetching mentor details.', 500,[]);
+        // }
     }
 }

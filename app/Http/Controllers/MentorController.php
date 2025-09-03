@@ -460,10 +460,10 @@ class MentorController extends Controller
     public function showMentorDashboard()
     {
         $sessions = BookingSession::select(
-                'jobseeker_saved_booking_session.*',
-                'jobseekers.name',
-                'additional_info.document_path as img',
-                'jobseeker_saved_booking_session.id as session_id'
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
             )
             ->where('jobseeker_saved_booking_session.user_id', auth()->id())
             ->where('jobseeker_saved_booking_session.user_type', 'mentor')
@@ -476,62 +476,80 @@ class MentorController extends Controller
             ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
             ->get()
             ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
                 return [
                     'session_id' => $session->session_id,
                     'name' => $session->name,
-                    'role' => $session->job_role ?? 'N/A',
+                    'role' => $latestExperience->job_role ?? 'N/A', 
                     'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
                     'time' => $session->slot_time,
                     'mode' => ucfirst($session->slot_mode),
                     'img' => $session->img,
                     'feedback' => $session->feedback ?? null,
-                    'cancellation_reason' => $session->cancellation_reason ?? null, // ✅ Add this
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
                     'status' => $session->status,
                 ];
             })
             ->groupBy('status');
 
+        // echo "<pre>";    
+        // print_r( $sessions);exit; 
+       
         $today = \Carbon\Carbon::today()->format('Y-m-d');
-
+   
         $todayCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
             ->where('jobseeker_saved_booking_session.user_type', 'mentor')
             ->whereDate('jobseeker_saved_booking_session.slot_date', $today)
             ->count();
-
+           
         $upcomingCount = BookingSession::where('jobseeker_saved_booking_session.user_id', auth()->id())
             ->where('jobseeker_saved_booking_session.user_type', 'mentor')
             ->where('jobseeker_saved_booking_session.status', 'pending')
             ->count();
-
+            
         // ✅ Properly formatted cancelled sessions for modal use
         $cancelled = BookingSession::select(
-                'jobseeker_saved_booking_session.*',
-                'jobseekers.name',
-                'additional_info.document_path as img'
+            'jobseeker_saved_booking_session.*',
+            'jobseekers.name',
+            'additional_info.document_path as img',
+            'jobseeker_saved_booking_session.id as session_id'
             )
+            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
+            ->where('jobseeker_saved_booking_session.user_type', 'mentor')
+            ->where('jobseeker_saved_booking_session.status', 'cancelled')
             ->join('jobseekers', 'jobseekers.id', '=', 'jobseeker_saved_booking_session.jobseeker_id')
             ->leftJoin('additional_info', function ($join) {
                 $join->on('additional_info.user_id', '=', 'jobseekers.id')
                     ->where('additional_info.user_type', 'jobseeker')
                     ->where('additional_info.doc_type', 'profile_picture');
             })
-            ->where('jobseeker_saved_booking_session.user_id', auth()->id())
-            ->where('jobseeker_saved_booking_session.user_type', 'mentor')
-            ->where('jobseeker_saved_booking_session.status', 'cancelled')
+            ->orderBy('jobseeker_saved_booking_session.slot_date', 'asc')
             ->get()
             ->map(function ($session) {
+                $latestExperience = $session->jobseeker->experiences()
+                    ->orderBy('end_to', 'desc')
+                    ->orderBy('starts_from', 'desc')
+                    ->first();
+                
                 return [
-                    'session_id' => $session->id,
+                    'session_id' => $session->session_id,
                     'name' => $session->name,
-                    'role' => $session->job_role ?? 'N/A',
+                    'role' => $latestExperience->job_role ?? 'N/A',
                     'date' => \Carbon\Carbon::parse($session->slot_date)->format('d/m/Y'),
                     'time' => $session->slot_time,
                     'mode' => ucfirst($session->slot_mode),
                     'img' => $session->img,
-                    'cancellation_reason' => $session->cancellation_reason ?? 'Not specified',
+                    'feedback' => $session->feedback ?? null,
+                    'cancellation_reason' => $session->cancellation_reason ?? null,
                     'status' => $session->status,
                 ];
-        });
+            });
+        // echo "<pre>";    
+        // print_r($cancelled);exit; 
 
         return view('site.mentor.mentor-dashboard', [
             'upcoming' => $sessions['pending'] ?? [],
@@ -539,9 +557,7 @@ class MentorController extends Controller
             'cancelled' => $cancelled,
             'todayCount' => $todayCount,
             'upcomingCount' => $upcomingCount,
-            'sessions' => $sessions,
-            
-        ]);
+        ]);   
     }
 
 
@@ -657,48 +673,54 @@ class MentorController extends Controller
             'end_time' => 'required',
         ]);
 
-        // Convert to 24-hour format
         $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
-        $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+        $endTime   = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
 
-        // ✅ Check same start and end time
         if ($startTime === $endTime) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Start time and end time cannot be the same.',
             ], 422);
         }
 
-        // ✅ Check if another slot overlaps
-        $exists = BookingSlot::where('id', '!=', $request->id)
+        $userId   = auth()->id();
+        $userType = 'mentor';
+
+        $slot = BookingSlot::where('id', $request->id)
+            ->where('user_id', $userId)
+            ->where('user_type', $userType)
+            ->firstOrFail();
+
+    
+        $exists = BookingSlot::where('id', '!=', $slot->id)
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
             ->where(function ($q) use ($startTime, $endTime) {
-                $q->whereBetween('start_time', [$startTime, $endTime])
-                ->orWhereBetween('end_time', [$startTime, $endTime])
-                ->orWhere(function ($q2) use ($startTime, $endTime) {
-                    $q2->where('start_time', '<=', $startTime)
-                        ->where('end_time', '>=', $endTime);
+                $q->where(function ($q1) use ($startTime, $endTime) {
+                    $q1->where('start_time', '<', $endTime)
+                    ->where('end_time', '>', $startTime);
                 });
             })
             ->exists();
 
+
         if ($exists) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'This time slot is already selected.',
             ], 422);
         }
 
-        // ✅ Update slot if no error
-        $slot = BookingSlot::findOrFail($request->id);
+    
         $slot->update([
             'start_time' => $startTime,
-            'end_time' => $endTime,
+            'end_time'   => $endTime,
         ]);
-
+      
         return response()->json([
-            'status' => 'success',
-            'message' => 'Slot time updated successfully.',
-            'slot' => $slot,
+            'status'  => 'success',
+            'message' => 'slot updated successfully.',
+            'slot'    => $slot,
         ]);
     }
 

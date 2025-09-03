@@ -34,7 +34,7 @@
                                     </div>
                                     <div>
                                         @php
-                                            $status = App\Models\RecruiterCompany::where('recruiter_id', $recruiter->id)->first()->admin_status;
+                                            $status = App\Models\Recruiters::with('company')->where('id', $recruiter->id)->first()->admin_status;
                                             $userRole = auth()->user()->role;
                                         @endphp
 

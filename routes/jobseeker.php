@@ -47,14 +47,17 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 	});
 	
-	Route::group(['middleware' => 'jobseeker.auth'], function(){
-		Route::get('/dashboard',[JobseekerController::class, 'dashboard'])->name('jobseeker.dashboard');
+ 	// Routes accessible after login but before subscription
+    Route::middleware(['jobseeker.auth'])->group(function () {
+        Route::get('/subscription', [JobseekerController::class, 'showSubscriptionPlans'])->name('jobseeker.subscription.index');
+        Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
+    });
 
+
+	Route::middleware(['jobseeker.auth', 'check.jobseeker.subscription'])->group(function () {
+		Route::get('/dashboard',[JobseekerController::class, 'dashboard'])->name('jobseeker.dashboard');
 		Route::post('/login',[JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
 		Route::get('/profile', [JobseekerController::class, 'showProfilePage'])->name('jobseeker.profile');
-		Route::get('/subscription-plan', [JobseekerController::class, 'showSubscriptionPlanPage'])->name('jobseeker.subscription.plan');
-		Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
-
 		Route::get('/profile', [JobseekerController::class, 'getJobseekerAllDetails'])->name('jobseeker.profile');
 		Route::post('/logout',[JobseekerController::class, 'logoutJobseeker'])->name('jobseeker.logout');
 		Route::post('/profile/update-personal-info',[JobseekerController::class, 'updatePersonalInfo'])->name('jobseeker.profile.update');
@@ -89,7 +92,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/cart/remove/{id}', [JobseekerController::class, 'removeCartItem'])->name('cart.remove');
 
 
-		 Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
+		Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
     	Route::get('/chat/messages', [JobseekerController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 
 

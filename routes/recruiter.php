@@ -26,7 +26,14 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::post('/submit-reset-password', [RecruiterController::class, 'resetPassword'])->name('recruiter.reset-password.submit');
 	});
 	
-	Route::group(['middleware' => 'recruiter.auth'], function(){
+		// Routes accessible after login but before subscription
+    Route::middleware(['recruiter.auth'])->group(function () {
+        Route::get('/subscription', [RecruiterController::class, 'showSubscriptionPlans'])->name('recruiter.subscription.index');
+        Route::post('/subscription-payment', [RecruiterController::class, 'processSubscriptionPayment'])->name('recruiter.subscription.payment');
+    });
+
+
+	Route::middleware(['recruiter.auth', 'check.recruiter.subscription','check.recruiter.subscription_for_other'])->group(function () {
 		Route::get('/dashboard',[RecruiterController::class, 'showRecruiterDashboard'])->name('recruiter.dashboard');
 		Route::post('/logout',[RecruiterController::class, 'logoutrecruiter'])->name('recruiter.logout');
 		Route::get('/jobseeker',[RecruiterController::class, 'showJobseekerListForm'])->name('recruiter.jobseeker');
@@ -37,7 +44,7 @@ Route::group(['prefix' => 'recruiter'], function() {
 		->name('recruiter.jobseeker.details');
 		Route::get('/settings', [RecruiterController::class, 'showRecruitmentSettingForm'])
 		->name('recruiter.settings');
-
+		Route::post('/interview/update-status', [RecruiterController::class, 'updateStatus'])->name('recruiter.interview.updateStatus');
 		Route::post('/profile/update',[RecruiterController::class, 'updateCompanyProfile'])->name('recruiter.company.profile.update');
 		Route::post('/profile/document/update',[RecruiterController::class, 'updateCompanyDocument'])->name('recruiter.company.document.update');
 		Route::delete('/profile/documents/delete/{type}', [RecruiterController::class, 'deleteCompanyDocument'])->name('recruiter.company.document.delete');
@@ -47,6 +54,8 @@ Route::group(['prefix' => 'recruiter'], function() {
 		Route::get('/filter-jobseekers', [RecruiterController::class, 'filterJobseekers'])->name('recruiter.filter.jobseekers');
 		
 		Route::get('/admin-support', [RecruiterController::class, 'showAdminSupportForm'])->name('recruiter.admin.support');
+
+		Route::post('/recruiter/add-others', [RecruiterController::class, 'addOthers'])->name('recruiter.add.others');
 
 	});
 });

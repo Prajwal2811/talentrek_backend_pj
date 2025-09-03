@@ -25,6 +25,7 @@ use App\Models\Message;
 use Carbon\Carbon;
 use App\Events\MessageDeleted;
 use App\Events\MessageSent;
+use App\Events\MessageSeen;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\URL;
 
@@ -74,7 +75,7 @@ class ChatController extends Controller
             $file = $request->file('file');
             // Custom uploads folder
             $filename = 'profile_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads'), $filename);
+            $file->move('uploads', $filename);
 
             $data['message'] = url('uploads/' . $filename);
             $data['type'] = 2;
@@ -222,9 +223,6 @@ class ChatController extends Controller
     }
 
 
-
- 
-
     public function fetchGroupMessages(Request $request)
     {
         $user = $this->getSender(); 
@@ -257,6 +255,86 @@ class ChatController extends Controller
 
         return response()->json($messages);
     }
+
+
+    public function markMessagesAsRead(Request $request)
+    {
+        $user = $this->getSender(); // admin
+
+        // Update messages where receiver is admin and sender is selected jobseeker
+        DB::table('admin_group_chats')
+            ->where('sender_id', $request->receiver_id)      
+            ->where('sender_type', $request->receiver_type)   
+            ->where('receiver_type', 'group')   
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+
+        // Fetch updated messages to check
+        $updated = DB::table('admin_group_chats')
+            ->where('sender_id', $request->receiver_id)
+            ->where('sender_type', $request->receiver_type)
+            ->where('receiver_id', $user['id'])
+            ->where('receiver_type', $user['type'])
+            ->get();
+
+        // Broadcast real-time "seen"
+        broadcast(new MessageSeen(
+            $request->receiver_id, 
+            $request->receiver_type, 
+            $user['id'], 
+            $user['type']
+        ))->toOthers();
+
+        return response()->json([
+            'status' => 'seen updated',
+            'updated_messages' => $updated
+        ]);
+    }
+
+
+    public function getJobseekersList()
+    {
+        $jobseekers = DB::table('jobseekers as j')
+            ->select(
+                'j.id as user_id',
+                'j.name as jobseeker_name',
+                DB::raw('COUNT(talentrek_m.id) as unread_count')
+            )
+            ->leftJoin('admin_group_chats as m', function ($join) {
+                $join->on('j.id', '=', 'm.sender_id')
+                    ->where('m.sender_type', '=', 'jobseeker')   
+                    ->where('m.receiver_type', '=', 'group')    
+                    ->where('m.is_read', '=', 0);               
+            })
+            ->groupBy('j.id', 'j.name')
+            ->get();
+
+        return response()->json($jobseekers);
+    }
+
+    public function getMentorsList()
+    {
+        $mentors = DB::table('mentors as j')
+            ->select(
+                'j.id as user_id',
+                'j.name as mentor_name',
+                DB::raw('COUNT(talentrek_m.id) as unread_count')
+            )
+            ->leftJoin('admin_group_chats as m', function ($join) {
+                $join->on('j.id', '=', 'm.sender_id')
+                    ->where('m.sender_type', '=', 'mentor')   
+                    ->where('m.receiver_type', '=', 'group')    
+                    ->where('m.is_read', '=', 0);               
+            })
+            ->groupBy('j.id', 'j.name')
+            ->get();
+        print_r($mentors);exit;    
+        return response()->json($mentors);
+    }
+
+
+
 
 
 

@@ -41,7 +41,7 @@ class TrainingController extends Controller
                 'content_sections.*.title' => 'required|string|max:255',
                 'content_sections.*.description' => 'required|string',
                 'content_sections.*.file_duration' => 'required',
-                'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
+                'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv',
             ]);
 
             if ($validator->fails()) {
@@ -73,7 +73,7 @@ class TrainingController extends Controller
                 $training->training_type = 'recorded';
                 $training->training_title = $request->training_title;
                 $training->training_sub_title = $request->training_sub_title;
-                $training->training_descriptions = $request->training_descriptions;
+                $training->training_objective = $request->training_descriptions;
                 $training->training_category = $request->training_category;
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
@@ -88,7 +88,7 @@ class TrainingController extends Controller
                 $training->training_type = 'recorded';
                 $training->training_title = $request->training_title;
                 $training->training_sub_title = $request->training_sub_title;
-                $training->training_descriptions = $request->training_descriptions;
+                $training->training_objective = $request->training_descriptions;
                 $training->training_category = $request->training_category;
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
@@ -412,12 +412,17 @@ class TrainingController extends Controller
                             $document->end_timing   = date("H:i", strtotime($section['end_time']));
                             $document->duration     = $section['duration'].' '.$section['duration_type'];
                             $document->strength     = $section['strength'];
-                            $document->days     =$section['days']; // convert from stringified JSON
+                            if (is_string($section['days'])) {
+                                $document->days = json_decode($section['days'], true);
+                            } else {
+                                $document->days = $section['days'];
+                            }
+
                             $document->save();
                             continue;
                         }
                     }
-
+//echo $section['days'] ; exit;
                     // Create new record
                     $document = new TrainingBatch();
                     $document->trainer_id = $trainer->id;
@@ -429,7 +434,12 @@ class TrainingController extends Controller
                     $document->end_timing   = date("H:i", strtotime($section['end_time']));
                     $document->duration     = $section['duration'].' '.$section['duration_type'];
                     $document->strength     = $section['strength'];
-                    $document->days     =$section['days']; // convert from stringified JSON
+                   if (is_string($section['days'])) {
+                        $document->days = json_decode($section['days'], true);
+                    } else {
+                        $document->days = $section['days'];
+                    }
+
                     $document->zoom_start_url      = '';//$zoomMeeting['start_url'];
                     $document->zoom_join_url        = '';//$zoomMeeting['join_url'];
                     $document->save();
@@ -668,7 +678,7 @@ class TrainingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Course assigned successfully.'
+                'message' => 'Course has been successfully assigned to the assessment.'
             ], 200);
 
         } catch (\Exception $e) {
@@ -802,7 +812,24 @@ class TrainingController extends Controller
                 ->with('batches')
                 ->where('id', $trainerMaterialId)
                 ->where('training_type','!=', 'recorded')
-                ->get();
+                ->get()
+                ->map(function ($training) {
+                    $training->batches->transform(function ($batch) {
+                        if (!empty($batch->duration)) {
+                            // Separate numeric value & text (duration type)
+                            preg_match('/(\d+)\s*([a-zA-Z]+)/', $batch->duration, $matches);
+
+                            $batch->durationValue = $matches[1] ?? null;
+                            $batch->durationType  = $matches[2] ?? null;
+                        } else {
+                            $batch->durationValue = null;
+                            $batch->durationType  = null;
+                        }
+
+                        return $batch;
+                    });
+                    return $training;
+                });
 
             return response()->json([
                 'success' => true,

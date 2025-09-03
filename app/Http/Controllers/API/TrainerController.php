@@ -49,7 +49,7 @@ class TrainerController extends Controller
             ], 401);
         }
 
-        if (!in_array($trainer->admin_status, ['approved', 'superadmin_approved'])) {
+        if (!in_array($trainer->admin_status, ['superadmin_approved'])) {
             return response()->json([
                 'status' => false,
                 'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
@@ -91,7 +91,7 @@ class TrainerController extends Controller
             // Validation
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:trainers,email',
-                'mobile' => 'required|string|regex:/^[0-9]{10}$/|unique:trainers,phone_number',
+                'mobile' => 'required|string|regex:/^[0-9]{9}$/|unique:trainers,phone_number',
                 'password' => 'required|string|min:6|confirmed',
             ], [
                 'email.required' => 'Email is required.',
@@ -99,7 +99,7 @@ class TrainerController extends Controller
                 'email.unique' => 'This email is already registered.',
                 
                 'mobile.required' => 'Mobile number is required.',
-                'mobile.regex' => 'Mobile number must be 10 digits.',
+                'mobile.regex' => 'Mobile number must be 9 digits.',
                 'mobile.unique' => 'This mobile number is already registered.',
 
                 'password.required' => 'Password is required.',

@@ -77,7 +77,7 @@ class AssessorController extends Controller
         // Validation
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:assessors,email',
-            'mobile' => 'required|string|unique:assessors,phone_number|regex:/^[0-9]{10}$/',
+            'mobile' => 'required|string|unique:assessors,phone_number|regex:/^[0-9]{9}$/',
             'password' => 'required|string|min:6|confirmed',
         ]);
 

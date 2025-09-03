@@ -4,8 +4,8 @@
 
 
     @php
-        $business_email = session('business_email');
-        $company_phone_number = session('company_phone_number');
+        $email = session('email');
+        $phone_number = session('phone_number');
     @endphp
    
 
@@ -105,7 +105,7 @@
                             </div>
                             <form class="space-y-6" id="multiStepForm"  action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
                                 @csrf
-                                <input type="hidden" name="company_id" value="{{ session('company_id') }}">
+                                <input type="hidden" name="recruiter_id" value="{{ session('recruiter_id') }}">
 
                                 <!-- Step 1: Company Information -->
                                 <div id="step-1" class="step">
@@ -145,7 +145,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">Business email <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter email id" value="{{ old('business_email', $business_email) }}" readonly/>
+                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter email id" value="{{old('company_address')}}"/>
                                                 @error('business_email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -170,7 +170,7 @@
                                                         <option value="+7">(+7) 🇷🇺 Russia</option>
                                                     </select>
 
-                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="Enter phone number"  value="{{ old('company_phone_number', $company_phone_number) }}" readonly/>
+                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="Enter phone number"  value="{{ old('company_phone_number') }}"/>
                                                     @error('company_phone_number')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -243,13 +243,20 @@
                                                 </div>
                                                 <div>
                                                     <label class="block mb-1 text-sm font-medium mt-3">Recruiter's email <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="email" name="email" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's email" value="{{ old('email') }}"/>
+                                                    <input type="email" name="email" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's email"  value="{{ old('email', $email) }}" readonly/>
                                                     @error('email')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+                                                <div>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="phone_number" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's phone_number"  value="{{ old('phone_number', $phone_number) }}" readonly/>
+                                                    @error('phone_number')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
                                                 <div>
                                                     <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                                     <span class="text-xs text-blue-600">
@@ -395,6 +402,7 @@
                     // Step 2
                     name: "required",
                     email: "required",
+                    phone_number: "required",
                     national_id: "required",
                     company_profile: "required",
                     registration_documents: "required"
@@ -414,6 +422,7 @@
                     // Step 2
                     name: "Recruiter's name is required",
                     email: "Recruiter's email is required",
+                    phone_number: "Recruiter's phone number is required",
                     national_id: "National ID is required",
                     company_profile: "Upload company profile",
                     registration_documents: "Upload registration documents"

@@ -27,7 +27,8 @@ class Assessors extends Model
         'country',
         'state',
         'national_id',
-        'about_assessor'
+        'about_assessor',
+        'is_registered'
     ];
 
     /**

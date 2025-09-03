@@ -119,7 +119,7 @@ class CartManagementController extends Controller
                     $query->select('id', 'name', 'email'); // Customize fields as needed
                 },
                 'material' => function ($query) {
-                    $query->select('id', 'training_title', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
+                    $query->select('id', 'training_title','training_type', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
                 }                
             ])
             ->withAvg('trainerReviews','ratings')
@@ -134,6 +134,7 @@ class CartManagementController extends Controller
                 $item->trainerEmail = $trainer->email;
 
                 $item->training_title = $material->training_title;
+                $item->training_type = $material->training_type;
                 $item->training_descriptions = $material->training_descriptions;
                 $item->image = $material->image;
                 $item->training_price = $material->training_price;
@@ -487,7 +488,7 @@ class CartManagementController extends Controller
             ->get();
 
         return response()->json(['status' => true, 'message' => 'material batches fetched  successfully.','courseTotalPrice' => $courseTotalPrice,'savedPrice' => $savedPrice,'gstTax' => $gstTax,'totalPrice' => $totalPrice,'data' =>[
-    'material'       => $material,
+            'material'       => $material,
             'user'           => $user,
             'userType'       => $userType,
             'userId'         => $userId,

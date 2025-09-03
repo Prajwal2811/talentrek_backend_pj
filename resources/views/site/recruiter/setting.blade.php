@@ -11,17 +11,23 @@
         </div>
     </div>
 
-	
+    @if($recruiterNeedsSubscription)
+        @include('site.recruiter.subscription.index')
+    @endif
+        @if($otherRecruiterSubscription)
+        @include('site.recruiter.subscription.add-other-recruiters')
+    @endif
+
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
-
-           <!-- Sidebar -->
+            <!-- Sidebar -->
             @include('site.recruiter.componants.sidebar')	
-
             <div class="flex-1 flex flex-col">
-                 @include('site.recruiter.componants.navbar')
+                @include('site.recruiter.componants.navbar')	
+                
 
-                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
+            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+             <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
                     <h2 class="text-2xl font-semibold mb-6">Settings</h2>
 
                     <div class="flex">
@@ -72,457 +78,274 @@
                         <section class="flex-1 p-6">
                             <div class="bg-white rounded-lg shadow p-6">
                                 <!-- Profile Section -->
-                                <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
-                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Subscription</h3>
+                                @php
+                                    use App\Models\AdditionalInfo;
 
-                                    <!-- Include Alpine.js -->
-                                    <script src="//unpkg.com/alpinejs" defer></script>
+                                    $recruiter   = auth('recruiter')->user();
+                                    $recruiterId = $recruiter->id;
+                                    $recruiterRole = $recruiter->role;
 
-                                    <!-- Main Section -->
-                                    <div x-data="{ showPlans: false }">
-                                        <!-- Subscription Card -->
-                                        <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                                            <div>
-                                                <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
-                                                <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features of Talentrek</p>
-                                            </div>
-                                            <button @click="showPlans = true"
-                                                class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
-                                                View Plans
-                                            </button>
-                                        </div>
+                                    $userId = auth()->id();
 
-                                        <!-- Modal Overlay -->
-                                        <div
-                                            x-show="showPlans"
-                                            x-transition
-                                            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-                                            style="display: none;"
-                                        >
-                                            <!-- Modal Content -->
-                                            <div @click.outside="showPlans = false"
-                                                class="bg-white rounded-lg p-6 w-full max-w-5xl mx-auto shadow-lg">
-                                                <div class="flex justify-between items-center mb-6">
-                                                    <h2 class="text-xl font-semibold">Choose Your Plan</h2>
-                                                    <button @click="showPlans = false" class="text-gray-600 hover:text-black text-2xl">&times;</button>
-                                                </div>
+                                    $profile = AdditionalInfo::where('user_id', $userId)
+                                                ->where('doc_type', 'company_profile')
+                                                ->first();
+                                @endphp
 
-                                                <!-- Plans Grid -->
-                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <!-- Plan Example -->
-                                                    <template x-for="(plan, index) in ['Silver', 'Gold', 'Platinum']" :key="index">
-                                                        <div class="border rounded-xl shadow p-5 text-center">
-                                                            <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-b from-gray-300 to-gray-200 mb-3"></div>
-                                                            <h3 class="font-semibold" x-text="plan"></h3>
-                                                            <p class="text-2xl font-bold my-2">$100</p>
-                                                            <hr class="my-3">
-                                                            <p class="text-sm text-gray-600 mb-3">Access premium features with this plan.</p>
-                                                            <ul class="text-left text-sm space-y-1 mb-4 text-gray-700">
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature A</li>
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature B</li>
-                                                                <li class="flex items-center"><span class="text-blue-600 mr-2">✔</span> Feature C</li>
-                                                            </ul>
-                                                            <button class="bg-orange-500 text-white w-full py-2 rounded hover:bg-orange-600 transition">
-                                                                Buy subscription
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                    <!-- Subscription History Table -->
-                                    <h4 class="text-lg font-semibold mb-3">Subscription History</h4>
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full bg-white border border-gray-200 text-sm text-left">
-                                        <thead class="bg-gray-100 text-gray-700">
-                                            <tr>
-                                            <th class="px-4 py-2 border-b">Sr. No.</th>
-                                            <th class="px-4 py-2 border-b">Paid to</th>
-                                            <th class="px-4 py-2 border-b">Date</th>
-                                            <th class="px-4 py-2 border-b">Amount</th>
-                                            <th class="px-4 py-2 border-b">Payment status</th>
-                                            <th class="px-4 py-2 border-b">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="text-gray-700">
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">1.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <tr class="border-b">
-                                            <td class="px-4 py-2">2.</td>
-                                            <td class="px-4 py-2">Silver tier</td>
-                                            <td class="px-4 py-2">12/04/2025</td>
-                                            <td class="px-4 py-2">100$</td>
-                                            <td class="px-4 py-2">Paid</td>
-                                            <td class="px-4 py-2">
-                                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
-                                                View invoice
-                                                </button>
-                                            </td>
-                                            </tr>
-                                            <!-- Add more rows as needed -->
-                                        </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-
-                                <!-- Notifications Section -->
-                                <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
-
-                                <!-- Scrollable notification list -->
-                                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                    <!-- Notification Items -->
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Approved your request</p>
-                                        <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> New comment on your post</p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
-                                        <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
-                                </div>
-                                </div>
-
-
-
-                                <!-- Subscription Section (with internal tabs) -->
-                                <div x-show="activeSection === 'profile'"  x-transition>
+                                <!-- Profile Section -->
+                                <div x-show="activeSection === 'profile'" x-transition>
                                     <!-- Company Header -->
                                     <div class="flex items-center space-x-4 mb-4">
-                                        @php
-                                            use App\Models\AdditionalInfo;
-                                            $userId = auth()->id();
-                                            
-                                            $profile = AdditionalInfo::where('user_id', $userId)
-                                                        ->where('doc_type', 'company_profile')
-                                                        ->first();
-                                        @endphp
-
                                         <!-- Image Preview -->
-                                        <img 
-                                                id="profilePreview" 
-                                                src="{{ $profile ? asset($profile->document_path) : 'https://www.lscny.org/app/uploads/2018/05/mystery-person.png' }}" 
-                                                class="h-20 w-20 rounded-md mb-2" 
-                                                alt="Profile Preview" 
-                                            />
-
-
+                                        <img id="profilePreview"
+                                            src="{{ $profile ? asset($profile->document_path) : 'https://www.lscny.org/app/uploads/2018/05/mystery-person.png' }}"
+                                            class="h-20 w-20 rounded-md mb-2"
+                                            alt="Profile Preview" />
                                         <div>
-                                            <h3 class="text-xl font-semibold">                {{$companyDetails->name}}
-                                            </h3>
-                                            <p class="text-gray-600">{{$companyDetails->email}}</p>
-                                            
+                                            @if ($companyDetails)
+                                                <h3 class="text-xl font-semibold">{{ $companyDetails->company_name }}</h3>
+                                                <p class="text-gray-600">{{ $companyDetails->business_email }}</p>
+                                            @endif
                                         </div>
                                     </div>
-                                    @if(session('success'))
-                                        <span id="successMessage" class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
-                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span class="text-sm font-medium">{{ session('success') }}</span>
-                                        </span>
 
+                                    {{-- Flash Messages --}}
+                                    @if(session('success'))
+                                        <span id="successMessage"
+                                            class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
+                                            ✅ <span class="text-sm font-medium">{{ session('success') }}</span>
+                                        </span>
                                         <script>
                                             setTimeout(() => {
                                                 const el = document.getElementById('successMessage');
                                                 if (el) {
-                                                    el.classList.add('opacity-0'); 
-                                                    setTimeout(() => el.style.display = 'none', 2000); 
+                                                    el.classList.add('opacity-0');
+                                                    setTimeout(() => el.style.display = 'none', 2000);
                                                 }
-                                            }, 10000); 
+                                            }, 10000);
                                         </script>
                                     @endif
-                                    @if(session('error'))
-                                        <span id="successMessage" class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
-                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span class="text-sm font-medium">{{ session('error') }}</span>
-                                        </span>
 
+                                    @if(session('error'))
+                                        <span id="errorMessage"
+                                            class="inline-flex items-center bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 gap-2">
+                                            ⚠️ <span class="text-sm font-medium">{{ session('error') }}</span>
+                                        </span>
                                         <script>
                                             setTimeout(() => {
-                                                const el = document.getElementById('successMessage');
+                                                const el = document.getElementById('errorMessage');
                                                 if (el) {
-                                                    el.classList.add('opacity-0'); 
-                                                    setTimeout(() => el.style.display = 'none', 2000); 
+                                                    el.classList.add('opacity-0');
+                                                    setTimeout(() => el.style.display = 'none', 2000);
                                                 }
-                                            }, 10000); 
+                                            }, 10000);
                                         </script>
                                     @endif
 
                                     <!-- Inner Tabs -->
                                     <div class="border-b mb-4">
                                         <nav class="flex space-x-6">
-                                            <button
-                                                @click="activeSubTab = 'company'"
-                                                :class="activeSubTab === 'company' ? 'pb-2 border-b-2 border-blue-600 font-medium' : 'pb-2 text-gray-500 hover:text-black'"
-                                                class="focus:outline-none active"
-                                            >
-                                                Company information
+                                            <button @click="activeSubTab = 'company'"
+                                                    :class="activeSubTab === 'company' ? 'pb-2 border-b-2 border-blue-600 font-medium' : 'pb-2 text-gray-500 hover:text-black'"
+                                                    class="focus:outline-none">
+                                                Company Information
                                             </button>
-                                            <button
-                                                @click="activeSubTab = 'documents'"
-                                                :class="activeSubTab === 'documents' ? 'pb-2 border-b-2 border-blue-600 font-medium' : 'pb-2 text-gray-500 hover:text-black'"
-                                                class="focus:outline-none"
-                                            >
+                                            <button @click="activeSubTab = 'documents'"
+                                                    :class="activeSubTab === 'documents' ? 'pb-2 border-b-2 border-blue-600 font-medium' : 'pb-2 text-gray-500 hover:text-black'"
+                                                    class="focus:outline-none">
                                                 Documents
                                             </button>
                                         </nav>
                                     </div>
 
-                                    <!-- Inner Tab Contents -->
+                                    <!-- Tab Contents -->
                                     <div>
-                                        <!-- Company Info Tab -->
+                                        {{-- ================== Company Info Tab ================== --}}
                                         <div x-show="activeSubTab === 'company'" x-transition>
-                                            <!-- Success Message -->
-                                            <div id="company-profile-success" class="alert alert-success text-center" style="display: none;">
+                                            <div id="company-profile-success"
+                                                class="alert alert-success text-center"
+                                                style="display: none;">
                                                 <strong>Success!</strong> <span class="message-text"></span>
-                                            </div>    
-                                            <form id="company-profile-form" action="{{ route('recruiter.company.profile.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            </div>
+
+                                            <div id="success-message" class="p-2 bg-green-100 text-green-800 rounded mb-3 hidden"></div>
+                                            <div id="error-message" class="p-2 bg-red-100 text-red-800 rounded mb-3 hidden"></div>
+
+                                            <form id="company-profile-form"
+                                                action="{{ route('recruiter.company.profile.update') }}"
+                                                method="POST"
+                                                class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                                 @csrf
 
-                                                <!-- Company Info -->
+                                                {{-- Company Details --}}
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company name <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="company_name" value="{{ $companyDetails->company_name }}" class="w-full border rounded px-3 py-2" />
+                                                    <label class="block mb-1 font-medium">Company Name <span class="text-red-600">*</span></label>
+                                                    <input type="text" name="company_name"
+                                                        value="{{ old('company_name', $companyDetails->company_name ?? '') }}"
+                                                        class="w-full border rounded px-3 py-2" />
                                                     @error("company_name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company email <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="email" name="business_email" value="{{ $companyDetails->business_email }}" class="w-full border rounded px-3 py-2" />
+                                                    <label class="block mb-1 font-medium">Company Email <span class="text-red-600">*</span></label>
+                                                    <input type="email" name="business_email"
+                                                        value="{{ old('business_email', $companyDetails->business_email ?? '') }}"
+                                                        class="w-full border rounded px-3 py-2" />
                                                     @error("business_email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Phone number <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="company_phone_number" value="{{ $companyDetails->company_phone_number }}" class="w-full border rounded px-3 py-2" />
+                                                    <label class="block mb-1 font-medium">Phone Number <span class="text-red-600">*</span></label>
+                                                    <input type="text" name="company_phone_number"
+                                                        value="{{ old('company_phone_number', $companyDetails->company_phone_number ?? '') }}"
+                                                        class="w-full border rounded px-3 py-2" />
                                                     @error("company_phone_number") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Industry type <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select class="w-full border rounded px-3 py-2" name="industry_type">
+                                                    <label class="block mb-1 font-medium">Industry Type <span class="text-red-600">*</span></label>
+                                                    <select name="industry_type" class="w-full border rounded px-3 py-2">
                                                         <option value="">Select Industry</option>
-                                                        <option value="Information technology" {{ old('industry_type', $companyDetails->industry_type) == 'Information technology' ? 'selected' : '' }}>Information technology</option>
-                                                        <option value="Healthcare" {{ old('industry_type', $companyDetails->industry_type) == 'Healthcare' ? 'selected' : '' }}>Healthcare</option>
-                                                        <option value="Finance" {{ old('industry_type', $companyDetails->industry_type) == 'Finance' ? 'selected' : '' }}>Finance</option>
+                                                        <option value="Information technology" {{ old('industry_type', $companyDetails->industry_type ?? '') == 'Information technology' ? 'selected' : '' }}>Information technology</option>
+                                                        <option value="Healthcare" {{ old('industry_type', $companyDetails->industry_type ?? '') == 'Healthcare' ? 'selected' : '' }}>Healthcare</option>
+                                                        <option value="Finance" {{ old('industry_type', $companyDetails->industry_type ?? '') == 'Finance' ? 'selected' : '' }}>Finance</option>
                                                     </select>
                                                     @error("industry_type") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company establishment date <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input id="establishment_date" name="establishment_date" value="{{ \Carbon\Carbon::parse($companyDetails->updated_at)->format('d-m-Y') }}" class="w-full border rounded px-3 py-2 form-control" />
+                                                    <label class="block mb-1 font-medium">Establishment Date <span class="text-red-600">*</span></label>
+                                                    <input type="date" name="establishment_date"
+                                                        value="{{ old('establishment_date', $companyDetails->establishment_date ?? '') }}"
+                                                        class="w-full border rounded px-3 py-2" />
                                                     @error("establishment_date") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company website <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="company_website" value="{{ $companyDetails->company_website }}" class="w-full border rounded px-3 py-2" />
+                                                    <label class="block mb-1 font-medium">Company Website <span class="text-red-600">*</span></label>
+                                                    <input type="text" name="company_website"
+                                                        value="{{ old('company_website', $companyDetails->company_website ?? '') }}"
+                                                        class="w-full border rounded px-3 py-2" />
                                                     @error("company_website") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                                                 </div>
 
-                                                <!-- Recruiter Info -->
+                                                {{-- Recruiter Details --}}
                                                 <div class="col-span-2 mt-4">
                                                     <h3 class="text-xl font-semibold">Recruiter Details</h3>
                                                 </div>
 
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Recruiter Name <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="name" value="{{ $companyDetails->name }}" class="w-full border rounded px-3 py-2" />
-                                                    @error("name") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-                                                </div>
+                                                {{-- Loop recruiters --}}
+                                                @foreach ($companyDetails->recruiters as $index => $r)
+                                                    {{-- Hidden ID field --}}
+                                                    <input type="hidden" name="recruiters[{{ $index }}][id]" value="{{ $r->id }}">
 
-                                                <div>
-                                                    <label class="block mb-1 font-medium">Recruiter Email <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="email" value="{{ $companyDetails->email }}" class="w-full border rounded px-3 py-2" />
-                                                    @error("email") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-                                                </div>
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Recruiter Name <span class="text-red-600">*</span></label>
+                                                        <input type="text" name="recruiters[{{ $index }}][name]"
+                                                            value="{{ old("recruiters.$index.name", $r->name) }}"
+                                                            class="w-full border rounded px-3 py-2"
+                                                            {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
+                                                    </div>
 
-                                                <div class="">
-                                                    <label class="block mb-1 font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="national_id" value="{{ $companyDetails->national_id }}" class="w-full border rounded px-3 py-2" />
-                                                    @error("national_id") <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-                                                </div>
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Recruiter Email <span class="text-red-600">*</span></label>
+                                                        <input type="email" name="recruiters[{{ $index }}][email]"
+                                                            value="{{ old("recruiters.$index.email", $r->email) }}"
+                                                            class="w-full border rounded px-3 py-2"
+                                                            {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
+                                                    </div>
 
-                                                <!-- Buttons -->
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">National ID <span class="text-red-600">*</span></label>
+                                                        <input type="text" name="recruiters[{{ $index }}][national_id]"
+                                                            value="{{ old("recruiters.$index.national_id", $r->national_id) }}"
+                                                            class="w-full border rounded px-3 py-2"  maxlength="15"
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                            {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
+                                                    </div>
+
+                                                    {{-- ✅ Recruiter Mobile Number --}}
+                                                    <div>
+                                                        <label class="block mb-1 font-medium">Mobile Number <span class="text-red-600">*</span></label>
+                                                        <input type="text" name="recruiters[{{ $index }}][mobile]"
+                                                            value="{{ old("recruiters.$index.mobile", $r->mobile) }}"
+                                                            class="w-full border rounded px-3 py-2"  maxlength="9"
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);" 
+                                                            {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
+                                                    </div>
+                                                @endforeach
+
+
+
                                                 <div class="col-span-2 mt-6 flex justify-end space-x-3">
-                                                    <button @click.prevent="activeSubTab = 'documents'" class="border px-6 py-2 rounded hover:bg-gray-100">Next</button>
-                                                    <button type="submit" id="save-company-profile" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Update</button>
+                                                    <button @click.prevent="activeSubTab = 'documents'"
+                                                            class="border px-6 py-2 rounded hover:bg-gray-100">
+                                                        Next
+                                                    </button>
+                                                    <button type="submit"
+                                                            id="save-company-profile"
+                                                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                                                        Update
+                                                    </button>
                                                 </div>
                                             </form>
-                                        </div>
-                                        <script>
-                                            document.getElementById('save-company-profile').addEventListener('click', function (e) {    
-                                                e.preventDefault(); // Prevent default form submission
+                                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                                            <script>
+                                            $(document).ready(function () {
+                                                $('#company-profile-form').on('submit', function (e) {
+                                                    e.preventDefault();
 
-                                                const form = document.getElementById('company-profile-form');
-                                                const formData = new FormData(form);
-                                                const successBox = document.getElementById('company-profile-success');
-                                                const successText = successBox.querySelector('.message-text');
+                                                    let form = $(this);
+                                                    let url = form.attr('action');
+                                                    let formData = form.serialize();
 
-                                                // Clear previous error messages
-                                                form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+                                                    // Clear messages
+                                                    $('#success-message').hide().text('');
+                                                    $('#error-message').hide().text('');
+                                                    $('.text-red-600.text-sm').remove();
 
-                                                fetch(form.action, {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value,
-                                                        'Accept': 'application/json'
-                                                    },
-                                                    body: formData
-                                                })
-                                                .then(response => {
-                                                    if (!response.ok) return response.json().then(err => Promise.reject(err));
-                                                    return response.json();
-                                                })
-                                                .then(data => {
-                                                    // Show success alert
-                                                    successText.textContent = data.message;
-                                                    successBox.style.display = 'block';
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: url,
+                                                        data: formData,
+                                                        beforeSend: function () {
+                                                            $('#save-company-profile').prop('disabled', true).text('Updating...');
+                                                        },
+                                                        success: function (response) {
+                                                            $('#success-message').text(response.message ?? 'Profile updated successfully!').show();
+                                                        },
+                                                        error: function (xhr) {
+                                                            if (xhr.status === 422) {
+                                                                let errors = xhr.responseJSON.errors;
 
-                                                    // Hide after 3 seconds
-                                                    setTimeout(() => {
-                                                        successBox.style.display = 'none';
-                                                        successText.textContent = '';
-                                                    }, 3000);
+                                                                $.each(errors, function (key, messages) {
+                                                                    // Laravel returns keys like "recruiters.0.name"
+                                                                    let fieldName = key.replace(/\.(\d+)\./g, '[$1]['); 
+                                                                    fieldName = fieldName.replace(/\./g, ']['); 
+                                                                    fieldName = fieldName + ']'; 
 
-                                                    // Optional: switch to next tab
-                                                    if (typeof nextTab === "function") nextTab();
-                                                })
-                                                .catch(error => {
-                                                    const errors = error.errors || {};
-                                                    Object.keys(errors).forEach(field => {
-                                                        const message = errors[field][0];
-                                                        const input = form.querySelector(`[name="${field}"]`);
-                                                        if (input) {
-                                                            const errorElem = document.createElement('p');
-                                                            errorElem.className = 'text-red-600 text-sm mt-1';
-                                                            errorElem.textContent = message;
-                                                            input.insertAdjacentElement('afterend', errorElem);
+                                                                    let field = $('[name="' + key + '"], [name="' + fieldName + '"]');
+                                                                    if (field.length > 0) {
+                                                                        field.after('<p class="text-red-600 text-sm mt-1">' + messages[0] + '</p>');
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                $('#error-message').text('Something went wrong! Please try again.').show();
+                                                            }
+                                                        },
+                                                        complete: function () {
+                                                            $('#save-company-profile').prop('disabled', false).text('Update');
                                                         }
                                                     });
                                                 });
                                             });
-                                        </script>
+                                            </script>
 
-    
 
+
+                                        </div>
+
+                                        {{-- ================== Documents Tab ================== --}}
                                         <!-- Documents Tab -->
                                         <div x-show="activeSubTab === 'documents'" x-transition>
                                             <!-- Success Alert -->
@@ -644,11 +467,333 @@
                                                 });
                                             });
                                         </script>
-
-
-                                        
                                     </div>
                                 </div>
+
+
+                                
+
+                                <!-- Notifications Section -->
+                                <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
+                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
+
+                                <!-- Scrollable notification list -->
+                                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                    <!-- Notification Items -->
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Approved your request</p>
+                                        <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> New comment on your post</p>
+                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
+                                        <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
+                                        <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4 border-b pb-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
+                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                    <div>
+                                        <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
+                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
+                                    </div>
+                                    </div>
+                                </div>
+                                </div>
+
+                               <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Subscription</h3>
+                                    @php
+                                        $userId = auth()->user('recruiter')->id;
+                                        $userRole = auth()->user('recruiter')->role;
+                                        $companyId = auth()->user('recruiter')->company_id;
+                                        // Fetch available plans for this user type
+                                        $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'recruiter')->get();
+
+                                        // Fetch purchased subscriptions for current user
+                                        $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*', 'purchased_subscriptions.*')
+                                                                ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                                ->where('subscription_plans.user_type', 'recruiter')
+                                                                // ->where('purchased_subscriptions.user_id', $userId)
+                                                                ->where('purchased_subscriptions.company_id', $companyId)
+                                                                ->orderBy('purchased_subscriptions.created_at', 'desc')
+                                                                ->get();
+
+                                        $showPlansModal = false;
+
+                                        if ($purchasedSubscriptions->count() > 0) {
+                                            $latest = $purchasedSubscriptions->first();
+                                            $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
+
+                                            if ($daysLeft > 0 && $daysLeft <= 30) {
+                                                $showPlansModal = true;
+                                            }
+                                        }
+                                    @endphp
+
+                                    <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        @if($showPlansModal)
+                                            document.getElementById('plansModal').classList.remove('hidden');
+                                        @endif
+                                    });
+                                    </script>
+
+                                    @if(auth()->user('recruiter')->role === 'main')
+                                        <!-- Subscription Card -->
+                                        <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                                            <div>
+                                                <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
+                                                <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features</p>
+                                            </div>
+                                            <button onclick="document.getElementById('plansModal').classList.remove('hidden')"
+                                                class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                                                View Plans
+                                            </button>
+                                        </div>
+
+                                        <!-- Plans Modal -->
+                                        <div id="plansModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50 hidden">
+                                            <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
+                                                <button onclick="document.getElementById('plansModal').classList.add('hidden')"
+                                                    class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
+
+                                                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+
+                                                <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+                                                    @foreach($subscriptions as $plan)
+                                                        <div class="border rounded-lg p-4 shadow-sm text-center">
+                                                            <div class="flex flex-col items-center">
+                                                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                                <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                                                <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
+                                                            </div>
+                                                            <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                                                            @php
+                                                                $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
+                                                            @endphp
+                                                            <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                                                @foreach($features as $feature)
+                                                                    <li>{{ trim($feature) }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                            <button type="button"
+                                                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                                                data-plan-id="{{ $plan->id }}">
+                                                                Buy subscription
+                                                            </button>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
+                                            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                                                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                                                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+
+                                                <form id="paymentForm">
+                                                    @csrf
+                                                    <input type="hidden" name="plan_id" id="selectedPlanId">
+
+                                                    <div class="mb-4">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                                        <input type="text" name="card_number" value="4242424242424242"
+                                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                    </div>
+
+                                                    <div class="mb-4 flex space-x-2">
+                                                        <div class="w-1/2">
+                                                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                                            <input type="text" name="expiry" value="12/30"
+                                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                        </div>
+                                                        <div class="w-1/2">
+                                                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                                            <input type="text" name="cvv" value="123"
+                                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit"
+                                                        class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                                                        Pay Now
+                                                    </button>
+                                                </form>
+                                                <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
+                                                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                                                    ×
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    @endif
+                                    <h4 class="text-lg font-semibold mb-3">Subscription History</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full border border-gray-200 text-sm">
+                                            <thead class="bg-gray-100 text-left">
+                                                <tr>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Sr. No.</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Subscription</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Duration</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Purchased on</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">Expired on</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($purchasedSubscriptions as $index => $subscription)
+                                                    <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
+                                                        <td class="px-4 py-3">{{ $index + 1 }}.</td>
+                                                        <td class="px-4 py-3">{{ $subscription->title }}</td>
+                                                        <td class="px-4 py-3">{{ $subscription->duration_days }} {{ Str::plural('days', $subscription->duration_days) }}</td>
+                                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->start_date)->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->end_date)->format('d/m/Y') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                     </div>
+                                </div>
+
+<!-- Include SweetAlert2 -->
+                                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                <script>
+                                    function openPaymentModal(planId) {
+                                        document.getElementById('selectedPlanId').value = planId;
+                                        document.getElementById('paymentModal').classList.remove('hidden');
+                                    }
+
+                                    function closePaymentModal() {
+                                        document.getElementById('paymentModal').classList.add('hidden');
+                                    }
+
+                                    document.addEventListener('DOMContentLoaded', () => {
+                                        document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                                            button.addEventListener('click', function () {
+                                                openPaymentModal(this.getAttribute('data-plan-id'));
+                                            });
+                                        });
+
+                                        document.addEventListener('keydown', function (e) {
+                                            if (e.key === 'Escape') closePaymentModal();
+                                        });
+
+                                        document.getElementById('paymentForm').addEventListener('submit', function (e) {
+                                            e.preventDefault();
+                                            let formData = new FormData(this);
+
+                                            fetch("{{ route('recruiter.subscription.payment') }}", {
+                                                method: "POST",
+                                                headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                                                body: formData
+                                            })
+                                            .then(async response => {
+                                                let data = await response.json();
+                                                if (!response.ok) throw data;
+                                                return data;
+                                            })
+                                            .then(data => {
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Payment Successful',
+                                                    text: data.message,
+                                                    confirmButtonColor: '#3085d6',
+                                                    timer: 2000,
+                                                    timerProgressBar: true
+                                                }).then(() => {
+                                                    closePaymentModal();
+                                                    location.reload();
+                                                });
+                                            })
+                                            .catch(error => {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Payment Failed',
+                                                    text: error.message || "Something went wrong!",
+                                                    confirmButtonColor: '#d33'
+                                                });
+                                            });
+                                        });
+                                    });
+                                </script>
 
 
                                 <!-- Privacy Policy Section -->
@@ -742,9 +887,6 @@
                 </main>
 
 
-       
-
-
 
             </div>
         </div>
@@ -753,9 +895,11 @@
         <script>
             feather.replace()
         </script>
-    
+
 
     </div>
            
+
+
 
 @include('site.recruiter.componants.footer')

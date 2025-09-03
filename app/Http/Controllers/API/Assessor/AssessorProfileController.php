@@ -72,15 +72,20 @@ class AssessorProfileController extends Controller
             ->where('user_id', $id)
             ->where('user_type', 'assessor')
             ->get();
-
+            $image = '' ;
+            foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
+                if($TrainersAdditionalInfos->doc_type == 'assessor_profile_picture'){
+                    $image = $TrainersAdditionalInfos->document_path ;
+                }                
+            }
             // Return combined response
-            return $this->successResponse([
+            return $this->successWithCmsResponse([
                 'AssessorPersonal'       => $TrainersPersonal,
                 'AssessorEducation'      => $TrainersEducation,
                 'AssessorWorkExp'        => $TrainersWorkExp,
                 'AssessorSkill'          => $Trainerskill,
                 'AssessorAdditionalInfo' => $TrainersAdditionalInfo,
-            ], 'Assessors profile fetched successfully.');
+            ], ['image' => $image], 'Assessors profile fetched successfully.');
 
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
@@ -109,6 +114,7 @@ class AssessorProfileController extends Controller
             'address' => 'required|string',
             //'about_assessor' => 'required',                
             'pincode' => 'required',                
+            'phone_number' => 'required',
             'city' => 'required|string',                
             'state' => 'required|string',                
             'country' => 'required|string',
@@ -173,8 +179,9 @@ class AssessorProfileController extends Controller
                 'city'         => $request->city,
                 'state'      => $request->state,
                 'country'      => $request->country,
+                'phone_number'      => $request->phone_number,
                 'pin_code'      => $request->pincode,
-                'about_assessor'      => $request->about_assessor,
+                'about_assessor' => $request->about_assessor,
                 'national_id'      => $request->national_id,
             ]);
 

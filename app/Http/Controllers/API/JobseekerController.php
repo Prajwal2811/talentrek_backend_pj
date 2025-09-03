@@ -46,7 +46,7 @@ class JobseekerController extends Controller
             ], 401);
         }
 
-        if (!in_array($jobseeker->admin_status, ['approved', 'superadmin_approved'])) {
+        if (!in_array($jobseeker->admin_status, ['superadmin_approved'])) {
             return response()->json([
                 'status' => false,
                 'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
@@ -84,7 +84,7 @@ class JobseekerController extends Controller
             // Validation
            $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:jobseekers,email',
-                'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{10}$/',
+                'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{9}$/',
                 'password' => 'required|string|min:6|confirmed',
             ], [
                 'email.required' => 'The email field is required.',
@@ -94,7 +94,7 @@ class JobseekerController extends Controller
                 'mobile.required' => 'The mobile number is required.',
                 'mobile.string' => 'The mobile number must be a string.',
                 'mobile.unique' => 'This mobile number is already registered.',
-                'mobile.regex' => 'The mobile number must be exactly 10 digits.',
+                'mobile.regex' => 'The mobile number must be exactly 9 digits.',
 
                 'password.required' => 'The password is required.',
                 'password.min' => 'The password must be at least 6 characters.',

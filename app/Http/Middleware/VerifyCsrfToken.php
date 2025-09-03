@@ -12,6 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        'success',   // your responseURL path
+        'failure'    // your errorURL path
     ];
 }

@@ -28,7 +28,8 @@ class Coach extends Model
         'country',
         'state',
         'national_id',
-        'about_coach'
+        'about_coach',
+        'is_registered'
     ];
 
     /**

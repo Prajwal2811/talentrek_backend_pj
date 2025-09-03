@@ -29,7 +29,15 @@ Route::group(['prefix' => 'assessor'], function() {
 
 	});
 	
-	Route::group(['middleware' => 'assessor.auth'], function(){
+
+	// Routes accessible after login but before subscription
+    Route::middleware(['assessor.auth'])->group(function () {
+        Route::get('/subscription', [AssessorController::class, 'showSubscriptionPlans'])->name('assessor.subscription.index');
+        Route::post('/subscription-payment', [AssessorController::class, 'processSubscriptionPayment'])->name('assessor.subscription.payment');
+    });
+
+
+	Route::middleware(['assessor.auth', 'check.assessor.subscription'])->group(function () {
 		Route::get('/dashboard',[AssessorController::class, 'dashboard'])->name('assessor.dashboard');
 
 		Route::get('/dashboard',[AssessorController::class, 'showAssessorDashboard'])->name('assessor.dashboard');
@@ -44,6 +52,12 @@ Route::group(['prefix' => 'assessor'], function() {
 		Route::delete('assessor/delete-document/{type}', [AssessorController::class, 'deleteAssessorDocument'])->name('assessor.additional.delete');
 
 		Route::delete('/delete', [AssessorController::class, 'deleteAccount'])->name('assessor.destroy');
+
+		// Chat with Jobseeker
+		Route::get('/chat-with-jobseeker', [AssessorController::class, 'chatWithJobseekerAssessor'])->name('chat.with.jobseeker.assessor');
+
+		// Admin Support
+		Route::get('/admin-support-assessor', [AssessorController::class, 'adminSupportAssessor'])->name('admin-support-assessor');
 
 		// Reviews
 		Route::get('/reviews', [AssessorController::class, 'assessorReviews'])->name('assessor.reviews');

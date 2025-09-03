@@ -974,31 +974,93 @@ class AssessorController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Slot status updated.']);
     }
 
+    // public function updateSlotTime(Request $request)
+    // {
+    //     $request->validate([
+    //         'id' => 'required|exists:booking_slots,id',
+    //         'start_time' => 'required',
+    //         'end_time' => 'required|after:start_time',
+    //     ]);
+
+    //     // Convert to 24-hour format
+    //     $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
+    //     $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+
+    //     $slot = BookingSlot::findOrFail($request->id);
+        
+    //     $slot->update([
+    //         'start_time' => $startTime,
+    //         'end_time' => $endTime,
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Slot time updated successfully.',
+    //         'slot' => $slot,
+    //     ]);
+    // }
     public function updateSlotTime(Request $request)
     {
         $request->validate([
             'id' => 'required|exists:booking_slots,id',
             'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'end_time' => 'required',
         ]);
 
-        // Convert to 24-hour format
         $startTime = Carbon::createFromFormat('h:i a', $request->start_time)->format('H:i:s');
-        $endTime = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
+        $endTime   = Carbon::createFromFormat('h:i a', $request->end_time)->format('H:i:s');
 
-        $slot = BookingSlot::findOrFail($request->id);
-        
+        if ($startTime === $endTime) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Start time and end time cannot be the same.',
+            ], 422);
+        }
+
+        $userId   = auth()->id();
+        $userType = 'assessor';
+
+        $slot = BookingSlot::where('id', $request->id)
+            ->where('user_id', $userId)
+            ->where('user_type', $userType)
+            ->firstOrFail();
+
+    
+        $exists = BookingSlot::where('id', '!=', $slot->id)
+            ->where('user_type', $userType)
+            ->where('user_id', $userId)
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->where(function ($q1) use ($startTime, $endTime) {
+                    $q1->where('start_time', '<', $endTime)
+                    ->where('end_time', '>', $startTime);
+                });
+            })
+            ->exists();
+
+
+        if ($exists) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'This time slot is already selected.',
+            ], 422);
+        }
+
+    
         $slot->update([
             'start_time' => $startTime,
-            'end_time' => $endTime,
+            'end_time'   => $endTime,
         ]);
-
+      
         return response()->json([
-            'status' => 'success',
-            'message' => 'Slot time updated successfully.',
-            'slot' => $slot,
+            'status'  => 'success',
+            'message' => 'slot updated successfully.',
+            'slot'    => $slot,
         ]);
     }
+  
+
+
+    
     public function deleteSlot(Request $request)
     {
         $request->validate([

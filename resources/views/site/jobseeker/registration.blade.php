@@ -141,8 +141,8 @@
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
-                                                value="{{ old('dob') }}"/>
+                                            <input type="date" name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
+                                                value="{{ old('dob') }}" max="{{ date('Y-m-d') }}"/>
                                             @error('dob')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -782,8 +782,8 @@
                                                 {{-- Start Date --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
-                                                        value="{{ old("starts_from.$i") }}" readonly />
+                                                    <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
+                                                        value="{{ old("starts_from.$i") }}" max="{{ date('Y-m-d') }}"/>
                                                     @error("starts_from.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -792,9 +792,9 @@
                                                 {{-- End Date & Checkbox --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
+                                                    <input type="date" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
                                                         :disabled="working" :readonly="working"
-                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" />
+                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" max="{{ date('Y-m-d') }}"/>
                                                     @error("end_to.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -1306,19 +1306,19 @@
 <!-- Datapicker  -->
 <script>
     $(document).ready(function () {
-        $('#dob').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
-            function initializeDatePickers() {
-            $('.datepicker-start, .datepicker-end').datepicker({
-                format: 'yyyy-mm-dd',
-                endDate: new Date(),
-                autoclose: true,
-                todayHighlight: true
-            });
+        // $('#dob').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     endDate: new Date(),
+        //     autoclose: true,
+        //     todayHighlight: true
+        // });
+        //     function initializeDatePickers() {
+        //     $('.datepicker-start, .datepicker-end').datepicker({
+        //         format: 'yyyy-mm-dd',
+        //         endDate: new Date(),
+        //         autoclose: true,
+        //         todayHighlight: true
+        //     });
         }
 
         initializeDatePickers();

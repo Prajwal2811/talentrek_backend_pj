@@ -29,7 +29,8 @@ class Trainers extends Model
         'national_id',
         'country',
         'pin_code',
-        'state'
+        'state',
+        'is_registered'
     ];
 
     /**

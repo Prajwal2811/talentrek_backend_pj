@@ -26,7 +26,8 @@ class Mentors extends Model
         'state',
         'national_id',
         'pin_code',
-        'about_mentor'
+        'about_mentor',
+        'is_registered'
     ];
 
     /**

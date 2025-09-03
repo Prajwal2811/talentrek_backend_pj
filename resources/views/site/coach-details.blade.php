@@ -16,6 +16,7 @@
             background: white;
         }
     </style>
+   
 @include('site.componants.navbar')
 
   <div class="page-content">
@@ -23,7 +24,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Assessment</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">Coaching</h2>
                     </div>
                 </div>
             </div>
