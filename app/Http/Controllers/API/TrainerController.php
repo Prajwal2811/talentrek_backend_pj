@@ -734,6 +734,7 @@ class TrainerController extends Controller
         return response()->json([
             'message' => 'OTP sent successfully',
             'via' => $contactMethod,
+            'otp' =>  $otp
         ]);
     }
 

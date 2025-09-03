@@ -145,7 +145,7 @@ class SessionsManagementController extends Controller
             ], 422);
         }
 
-        try {
+        //try {
                 // Fetch Trainers personal information
                 $relationships = [];
                 $type = $request->type;
@@ -180,7 +180,7 @@ class SessionsManagementController extends Controller
                     $profilePicture = $type === 'mentor' ? 'mentor_profile_picture' : ($type === 'assessor' ? 'assessor_profile_picture' : 'coach_profile_picture');
 
                     //$profilePicture = 'profile_picture';
-                    //print_r($item->$expRelation);
+                    //print_r($item->$expRelation);exit;
                     $item->recent_job_role  = collect($item->$expRelation)->reduce(function ($carry, $exp) {
                         $start = Carbon::parse($exp->starts_from);
 
@@ -190,7 +190,7 @@ class SessionsManagementController extends Controller
                             : $exp->job_role;
 
                         return $end;
-                    }, 0);
+                    });
                     
                     // Get the most recent job_role based on nearest end_to (null means current)
                     // $mostRecentExp = $item->$expRelation->sortByDesc(function ($exp) {
@@ -207,7 +207,7 @@ class SessionsManagementController extends Controller
                     $item->image = $image ?? null;
                     $item->startTime =  date('h:i A',strtotime($item->bookingSlot->start_time)) ?? null;
                     $item->endTime =  date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
-                    $item->slotStartEndTime =  date('H:i A',strtotime($item->bookingSlot->start_time)).' - '.date('H:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+                    $item->slotStartEndTime =  date('h:i A',strtotime($item->bookingSlot->start_time)).' - '.date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
 
                     $now = Carbon::now();
                     $sessionDate = Carbon::parse($item->slot_date);
@@ -227,11 +227,11 @@ class SessionsManagementController extends Controller
                     'data' => $upcomingSessions
                 ]);   
 
-        } catch (\Exception $e) {
-            return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
-                'error' => $e->getMessage()
-            ]);
-        }
+        // } catch (\Exception $e) {
+        //     return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
+        //         'error' => $e->getMessage()
+        //     ]);
+        // }
     }
 
     public function cancelledBookedSessionsForMCA(Request $request)
@@ -277,7 +277,7 @@ class SessionsManagementController extends Controller
                             : $exp->job_role;
 
                         return $end;
-                    }, 0);
+                    });
                     // $mostRecentExp = $item->$expRelation->sortByDesc(function ($exp) {
                     //     return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
                     // })->first();
@@ -293,6 +293,8 @@ class SessionsManagementController extends Controller
                     $item->image = $image ?? null;
                     $item->startTime =  date('h:i A',strtotime($item->bookingSlot->start_time)) ?? null;
                     $item->endTime =  date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+                    $item->slotStartEndTime =  date('h:i A',strtotime($item->bookingSlot->start_time)).' - '.date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+
                     unset($item->$infoRelation);
                     unset($item->$relationName, $item->$expRelation,$item->bookingSlot);
                     return $item;
@@ -367,7 +369,7 @@ class SessionsManagementController extends Controller
                             : $exp->job_role;
 
                         return $end;
-                    }, 0);
+                    });
                     // $mostRecentExp = $item->$expRelation->sortByDesc(function ($exp) {
                     //     return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
                     // })->first();
@@ -380,6 +382,10 @@ class SessionsManagementController extends Controller
                         }                
                     }
                     $item->image = $image ?? null;
+                    // $item->startTime =  date('h:i A',strtotime($item->bookingSlot->start_time)) ?? null;
+                    // $item->endTime =  date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+                    // $item->slotStartEndTime =  date('h:i A',strtotime($item->bookingSlot->start_time)).' - '.date('h:i A',strtotime($item->bookingSlot->end_time)) ?? null;
+
                     unset($item->$infoRelation);
                     unset($item->$relationName, $item->$expRelation,$item->bookingSlot);
                     return $item;

@@ -113,7 +113,7 @@ class CoachProfileController extends Controller
         $data = $request->all();
         $rules = [
             'name' => 'required|string',
-            'gender' => 'required|in:Male,Female,Other',
+            //'gender' => 'required|in:Male,Female,Other',
             'location' => 'required|string',
             'address' => 'required|string',
             'pincode' => 'required',                

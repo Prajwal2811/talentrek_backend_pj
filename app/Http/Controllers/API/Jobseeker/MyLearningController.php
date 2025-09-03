@@ -16,6 +16,7 @@ use App\Models\Api\JobseekerBookingSession;
 use App\Models\Api\BookingSession;
 use App\Models\Api\BookingSlot;
 use App\Models\Api\BookingSlotUnavailableDate;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -523,11 +524,16 @@ class MyLearningController extends Controller
 
                     return $slot;
             });
-
+            $slotPrice = $this->getUserSlotPrice($request->userId,$request->roleType);
+            $slotTax = $this->getSlotPercentage($request->roleType) ;
+            $slotTotalAmount = $slotPrice + ($slotPrice * $slotTax / 100); 
             // Return success with data
             return response()->json([
                 'success' => true,
                 'message' => ucwords($request->roleType).'  '.ucwords($request->trainingMode).' Booking slot list fetched successfully.',
+                'perSlotPrice' => $slotPrice, 
+                'slotTaxPercentage' => $slotTax, 
+                'slotTotalAmount' => $slotTotalAmount, 
                 'data' => $bookingSlots               
             ]);
 
@@ -720,5 +726,47 @@ class MyLearningController extends Controller
         //     // Log::error('Mentor detail fetch failed: ' . $e->getMessage());
         //     return $this->errorResponse( 'An error occurred while fetching mentor details.', 500,[]);
         // }
+    }
+
+    private function getUserSlotPrice($id,$type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Mentors::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Coach::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Assessors::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        }
+       
+        return 1 ;
+    }
+
+    private function getSlotPercentage($type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Setting::select('mentorTax')->where('id', 1)->first();
+            return $MentorsDetails->mentorTax ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Setting::select('coachTax')->where('id', 1)->first();
+            return $MentorsDetails->coachTax ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Setting::select('assessorTax')->where('id', 1)->first();
+            return $MentorsDetails->assessorTax ;
+        }
+       
+        return 1 ;
     }
 }

@@ -94,7 +94,7 @@ class BookingSession extends Model
 
     public function WorkExperience()
     {
-        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
+        return $this->hasMany(WorkExperience::class, 'user_id', 'jobseeker_id')
         ->where('user_type', 'mentor');
     }
 
@@ -120,7 +120,7 @@ class BookingSession extends Model
 
     public function coachWorkExperience()
     {
-        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
+        return $this->hasMany(WorkExperience::class, 'user_id', 'jobseeker_id')
         ->where('user_type', 'coach');
     }
 
@@ -153,7 +153,7 @@ class BookingSession extends Model
 
     public function AssessorWorkExperience()
     {
-        return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
+        return $this->hasMany(WorkExperience::class, 'user_id', 'jobseeker_id')
         ->where('user_type', 'assessor');
     }
 }
