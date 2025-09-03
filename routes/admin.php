@@ -187,22 +187,23 @@ Route::group(['prefix' => 'admin'], function() {
 
 		// ==================== TAXATION ====================
 		Route::middleware('admin.module:Taxation')->group(function () {
-			Route::get('/taxations', [AdminController::class, 'index'])->name('admin.taxations.index');
-			Route::get('/taxations/create', [AdminController::class, 'create'])->name('admin.taxations.create');
-			Route::post('/taxations', [AdminController::class, 'store'])->name('admin.taxations.store');
-			Route::get('/taxations/{id}/edit', [AdminController::class, 'edit'])->name('admin.taxations.edit');
-			Route::put('/taxations/{id}', [AdminController::class, 'update'])->name('admin.taxations.update');
-			Route::delete('/taxations/{id}', [AdminController::class, 'destroy'])->name('admin.taxations.destroy');
+			Route::get('/taxations', [AdminController::class, 'taxations'])->name('admin.taxations.taxations');
+			Route::get('/taxations/create', [AdminController::class, 'createTax'])->name('admin.taxations.create');
+			Route::post('/taxations', [AdminController::class, 'storeTax'])->name('admin.taxations.store');
+			Route::get('/taxations/{type}', [AdminController::class, 'showTaxations'])->name('admin.taxations.taxations.view');
+			Route::put('/taxations/{type}', [AdminController::class, 'updateTax'])->name('admin.taxations.update');
+
+			Route::delete('/taxations/{id}', [AdminController::class, 'destroyTax'])->name('admin.taxations.destroy');
 		});
 
 		// ==================== COUPONS ====================
 		Route::middleware('admin.module:Coupons')->group(function () {
-			Route::get('/coupons', [AdminController::class, 'index'])->name('admin.coupons.index');
-			Route::get('/coupons/create', [AdminController::class, 'create'])->name('admin.coupons.create');
-			Route::post('/coupons', [AdminController::class, 'store'])->name('admin.coupons.store');
-			Route::get('/coupons/{id}/edit', [AdminController::class, 'edit'])->name('admin.coupons.edit');
-			Route::put('/coupons/{id}', [AdminController::class, 'update'])->name('admin.coupons.update');
-			Route::delete('/coupons/{id}', [AdminController::class, 'destroy'])->name('admin.coupons.destroy');
+			Route::get('/coupons', [AdminController::class, 'coupons'])->name('admin.coupons.coupons');
+			Route::get('/coupons/create', [AdminController::class, 'createCoupon'])->name('admin.coupons.create');
+			Route::post('/coupons', [AdminController::class, 'storeCoupon'])->name('admin.coupons.store');
+			Route::get('/coupons/{id}/edit', [AdminController::class, 'editCoupon'])->name('admin.coupons.edit');
+			Route::put('/coupons/{id}', [AdminController::class, 'updateCoupon'])->name('admin.coupons.update');
+			Route::delete('/coupons/{id}', [AdminController::class, 'destroyCoupon'])->name('admin.coupons.destroy');
 		});
 
 		// ==================== Notifications ====================

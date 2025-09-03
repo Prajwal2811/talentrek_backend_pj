@@ -43,7 +43,7 @@ class JobseekerInformationSeeder extends Seeder
                 'google_id' => null,
                 'otp' => rand(100000, 999999),
                 'status' => 'active',
-                'admin_status' => 'approved',
+                'admin_status' => 'superadmin_approved',
                 'shortlist' => null,
                 'admin_recruiter_status' => null,
                 'is_registered' => '1',

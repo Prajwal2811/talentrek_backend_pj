@@ -188,14 +188,14 @@
                             {{-- Taxation Manage --}}
                             @if($role === 'superadmin' || in_array('Taxation', $permissions))
                                 <li class="{{ $taxationActive ? 'active' : '' }}">
-                                    <a href="{{ route('admin.taxations.index') }}">Taxation Manage</a>
+                                    <a href="{{ route('admin.taxations.taxations') }}">Taxation Manage</a>
                                 </li>
                             @endif
                             
                             {{-- Coupon Code Manage --}}
                             @if($role === 'superadmin' || in_array('Coupons', $permissions))
                                 <li class="{{ $couponsActive ? 'active' : '' }}">
-                                    <a href="{{ route('admin.coupons.index') }}">Coupon Code Manage</a>
+                                    <a href="{{ route('admin.coupons.coupons') }}">Coupon Code Manage</a>
                                 </li>
                             @endif
 

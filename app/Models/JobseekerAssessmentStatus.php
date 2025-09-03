@@ -11,7 +11,7 @@ class JobseekerAssessmentStatus extends Model
 
     protected $table = 'jobseeker_assessment_status';
 
-     protected $fillable = ['jobseeker_id', 'assessment_id', 'submitted'];
+     protected $fillable = ['jobseeker_id', 'assessment_id', 'submitted','score','total','percentage','result_status'];
     /**
      * Relationships
      */

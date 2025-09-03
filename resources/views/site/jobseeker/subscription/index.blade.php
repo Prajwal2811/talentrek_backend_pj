@@ -63,20 +63,17 @@
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                        <input type="text" name="card_number" value="4242424242424242"
-                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                        <input type="text" name="card_number"class="w-full border border-gray-300 rounded-md px-4 py-2">
                     </div>
 
                     <div class="mb-4 flex space-x-2">
                         <div class="w-1/2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                            <input type="text" name="expiry" value="12/30"
-                                class="w-full border border-gray-300 rounded-md px-4 py-2">
+                            <input type="text" name="expiry" class="w-full border border-gray-300 rounded-md px-4 py-2">
                         </div>
                         <div class="w-1/2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                            <input type="text" name="cvv" value="123"
-                                class="w-full border border-gray-300 rounded-md px-4 py-2">
+                            <input type="text" name="cvv" class="w-full border border-gray-300 rounded-md px-4 py-2">
                         </div>
                     </div>
                     <button type="submit"

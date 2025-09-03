@@ -18,9 +18,12 @@ return new class extends Migration
             $table->unsignedBigInteger('jobseeker_id');
             $table->unsignedBigInteger('assessment_id');
             $table->boolean('submitted')->default(false);
+            $table->string('score')->nullable();
+            $table->string('total')->nullable();
+            $table->string('percentage')->nullable();
+            $table->string('result_status')->nullable();
             $table->timestamps();
-
-              $table->unique(['jobseeker_id', 'assessment_id'], 'js_assess_status_unique');
+            $table->unique(['jobseeker_id', 'assessment_id'], 'js_assess_status_unique');
         });
 
     }

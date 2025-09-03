@@ -680,6 +680,7 @@ class CoachController extends Controller
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
             'about_coach' => 'nullable|string',
+            'per_slot_price' => 'required',
         ]);
 
         $coach->update([
@@ -694,6 +695,7 @@ class CoachController extends Controller
             'country' => $validated['country'] ?? null,
             'pin_code' => $validated['pin_code'] ?? null,
             'about_coach' => $validated['about_coach'] ?? null,
+            'per_slot_price' => $validated['per_slot_price'] ?? null,
         ]);
 
         return response()->json([
@@ -1206,4 +1208,54 @@ class CoachController extends Controller
         return view('site.coach.admin-support-coach'); 
     }
 
+
+    public function getUnreadCount(Request $request)
+    {
+        $coachId = auth()->guard('coach')->id();
+
+        $query = DB::table('admin_group_chats')
+            ->where('receiver_id', $coachId)
+            ->where('receiver_type', 'coach')
+            ->where('is_read', 0);
+
+        // Agar admin-support page par hai to mark all as read
+        if ($request->query('mark_read') == 1) {
+            $query->update(['is_read' => 1]);
+            $count = 0;
+        } else {
+            $count = $query->count();
+        }
+
+        return response()->json(['count' => $count]);
+    }
+
+
+    public function markMessagesRead()
+    {
+        $coachId = auth()->guard('coach')->id();
+
+        DB::table('admin_group_chats')
+            ->where('receiver_id', $coachId)
+            ->where('receiver_type', 'coach')
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function markMessagesSeen()
+    {
+        $coachId = auth()->guard('coach')->id();
+
+        DB::table('admin_group_chats')
+            ->where('receiver_id', $coachId)
+            ->where('receiver_type', 'coach')
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        // Realtime broadcast
+        event(new \App\Events\MessageSeen($coachId, 'coach', 'admin', 'admin'));
+
+        return response()->json(['success' => true]);
+    }
 }
