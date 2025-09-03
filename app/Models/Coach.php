@@ -38,6 +38,7 @@ class Coach extends Authenticatable
         'shortlist',
         'admin_recruiter_status',
         'google_id',
+        'per_slot_price',
         'avatar',
         'about_coach',
         'isSubscribtionBuy',
