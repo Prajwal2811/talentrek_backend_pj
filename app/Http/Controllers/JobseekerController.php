@@ -28,6 +28,7 @@ use App\Models\JobseekerTrainingMaterialPurchase;
 use App\Models\TrainingMaterial;
 use App\Models\AdditionalInfo;
 use App\Models\JobseekerCartItem;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +41,8 @@ use Illuminate\Support\Str;
 
 use Carbon\CarbonInterval;
 use App\Services\ZoomService;
+
+use App\Events\NotificationSent;
 
 class JobseekerController extends Controller
 {
@@ -511,7 +514,17 @@ class JobseekerController extends Controller
         //         ->subject('Welcome to Talentrek – Registration Successful');
         // });
 
+        $data = [
+            'sender_id' => $jobseeker->id,
+            'sender_type' => 'Registration by Jobseeker.',
+            'receiver_id' => '1',
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$jobseeker->name,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'jobseeker'
+        ];
 
+        Notification::insert($data);
         session()->forget('jobseeker_id');
         return redirect()->route('signin.form')->with('success_popup', true);
     }

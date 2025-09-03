@@ -14,7 +14,7 @@ use App\Models\WorkExperience;
 use App\Models\AdditionalInfo;
 use App\Models\Review;
 use App\Models\BookingSlotUnavailableDate;
-
+use App\Models\Notification;
 use App\Models\BookingSession;
 
 use App\Models\TrainingCategory;
@@ -421,7 +421,17 @@ class MentorController extends Controller
         }
 
         DB::commit();
+        $data = [
+            'sender_id' => $mentor->id,
+            'sender_type' => 'Registration by Mentor.',
+            'receiver_id' => '1',
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$mentor->name,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'mentor'
+        ];
 
+        Notification::insert($data);
         session()->forget('mentor_id');
         return redirect()->route('mentor.login')->with('success_popup', true);
     }

@@ -24,6 +24,7 @@ use App\Models\BookingSlot;
 use Carbon\Carbon;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
+use App\Models\Notification;
 
 class CoachController extends Controller
 {
@@ -568,6 +569,15 @@ class CoachController extends Controller
 
         DB::commit();
 
+        $data = [
+            'sender_id' => $coach->id,
+            'sender_type' => 'Registration by Coach.',
+            'receiver_id' => '1',
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$coach->name,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'coach'
+        ];
         session()->forget('coach_id');
         return redirect()->route('coach.login')->with('success_popup', true);
     }

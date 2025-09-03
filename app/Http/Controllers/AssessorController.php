@@ -20,6 +20,7 @@ use App\Models\BookingSession;
 use App\Models\TrainingCategory;
 use App\Models\BookingSlot;
 use App\Models\Assessors;
+use App\Models\Notification;
 use Carbon\Carbon;
 use DB;
 use Auth;
@@ -569,6 +570,17 @@ class AssessorController extends Controller
 
         DB::commit();
 
+        $data = [
+            'sender_id' => $assessor->id,
+            'sender_type' => 'Registration by Assessor.',
+            'receiver_id' => '1',
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$assessor->name,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'assessor'
+        ];
+
+        Notification::insert($data);
         session()->forget('assessor_id');
         return redirect()->route('assessor.login')->with('success_popup', true);
     }

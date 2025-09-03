@@ -42,6 +42,9 @@ use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 use App\Services\ZoomService;
+
+use App\Models\Notification;
+
 use App\Models\Coupon;
 use App\Models\Taxation;
 
@@ -634,6 +637,23 @@ class AdminController extends Controller
             'time' => now()
         ]);
 
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['jobseeker_id'],
+            'sender_type' => 'Jobseeker '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Jobseeker '.$status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'jobseeker'
+        ];
+
+        Notification::insert($data);
+
         return response()->json([
             'message' => 'Jobseeker status updated successfully.',
             'status' => $user->status
@@ -806,6 +826,23 @@ class AdminController extends Controller
             ],
             'time' => now()
         ]);
+
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['company_id'],
+            'sender_type' => 'Recruiter '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Recruiter '.$status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'recruiter'
+        ];
+
+        Notification::insert($data);
 
         return response()->json([
             'message' => 'Recruiter status updated successfully.',
@@ -1275,7 +1312,7 @@ class AdminController extends Controller
 
 
     public function trainerChangeStatus(Request $request)
-    {
+    { 
         $validated = $request->validate([
             'trainer_id' => 'required|exists:trainers,id',
             'status' => 'required|in:active,inactive',
@@ -1317,6 +1354,23 @@ class AdminController extends Controller
             ],
             'time' => now()
         ]);
+
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['trainer_id'],
+            'sender_type' => 'Trainer '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Trainer '.$status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'trainer'
+        ];
+
+        Notification::insert($data);
 
         return response()->json([
             'message' => 'Trainer status updated successfully.',
@@ -1935,6 +1989,23 @@ class AdminController extends Controller
             'time' => now()
         ]);
 
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['mentor_id'],
+            'sender_type' => 'Mentor '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Mentor '. $status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'mentor'
+        ];
+
+        Notification::insert($data);
+
         return response()->json([
             'message' => 'Mentors status updated successfully.',
             'status' => $user->status
@@ -2123,6 +2194,23 @@ class AdminController extends Controller
             'time' => now()
         ]);
 
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['coach_id'],
+            'sender_type' => 'Coach '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Coach '. $status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'coach'
+        ];
+
+        Notification::insert($data);
+
         return response()->json([
             'message' => 'Coach status updated successfully.',
             'status' => $user->status
@@ -2306,6 +2394,23 @@ class AdminController extends Controller
             ],
             'time' => now()
         ]);
+
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['assessor_id'],
+            'sender_type' => 'Assessor '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Assessor '.$status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'assessor'
+        ];
+
+        Notification::insert($data);
 
         return response()->json([
             'message' => 'Assessor status updated successfully.',
