@@ -44,8 +44,8 @@
                                             <tfoot>
                                                 <tr>
                                                     <th>Sr. No.</th>
-                                                    <th>Full Name</th>
-                                                    <th>Email</th>
+                                                    <th>Notification Type</th>
+                                                    <th>Message</th>
                                                     <th>Created Date</th>
                                                     <th>Status</th>
                                                     <th>Actions</th>
@@ -56,8 +56,8 @@
                                                 @foreach($notifications as $notification)
                                                     <tr>
                                                         <td>{{ $i++ }}</td>
-                                                        <td>{{ $notification->name }}</td>
-                                                        <td>{{ $notification->email }}</td>
+                                                        <td>{{ $notification->sender_type }}</td>
+                                                        <td>{{ $notification->message }}</td>
                                                         
                                                         <td>{{ \Carbon\Carbon::parse($notification->created_at)->format('d M Y, h:i A') }}
                                                         </td>

@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\Notification;
 use Carbon\Carbon;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
@@ -384,6 +384,17 @@ class RecruiterController extends Controller
           }
 
           DB::commit();
+          $data = [
+               'sender_id' => $recruiter->id,
+               'sender_type' => 'Registration by Company and Recruiter.',
+               'receiver_id' => '1',
+               'message' => 'Welcome to Talentrek – Registration Successful by '.$recruiter->name,
+               'is_read' => 0,
+               'is_read_admin' => 0,
+               'user_type' => 'recruiter'
+          ];
+
+          Notification::insert($data);
           return redirect()->route('recruiter.login')->with('success', 'Company and Recruiter information saved successfully.');
 
      } catch (\Exception $e) {

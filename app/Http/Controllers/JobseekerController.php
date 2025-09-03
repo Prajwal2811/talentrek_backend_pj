@@ -519,7 +519,9 @@ class JobseekerController extends Controller
             'sender_type' => 'Registration by Jobseeker.',
             'receiver_id' => '1',
             'message' => 'Welcome to Talentrek – Registration Successful by '.$jobseeker->name,
-            'is_read' => 0
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'jobseeker'
         ];
 
         Notification::insert($data);

@@ -11,20 +11,30 @@ class Notification extends Model
 
     protected $table = 'notifications';
     protected $fillable = [
-        'jobseeker_id',
-        'course_id',
-        'payment_reference',
-        'amount_paid',
-        'payment_status',
-        'payment_method',
-        'paid_at',
-        'transaction_id',
-        'subscription_plan_id',
+        'id',
+        'sender_id',
+        'sender_type',
+        'receiver_id',
+        'receiver_type',
+        'message',
+        'type',
+        'is_read',
+        'is_read_admin',
 
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'paid_at' => 'datetime',
+        'email_verified_at' => 'datetime',
     ];
 
     // Relationships

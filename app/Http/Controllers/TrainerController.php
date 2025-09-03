@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Review;
 use App\Models\Mentors;
 use App\Models\Assessors;
+use App\Models\Notification;
 use Carbon\Carbon;
 use App\Services\ZoomService;
 use App\Models\SubscriptionPlan;
@@ -406,6 +407,17 @@ class TrainerController extends Controller
             }
         });
 
+        $data = [
+            'sender_id' => $trainer->id,
+            'sender_type' => 'Registration by Trainer.',
+            'receiver_id' => '1',
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$trainer->name,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'trainer'
+        ];
+
+        Notification::insert($data);
         session()->forget('trainer_id');
         return redirect()->route('trainer.login')->with('success_popup', true);
 
@@ -690,6 +702,17 @@ class TrainerController extends Controller
             }
         }
 
+        $data = [
+            'sender_id' => $trainer->id,
+            'sender_type' => 'Recorded Traning Material Added',
+            'receiver_id' => '1',
+            'message' => $request->training_title.' Recorded Training course saved successfully.',
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'trainer'
+        ];
+
+        Notification::insert($data);
        return redirect()->route('training.list')->with('success', 'Recorded Training course saved successfully.');
     }
 
@@ -780,7 +803,18 @@ class TrainerController extends Controller
                 ]);
             }
 
-            DB::commit();
+            DB::commit(); 
+            $data = [
+                'sender_id' => $trainer->id,
+                'sender_type' => 'Online Training Material Added',
+                'receiver_id' => '1',
+                'message' => $request->training_title.' Online Training course saved successfully.',
+                'is_read' => 0,
+                'is_read_admin' => 0,
+                'user_type' => 'trainer'
+            ];
+
+            Notification::insert($data);
             return redirect()->route('training.list')->with('success', 'Training and batches saved successfully.');
         } catch (\Exception $e) {
             DB::rollBack();

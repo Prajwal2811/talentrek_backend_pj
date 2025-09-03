@@ -1,3 +1,10 @@
+<style>
+.notification_scroll{
+    overflow-y: scroll !important;
+    height: 578px;
+}
+
+</style>
 <!-- main page header -->
 <nav class="navbar navbar-fixed-top">
     <div class="container-fluid">
@@ -49,15 +56,16 @@
                                 <i class="fa fa-bell text"></i>
                                 <span class="notification-dot info">{{ $notifications->count() }}</span>
                             </a>
-                            <ul class="dropdown-menu feeds_widget mt-0 animation-li-delay">
-                                <li class="header theme-bg mt-0 text-light">You have {{ $notifications->count() }} New Notifications</li>
+                            <ul class="dropdown-menu feeds_widget mt-0 animation-li-delay notification_scroll">
+                                <li class="header theme-bg mt-0 text-light"> <a href="{{ route('admin.notifications.index') }}"><span class="btn btn-info">All</span></a></li>
                                 
                                 @foreach($notifications as $notification)
                                     <li>
                                         <a href="{{ route('admin.notifications.view',['id' => $notification->id]) }}">
                                             <div class="mr-4"><i class="fa fa-check text-red"></i></div>
                                             <div class="feeds-body">
-                                                <h4 class="title text-info">Jobseeker Registration<small class="float-right text-muted font-12">{{ date('H:i A', strtotime($notification->created_at)) }}</small></h4>
+                                                <h4 class="title text-info">{{ $notification->sender_type }}
+                                                    <small class="float-right text-muted font-12">{{ date('H:i A', strtotime($notification->created_at)) }}</small></h4>
                                                 <small>{{ $notification->message }}</small>
                                             </div>
                                         </a>

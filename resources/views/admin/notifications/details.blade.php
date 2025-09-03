@@ -29,8 +29,8 @@
                                     <div class="row">
                                         <!-- Reviewer Name -->
                                         <div class="form-group c_form_group col-md-12">
-                                            <label>From : {{ $notifications->name.' ('.$notifications->email.')' }}</label>
-                                            <input type="text" class="form-control" value="{{ $notifications->message }}" readonly>
+                                            <label>{{ $notifications->sender_type ?? '' }}</label>
+                                            <input type="text" class="form-control" value="{{ $notifications->message ?? '' }}" readonly>
                                         </div>
                                     </div>
 
