@@ -29,7 +29,8 @@ class Coach extends Model
         'state',
         'national_id',
         'about_coach',
-        'is_registered'
+        'is_registered',
+        'per_slot_price'
     ];
 
     /**

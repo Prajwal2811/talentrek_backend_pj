@@ -150,11 +150,11 @@ class SessionsManagementController extends Controller
                 $relationships = [];
                 $type = $request->type;
                 if ($type === 'mentor') {
-                    $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot'];
+                    $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
                 } elseif ($type === 'assessor') {
-                    $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot'];
+                    $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
                 } elseif ($type === 'coach') {
-                    $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot'];
+                    $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
                 }
 
                 $upcomingSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
@@ -181,7 +181,11 @@ class SessionsManagementController extends Controller
 
                     //$profilePicture = 'profile_picture';
                     //print_r($item->$expRelation);exit;
-                    $item->recent_job_role  = collect($item->$expRelation)->reduce(function ($carry, $exp) {
+                     $jobseekerWorkExperience = 'jobseekerWorkExperience';
+                    $jobseekerAdditionalInfo = 'jobseekerAdditionalInfo' ;
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                    $item->recent_job_role  = collect($item->$jobseekerWorkExperience)->reduce(function ($carry, $exp) {
+                        //print_r($exp);exit;
                         $start = Carbon::parse($exp->starts_from);
 
                         $endRaw = strtolower(trim($exp->end_to));
@@ -199,8 +203,8 @@ class SessionsManagementController extends Controller
                     //$item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->userName = $item->$relationName->name ?? null;
                     $image = '' ;
-                    foreach($item->$infoRelation as $jobseekerAdditionalInfos){
-                        if($jobseekerAdditionalInfos->doc_type == $profilePicture){
+                    foreach($item->$jobseekerAdditionalInfo as $jobseekerAdditionalInfos){
+                        if($jobseekerAdditionalInfos->doc_type == 'profile_picture'){
                             $image = $jobseekerAdditionalInfos->document_path ;
                         }                
                     }
@@ -252,11 +256,11 @@ class SessionsManagementController extends Controller
             $relationships = [];
             $type = $request->type;
             if ($type === 'mentor') {
-                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot'];
+                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
             } elseif ($type === 'assessor') {
-                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot'];
+                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
             } elseif ($type === 'coach') {
-                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot'];
+                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
             }
             $cancelledSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'cancelled')
                 ->orderBy('slot_date', 'asc')
@@ -268,7 +272,11 @@ class SessionsManagementController extends Controller
 
 
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $item->recent_job_role  = collect($item->$expRelation)->reduce(function ($carry, $exp) {
+                     $jobseekerWorkExperience = 'jobseekerWorkExperience';
+                    $jobseekerAdditionalInfo = 'jobseekerAdditionalInfo' ;
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                    $item->recent_job_role  = collect($item->$jobseekerWorkExperience)->reduce(function ($carry, $exp) {
+                        //print_r($exp);exit;
                         $start = Carbon::parse($exp->starts_from);
 
                         $endRaw = strtolower(trim($exp->end_to));
@@ -284,8 +292,8 @@ class SessionsManagementController extends Controller
                     // $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->userName = $item->$relationName->name ?? null;
                     $image = '' ;
-                    foreach($item->$infoRelation as $jobseekerAdditionalInfos){
-                        if($jobseekerAdditionalInfos->doc_type == $profilePicture){
+                    foreach($item->$jobseekerAdditionalInfo as $jobseekerAdditionalInfos){
+                        if($jobseekerAdditionalInfos->doc_type == 'profile_picture'){
                             $image = $jobseekerAdditionalInfos->document_path ;
                         }                
                     }
@@ -331,11 +339,11 @@ class SessionsManagementController extends Controller
             $relationships = [];
             $type = $request->type;
             if ($type === 'mentor') {
-                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot','jobseekerWorkExperience'];
+                $relationships = ['mentors', 'WorkExperience', 'mentorAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
             } elseif ($type === 'assessor') {
-                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot','jobseekerWorkExperience'];
+                $relationships = ['assessors', 'AssessorWorkExperience', 'assessorAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
             } elseif ($type === 'coach') {
-                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot','jobseekerWorkExperience'];
+                $relationships = ['coaches', 'coachWorkExperience', 'coachAdditionalInfo','bookingSlot','jobseekerWorkExperience','jobseekerAdditionalInfo'];
             }
             $confirmedSessions = BookingSession::select('id', 	'jobseeker_id', 	'user_type','user_id', 	'booking_slot_id' ,	'slot_mode' ,	'slot_date','zoom_meeting_id', 	'zoom_join_url', 	'zoom_start_url')->with($relationships)->where('user_id', $request->user_id)->where('user_type', $request->type)->where('status', 'pending')
                 ->whereDate('slot_date', '<=', Carbon::today())                
@@ -358,7 +366,10 @@ class SessionsManagementController extends Controller
                     $expRelation = $type === 'mentor' ? 'WorkExperience' : ($type === 'assessor' ? 'AssessorWorkExperience' : 'coachWorkExperience');
                     $infoRelation = $type === 'mentor' ? 'mentorAdditionalInfo' : ($type === 'assessor' ? 'assessorAdditionalInfo' : 'coachAdditionalInfo');
                     $profilePicture = $type === 'mentor' ? 'mentor_profile_picture' : ($type === 'assessor' ? 'assessor_profile_picture' : 'coach_profile_picture');
-                    $jobseekerWorkExperience = 'jobseekerWorkExperience';
+
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                     $jobseekerWorkExperience = 'jobseekerWorkExperience';
+                     $jobseekerAdditionalInfo = 'jobseekerAdditionalInfo' ;
 
                     // Get the most recent job_role based on nearest end_to (null means current)
                     $item->recent_job_role  = collect($item->$jobseekerWorkExperience)->reduce(function ($carry, $exp) {
@@ -378,12 +389,13 @@ class SessionsManagementController extends Controller
                     // $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->userName = $item->$relationName->name ?? null;
                     $image = '' ;
-                    foreach($item->$infoRelation as $jobseekerAdditionalInfos){
-                        if($jobseekerAdditionalInfos->doc_type == $profilePicture){
+                                       
+                    foreach($item->$jobseekerAdditionalInfo as $jobseekerAdditionalInfos){
+                        if($jobseekerAdditionalInfos->doc_type == 'profile_picture'){ 
+                            //$profilePicture){
                             $image = $jobseekerAdditionalInfos->document_path ;
                         }                
                     }
-                    //print_r($item->bookingSlot) ;exit;
                     $item->image = $image ?? null;
                     $startTime = optional($item->bookingSlot)->start_time 
                         ? Carbon::parse($item->bookingSlot->start_time)->format('h:i A') 
@@ -393,7 +405,6 @@ class SessionsManagementController extends Controller
                         ? Carbon::parse($item->bookingSlot->end_time)->format('h:i A') 
                         : '00:00:00';
                     $item->slotStartEndTime =  $startTime.' - '.$endTime ?? null;
-
                     unset($item->$infoRelation);
                     unset($item->$relationName, $item->$expRelation,$item->bookingSlot);
                     return $item;

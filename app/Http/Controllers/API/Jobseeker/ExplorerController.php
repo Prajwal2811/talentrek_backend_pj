@@ -8,6 +8,7 @@ use App\Models\Api\TrainingMaterial;
 use App\Models\Api\Trainers;
 use App\Models\Api\Review;
 use App\Models\Api\JobseekerTrainingMaterialPurchase;
+use App\Models\Api\AssessmentJobseekerDataStatus;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -277,26 +278,26 @@ class ExplorerController extends Controller
     public function trainingMaterialDetailById($trainingId,$jobSeekerId)
     {
         try {
-            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
-                ->withCount('trainingMaterialDocuments')
-                ->with('trainingMaterialDocuments')
-                ->with(['trainer:id,name', 'latestWorkExperience','additionalInfo'])
-                ->with('trainerReviews')
-                ->withAvg('trainerReviews', 'ratings')
-                ->where('id', $trainingId)
-                ->first();
-            if ($TrainingMaterial) {
-                $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
-                $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+                $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
+                    ->withCount('trainingMaterialDocuments')
+                    ->with('trainingMaterialDocuments')
+                    ->with(['trainer:id,name,address', 'latestWorkExperience','additionalInfo'])
+                    ->with('trainerReviews')
+                    ->withAvg('trainerReviews', 'ratings')
+                    ->where('id', $trainingId)
+                    ->first();
+                if ($TrainingMaterial) {
+                    $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
+                    $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
 
-                $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
-                    $parts = explode(':', $doc->file_duration); // HH:MM:SS
-                    if (count($parts) === 3) {
-                        $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
-                        return $carry + $seconds;
-                    }
-                    return $carry;
-                }, 0);
+                    $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
+                        $parts = explode(':', $doc->file_duration); // HH:MM:SS
+                        if (count($parts) === 3) {
+                            $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+                            return $carry + $seconds;
+                        }
+                        return $carry;
+                    }, 0);
 
                 // Convert total seconds back to HH:MM:SS
                 $TrainingMaterial->total_duration = gmdate('H:i:s', $totalSeconds);
@@ -307,24 +308,77 @@ class ExplorerController extends Controller
                 $TrainingMaterial->durationInMinutes = $minutes. ' Min' . ($minutes !== 1 ? 's' : '');
                 $TrainingMaterial->durationInSeconds = $seconds. ' Second' . ($seconds !== 1 ? 's' : '');
                 
-                // Optional: remove the raw field if not needed in response
-                unset($TrainingMaterial->trainer_reviews_avg_ratings);
-                unset($TrainingMaterial->trainerReviews);
-
-                // Check if jobseeker purchased the training from this trainer
-                $isPurchased = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobSeekerId)
+                $purchase = JobseekerTrainingMaterialPurchase::with('batch')->where('jobseeker_id', $jobSeekerId)
                 ->where('trainer_id', $TrainingMaterial->trainer_id)
                 ->where('material_id', $trainingId)
-                ->exists();
+                ->first();
+                $isPurchased = !empty($purchase);
                 $TrainingMaterial->isPurchased = $isPurchased; // true/false
+                $TrainingMaterial->assessmentStartButton = false ;
+                
+                if($isPurchased){
+                    $TrainingMaterial->batch = $purchase->batch;
+                    $hasSubmitted = AssessmentJobseekerDataStatus::where('material_id', $trainingId)
+                        ->where('jobseeker_id', $jobSeekerId)
+                        ->where('submitted', 1)
+                        ->exists();
+
+                        // 🔹 Check for re-assessment
+                        $needsReAssessment = AssessmentJobseekerDataStatus::where('material_id', $trainingId)
+                        ->where('jobseeker_id', $jobSeekerId)
+                        ->where('submitted', 0)
+                        ->exists();
+                        
+                        $TrainingMaterial->reAssessmentButton = $needsReAssessment ? true : false;
+                        $TrainingMaterial->viewCertificatePdf = $hasSubmitted ? true : false;
+
+                    if(!$TrainingMaterial->viewCertificatePdf){
+                        if($TrainingMaterial->training_type == 'recorded'){
+                            // TODO: Add your video % logic here
+                            $TrainingMaterial->assessmentStartButton = false ; 
+                        } elseif (in_array($TrainingMaterial->training_type, ['online', 'classroom'])){
+                            if ($purchase->batch) {
+                                // Combine date + time
+                                $batchEnd = Carbon::parse(
+                                    $purchase->batch->end_date . ' ' . $purchase->batch->end_time
+                                );
+
+                                // Check if current time is greater than batch end datetime
+                                if (Carbon::now()->greaterThanOrEqualTo($batchEnd)) {
+                                    $TrainingMaterial->assessmentStartButton = true;
+                                } else {
+                                    $TrainingMaterial->assessmentStartButton = false;
+                                }
+                            }                        
+                        }
+                    }
+                    else{
+                        $TrainingMaterial->assessmentStartButton = false ;
+                    }
+                    $TrainingMaterial->sessionJoinLink = false ; 
+                    if ($purchase->batch) {
+                        $today = Carbon::now()->format('Y-m-d');
+                        $currentTime = Carbon::now()->format('H:i:s');
+                        $currentDayName = Carbon::now()->format('l');
+                        // Calculate the join link start time (10 minutes before batch start)
+                        $joinLinkStartTime = Carbon::parse($purchase->batch->start_timing)->subMinutes(10)->format('H:i:s');
+
+                        if (
+                                $today >= $purchase->batch->start_date &&
+                                $today <= $purchase->batch->end_date &&
+                                $currentTime >= $joinLinkStartTime  &&
+                                $currentTime <= $purchase->batch->end_timing &&
+                                in_array($currentDayName, $purchase->batch->days)
+                        ) {
+                            $TrainingMaterial->sessionJoinLink = true;
+                        }
+                    }
+                }
                 $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
-                // if(!$isPurchased){
-                //     unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
-                // }
+                unset($TrainingMaterial->trainer_reviews_avg_ratings,$TrainingMaterial->trainerReviews,$TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->batch);
                 unset($TrainingMaterial->trainingMaterialDocuments);
 
-            }
-            
+            }            
             return $this->successResponse($TrainingMaterial, 'Training course details with review  percentage fetched successfully.');
         } catch (\Exception $e) {
             return response()->json([

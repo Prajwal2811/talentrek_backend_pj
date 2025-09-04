@@ -27,7 +27,8 @@ class Mentors extends Model
         'national_id',
         'pin_code',
         'about_mentor',
-        'is_registered'
+        'is_registered',
+        'per_slot_price'
     ];
 
     /**

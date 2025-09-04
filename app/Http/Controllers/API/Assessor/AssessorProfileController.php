@@ -25,7 +25,7 @@ class AssessorProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','shortlist','avatar','about_assessor as description' ,'state', 'address','pin_code','country','about_assessor')->where('id', $id)->first();
+            $TrainersPersonal = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','shortlist','avatar','about_assessor as description' ,'state', 'address','pin_code','country','about_assessor as about','per_slot_price')->where('id', $id)->first();
            if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
                 $TrainersPersonal->date_of_birth = Carbon::parse($TrainersPersonal->date_of_birth)->format('d/m/Y');
             }
@@ -114,6 +114,7 @@ class AssessorProfileController extends Controller
             'address' => 'required|string',
             //'about_assessor' => 'required',                
             'pincode' => 'required',                
+            'per_slot_price' => 'required',                
             'phone_number' => 'required',
             'city' => 'required|string',                
             'state' => 'required|string',                
@@ -181,8 +182,9 @@ class AssessorProfileController extends Controller
                 'country'      => $request->country,
                 'phone_number'      => $request->phone_number,
                 'pin_code'      => $request->pincode,
-                'about_assessor' => $request->about_assessor,
+                'about_assessor' => $request->about,
                 'national_id'      => $request->national_id,
+                'per_slot_price'      => $request->per_slot_price,
             ]);
 
             // Upload Profile Picture

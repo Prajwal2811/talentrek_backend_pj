@@ -206,6 +206,7 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
 
     Route::post('/submitQuiz', [AssesssorController::class, 'submitQuizAnswer']);
 
+    Route::post('/finalSubmitQuizAnswer', [AssesssorController::class, 'finalSubmitQuizAnswer']);
 
 
     Route::get('/jobSeekerProfile/{jobSeekerId}', [SeekerProfileController::class, 'jobSeekerProfileById']);

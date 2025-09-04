@@ -6,6 +6,7 @@ use App\Models\Api\AssessmentQuestion;
 use App\Models\Api\Assessors;
 use App\Models\Api\AssessmentOption;
 use App\Models\Api\AssessmentJobseekerData;
+use App\Models\Api\AssessmentJobseekerDataStatus;
 use App\Models\Api\TrainerAssessment;
 use Illuminate\Support\Facades\Validator;
 use App\Traits\ApiResponse;
@@ -288,4 +289,51 @@ class AssesssorController extends Controller
         }
     }
 
+    public function finalSubmitQuizAnswer(Request $request)
+    {
+        
+        $validator = Validator::make($request->all(), [
+            'jobseeker_id'    => 'required|integer',
+            'assessment_id'   => 'required|integer',            
+            'material_id'   => 'required|integer',            
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(), // ✅ return only one error message
+            ], 422);
+        }
+
+        // Optional: You may fetch correct_answer from the options table
+        // $correctAnswerId = AssessmentJobseekerDataStatus::where('question_id', $request->question_id)
+        //     ->where('correct_option', 1) // Assuming a boolean column
+        //     ->value('id');
+       
+        $data = [
+            'jobseeker_id'     => $request->jobseeker_id,
+            'assessment_id'    => $request->assessment_id,
+            'material_id'    => $request->material_id,
+            'submitted'      => 0
+        ];
+
+        // Update or create based on composite keys
+        AssessmentJobseekerDataStatus::create($data);
+
+        $dataAssessment = [
+            'faqStatus'      => 'completed',
+        ];
+
+        // Update or create based on composite keys
+        AssessmentJobseekerData::updateOrCreate(
+            [
+                'assessment_id' => $request->assessment_id,
+                'jobseeker_id'  => $request->jobseeker_id,
+                'training_id'   => $request->material_id,
+            ],
+            $dataAssessment
+        );
+
+        return $this->successResponse(null, 'Question answer final submition done successfully.');
+    }
 }
