@@ -593,71 +593,104 @@
                 </div>
 
                 @php
+                    use Carbon\Carbon;
+
                     $existOrNot = false;
+                    $enableJoin = false;
+                    $today = Carbon::now();
+
                     if (auth('jobseeker')->check()) {
                         $existOrNot = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', auth('jobseeker')->id())
                             ->where('material_id', $material->id)
                             ->exists();
                     }
+
+                    $batch = null;
+                    if ($existOrNot) {
+                        $batch = App\Models\TrainingBatch::where('training_material_id', $material->id)->first();
+
+                        if ($batch) {
+                            $batchDays = json_decode($batch->days, true);
+                            $dayName = $today->format('l');
+                            $startDate = Carbon::parse($batch->start_date);
+                            $endDate   = $batch->end_date ? Carbon::parse($batch->end_date) : $startDate;
+                            $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
+                            $endTime   = Carbon::parse($batch->end_timing);
+
+                            if ($today->between($startDate, $endDate) && in_array($dayName, $batchDays)) {
+                                if ($today->between($startTime, $endTime)) {
+                                    $enableJoin = true;
+                                }
+                            }
+                        }
+                    }
                 @endphp
 
-                @if (auth('jobseeker')->check())
-                    @if (!$existOrNot)
+                @if(auth('jobseeker')->check())
+                    
+                    @if(!$existOrNot)
                         <!-- Not purchased yet -->
                         <a href="{{ route('buy-course', ['id' => $material->id]) }}">
                             <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
                                 Buy course
                             </button>
                         </a>
-                        <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                                Buy for team
-                            </button>
-                        </a>
-                        
-                        @if(in_array($material->id, $cartItems))
-                            <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium">
-                                Go to Cart
-                            </a>
-                        @else
-                            <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium"
-                                data-id="{{ $material->id }}">
-                            Add to cart
-                        </button>
-                        @endif
-
-                    @else
-                        <!-- Already purchased -->
-                        <a href="{{ route('jobseeker.profile') }}">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                Go to course
-                            </button>
-                        </a>
                     @endif
-                @else
-                    <!-- Not purchased yet -->
-                    <a href="{{ route('buy-course', ['id' => $material->id]) }}">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                            Buy course
-                        </button>
-                    </a>
+
+                    @if($existOrNot)
+                        <!-- Already purchased -->
+                        @if($material->training_type == 'online')
+                            @if($enableJoin)
+                                <a href="{{ $batch->zoom_join_url }}">
+                                    <button class="bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Join
+                                    </button>
+                                </a>
+                            @else
+                                <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+                                    Join (Not Available Yet)
+                                </button>
+                            @endif
+                        @elseif($material->training_type == 'classroom')
+                            @if($enableJoin)
+                                <a href="{{ $batch->location ? $batch->location : '#' }}">
+                                    <button class="bg-purple-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Visit
+                                    </button>
+                                </a>
+                            @else
+                                <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+                                    Visit (Not Available Yet)
+                                </button>
+                            @endif
+                        @endif
+                    @endif
+
+                    <!-- Buy for Team button -->
                     <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
                         <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                            Buy for team
+                            Buy for Team
                         </button>
                     </a>
-                    @if(in_array($material->id, $cartItems))
-                        <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium">
-                            Go to Cart
-                        </a>
-                    @else
-                        <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium"
-                            data-id="{{ $material->id }}">
-                        Add to cart
-                    </button>
+
+                    <!-- Add to Cart / Go to Cart (Moved below) -->
+                    @if(!$existOrNot)
+                        @if(!in_array($material->id, $cartItems))
+                            <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
+                                data-id="{{ $material->id }}">
+                                Add to Cart
+                            </button>
+                        @else
+                            <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
+                                Go to Cart
+                            </a>
+                        @endif
                     @endif
 
                 @endif
+
+
+
 
               </aside>
 
