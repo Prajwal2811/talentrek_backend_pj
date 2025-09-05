@@ -67,7 +67,9 @@ class Coach extends Authenticatable
 
     public function trainingexperience()
     {
-        return $this->hasMany(TrainingExperience::class, 'user_id');
+        // return $this->hasMany(TrainingExperience::class, 'user_id');
+        return $this->hasOne(\App\Models\TrainingExperience::class, 'user_id', 'id')
+                ->where('user_type', 'coach');
        
     }
 

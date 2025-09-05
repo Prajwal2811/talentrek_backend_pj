@@ -719,6 +719,7 @@ class TrainerController extends Controller
 
     public function saveTrainingOnlineData(Request $request)
     {
+        // print_r($_POST);exit;
         $trainer = auth()->user();
 
         // Validate input
@@ -741,6 +742,7 @@ class TrainerController extends Controller
             'content_sections.*.strength'   => 'required|integer|min:1',
             'content_sections.*.days'       => 'required',
         ]);
+        
         
         DB::beginTransaction();
 
@@ -772,7 +774,7 @@ class TrainerController extends Controller
                 'created_at'             => now(),
                 'updated_at'             => now(),
             ]);
-        
+            
             // Insert batches
             foreach ($request->input('content_sections', []) as $section) {
                 // $zoom = new ZoomService();

@@ -90,6 +90,11 @@ class Mentors extends Authenticatable
         return $this->hasMany(BookingSlot::class, 'user_id')->where('user_type', 'mentor');
     }
 
+    // App\Models\Mentors.php
+    public function categories()
+    {
+        return $this->belongsToMany(TrainingCategory::class, 'mentor_categories', 'mentor_id', 'category_id');
+    }
 
     
 
