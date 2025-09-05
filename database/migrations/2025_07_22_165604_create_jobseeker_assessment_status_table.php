@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('percentage')->nullable();
             $table->string('result_status')->nullable();
             $table->timestamps();
-            $table->unique(['jobseeker_id', 'assessment_id'], 'js_assess_status_unique');
+            // $table->unique(['jobseeker_id', 'assessment_id'], 'js_assess_status_unique');
         });
 
     }

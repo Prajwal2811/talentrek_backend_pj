@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\API\Jobseeker;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Validator;
 use App\Models\Api\Jobseekers;
 use App\Models\Api\EducationDetails;
 use App\Models\Api\WorkExperience;
 use App\Models\Api\Skills;
 use App\Models\Api\AdditionalInfo;
+use Carbon\Carbon;
 
 class SeekerProfileController extends Controller
 {
@@ -25,12 +26,12 @@ class SeekerProfileController extends Controller
             // Fetch jobseeker personal information
             $jobseekerPersonal = Jobseekers::select(
                 'id', 'name', 'email', 'gender', 'phone_code', 'phone_number',
-                'date_of_birth', 'city', 'address'
-            )->where('id', $id)->first();
-
-            // if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {
-            //     $jobseekerPersonal->date_of_birth = \Carbon\Carbon::parse($jobseekerPersonal->date_of_birth)->format('d-m-Y');
-            // }
+                'date_of_birth', 'city', 'address','state', 'address','pin_code','country','national_id' )->where('id', $id)->first();
+            
+            $JobSeekPersonal = $jobseekerPersonal->toArray();
+            if ($jobseekerPersonal && $jobseekerPersonal->date_of_birth) {
+                $JobSeekPersonal['date_of_birth'] = date('d/m/Y', strtotime($jobseekerPersonal->date_of_birth));
+            }
 
 
             if (!$jobseekerPersonal) {
@@ -52,7 +53,17 @@ class SeekerProfileController extends Controller
             )
             ->where('user_id', $id)
             ->where('user_type', 'jobseeker')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->starts_from = Carbon::parse($item->starts_from)->format('d/m/Y');
+                
+                if (strtolower($item->end_to) !== 'work here') {
+                    $item->end_to = Carbon::parse($item->end_to)->format('d/m/Y');
+                }
+                // else keep 'work here' as it is
+
+                return $item;
+            });
 
             $jobseekerSkill = Skills::select(
                 'id', 'jobseeker_id', 'skills', 'interest', 'job_category',
@@ -77,7 +88,7 @@ class SeekerProfileController extends Controller
             }
             // Return combined response
             return $this->successWithCmsResponse([
-               'jobseekerPersonal'       => $jobseekerPersonal,
+               'jobseekerPersonal'       => $JobSeekPersonal,
                 'jobseekerEducation'      => $jobseekerEducation,
                 'jobseekerWorkExp'        => $jobseekerWorkExp,
                 'jobseekerSkill'          => $jobseekerSkill,
@@ -93,18 +104,70 @@ class SeekerProfileController extends Controller
 
     public function updatePersonalInfoDetails(Request $request)
     {
-        $request->validate([
-            'name'         => 'required|string|max:255',
-            'gender'       => 'required|in:Male,Female,Other',
-            'date_of_birth'=> 'required|date|before:today',
-            'location'     => 'required|string|max:255',
-            'address'      => 'required|string|max:500',
-            'jobseeker_id' => 'required'            
-        ]);
+        $jobseekerId = $request->jobseeker_id;
+        $jobseeker = Jobseekers::where('id', $jobseekerId)->first();
+        // $request->validate([
+        //     'name'         => 'required|string|max:255',
+        //     'gender'       => 'required|in:Male,Female,Other',
+        //     'date_of_birth'=> 'required|date|before:today',
+        //     'location'     => 'required|string|max:255',
+        //     'address'      => 'required|string|max:500',
+        //     'jobseeker_id' => 'required'            
+        // ]);
+        $data = $request->all();
+        $rules = [
+            'name' => 'required|string',
+            'gender' => 'required|in:Male,Female,Other',
+            'location' => 'required|string',
+            'address' => 'required|string',
+            'pincode' => 'required',                
+            'city' => 'required|string',                
+            'phone_number' => 'required',
+            'state' => 'required|string',                
+            'country' => 'required|string',
+            'national_id' => [
+                'required',
+                'min:10',
+                function ($attribute, $value, $fail) use ($jobseeker) {
+                    $existsInJobseekers = Jobseekers::where('national_id', $value)
+                        ->where('id', '!=', $jobseeker->id)
+                        ->exists();
 
+                    if ($existsInJobseekers) {
+                        $fail('The national ID has already been taken.');
+                    }
+                },
+            ],
+            'jobseeker_id' => 'required',
+        ];        
+        $rules["date_of_birth"] = [
+            'required',
+            'date_format:d/m/Y',
+            function ($attribute, $value, $fail) {
+                try {
+                    $date = Carbon::createFromFormat('d/m/Y', $value);
+                    
+                    if ($date->isToday() || $date->isFuture()) {
+                        $fail("The date of birth must be a date before today.");
+                    }
+                } catch (\Exception $e) {
+                    $fail("The date of birth must be a valid date in d/m/Y format.");
+                }
+            },
+        ]; 
+
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
+        
         try {
-            $jobseekerId = $request->jobseeker_id;
-            $jobseeker = Jobseekers::where('id', $jobseekerId)->first();
+            
 
             if (!$jobseeker) {
                 return response()->json([
@@ -112,16 +175,19 @@ class SeekerProfileController extends Controller
                     'message' => 'Data not found.'
                 ], 400);
             }
-
             // Update the jobseeker basic info
             $jobseeker->update([
                 'name'         => $request->name,
                 'gender'       => $request->gender,
-                'date_of_birth'=> $request->date_of_birth,
-                'city'         => $request->location,
-                'address'      => $request->address,
+                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
+                'address'      => $request->location,
+                'city'         => $request->city,
+                'phone_number'      => $request->phone_number,
+                'state'      => $request->state,
+                'country'      => $request->country,
+                'pin_code'      => $request->pincode,
+                'national_id'      => $request->national_id,
             ]);
-
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
                 $existingProfile = AdditionalInfo::where('user_id', $jobseekerId)
@@ -162,19 +228,37 @@ class SeekerProfileController extends Controller
         }
     }
 
-
     public function updateEducationInfoDetails(Request $request)
     {
-        // Validate registration fields
-        $request->validate([
-            // Education
+        $data = $request->all();
+        $rules = [
             'education' => 'required|array|min:1',
             'education.*.high_education' => 'required|string|max:255',
             'education.*.field_of_study' => 'required|string|max:255',
             'education.*.institution' => 'required|string|max:255',
             'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
             'jobseeker_id' => 'required'
-        ]);
+        ];   // Validate registration fields
+
+        // $request->validate([
+        //     // Education
+        //     'education' => 'required|array|min:1',
+        //     'education.*.high_education' => 'required|string|max:255',
+        //     'education.*.field_of_study' => 'required|string|max:255',
+        //     'education.*.institution' => 'required|string|max:255',
+        //     'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
+        //     'jobseeker_id' => 'required'
+        // ]);
+
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
 
         try {
             $jobseekerId = $request->jobseeker_id;
@@ -241,15 +325,69 @@ class SeekerProfileController extends Controller
     {
         try {
             // Validate registration fields
-            $request->validate([
-                // Experience
-                'experience' => 'nullable|array',
-                'experience.*.job_role' => 'required|string|max:255',
-                'experience.*.organization' => 'required|string|max:255',
-                'experience.*.start_date' => 'required|date|before_or_equal:today',
-                'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
+            // $request->validate([
+            //     // Experience
+            //     'experience' => 'nullable|array',
+            //     'experience.*.job_role' => 'required|string|max:255',
+            //     'experience.*.organization' => 'required|string|max:255',
+            //     'experience.*.start_date' => 'required|date|before_or_equal:today',
+            //     'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
+            //     'jobseeker_id' => 'required'
+            // ]);
+            $data = $request->all();
+            $rules = [
                 'jobseeker_id' => 'required'
-            ]);
+            ]; 
+           
+            if (!empty($data['experience'])) {
+                foreach ($data['experience'] as $index => $exp) {
+                    $rules["experience.$index.job_role"] = 'required|string';
+                    $rules["experience.$index.organization"] = 'required|string';
+                    $rules["experience.$index.start_date"] = [
+                        'required',
+                        'date_format:d/m/Y',
+                        function ($attribute, $value, $fail) {
+                            $date = Carbon::createFromFormat('d/m/Y', $value);
+                            if ($date->isFuture()) {
+                                $fail("$attribute should not be a future date.");
+                            }
+                        },
+                    ];
+                    if($data['experience'][$index]['end_date'] != 'work here'){
+                        $rules["experience.$index.end_date"] = [
+                            'required',
+                            'date_format:d/m/Y',
+                            function ($attribute, $value, $fail) use ($exp,$index) {
+                                $end = Carbon::createFromFormat('d/m/Y', $value);
+                                $start = isset($exp['start_date']) ? Carbon::createFromFormat('d/m/Y', $exp['start_date']) : null;
+
+                                if ($end->isFuture()) {
+                                    $fail("Experience " . ($index + 1) . " end date should not be a future date.");
+                                }
+
+                                if ($start && $end->lessThan($start)) {
+                                    $fail("Experience " . ($index + 1) . " end date should not be earlier than start date.");
+                                }
+                            },
+                        ];
+                    }
+                }
+            }else{
+                return response()->json([
+                    'status' => false,
+                    'message' => 'The experience details must be required.'
+                ], 200);
+            }
+
+            $validator = Validator::make($data, $rules);
+
+            // Return only the first error
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first()
+                ], 200);
+            }
 
             $jobseekerId = $request->jobseeker_id;
             $WorkExperience = WorkExperience::where('user_id', $jobseekerId)->get();
@@ -265,8 +403,8 @@ class SeekerProfileController extends Controller
                     'user_type'    => 'jobseeker',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => $exp['start_date'],
-                    'end_to'       => $exp['end_date']
+                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
+                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
                 ]);
             }
 
@@ -313,15 +451,34 @@ class SeekerProfileController extends Controller
     {
         try {
             // Validate registration fields
-            $request->validate([
-                // Skills and links
-                'skills' => 'nullable|string',
-                'interest' => 'nullable|string',
-                'job_category' => 'nullable|string',
+            $data = $request->all();
+            $rules = [
+                'skills' => 'required|string',
+                'interest' => 'required|string',
+                'job_category' => 'required|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
                 'jobseeker_id' => 'required'
-            ]);
+            ];  
+            $validator = Validator::make($data, $rules);
+
+            // Return only the first error
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first()
+                ], 200);
+            }
+            
+            // $request->validate([
+            //     // Skills and links
+            //     'skills' => 'required|string',
+            //     'interest' => 'required|string',
+            //     'job_category' => 'required|string',
+            //     'website_link' => 'required|url',
+            //     'portfolio_link' => 'required|url',
+            //     'jobseeker_id' => 'required'
+            // ]);
 
             $jobseekerId = $request->jobseeker_id;
             $skills = Skills::where('jobseeker_id', $jobseekerId)->first();
@@ -391,12 +548,28 @@ class SeekerProfileController extends Controller
     {
         try {
             // Validate registration fields
-            $request->validate([
-                // Files
+            // $request->validate([
+            //     // Files
+            //     'resume'          => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            //     'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            //     'jobseeker_id'    => 'required'
+            // ]);
+
+            $data = $request->all();
+            $rules = [
                 'resume'          => 'nullable|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'jobseeker_id'    => 'required'
-            ]);
+            ];  
+            $validator = Validator::make($data, $rules);
+
+            // Return only the first error
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first()
+                ], 200);
+            }
 
             $jobseekerId = $request->jobseeker_id;
 

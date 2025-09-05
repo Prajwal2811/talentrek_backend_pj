@@ -10,7 +10,7 @@ use App\Models\Api\Trainers;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
-
+use Carbon\Carbon;
 class AppHomeController extends Controller
 {
     use ApiResponse;
@@ -60,11 +60,13 @@ class AppHomeController extends Controller
                 'training_title',
                 'training_price',
                 'training_offer_price',
-                'thumbnail_file_path as image'
+                'thumbnail_file_path as image',
+                'training_category'
             )
+            ->where('admin_status', 'superadmin_approved')
             ->with(['trainer:id,name','latestWorkExperience']) // only fetch trainer id & name
             //->with('') // only fetch trainer id & name
-            ->withAvg('trainerReviews', 'ratings')->limit(4)->get()->map(function ($item) {
+            ->withAvg('trainerReviews', 'ratings')->orderBy('trainer_reviews_avg_ratings', 'desc')->get()->map(function ($item) {
                 $avg = $item->trainer_reviews_avg_ratings;
                 $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                 unset($item->trainer_reviews_avg_ratings);
@@ -85,7 +87,7 @@ class AppHomeController extends Controller
 
     public function mentorsList()
     {
-        try {
+        // try {
             $mentorsList = Mentors::select(
                 'id',
                 'name',
@@ -102,18 +104,30 @@ class AppHomeController extends Controller
             ->map(function ($item) {
                 //print_r($item->WorkExperience);
                 $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
-                    $start = \Carbon\Carbon::parse($exp->start_from);
-                    $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                    $start = Carbon::parse($exp->starts_from);
+
+                    $endRaw = strtolower(trim($exp->end_to));
+                    $end = ($endRaw === 'work here' || empty($endRaw)) 
+                        ? now() 
+                        : Carbon::parse($endRaw);
+
                     return $carry + $start->diffInDays($end);
                 }, 0);
 
                 $item->total_experience_days = $totalDays;
-                $item->total_experience_years = round($totalDays / 365, 1);
+                $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                 
                 // Get the most recent job_role based on nearest end_to (null means current)
-                $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                    return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-                })->first();
+                $mostRecentExp = $item->WorkExperience
+                ->sortByDesc(function ($exp) {
+                    $endTo = strtolower(trim($exp->end_to));
+                    return $endTo === 'work here'
+                        ? Carbon::now()->timestamp
+                        : Carbon::parse($exp->end_to)->timestamp;
+                })
+                ->first();  
 
                 $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
 
@@ -130,9 +144,9 @@ class AppHomeController extends Controller
             }
         
             return $this->successResponse($mentorsList, 'Mentor list fetched successfully.');
-        } catch (\Exception $e) {
-            return $this->errorResponse('An error occurred while fetching Mentor list.', 500,[]);
-        }
+        // } catch (\Exception $e) {
+        //     return $this->errorResponse('An error occurred while fetching Mentor list.', 500,[]);
+        // }
     }
 
     public function testimonialsList()
@@ -148,4 +162,16 @@ class AppHomeController extends Controller
         }
     }
 
+    public function skillsAreaOfInterestListing()
+    {
+       try {
+            $skillsAreaOfInterestListing = TrainingPrograms::select('*')->get();
+            if ($skillsAreaOfInterestListing->isEmpty()) {
+                return $this->errorResponse('No skills area of interest list found.', 200,[]);
+            }
+            return $this->successResponse($skillsAreaOfInterestListing, 'Skills area of interest list fetched successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse('An error occurred while fetching skills area of interest list.', 500,[]);
+        }
+    }
 }

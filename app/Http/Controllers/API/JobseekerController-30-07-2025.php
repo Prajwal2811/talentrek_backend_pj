@@ -6,91 +6,65 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Assessors;
+use App\Models\Jobseekers;
 use App\Models\EducationDetail;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
-use App\Models\TrainingExperience;
+use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Carbon\Carbon;
-
+use DateTime;
 use Illuminate\Support\Facades\Mail;
-class AssessorController extends Controller
+class JobseekerController extends Controller
 {
     public function signIn(Request $request)
     {
         // Validate input
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
-        if ($validator->fails()) {
-            // Get the first error message
-            $firstError = $validator->errors()->first();
-
-            return response()->json([
-                'status' => false,
-                'message' => $firstError,
-            ], 422);
-        }
         // Find the jobseeker by email
-        $trainer = Assessors::where('email', $request->email)->first();
-        $hashedPassword = Hash::make('password123');
-
+        $jobseeker = Jobseekers::where('email', $request->email)->first();
 
         // Check if user exists and password matches
-        if (!$trainer || !Hash::check($request->password, $trainer->password)) {
+        if (!$jobseeker || !Hash::check($request->password, $jobseeker->password)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid credentials.'
             ], 401);
         }
 
-        if ($trainer->status != 'active') {
-            return response()->json([
-                'status' => false,
-                'message' => 'User is inactive or pending approval. Please contact the administrator'
-            ], 401);
-        }
-
-        $iSRegistered = $trainer->status !== null;
+        $iSRegistered = $jobseeker->status !== null;
 
         return response()->json([
             'status' => true,
             'iSRegistered' => $iSRegistered,
-            'message' => 'Assessors login successful',
+            'message' => 'Login successful',
             'data' => [
-                'id' => $trainer->id,
-                'name' => $trainer->name,
-                'email' => $trainer->email,
-                'is_registered' => $trainer->is_registered,
-                'userType' => 'Assessor'
+                'id' => $jobseeker->id,
+                'name' => $jobseeker->name,
+                'email' => $jobseeker->email
             ]
         ]);
 
 
     }
 
+
     public function signUp(Request $request)
     {
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:assessors,email',
-            'mobile' => 'required|string|unique:assessors,phone_number|regex:/^[0-9]{9}$/',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first(), // First error only
-            ], 422);
-        }
         try {
+            // Validation
+            $request->validate([
+                'email' => 'required|email|unique:jobseekers,email',
+                'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{10}$/',
+                'password' => 'required|string|min:6|confirmed',
+            ]);
 
             // Create jobseeker
-            $jobseeker = Assessors::create([
+            $jobseeker = Jobseekers::create([
                 'email' => $request->email,
                 'phone_number' => $request->mobile,
                 'password' => Hash::make($request->password),
@@ -200,11 +174,11 @@ class AssessorController extends Controller
         DB::beginTransaction();
         try {
             // Check if jobseeker exists (based on email and mobile)
-            $trainer = Assessors::where('email', $request->email)
+            $jobseeker = Jobseekers::where('email', $request->email)
                 ->where('phone_number', $request->mobile)
                 ->first();
 
-            if (!$trainer) {
+            if (!$jobseeker) {
                 return response()->json([
                     'status'  => false,
                     'message' => 'Please complete signup before registration.'
@@ -212,179 +186,208 @@ class AssessorController extends Controller
             }
 
             // Validate registration fields
-            // $request->validate([
-            //     'name'         => 'required|string|max:255',
-            //     'country_code' => 'required|string|max:5',
-            //     'gender'       => 'required|in:Male,Female,Other',
-            //     'date_of_birth'=> 'required|date|before:today',
-            //     'location'     => 'required|string|max:255',
-            //     'address'      => 'required|string|max:500',
-            //     //'password'     => 'required|string|min:6|confirmed',
+            $validator = Validator::make($request->all(),[
+                'name'         => 'required|string|max:255',
+                'country_code' => 'required|string|max:5',
+                'gender'       => 'required|in:Male,Female,Other',
+                //'date_of_birth'=> 'required|date|before:today',
+                'location'     => 'required|string|max:255',
+                'address'      => 'required|string|max:500',
+                //'password'     => 'required|string|min:6|confirmed',
 
-            //     // Education
-            //     'education' => 'required|array|min:1',
-            //     'education.*.high_education' => 'required|string|max:255',
-            //     'education.*.field_of_study' => 'required|string|max:255',
-            //     'education.*.institution' => 'required|string|max:255',
-            //     'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
+                // Education
+                'education' => 'required|array|min:1',
+                'education.*.high_education' => 'required|string|max:255',
+                'education.*.field_of_study' => 'required|string|max:255',
+                'education.*.institution' => 'required|string|max:255',
+                //'education.*.graduate_year' => 'required|digits:4|integer|min:1900|max:' . now()->year,
 
-            //     // Experience
-            //     'experience' => 'nullable|array',
-            //     'experience.*.job_role' => 'required|string|max:255',
-            //     'experience.*.organization' => 'required|string|max:255',
-            //     'experience.*.start_date' => 'required|date|before_or_equal:today',
-            //     'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
+                // Experience
+                'experience' => 'nullable|array',
+                'experience.*.job_role' => 'required|string|max:255',
+                'experience.*.organization' => 'required|string|max:255',
+                //'experience.*.start_date' => 'required|date|before_or_equal:today',
+                'experience.*.end_date' => 'nullable|date|after_or_equal:experience.*.start_date',
 
-            //     // Skills and links
-            //     'skills' => 'nullable|string',
-            //     'interest' => 'nullable|string',
-            //     'job_category' => 'nullable|string',
-            //     'website_link' => 'nullable|url',
-            //     'portfolio_link' => 'nullable|url',
-
-            //     // Files
-            //     'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            //     'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            //     //'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',                
-            // ]);
-            $data = $request->all();
-
-            $rules = [
-                'name' => 'required|string',
-                'country_code' => 'required|string',
-                'gender' => 'required|in:Male,Female,Other',
-                //'date_of_birth' => 'required',
-                'location' => 'required|string',
-                'address' => 'required|string',
-                'skills' => 'required|string',
-                'interest' => 'required|string',
-                'job_category' => 'required|string',
+                // Skills and links
+                'skills' => 'nullable|string',
+                'interest' => 'nullable|string',
+                'job_category' => 'nullable|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
+
+                // Files
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-                'profile_picture' => 'required|file|image|max:2048',
-                'pincode' => 'required',                
-                'city' => 'required|string',                
-                'state' => 'required|string',                
-                'country' => 'required|string',
-                'national_id' => [
-                    'required',
-                    'min:10',
-                    function ($attribute, $value, $fail) use ($trainer) {
-                        $existsInAssessors = Assessors::where('national_id', $value)
-                            ->where('id', '!=', $trainer->id)
-                            ->exists();
-
-                        if ($existsInAssessors) {
-                            $fail('The national ID has already been taken.');
-                        }
-                    },
-                ],
-            ];
-
-           
-           $rules["date_of_birth"] = [
-                'required',
-                'date_format:d/m/Y',
-                function ($attribute, $value, $fail) {
-                    try {
-                        $date = Carbon::createFromFormat('d/m/Y', $value);
-                        
-                        if ($date->isToday() || $date->isFuture()) {
-                            $fail("The date of birth must be a date before today.");
-                        }
-                    } catch (\Exception $e) {
-                        $fail("The date of birth must be a valid date in d/m/Y format.");
-                    }
-                },
-            ];                
-
-            // Add dynamic validation for education
-            if (!empty($data['education'])) {
-                foreach ($data['education'] as $index => $edu) {
-                    $rules["education.$index.high_education"] = 'required|string';
-                    $rules["education.$index.field_of_study"] = 'required|string';
-                    $rules["education.$index.institution"] = 'required|string';
-                    $rules["education.$index.graduate_year"] = ['required', 'digits:4', 'integer', 'max:' . now()->year];
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The education details must be required.'
-                ], 200);
-            }
-
-            // Add dynamic validation for experience
-            if (!empty($data['experience'])) {
-                foreach ($data['experience'] as $index => $exp) {
-                    $rules["experience.$index.job_role"] = 'required|string';
-                    $rules["experience.$index.organization"] = 'required|string';
-                    $rules["experience.$index.start_date"] = [
-                        'required',
-                        'date_format:d/m/Y',
-                        function ($attribute, $value, $fail) {
-                            $date = Carbon::createFromFormat('d/m/Y', $value);
-                            if ($date->isFuture()) {
-                                $fail("$attribute should not be a future date.");
-                            }
-                        },
-                    ];
-                    if($data['experience'][$index]['end_date'] != 'work here'){
-                        $rules["experience.$index.end_date"] = [
-                            'required',
-                            'date_format:d/m/Y',
-                            function ($attribute, $value, $fail) use ($exp,$index) {
-                                $end = Carbon::createFromFormat('d/m/Y', $value);
-                                $start = isset($exp['start_date']) ? Carbon::createFromFormat('d/m/Y', $exp['start_date']) : null;
-
-                                if ($end->isFuture()) {
-                                    $fail("Experience $index + 1 end date should not be a future date.");
-                                }
-
-                                if ($start && $end->lessThan($start)) {
-                                    $fail("Experience " . ($index + 1) . " end date should not be earlier than start date.");
-                                }
-                            },
-                        ];
-                    }
-                }
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'message' => 'The experience details must be required.'
-                ], 200);
-            }
-
-            $validator = Validator::make($data, $rules);
-
-            // Return only the first error
+                'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
+            
             if ($validator->fails()) {
+                $firstError = collect($validator->errors()->messages())
+                    ->map(function ($messages, $field) {
+                        return [
+                            'field' => $field,
+                            'message' => $messages[0]
+                        ];
+                    })->first();
+
                 return response()->json([
                     'status' => false,
-                    'message' => $validator->errors()->first()
+                    'message' => 'Validation failed',
+                    'errors' => $firstError['message'],
                 ], 200);
             }
 
+            $inputDate = $request->date_of_birth ;
+            $dateOfBirth = Carbon::createFromFormat('d/m/Y', $inputDate);
+            $today = Carbon::today();
+
+            if (empty($dateOfBirth)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation failed',
+                    'errors' => 'The Date of birth field is required.'                        
+                ], 200);
+            }
+            if ($dateOfBirth->gte($today)) {
+                return response()->json([
+                                'status' => false,
+                                'message' => 'Validation failed',
+                                'errors' => 'The Date of birth must be a date before today.'
+                            ], 200);
+            }            
+
+            if (Carbon::parse($dateOfBirth)->isToday() || Carbon::parse($dateOfBirth)->isFuture()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation failed',
+                    'errors' => 'The Date of birth must be a date before today.'                       
+                ], 200);
+            }
+
+            $education =  $request->education;
+
+            foreach ($education as $index => $edu) {
+               
+                $entryNumber = $index + 1; // 1-based index for user-friendly message
+                $graduateYear = $edu['graduate_year'] ?? null;
+
+                if (is_null($graduateYear)) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "Education $entryNumber: The graduate_year field is required."                       
+                    ], 200);
+                }
+
+                if (!is_numeric($graduateYear)) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "Education $entryNumber: The graduate_year must be a number."
+                    ], 200);
+                }
+
+                if (strlen((string)$graduateYear) !== 4) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "Education $entryNumber: The graduate_year must be exactly 4 digits."
+                    ], 200);
+                }
+
+                if ((int)$graduateYear < 1900 || (int)$graduateYear > now()->year) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "Education $entryNumber: The graduate year must be between 1900 and " . now()->year . "."
+                    ], 200);
+                }
+
+                // Stop after the first invalid one
+                //break;
+            }
+
+            $experiences = $request->input('experience', []);
+
+            foreach ($experiences as $index => $exp) {
+                if (empty($exp['start_date'])) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The start date field is required for experience " . ($index + 1) . "."
+                    ], 200);
+                }
+
+                if (empty($exp['end_date'])) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The start date field is required for experience " . ($index + 1) . "."
+                    ], 200);
+                }
+
+                try {
+                    // Format: d/m/Y — adjust if input format is different
+                    $startDate = Carbon::createFromFormat('d/m/Y', $exp['start_date']);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The start date for experience " . ($index + 1) . " must be a valid date in DD/MM/YYYY format."
+                    ], 200);
+                }
+
+                try {
+                    // Format: d/m/Y — adjust if input format is different
+                    $endDate = Carbon::createFromFormat('d/m/Y', $exp['end_date']);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The end date for experience " . ($index + 1) . " must be a valid date in DD/MM/YYYY format."
+                    ], 200);
+                }
+
+                if ($startDate->gt(Carbon::today())) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The start date for experience " . ($index + 1) . " must be a date before or equal to today."
+                    ], 200);
+                }
+
+                if ($endDate->gt(Carbon::today())) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The end date for experience " . ($index + 1) . " must be a date before or equal to today."
+                    ], 200);
+                }
+
+                if ($endDate->lt($startDate)) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation failed',
+                        'errors' => "The end date for experience " . ($index + 1) . " must be after or equal to the start date."
+                    ], 200);
+                }
+            }
             // Update the jobseeker basic info
-            $trainer->update([
+            $jobseeker->update([
                 'name'         => $request->name,
                 'phone_code'   => $request->country_code,
                 'gender'       => $request->gender,
-                'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
-                'address'      => $request->location,
-                'city'         => $request->city,
-                'state'      => $request->state,
-                'country'      => $request->country,
-                'pin_code'      => $request->pincode,
-                'national_id'      => $request->national_id,
+                'date_of_birth'=> $dateOfBirth,
+                'city'         => $request->location,
+                'address'      => $request->address,
                 'is_registered'=> true, // you should add this column to your table
             ]);
 
             // Save education
             foreach ($request->education as $edu) {
                 EducationDetails::create([
-                    'user_id'         => $trainer->id,
-                    'user_type'       => 'assessor',
+                    'user_id'         => $jobseeker->id,
+                    'user_type'       => 'jobseeker',
                     'high_education'  => $edu['high_education'],
                     'field_of_study'  => $edu['field_of_study'],
                     'institution'     => $edu['institution'],
@@ -395,21 +398,20 @@ class AssessorController extends Controller
             // Save experience
             foreach ($request->experience as $exp) {
                 WorkExperience::create([
-                    'user_id'      => $trainer->id,
-                    'user_type'    => 'assessor',
+                    'user_id'      => $jobseeker->id,
+                    'user_type'    => 'jobseeker',
                     'job_role'     => $exp['job_role'],
                     'organization' => $exp['organization'],
-                    'starts_from'  => Carbon::createFromFormat('d/m/Y', $exp['start_date']),
-                    'end_to'       => strtolower(trim($exp['end_date'])) === 'work here' ? 'work here' : Carbon::createFromFormat('d/m/Y', $exp['end_date'])
+                    'starts_from'  => date('Y-m-d',strtotime($exp['start_date'])),
+                    'end_to'       => date('Y-m-d',strtotime($exp['end_date']))
                 ]);
             }
 
             // Save skills and interests
-            TrainingExperience::create([
-                'user_id'   => $trainer->id,
-                'user_type'   => 'assessor',
-                'training_skills'         => $request->skills,
-                'area_of_interest'       => $request->interest,
+            Skills::create([
+                'jobseeker_id'   => $jobseeker->id,
+                'skills'         => $request->skills,
+                'interest'       => $request->interest,
                 'job_category'   => $request->job_category,
                 'website_link'   => $request->website_link,
                 'portfolio_link' => $request->portfolio_link
@@ -417,8 +419,8 @@ class AssessorController extends Controller
 
             // Upload Resume
             if ($request->hasFile('resume')) {
-                $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'assessor')
+                $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
+                    ->where('user_type', 'jobseeker')
                     ->where('doc_type', 'resume')
                     ->first();
 
@@ -428,8 +430,8 @@ class AssessorController extends Controller
                     $request->file('resume')->move('uploads/', $fileNameToStoreResume);
 
                     AdditionalInfo::create([
-                        'user_id'       => $trainer->id,
-                        'user_type'     => 'assessor',
+                        'user_id'       => $jobseeker->id,
+                        'user_type'     => 'jobseeker',
                         'doc_type'      => 'resume',
                         'document_name' => $resumeName,
                         'document_path' => asset('uploads/' . $fileNameToStoreResume),
@@ -439,9 +441,9 @@ class AssessorController extends Controller
 
             // Upload Profile Picture
             if ($request->hasFile('profile_picture')) {
-                $existingProfile = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'assessor')
-                    ->where('doc_type', 'assessor_profile_picture')
+                $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
+                    ->where('user_type', 'jobseeker')
+                    ->where('doc_type', 'profile_picture')
                     ->first();
 
                 if (!$existingProfile) {
@@ -450,37 +452,15 @@ class AssessorController extends Controller
                     $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
 
                     AdditionalInfo::create([
-                        'user_id'       => $trainer->id,
-                        'user_type'     => 'assessor',
-                        'doc_type'      => 'assessor_profile_picture',
+                        'user_id'       => $jobseeker->id,
+                        'user_type'     => 'jobseeker',
+                        'doc_type'      => 'profile_picture',
                         'document_name' => $profileName,
                         'document_path' => asset('uploads/' . $fileNameToStoreProfile),
                     ]);
                 }
             }
 
-            // Upload Resume
-            if ($request->hasFile('training_certificate')) {
-                $existingResume = AdditionalInfo::where('user_id', $trainer->id)
-                    ->where('user_type', 'assessor')
-                    ->where('doc_type', 'training_certificate')
-                    ->first();
-
-                if (!$existingResume) {
-                    $resumeName = $request->file('training_certificate')->getClientOriginalName();
-                    $fileNameToStoreResume = 'training_certificate_' . time() . '.' . $request->file('training_certificate')->getClientOriginalExtension();
-                    $request->file('training_certificate')->move('uploads/', $fileNameToStoreResume);
-
-                    AdditionalInfo::create([
-                        'user_id'       => $trainer->id,
-                        'user_type'     => 'assessor',
-                        'doc_type'      => 'training_certificate',
-                        'document_name' => $resumeName,
-                        'document_path' => asset('uploads/' . $fileNameToStoreResume),
-                    ]);
-                }
-            }
-            
             DB::commit();
 
             $contactMethod = $request->email ? 'email' : 'phone_number';
@@ -537,7 +517,7 @@ class AssessorController extends Controller
                                         <div class="header">
                                             <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
                                         </div>
-                                        <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
+                                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
 
                                         <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
@@ -557,8 +537,8 @@ class AssessorController extends Controller
                                     </div>
                                 </body>
                                 </html>
-                                ', function ($message) use ($trainer) {
-                                    $message->to($trainer->email)
+                                ', function ($message) use ($jobseeker) {
+                                    $message->to($jobseeker->email)
                                             ->subject('Welcome to Talentrek – Registration Successful');
                                 });
             } else {
@@ -571,9 +551,9 @@ class AssessorController extends Controller
                 'status'  => true,
                 'message' => 'Registration completed successfully.',
                 'data'    => [
-                    'id'     => $trainer->id,
-                    'email'  => $trainer->email,
-                    'mobile' => $trainer->phone_number,
+                    'id'     => $jobseeker->id,
+                    'email'  => $jobseeker->email,
+                    'mobile' => $jobseeker->phone_number,
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -596,27 +576,10 @@ class AssessorController extends Controller
 
     public function forgetPassword(Request $request)
     {
-       $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:assessors,email',
-            'phone_number' => 'nullable|string|exists:assessors,phone_number',
-        ], [
-            'email.exists' => 'The provided email does not exist.',
-            'phone_number.exists' => 'The provided phone number does not exist.',
+        $validator = Validator::make($request->all(), [
+            'email' => 'nullable|email|exists:jobseekers,email',
+            'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
         ]);
-
-        // Custom validation: at least one field is required
-        $validator->after(function ($validator) use ($request) {
-            if (empty($request->email) && empty($request->phone_number)) {
-                $validator->errors()->add('email', 'Either email or phone number is required.');
-            }
-        });
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first(), // Only first error
-            ], 422);
-        }
 
         if ($validator->fails()) {
             return response()->json([
@@ -630,10 +593,10 @@ class AssessorController extends Controller
 
         // Use either email or phone
         $contactMethod = $request->email ? 'email' : 'phone_number';
-        $contactValue = $request->email;
+        $contactValue = $request->$contactMethod;
 
         // Store OTP
-        DB::table('assessors')->updateOrInsert(
+        DB::table('jobseekers')->updateOrInsert(
             [$contactMethod => $contactValue],
             [
                 'otp' => $otp,
@@ -721,36 +684,24 @@ class AssessorController extends Controller
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:assessors,email',
-            'phone_number' => 'nullable|string|exists:assessors,phone_number',
+            'email' => 'nullable|email|exists:jobseekers,email',
+            'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
             'otp' => 'required|digits:6',
-        ], [
-            'email.exists' => 'The provided email does not exist.',
-            'phone_number.exists' => 'The provided phone number does not exist.',
-            'otp.required' => 'The OTP is required.',
-            'otp.digits' => 'The OTP must be exactly 6 digits.',
         ]);
-
-        // Custom rule: Require at least one of email or phone_number
-        $validator->after(function ($validator) use ($request) {
-            if (empty($request->email) && empty($request->phone_number)) {
-                $validator->errors()->add('email', 'Either email or phone number is required.');
-            }
-        });
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first(), // Only first error
-            ], 422);
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 201);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';
-        $contactValue = $request->email;
+        $contactValue = $request->$contactMethod;
         $otp = $request->otp;
 
         // Fetch the jobseeker record
-        $jobseeker = DB::table('assessors')
+        $jobseeker = DB::table('jobseekers')
             ->where($contactMethod, $contactValue)
             ->where('otp', $otp)
             ->first();
@@ -770,36 +721,23 @@ class AssessorController extends Controller
 
     public function resetPassword(Request $request)
     {
-       $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|exists:assessors,email',
-            'phone_number' => 'nullable|string|exists:assessors,phone_number',
+        $validator = Validator::make($request->all(), [
+            'email' => 'nullable|email|exists:jobseekers,email',
+            'phone_number' => 'nullable|string|exists:jobseekers,phone_number',
             'new_password' => 'required|string|min:6|confirmed',
-        ], [
-            'email.exists' => 'The provided email does not exist.',
-            'phone_number.exists' => 'The provided phone number does not exist.',
-            'new_password.required' => 'The new password is required.',
-            'new_password.min' => 'The new password must be at least 6 characters.',
-            'new_password.confirmed' => 'The password confirmation does not match.',
         ]);
-
-        // Require at least one of email or phone_number
-        $validator->after(function ($validator) use ($request) {
-            if (empty($request->email) && empty($request->phone_number)) {
-                $validator->errors()->add('email', 'Either email or phone number is required.');
-            }
-        });
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first(), // Only the first error
-            ], 422);
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 201);
         }
 
         $contactMethod = $request->email ? 'email' : 'phone_number';
-        $contactValue = $request->email;
+        $contactValue = $request->$contactMethod;
 
-        $jobseeker = DB::table('assessors')
+        $jobseeker = DB::table('jobseekers')
             ->where($contactMethod, $contactValue)
             ->first();
 
@@ -810,7 +748,7 @@ class AssessorController extends Controller
         }
 
         // Update password
-        DB::table('assessors')
+        DB::table('jobseekers')
             ->where($contactMethod, $contactValue)
             ->update([
                 'password' => Hash::make($request->new_password),

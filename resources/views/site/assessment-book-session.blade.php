@@ -246,9 +246,6 @@
                                 <input type="text" placeholder="yourname@upi" class="w-full border rounded px-3 py-2 text-sm">
                             </div>
 
-                            @php
-                                $couponCode = App\Models\Coupon::where('is_active', 1)->get();
-                            @endphp
                             <!-- Apply Promocode Section -->
                             <div>
                                 <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>

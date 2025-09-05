@@ -13,6 +13,7 @@ use App\Models\AssessmentOption;
 use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
+use App\Models\Coupon;
 use App\Models\JobseekerAssessmentStatus;
 use App\Models\JobseekerAssessmentData;
 use App\Models\Mentors;
@@ -3246,6 +3247,57 @@ class JobseekerController extends Controller
         }
 
         return redirect()->route('jobseeker.sign-in');
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $today = Carbon::today();
+        $code = trim($request->input('code', ''));
+        $price = (float) $request->input('price', 0);
+
+        if ($code === '' || $price <= 0) {
+            return response()->json(['success' => false, 'message' => 'Invalid code or price.']);
+        }
+
+        $coupon = Coupon::where('is_active', 1)
+            ->where('code', $code)
+            ->whereDate('valid_from', '<=', $today)
+            ->whereDate('valid_to', '>=', $today)
+            ->first();
+
+        if (! $coupon) {
+            return response()->json(['success' => false, 'message' => 'Invalid or expired coupon']);
+        }
+
+        $discount = 0.0;
+        $type = strtolower(trim($coupon->discount_type ?? ''));
+
+        if ($type === 'percentage' || $type === 'percent') {
+            $percent = (float) $coupon->discount_value;
+            $discount = round($price * ($percent / 100), 2);
+        } else { // assume fixed
+            $discount = round((float) $coupon->discount_value, 2);
+        }
+
+        // Prevent discount > price
+        if ($discount > $price) {
+            $discount = $price;
+        }
+
+        $newPrice = round($price - $discount, 2);
+        if ($newPrice < 0) $newPrice = 0.00;
+
+        $tax = round($newPrice * 0.10, 2); // 10% tax on final price
+        $total = round($newPrice + $tax, 2);
+
+        return response()->json([
+            'success'  => true,
+            'discount' => $discount,
+            'newPrice' => $newPrice,
+            'tax'      => $tax,
+            'total'    => $total,
+            'message'  => 'Coupon applied successfully'
+        ]);
     }
 
 

@@ -144,7 +144,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
 		Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
 
-		Route::post('/apply-coupon', [JobseekerController::class, 'apply'])->name('jobseeker.coach.apply-coupon');
+		Route::post('/apply-coupon', [JobseekerController::class, 'applyCoupon'])->name('jobseeker.apply-coupon');
 
 
 });

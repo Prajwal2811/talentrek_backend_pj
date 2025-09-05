@@ -51,5 +51,9 @@ class JobseekerTrainingMaterialPurchase extends Model
         return $this->hasMany(WorkExperience::class, 'user_id', 'jobseeker_id')
         ->where('user_type', 'jobseeker');
     }
-    
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id', 'jobseeker_id')
+                    ->where('user_type', 'jobseeker')->where('doc_type', 'profile_picture');
+    }
 }

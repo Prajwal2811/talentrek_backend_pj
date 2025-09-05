@@ -37,8 +37,8 @@
                                                     <th>Sr. No.</th>
                                                     <th>Code</th>
                                                     <th>Discount</th>
-                                                    {{-- <th>Valid From</th> --}}
-                                                    {{-- <th>Valid To</th> --}}
+                                                    <th>Valid From</th>
+                                                    <th>Valid To</th>
                                                     <th>Status</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -48,8 +48,8 @@
                                                     <th>Sr. No.</th>
                                                     <th>Code</th>
                                                     <th>Discount</th>
-                                                    {{-- <th>Valid From</th> --}}
-                                                    {{-- <th>Valid To</th> --}}
+                                                    <th>Valid From</th>
+                                                    <th>Valid To</th>
                                                     <th>Status</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -66,8 +66,8 @@
                                                                 ₹{{ number_format($coupon->discount_value, 2) }}
                                                             @endif
                                                         </td>
-                                                        {{-- <td>{{ $coupon->valid_from ?? '-' }}</td> --}}
-                                                        {{-- <td>{{ $coupon->valid_to ?? '-' }}</td> --}}
+                                                        <td>{{ $coupon->valid_from ?? '-' }}</td>
+                                                        <td>{{ $coupon->valid_to ?? '-' }}</td>
                                                         <td>
                                                             @if($coupon->is_active)
                                                                 <span class="badge badge-success">Active</span>

@@ -78,7 +78,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="row">
+                                        <div class="row">
                                             <!-- Valid From -->
                                             <div class="form-group c_form_group col-md-6">
                                                 <label>Valid From</label>
@@ -98,7 +98,7 @@
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
-                                        </div> --}}
+                                        </div>
 
                                         <button type="submit" class="btn btn-primary theme-bg">Update Coupon</button>
                                     </form>
