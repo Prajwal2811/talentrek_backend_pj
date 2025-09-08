@@ -23,46 +23,6 @@
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-
-        {{-- @if($alreadySubmitted || session()->has('quiz_result'))
-            @php
-                $result = session('quiz_result') ?? [
-                    'score' => App\Models\JobseekerAssessmentData::where([
-                        ['assessment_id', $assessment->id],
-                        ['jobseeker_id', Auth::id()],
-                    ])->whereColumn('selected_answer', 'correct_answer')->count(),
-                    'total' => $assessment->questions->count()
-                ];
-            @endphp
-
-            <main class="w-11/12 mx-auto py-8">
-                <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
-                    <!-- Left/Main Content -->
-                    <div class="flex-1">
-                        <div class="min-h-screen flex items-center justify-center bg-white p-6" x-data>
-                            <div class="text-center max-w-lg">
-                                <img
-                                    src="{{ asset('asset/images/gallery/finished-quiz.png') }}"
-                                    alt="Quiz Completed"
-                                    class="mx-auto w-64 mb-6"
-                                />
-                                <h2 class="text-xl font-semibold text-gray-800 mb-3">
-                                    Congratulations! You have finished the<br />
-                                    assessment quiz successfully.
-                                </h2>
-
-                                <a href="{{ route('jobseeker.assessment.result', $assessment->id) }}">
-                                    <button class="mt-4 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-6 py-2.5 rounded">
-                                        See scorecard
-                                    </button>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        @else --}}
             <main class="w-11/12 mx-auto py-8">
                 <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
                     <div class="flex-1">
@@ -134,10 +94,15 @@
                                     </div>
 
                                     <!-- Timer -->
-                                    <div>
-                                        <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
-                                        <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
-                                    </div>
+                                   <!-- Timer -->
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
+                            <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Total Quiz Time: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
+                            </p>
+                        </div>
+
 
                                     <!-- Navigation Buttons -->
                                     <div>
@@ -334,6 +299,35 @@
                     </div>
                 </div>
             </main>
+
+            <script>
+                function disableRefresh() {
+                    // Disable F5 and Ctrl+R
+                    window.addEventListener('keydown', function (e) {
+                        if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r')) {
+                            e.preventDefault();
+                        }
+                    });
+
+                    // Disable right-click reload option (context menu)
+                    window.addEventListener('contextmenu', function (e) {
+                        // optional: allow context menu but prevent reload
+                        // e.preventDefault();
+                    });
+
+                    // Disable browser refresh via beforeunload
+                    window.addEventListener('beforeunload', function (e) {
+                        e.preventDefault();
+                        e.returnValue = ''; // standard for most browsers
+                    });
+                }
+
+                // Call this inside your Alpine.js init
+                document.addEventListener('alpine:init', () => {
+                    disableRefresh();
+                });
+            </script>
+
         {{-- @endif --}}
 
 

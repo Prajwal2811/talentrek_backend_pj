@@ -2794,87 +2794,89 @@ class JobseekerController extends Controller
     }
 
     public function submitQuiz(Request $request)
-{
-    $request->validate([
-        'answers' => 'required|array',
-    ]);
+    {
+        $request->validate([
+            'answers' => 'required|array',
+        ]);
 
-    $jobseekerId = Auth::guard('jobseeker')->id();
-    $correctCount = 0;
-    $assessmentId = null;
+        $jobseekerId = Auth::guard('jobseeker')->id();
+        $correctCount = 0;
+        $assessmentId = null;
 
-    foreach ($request->answers as $answer) {
-        if (!isset($answer['trainer_id'], 
-                $answer['material_id'], 
-                $answer['assessment_id'], 
-                $answer['question_id'], 
-                $answer['selected_answer'], 
-                $answer['correct_answer']
-            )) {
-            continue;
+        foreach ($request->answers as $answer) {
+            if (!isset($answer['trainer_id'], 
+                    $answer['material_id'], 
+                    $answer['assessment_id'], 
+                    $answer['question_id'], 
+                    $answer['selected_answer'], 
+                    $answer['correct_answer']
+                )) {
+                continue;
+            }
+
+            $assessmentId = $answer['assessment_id'];
+            $materialId = $answer['material_id'];
+
+            if ($answer['selected_answer'] === $answer['correct_answer']) {
+                $correctCount++;
+            }
+
+            JobseekerAssessmentData::updateOrCreate(
+                [
+                    'trainer_id'   => $answer['trainer_id'],
+                    'training_id'  => $answer['material_id'],
+                    'assessment_id'=> $answer['assessment_id'],
+                    'question_id'  => $answer['question_id'],
+                    'jobseeker_id' => $jobseekerId,
+                ],
+                [
+                    'selected_answer' => $answer['selected_answer'],
+                    'correct_answer'  => $answer['correct_answer'],
+                ]
+            );
         }
 
-        $assessmentId = $answer['assessment_id'];
+        if ($assessmentId) {
+            $assessmentData = TrainerAssessment::find($assessmentId);
+            $totalQuestions = count($request->answers);
 
-        if ($answer['selected_answer'] === $answer['correct_answer']) {
-            $correctCount++;
-        }
+            $rawPercentage = $totalQuestions > 0 ? ($correctCount / $totalQuestions) * 100 : 0;
+            $percentage = min(100, max(0, round($rawPercentage)));
 
-        JobseekerAssessmentData::updateOrCreate(
-            [
-                'trainer_id'   => $answer['trainer_id'],
-                'training_id'  => $answer['material_id'],
-                'assessment_id'=> $answer['assessment_id'],
-                'question_id'  => $answer['question_id'],
-                'jobseeker_id' => $jobseekerId,
-            ],
-            [
-                'selected_answer' => $answer['selected_answer'],
-                'correct_answer'  => $answer['correct_answer'],
-            ]
-        );
-    }
+            $passingPercentage = $assessmentData ? $assessmentData->passing_percentage : 0;
+            $resultStatus = $percentage >= $passingPercentage ? 'pass' : 'fail';
 
-    if ($assessmentId) {
-        $assessmentData = TrainerAssessment::find($assessmentId);
-        $totalQuestions = count($request->answers);
+            JobseekerAssessmentStatus::updateOrCreate(
+                [
+                    'jobseeker_id' => $jobseekerId,
+                    'assessment_id' => $assessmentId,
+                    'material_id' => $materialId,
+                ],
+                [
+                    'submitted'     => true,
+                    'score'         => $correctCount,
+                    'total'         => $totalQuestions,
+                    'percentage'    => $percentage,
+                    'result_status' => $resultStatus,
+                ]
+            );
 
-        $rawPercentage = $totalQuestions > 0 ? ($correctCount / $totalQuestions) * 100 : 0;
-        $percentage = min(100, max(0, round($rawPercentage)));
+            // Clear quiz timer
+            $sessionKey = 'quiz_start_time_' . $assessmentId . '_' . $jobseekerId;
+            session()->forget($sessionKey);
 
-        $passingPercentage = $assessmentData ? $assessmentData->passing_percentage : 0;
-        $resultStatus = $percentage >= $passingPercentage ? 'pass' : 'fail';
-
-        JobseekerAssessmentStatus::updateOrCreate(
-            [
-                'jobseeker_id' => $jobseekerId,
-                'assessment_id' => $assessmentId,
-            ],
-            [
-                'submitted'     => true,
+            // Flash result to session (for showing in UI after redirect)
+            session()->flash('quiz_result', [
                 'score'         => $correctCount,
                 'total'         => $totalQuestions,
                 'percentage'    => $percentage,
                 'result_status' => $resultStatus,
-            ]
-        );
+            ]);
+        }
 
-        // Clear quiz timer
-        $sessionKey = 'quiz_start_time_' . $assessmentId . '_' . $jobseekerId;
-        session()->forget($sessionKey);
-
-        // Flash result to session (for showing in UI after redirect)
-        session()->flash('quiz_result', [
-            'score'         => $correctCount,
-            'total'         => $totalQuestions,
-            'percentage'    => $percentage,
-            'result_status' => $resultStatus,
-        ]);
+        // ✅ Redirect instead of returning JSON
+        return redirect()->route('jobseeker.profile')->with('success', 'Quiz submitted successfully.');
     }
-
-    // ✅ Redirect instead of returning JSON
-    return redirect()->route('jobseeker.profile')->with('success', 'Quiz submitted successfully.');
-}
 
 
 

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('jobseeker_id');
             $table->unsignedBigInteger('assessment_id');
+            $table->unsignedBigInteger('material_id');
             $table->boolean('submitted')->default(false);
             $table->string('score')->nullable();
             $table->string('total')->nullable();

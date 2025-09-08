@@ -93,6 +93,17 @@ Route::fallback(function () {
             return view('site.coach-booking-success');
         })->name('coach-booking-success');
 
+
+
+        Route::get('terms-and-conditions', function () {
+            return view('site.terms-and-conditions');
+        })->name('terms-and-conditions');
+
+
+        Route::get('privacy-policy', function () {
+            return view('site.privacy-policy');
+        })->name('privacy-policy');
+        
 	// });
 
 
