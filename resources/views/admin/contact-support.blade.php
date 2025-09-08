@@ -21,11 +21,11 @@ $jobseekersList = [];
 // echo "<pre>";
 // print_r($jobseekers);exit;
 
-$recruitersCompanyList = DB::table('recruiters_company as rc')
-    ->select('rc.id as user_id', 'rc.company_name')
-    ->where('rc.status', 'active')
+$recruitersList = DB::table('recruiters as r')
+    ->select('r.id as user_id', 'r.name as recruiter_name')
+    ->where('r.status', 'active')
     ->get();
-
+ 
 $mentorsList = DB::table('mentors as m')
     ->select('m.id as user_id', 'm.name as mentor_name')
     ->where('m.status', 'active')
@@ -125,20 +125,18 @@ $coachesList = DB::table('coaches as j')
                                         </div>
 
                                         {{-- Recruiters --}}
-                                        <div class="tab-pane vivify fadeIn" id="chats-Recruiters">
-                                            <ul
-                                                class="right_chat recruiters_list list-unstyled mb-0 animation-li-delay">
-                                                @foreach($recruitersCompanyList as $recruiter)
+                                         <div class="tab-pane vivify fadeIn" id="chats-Recruiters">
+                                            <ul class="right_chat recruiters_list list-unstyled mb-0 animation-li-delay">
+                                                @foreach($recruitersList as $recruiter)
                                                     <li class="online">
                                                         <a href="javascript:void(0);" class="media openChat"
                                                             data-id="{{ $recruiter->user_id }}"
-                                                            data-name="{{ $recruiter->company_name }}"
-                                                            data-type="Recruiter">
+                                                            data-name="{{ $recruiter->recruiter_name }}" data-type="Recruiter">
                                                             <img class="media-object" src="../assets/images/xs/avatar5.jpg"
                                                                 alt="">
                                                             <div class="media-body">
                                                                 <span class="name">
-                                                                    {{ $recruiter->company_name }}
+                                                                    {{ $recruiter->recruiter_name }}
                                                                     <small class="text-muted font-12">Active</small>
                                                                 </span>
                                                                 <span class="message">Click to chat</span>
@@ -149,6 +147,8 @@ $coachesList = DB::table('coaches as j')
                                                 @endforeach
                                             </ul>
                                         </div>
+
+
 
                                         {{-- Mentors --}}
                                         <div class="tab-pane vivify fadeIn" id="chats-Mentors">
@@ -433,34 +433,34 @@ $coachesList = DB::table('coaches as j')
                                         $.get(url, function (res) {
                                             $(target).html('');
                                             res.forEach(user => {
-                                                let userName = user.name || user.jobseeker_name || user.mentor_name || user.company_name || user.assessor_name || user.coach_name;
+                                                let userName = user.name || user.jobseeker_name || user.mentor_name || user.recruiter_name || user.assessor_name || user.coach_name;
 
                                                 let unreadBadge = (user.unread_count && user.unread_count > 0)
                                                     ? `<span class="badge bg-danger ms-2" id="new-message-${user.user_id}">${user.unread_count}</span>`
                                                     : '';
 
                                                 $(target).append(`
-                    <li class="chat-user" data-id="${user.user_id}" data-type="${type}">
-                        <a href="javascript:void(0);" 
-                            class="openChat d-flex align-items-center p-2 rounded hover-bg" 
-                            data-id="${user.user_id}" 
-                            data-type="${type}" 
-                            data-name="${userName}">
-                            
-                            <div class="avatar me-3">
-                                <span>${userName.charAt(0).toUpperCase()}</span>
-                            </div>
-                            
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="name fw-semibold">${userName}</span>
-                                    ${unreadBadge}
-                                </div>
-                                <small class="text-muted">Click to chat</small>
-                            </div>
-                        </a>
-                    </li>
-                `);
+                                                <li class="chat-user" data-id="${user.user_id}" data-type="${type}">
+                                                    <a href="javascript:void(0);" 
+                                                        class="openChat d-flex align-items-center p-2 rounded hover-bg" 
+                                                        data-id="${user.user_id}" 
+                                                        data-type="${type}" 
+                                                        data-name="${userName}">
+                                                        
+                                                        <div class="avatar me-3">
+                                                            <span>${userName.charAt(0).toUpperCase()}</span>
+                                                        </div>
+                                                        
+                                                        <div class="flex-grow-1">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span class="name fw-semibold">${userName}</span>
+                                                                ${unreadBadge}
+                                                            </div>
+                                                            <small class="text-muted">Click to chat</small>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                            `);
                                             });
 
                                             // ✅ Open Chat
@@ -487,61 +487,61 @@ $coachesList = DB::table('coaches as j')
                                                     $(`#new-message-${currentUserId}`).remove();
                                                 });
                                             });
-                                        });
-                                    }
+                                            });
+                                            }
 
 
-                                    // ✅ Format Message (File / Text / Image)
-                                    function formatMessage(message, type = 1) {
-                                        if (type == 2) {
-                                            let cleanPath = message.split('?')[0].split('#')[0];
-                                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
-                                            let ext = fileName.split('.').pop().toLowerCase();
+                                                                // ✅ Format Message (File / Text / Image)
+                                                                function formatMessage(message, type = 1) {
+                                                                    if (type == 2) {
+                                                                        let cleanPath = message.split('?')[0].split('#')[0];
+                                                                        let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                                                                        let ext = fileName.split('.').pop().toLowerCase();
 
-                                            // File type detection
-                                            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-                                                // Image preview
-                                                return `
-                    <a href="${message}" target="_blank" style="display:inline-block;">
-                        <img src="${message}" alt="image" 
-                            style="max-width:150px; border-radius:6px; display:block;" />
-                    </a>
-                `;
-                                            } else {
-                                                // File icons
-                                                let iconPath = '';
-                                                if (ext === 'pdf') {
-                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
-                                                } else if (['doc', 'docx'].includes(ext)) {
-                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
-                                                } else {
-                                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
-                                                }
+                                                                        // File type detection
+                                                                        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                                                                            // Image preview
+                                                                            return `
+                                                <a href="${message}" target="_blank" style="display:inline-block;">
+                                                    <img src="${message}" alt="image" 
+                                                        style="max-width:150px; border-radius:6px; display:block;" />
+                                                </a>
+                                            `;
+                                                                        } else {
+                                                                            // File icons
+                                                                            let iconPath = '';
+                                                                            if (ext === 'pdf') {
+                                                                                iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                                                                            } else if (['doc', 'docx'].includes(ext)) {
+                                                                                iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
+                                                                            } else {
+                                                                                iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
+                                                                            }
 
-                                                // File preview with icon + filename
-                                                return `
-                    <a href="${message}" target="_blank" class="file-message" style="
-                        display: flex;
-                        align-items: center;
-                        background: #fff;
-                        border: 2px solid #1e90ff;
-                        border-radius: 10px;
-                        padding: 8px 12px;
-                        text-decoration: none;
-                        color: #000;
-                        font-weight: bold;
-                        max-width: 250px;
-                        gap: 10px;
-                    ">
-                        <img src="${iconPath}" alt="file" style="width: 30px; height: 30px;">
-                        <span style="
-                            white-space: nowrap;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            max-width: 180px;
-                        ">${fileName}</span>
-                    </a>
-                `;
+                                                                            // File preview with icon + filename
+                                                                            return `
+                                                <a href="${message}" target="_blank" class="file-message" style="
+                                                    display: flex;
+                                                    align-items: center;
+                                                    background: #fff;
+                                                    border: 2px solid #1e90ff;
+                                                    border-radius: 10px;
+                                                    padding: 8px 12px;
+                                                    text-decoration: none;
+                                                    color: #000;
+                                                    font-weight: bold;
+                                                    max-width: 250px;
+                                                    gap: 10px;
+                                                ">
+                                                    <img src="${iconPath}" alt="file" style="width: 30px; height: 30px;">
+                                                    <span style="
+                                                        white-space: nowrap;
+                                                        overflow: hidden;
+                                                        text-overflow: ellipsis;
+                                                        max-width: 180px;
+                                                    ">${fileName}</span>
+                                                </a>
+                                            `;
                                             }
                                         }
 
@@ -556,15 +556,15 @@ $coachesList = DB::table('coaches as j')
                                         let content = formatMessage(msg.message, msg.type);
 
                                         let html = `
-            <div class="flex ${isSelf ? 'justify-end' : 'justify-start'} mb-2">
-                <div class="p-2 rounded max-w-xs break-words ${isSelf ? 'bg-blue-100' : 'bg-gray-200'}">
-                    ${content}
-                    <div class="text-xs text-gray-500 mt-1">
-                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                </div>
-            </div>
-        `;
+                                            <div class="flex ${isSelf ? 'justify-end' : 'justify-start'} mb-2">
+                                                <div class="p-2 rounded max-w-xs break-words ${isSelf ? 'bg-blue-100' : 'bg-gray-200'}">
+                                                    ${content}
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
                                         $('#chatMessages').append(html);
                                         $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
                                     }
