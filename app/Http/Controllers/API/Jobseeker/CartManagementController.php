@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Jobseeker;
 use App\Models\Api\CMS;
+use App\Models\Setting;
 use App\Models\Api\Mentors;
 use App\Models\Api\Testimonial;
 use App\Models\Api\TrainingMaterial;
@@ -118,7 +119,7 @@ class CartManagementController extends Controller
                     $query->select('id', 'name', 'email'); // Customize fields as needed
                 },
                 'material' => function ($query) {
-                    $query->select('id', 'training_title', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
+                    $query->select('id', 'training_title','training_type', 'training_descriptions','thumbnail_file_path as image','training_price','training_offer_price'); // Customize fields as needed
                 }                
             ])
             ->withAvg('trainerReviews','ratings')
@@ -133,12 +134,17 @@ class CartManagementController extends Controller
                 $item->trainerEmail = $trainer->email;
 
                 $item->training_title = $material->training_title;
+                $item->training_type = $material->training_type;
                 $item->training_descriptions = $material->training_descriptions;
                 $item->image = $material->image;
                 $item->training_price = $material->training_price;
                 $item->training_offer_price = $material->training_offer_price;
                 $item->designation = $latestWorkExperience->job_role ?? 'N/A';
                 
+                $item->actual_price = (!empty($material->training_price))
+                    ? $material->training_price
+                    : $material->training_offer_price;
+
                 $item->final_price = (!empty($material->training_offer_price))
                     ? $material->training_offer_price
                     : $material->training_price;
@@ -149,12 +155,17 @@ class CartManagementController extends Controller
             });
 
             // 💰 Get sum of final_price
-            $totalPrice = $items->sum('final_price');
+            $actualPrice = $items->sum('actual_price');
+            $courseTotalPrice = $items->sum('final_price');
+            $savedPrice = $actualPrice - $courseTotalPrice;
+            $gstTax = $this->getSlotPercentage('material') ;
+            $totalPrice = number_format($courseTotalPrice + ($courseTotalPrice * $gstTax / 100), 2, '.', '');
+
             if ($items->isEmpty()) {
                 return response()->json(['status' => false, 'message' => 'No items found in cart.'], 404);
             }
 
-            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','gstTax' => 5,'totalPrice' => $totalPrice, 'data' => $items]);
+            return response()->json(['status' => true, 'message' => 'Item list retrieved successfully.','courseTotalPrice' => $courseTotalPrice,'savedPrice' => $savedPrice,'gstTax' => $gstTax,'totalPrice' => $totalPrice, 'data' => $items]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
@@ -278,7 +289,7 @@ class CartManagementController extends Controller
         });
 
         if ($validator->fails()) {
-            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 422);
+            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 200);
         }
 
         try {
@@ -336,6 +347,19 @@ class CartManagementController extends Controller
             abort(404, 'Course not found');
         }
 
+        $actualPrice = (!empty($material->training_price))
+            ? $material->training_price
+            : $material->training_offer_price;
+
+        $courseTotalPrice = (!empty($material->training_offer_price))
+            ? $material->training_offer_price
+            : $material->training_price;
+            
+        $savedPrice = $actualPrice - $courseTotalPrice;
+        $gstTax = $this->getSlotPercentage('batch') ;
+        $totalPrice = number_format($courseTotalPrice + ($courseTotalPrice * $gstTax / 100), 2, '.', '');
+
+        
         $material->documents = DB::table('training_materials_documents')
             ->where('training_material_id', $material->id)
             ->get();
@@ -463,7 +487,7 @@ class CartManagementController extends Controller
             ->limit(10)
             ->get();
 
-        return response()->json(['status' => true, 'message' => 'material batches fetched  successfully.','data' =>[
+        return response()->json(['status' => true, 'message' => 'material batches fetched  successfully.','courseTotalPrice' => $courseTotalPrice,'savedPrice' => $savedPrice,'gstTax' => $gstTax,'totalPrice' => $totalPrice,'data' =>[
             'material'       => $material,
             'user'           => $user,
             'userType'       => $userType,
@@ -473,5 +497,22 @@ class CartManagementController extends Controller
             'reviews'        => $reviews,
         ]]);
         
+    }
+
+    private function getSlotPercentage($type)
+    {
+        if ($type == 'material') 
+        {
+            $MentorsDetails = Setting::select('trainingMaterialTax')->where('id', 1)->first();
+            return $MentorsDetails->trainingMaterialTax ;
+        } 
+        elseif ($type == 'batch') 
+        {
+            $MentorsDetails = Setting::select('trainingMaterialBatchTax')->where('id', 1)->first();
+            return $MentorsDetails->trainingMaterialBatchTax ;
+        }
+        
+       
+        return 1 ;
     }
 }

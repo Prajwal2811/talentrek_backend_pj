@@ -26,7 +26,14 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::post('/coach/login', [CoachController::class, 'loginCoach'])->name('coach.login.submit');
 	});
 	
-	Route::group(['middleware' => 'coach.auth'], function(){
+	// Routes accessible after login but before subscription
+    Route::middleware(['coach.auth'])->group(function () {
+        Route::get('/subscription', [CoachController::class, 'showSubscriptionPlans'])->name('coach.subscription.index');
+        Route::post('/subscription-payment', [CoachController::class, 'processSubscriptionPayment'])->name('coach.subscription.payment');
+    });
+
+
+	Route::middleware(['coach.auth', 'check.coach.subscription'])->group(function () {
 		Route::get('/dashboard',[CoachController::class, 'dashboard'])->name('coach.dashboard');
 
 		Route::get('/dashboard',[CoachController::class, 'showCoachDashboard'])->name('coach.dashboard');
@@ -41,6 +48,12 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::post('/coach/additional-info-update', [CoachController::class, 'updateCoachAdditionalInfo'])->name('coach.additional.update');
 		Route::delete('coach/delete-document/{type}', [CoachController::class, 'deleteCoachDocument'])->name('coach.additional.delete');
 		Route::delete('/delete', [CoachController::class, 'deleteAccount'])->name('coach.destroy');
+
+		// Chat with Jobseeker
+		Route::get('/chat-with-jobseeker', [CoachController::class, 'chatWithJobseekerCoach'])->name('chat.with.jobseeker.coach');
+
+		// Admin Support
+		Route::get('/admin-support-coach', [CoachController::class, 'adminSupportCoach'])->name('admin-support-coach');
 
 		// Reviews
 		Route::get('/reviews', [CoachController::class, 'coachReviews'])->name('coach.reviews');

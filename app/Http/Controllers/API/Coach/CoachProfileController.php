@@ -25,7 +25,7 @@ class CoachProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Coach::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_coach as description')->where('id', $id)->first();
+            $TrainersPersonal = Coach::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_coach', 'about_coach as about','per_slot_price')->where('id', $id)->first();
            
             $coachPersonal = $TrainersPersonal->toArray();
             if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
@@ -74,15 +74,21 @@ class CoachProfileController extends Controller
             ->where('user_id', $id)
             ->where('user_type', 'coach')
             ->get();
-
+            $image = '' ;
+            foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
+                if($TrainersAdditionalInfos->doc_type == 'coach_profile_picture'){
+                    $image = $TrainersAdditionalInfos->document_path ;
+                }                
+            }
+            
             // Return combined response
-            return $this->successResponse([
+            return $this->successWithCmsResponse([
                 'CoachPersonal'       => $coachPersonal,
                 'CoachEducation'      => $TrainersEducation,
                 'CoachWorkExp'        => $TrainersWorkExp,
                 'Coachskill'          => $Trainerskill,
                 'CoachAdditionalInfo' => $TrainersAdditionalInfo,
-            ], 'Coach profile fetched successfully.');
+            ], ['image' => $image], 'Coach profile fetched successfully.');
 
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
@@ -107,13 +113,16 @@ class CoachProfileController extends Controller
         $data = $request->all();
         $rules = [
             'name' => 'required|string',
-            'gender' => 'required|in:Male,Female,Other',
+            //'gender' => 'required|in:Male,Female,Other',
             'location' => 'required|string',
             'address' => 'required|string',
             'pincode' => 'required',                
+            //'about_coach' => 'required',                
             'city' => 'required|string',                
+            'phone_number' => 'required',
             'state' => 'required|string',                
             'country' => 'required|string',
+            'per_slot_price' => 'required',
             'national_id' => [
                 'required',
                 'min:10',
@@ -173,9 +182,12 @@ class CoachProfileController extends Controller
                 'address'      => $request->location,
                 'city'         => $request->city,
                 'state'      => $request->state,
+                'phone_number'      => $request->phone_number,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
+                'about_coach'      => $request->about,
                 'national_id'      => $request->national_id,
+                'per_slot_price'      => $request->per_slot_price,
             ]);
 
             // Upload Profile Picture

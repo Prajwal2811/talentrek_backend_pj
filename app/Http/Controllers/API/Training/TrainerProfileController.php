@@ -72,15 +72,20 @@ class TrainerProfileController extends Controller
             ->where('user_id', $id)
             ->where('user_type', 'trainer')
             ->get();
-
+            $image = '' ;
+            foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
+                if($TrainersAdditionalInfos->doc_type == 'trainer_profile_picture'){
+                    $image = $TrainersAdditionalInfos->document_path ;
+                }                
+            }
             // Return combined response
-            return $this->successResponse([
+            return $this->successWithCmsResponse([
                 'TrainersPersonal'       => $mentorPersonal,
                 'TrainersEducation'      => $TrainersEducation,
                 'TrainersWorkExp'        => $TrainersWorkExp,
                 'Trainerskill'          => $Trainerskill,
                 'TrainersAdditionalInfo' => $TrainersAdditionalInfo,
-            ], 'Trainer profile fetched successfully.');
+            ], ['image' => $image], 'Trainer profile fetched successfully.');
 
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to fetch Trainer profile.', 500, [
@@ -109,6 +114,7 @@ class TrainerProfileController extends Controller
             'location' => 'required|string',
             'address' => 'required|string',
             'pincode' => 'required',                
+            'phone_number' => 'required',
             'city' => 'required|string',                
             'state' => 'required|string',                
             'country' => 'required|string',
@@ -170,6 +176,7 @@ class TrainerProfileController extends Controller
                 'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
                 'address'      => $request->location,
                 'city'         => $request->city,
+                'phone_number'      => $request->phone_number,
                 'state'      => $request->state,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,

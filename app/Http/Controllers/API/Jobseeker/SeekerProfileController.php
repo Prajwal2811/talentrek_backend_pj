@@ -122,6 +122,7 @@ class SeekerProfileController extends Controller
             'address' => 'required|string',
             'pincode' => 'required',                
             'city' => 'required|string',                
+            'phone_number' => 'required',
             'state' => 'required|string',                
             'country' => 'required|string',
             'national_id' => [
@@ -181,6 +182,7 @@ class SeekerProfileController extends Controller
                 'date_of_birth'=> Carbon::createFromFormat('d/m/Y', $request->date_of_birth),
                 'address'      => $request->location,
                 'city'         => $request->city,
+                'phone_number'      => $request->phone_number,
                 'state'      => $request->state,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,

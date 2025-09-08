@@ -47,14 +47,18 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 	});
 	
-	Route::group(['middleware' => 'jobseeker.auth'], function(){
-		Route::get('/dashboard',[JobseekerController::class, 'dashboard'])->name('jobseeker.dashboard');
+ 	// Routes accessible after login but before subscription
+    Route::middleware(['jobseeker.auth'])->group(function () {
+        Route::get('/subscription', [JobseekerController::class, 'showSubscriptionPlans'])->name('jobseeker.subscription.index');
+        Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
+    });
 
+
+
+	Route::middleware(['jobseeker.auth', 'check.jobseeker.subscription'])->group(function () {
+		Route::get('/dashboard',[JobseekerController::class, 'dashboard'])->name('jobseeker.dashboard');
 		Route::post('/login',[JobseekerController::class, 'authenticate'])->name('jobseeker.auth');
 		Route::get('/profile', [JobseekerController::class, 'showProfilePage'])->name('jobseeker.profile');
-		Route::get('/subscription-plan', [JobseekerController::class, 'showSubscriptionPlanPage'])->name('jobseeker.subscription.plan');
-		Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
-
 		Route::get('/profile', [JobseekerController::class, 'getJobseekerAllDetails'])->name('jobseeker.profile');
 		Route::post('/logout',[JobseekerController::class, 'logoutJobseeker'])->name('jobseeker.logout');
 		Route::post('/profile/update-personal-info',[JobseekerController::class, 'updatePersonalInfo'])->name('jobseeker.profile.update');
@@ -75,6 +79,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-mentor-review', [JobseekerController::class, 'submitMentorReview'])->name('submit.mentor.review');
 			
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
 
 		Route::post('/jobseeker/save-answer', [JobseekerController::class, 'saveJobseekerAnswer'])->name('jobseeker.saveAnswer');
 		Route::post('/jobseeker/submit-quiz', [JobseekerController::class, 'submitQuiz'])->name('jobseeker.submitQuiz');
@@ -89,7 +94,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/cart/remove/{id}', [JobseekerController::class, 'removeCartItem'])->name('cart.remove');
 
 
-		 Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
+		Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
     	Route::get('/chat/messages', [JobseekerController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 
 
@@ -122,6 +127,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 		Route::get('/buy-course-for-team/{id}', [JobseekerController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
 
 
 		// Zoom OAuth routes
@@ -138,6 +144,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
 		Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
 
+		Route::post('/apply-coupon', [JobseekerController::class, 'applyCoupon'])->name('jobseeker.apply-coupon');
 
 
 });

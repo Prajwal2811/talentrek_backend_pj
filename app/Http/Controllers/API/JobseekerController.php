@@ -46,7 +46,7 @@ class JobseekerController extends Controller
             ], 401);
         }
 
-        if (!in_array($jobseeker->admin_status, ['approved', 'superadmin_approved'])) {
+        if (!in_array($jobseeker->admin_status, ['superadmin_approved'])) {
             return response()->json([
                 'status' => false,
                 'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
@@ -84,7 +84,7 @@ class JobseekerController extends Controller
             // Validation
            $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:jobseekers,email',
-                'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{10}$/',
+                'mobile' => 'required|string|unique:jobseekers,phone_number|regex:/^[0-9]{9}$/',
                 'password' => 'required|string|min:6|confirmed',
             ], [
                 'email.required' => 'The email field is required.',
@@ -94,7 +94,7 @@ class JobseekerController extends Controller
                 'mobile.required' => 'The mobile number is required.',
                 'mobile.string' => 'The mobile number must be a string.',
                 'mobile.unique' => 'This mobile number is already registered.',
-                'mobile.regex' => 'The mobile number must be exactly 10 digits.',
+                'mobile.regex' => 'The mobile number must be exactly 9 digits.',
 
                 'password.required' => 'The password is required.',
                 'password.min' => 'The password must be at least 6 characters.',
@@ -394,7 +394,7 @@ class JobseekerController extends Controller
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
                 'national_id'      => $request->national_id,
-                'is_registered'=> true, // you should add this column to your table
+                'is_registered'=> 1, // you should add this column to your table
             ]);
 
             // Save education
@@ -630,69 +630,69 @@ class JobseekerController extends Controller
 
         // Send OTP (Email or SMS)
         if ($contactMethod === 'email') {
-            Mail::html('
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Password Reset OTP</title>
-                        <style>
-                            body {
-                                background-color: #f6f8fa;
-                                font-family: Arial, sans-serif;
-                                padding: 20px;
-                                margin: 0;
-                                color: #333;
-                            }
-                            .container {
-                                background-color: #ffffff;
-                                padding: 30px;
-                                max-width: 500px;
-                                margin: 20px auto;
-                                border-radius: 8px;
-                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                            }
-                            .otp-box {
-                                font-size: 24px;
-                                font-weight: bold;
-                                background-color: #f0f4ff;
-                                padding: 15px;
-                                text-align: center;
-                                border: 1px dashed #007bff;
-                                border-radius: 6px;
-                                margin: 20px 0;
-                                color: #007bff;
-                            }
-                            .footer {
-                                font-size: 12px;
-                                text-align: center;
-                                margin-top: 30px;
-                                color: #888;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h2>Password Reset Request</h2>
-                            <p>Hello,</p>
-                            <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+            // Mail::html('
+            //         <!DOCTYPE html>
+            //         <html lang="en">
+            //         <head>
+            //             <meta charset="UTF-8">
+            //             <title>Password Reset OTP</title>
+            //             <style>
+            //                 body {
+            //                     background-color: #f6f8fa;
+            //                     font-family: Arial, sans-serif;
+            //                     padding: 20px;
+            //                     margin: 0;
+            //                     color: #333;
+            //                 }
+            //                 .container {
+            //                     background-color: #ffffff;
+            //                     padding: 30px;
+            //                     max-width: 500px;
+            //                     margin: 20px auto;
+            //                     border-radius: 8px;
+            //                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            //                 }
+            //                 .otp-box {
+            //                     font-size: 24px;
+            //                     font-weight: bold;
+            //                     background-color: #f0f4ff;
+            //                     padding: 15px;
+            //                     text-align: center;
+            //                     border: 1px dashed #007bff;
+            //                     border-radius: 6px;
+            //                     margin: 20px 0;
+            //                     color: #007bff;
+            //                 }
+            //                 .footer {
+            //                     font-size: 12px;
+            //                     text-align: center;
+            //                     margin-top: 30px;
+            //                     color: #888;
+            //                 }
+            //             </style>
+            //         </head>
+            //         <body>
+            //             <div class="container">
+            //                 <h2>Password Reset Request</h2>
+            //                 <p>Hello,</p>
+            //                 <p>We received a request to reset your password. Use the OTP below to proceed:</p>
 
-                            <div class="otp-box">' . $otp . '</div>
+            //                 <div class="otp-box">' . $otp . '</div>
 
-                            <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+            //                 <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
 
-                            <p>Thanks,<br><strong>The Talentrek Team</strong></p>
-                        </div>
+            //                 <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+            //             </div>
 
-                        <div class="footer">
-                            &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-                        </div>
-                    </body>
-                    </html>
-                    ', function ($message) use ($contactValue) {
-                        $message->to($contactValue)
-                                ->subject('Your Password Reset OTP – Talentrek');
-                    });
+            //             <div class="footer">
+            //                 &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+            //             </div>
+            //         </body>
+            //         </html>
+            //         ', function ($message) use ($contactValue) {
+            //             $message->to($contactValue)
+            //                     ->subject('Your Password Reset OTP – Talentrek');
+            //         });
 
         } else {
             // Send SMS - Simulate (Integrate with Twilio, Msg91, etc.)
@@ -702,6 +702,7 @@ class JobseekerController extends Controller
         return response()->json([
             'message' => 'OTP sent successfully',
             'via' => $contactMethod,
+            'otp' =>  $otp
         ]);
     }
 
@@ -809,53 +810,53 @@ class JobseekerController extends Controller
 
         // ✅ Send password reset confirmation email
         if ($contactMethod === 'email') {
-            Mail::html('
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Password Reset Confirmation</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            background-color: #f4f6f9;
-                            margin: 0;
-                            padding: 20px;
-                            color: #333;
-                        }
-                        .container {
-                            background: #fff;
-                            padding: 30px;
-                            border-radius: 8px;
-                            max-width: 600px;
-                            margin: auto;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-                        }
-                        .footer {
-                            text-align: center;
-                            font-size: 12px;
-                            color: #888;
-                            margin-top: 20px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h2>Password Reset Successfully</h2>
-                        <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
-                        <p>Your password has been successfully updated for your Talentrek account.</p>
-                        <p>If you didn\'t initiate this change, please contact our support team immediately.</p>
-                        <p>Stay safe,<br><strong>The Talentrek Team</strong></p>
-                    </div>
-                    <div class="footer">
-                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-                    </div>
-                </body>
-                </html>
-            ', function ($message) use ($jobseeker) {
-                $message->to($jobseeker->email)
-                        ->subject('Your Talentrek Password Has Been Reset');
-            });
+            // Mail::html('
+            //     <!DOCTYPE html>
+            //     <html lang="en">
+            //     <head>
+            //         <meta charset="UTF-8">
+            //         <title>Password Reset Confirmation</title>
+            //         <style>
+            //             body {
+            //                 font-family: Arial, sans-serif;
+            //                 background-color: #f4f6f9;
+            //                 margin: 0;
+            //                 padding: 20px;
+            //                 color: #333;
+            //             }
+            //             .container {
+            //                 background: #fff;
+            //                 padding: 30px;
+            //                 border-radius: 8px;
+            //                 max-width: 600px;
+            //                 margin: auto;
+            //                 box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            //             }
+            //             .footer {
+            //                 text-align: center;
+            //                 font-size: 12px;
+            //                 color: #888;
+            //                 margin-top: 20px;
+            //             }
+            //         </style>
+            //     </head>
+            //     <body>
+            //         <div class="container">
+            //             <h2>Password Reset Successfully</h2>
+            //             <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+            //             <p>Your password has been successfully updated for your Talentrek account.</p>
+            //             <p>If you didn\'t initiate this change, please contact our support team immediately.</p>
+            //             <p>Stay safe,<br><strong>The Talentrek Team</strong></p>
+            //         </div>
+            //         <div class="footer">
+            //             &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+            //         </div>
+            //     </body>
+            //     </html>
+            // ', function ($message) use ($jobseeker) {
+            //     $message->to($jobseeker->email)
+            //             ->subject('Your Talentrek Password Has Been Reset');
+            // });
         }
 
         return response()->json([

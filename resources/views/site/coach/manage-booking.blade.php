@@ -8,6 +8,10 @@
             </div>
         </div>
     </div>
+
+    @if($coachNeedsSubscription)
+    @include('site.coach.subscription.index')
+@endif
     <div class="page-wraper">
         <div class="flex h-screen">
             @include('site.coach.componants.sidebar')
@@ -125,7 +129,9 @@
                                 <template x-for="(slot, index) in activeSlots" :key="index">
                                     <tr class="border-b">
                                         <td class="px-4 py-2" x-text="index + 1"></td>
-                                        <td class="px-4 py-2" x-text="slot.start_time + ' - ' + slot.end_time"></td>
+                                        <!-- <td class="px-4 py-2" x-text="slot.start_time + ' - ' + slot.end_time"></td> -->
+                                        <td class="px-4 py-2" x-text="formatTime12Hour(slot.start_time) + ' - ' + formatTime12Hour(slot.end_time)"></td>
+
                                         <td class="px-4 py-2">
                                             <div class="flex items-center gap-2" x-data="{ updateUrl: @js(route('coach.update-slot-status')) }">
                                                 <input 
@@ -202,11 +208,15 @@
                                     x-transition 
                                     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                                     style="display: none;"
-                                >
+                                    >
                                     <div 
                                         class="bg-white rounded-lg p-6 w-full max-w-md" 
                                         @click.outside="showEditModal = false"
                                     >
+                                    <template x-if="editSlot.error">
+                                        <div class="bg-red-100 text-red-700 px-3 py-2 rounded mb-4" x-text="editSlot.error"></div>
+                                    </template>
+
                                         <h2 class="text-lg font-semibold mb-4">Edit Slot Time</h2>
                                         <form @submit.prevent="updateSlotTime">
                                             <!-- Start Time -->
@@ -268,7 +278,7 @@
                     unavailableDatesMap: @json($unavailableDatesMap),
                 };
 
-                function createBookingSlots() {
+function createBookingSlots() {
     const today = new Date();
     const thisYear = today.getFullYear();
 
@@ -404,7 +414,36 @@
             hour = hour === 0 ? 12 : hour;
             return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
         },
+        // updateSlotTime() {
+        //     fetch('{{ route('coach.update-slot-time') }}', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //             'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        //         },
+        //         body: JSON.stringify(this.editSlot)
+        //     })
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         if (data.status === 'success') {
+        //             const slots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
+        //             const idx = slots.findIndex(s => s.id === this.editSlot.id);
+        //             if (idx !== -1) {
+        //                 slots[idx].start_time = this.editSlot.start_time;
+        //                 slots[idx].end_time = this.editSlot.end_time;
+        //             }
+        //             this.successMessage = 'Slot time updated successfully!';
+        //             setTimeout(() => this.successMessage = '', 3000);
+        //             this.showEditModal = false;
+        //         }
+        //     })
+        //     .catch(err => {
+        //         console.error('Failed to update slot time', err);
+        //     });
+        // },
         updateSlotTime() {
+            this.editSlot.error = ''; // clear previous error
+
             fetch('{{ route('coach.update-slot-time') }}', {
                 method: 'POST',
                 headers: {
@@ -413,8 +452,29 @@
                 },
                 body: JSON.stringify(this.editSlot)
             })
-            .then(res => res.json())
+            .then(async res => {
+                if (!res.ok) {
+                    // Handle Laravel validation errors
+                    const errorData = await res.json();
+                    if (errorData.errors) {
+                        // Take first validation error message
+                        this.editSlot.error = Object.values(errorData.errors)[0][0];
+                    } else if (errorData.message) {
+                        this.editSlot.error = errorData.message;
+                    } else {
+                        this.editSlot.error = 'Something went wrong.';
+                    }
+                    throw new Error('Request failed');
+                }
+                return res.json();
+            })
             .then(data => {
+                if (data.status === 'error') {
+                    // Laravel custom error
+                    this.editSlot.error = data.message;
+                    return;
+                }
+
                 if (data.status === 'success') {
                     const slots = this.activeMode === 'online' ? this.onlineSlots : this.offlineSlots;
                     const idx = slots.findIndex(s => s.id === this.editSlot.id);
@@ -422,6 +482,7 @@
                         slots[idx].start_time = this.editSlot.start_time;
                         slots[idx].end_time = this.editSlot.end_time;
                     }
+                    location.reload();
                     this.successMessage = 'Slot time updated successfully!';
                     setTimeout(() => this.successMessage = '', 3000);
                     this.showEditModal = false;
@@ -431,6 +492,7 @@
                 console.error('Failed to update slot time', err);
             });
         },
+
 
         // Delete
         deleteSlotId: null,
@@ -537,9 +599,5 @@
 
     </div>
            
-
-
-
-          
 
 @include('site.coach.componants.footer')

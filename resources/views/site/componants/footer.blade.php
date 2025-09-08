@@ -1,3 +1,4 @@
+
 <footer class="bg-white border-t pt-10 pb-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
@@ -58,8 +59,8 @@
                 <ul class="space-y-2 text-sm text-gray-600">
                     <li><a href="#" class="hover:text-blue-600">FAQs</a></li>
                     <li><a href="#" class="hover:text-blue-600">Help Center</a></li>
-                    <li><a href="https://talentrek.reviewdevelopment.net/uploads/Talentrek_Terms_and_Conditions.docx" class="hover:text-blue-600">Terms of Use</a></li>
-                    <li><a href="https://talentrek.reviewdevelopment.net/uploads/Talentrek_privacy-policy (3).docx" class="hover:text-blue-600">Privacy Policy</a></li>
+                    <li><a href="{{ route('terms-and-conditions') }}" class="hover:text-blue-600">Terms of Use</a></li>
+                    <li><a href="{{ route('privacy-policy') }}" class="hover:text-blue-600">Privacy Policy</a></li>
                 </ul>
             </div>
 

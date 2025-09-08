@@ -29,6 +29,7 @@ class TrainingBatch extends Authenticatable
         'training_material_id',
         'batch_no',
         'start_date',
+        'end_date',
         'start_timing',
         'end_timing',
         'duration',

@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Api\BookingSession;
 use App\Models\Api\BookingSlot;
 use App\Models\Api\BookingSlotUnavailableDate;
+use App\Models\Api\Assessors;
+use App\Models\Api\Mentors;
+use App\Models\Api\Coach;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -259,7 +263,14 @@ class SlotManagementController extends Controller
                         ->where('unavailable_date', $date)
                         ->exists();
 
+                    $isBooked = DB::table('jobseeker_saved_booking_session')
+                        ->where('booking_slot_id', $slot->id)
+                        ->where('slot_date', $date)
+                        ->where('status', 'pending')
+                        ->exists();
+
                     $slot->is_unavailable = !$isUnavailable;
+                    $slot->is_booked = $isBooked;
                     return $slot;
                 });
 
@@ -268,12 +279,16 @@ class SlotManagementController extends Controller
                         'status'  => false,
                         'message' => 'No booking slots found for the given user.'
                     ], 404);
-                }
+                }                
 
-                
-
+                $slotPrice = $this->getUserSlotPrice($userId,$userType);
+                $slotTax = $this->getSlotPercentage($userType) ;
+                $slotTotalAmount = $slotPrice + ($slotPrice * $slotTax / 100); 
                 return response()->json([
                     'status'  => true,
+                    'perSlotPrice' => $slotPrice, 
+                    'slotTaxPercentage' => $slotTax, 
+                    'slotTotalAmount' => $slotTotalAmount, 
                     'data' => $slots 
                 ], 200);
 
@@ -430,7 +445,7 @@ class SlotManagementController extends Controller
     {
         try {
                $validator = Validator::make($request->all(), [
-                    'id'     => 'required|exists:booking_slots,id',
+                    'id'     => 'required',
                     'reason' => 'required|string',
                 ]);
 
@@ -532,7 +547,7 @@ class SlotManagementController extends Controller
                     'booking_slot_id' => $request->slot_id,
                     'slot_time' => $slot->slot_time,
                     'slot_date'       => $date,
-                    'status'          => 'confirmed',
+                    'status'          => 'pending',
                 ]);
 
                 return response()->json([
@@ -589,5 +604,47 @@ class SlotManagementController extends Controller
                 'message' => 'Something went wrong.'
             ], 500);
         }
+    }
+
+    private function getUserSlotPrice($id,$type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Mentors::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Coach::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Assessors::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        }
+       
+        return 1 ;
+    }
+
+    private function getSlotPercentage($type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Setting::select('mentorTax')->where('id', 1)->first();
+            return $MentorsDetails->mentorTax ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Setting::select('coachTax')->where('id', 1)->first();
+            return $MentorsDetails->coachTax ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Setting::select('assessorTax')->where('id', 1)->first();
+            return $MentorsDetails->assessorTax ;
+        }
+       
+        return 1 ;
     }
 }

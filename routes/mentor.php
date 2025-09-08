@@ -26,7 +26,16 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::post('/mentor/login', [MentorController::class, 'loginMentor'])->name('mentor.login.submit');
 	});
 	
-	Route::group(['middleware' => 'mentor.auth'], function(){
+
+	// Routes accessible after login but before subscription
+    Route::middleware(['mentor.auth'])->group(function () {
+        Route::get('/subscription', [MentorController::class, 'showSubscriptionPlans'])->name('mentor.subscription.index');
+        Route::post('/subscription-payment', [MentorController::class, 'processSubscriptionPayment'])->name('mentor.subscription.payment');
+    });
+
+
+	Route::middleware(['mentor.auth', 'check.mentor.subscription'])->group(function () {
+
 		Route::get('/dashboard',[MentorController::class, 'dashboard'])->name('mentor.dashboard');
 
 		Route::get('/dashboard',[MentorController::class, 'showMentorDashboard'])->name('mentor.dashboard');

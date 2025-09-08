@@ -16,6 +16,7 @@
             background: white;
         }
     </style>
+
 @include('site.componants.navbar')
 
     <div class="page-content">
@@ -163,10 +164,13 @@
                             }
                         }, 10000);
                     </script>
-                    <section class="max-w-7xl mx-auto p-4">
-                        <form method="POST" action="{{ route('mentorship-booking-submit') }}">
-                            @csrf
+                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+                    <section class="max-w-7xl mx-auto p-4">
+                        <form method="POST" action="{{ route('mentorship-booking-submit') }}" x-data="{ paymentMethod: '' }">
+                        @csrf
+                        <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-6">
                             <!-- Mentorship mode & Date -->
                             <div class="grid grid-cols-2 gap-6 mb-6">
                                 <div>
@@ -196,164 +200,244 @@
                                 <input type="hidden" name="slot_id" id="selectedSlotId" required />
                                 <input type="hidden" name="slot_time" id="selectedSlotTime" required />
                             </div>
+                        </div>
+                        <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
+                            <!-- Select Payment Method -->
+                            <div>
+                                <h3 class="text-sm font-medium mb-2">Select Payment Method:</h3>
+                                <div class="space-y-2">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="payment_method" value="card" x-model="paymentMethod"
+                                            class="form-radio text-blue-600">
+                                        <span class="text-sm">Credit / Debit Card</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="payment_method" value="upi" x-model="paymentMethod"
+                                            class="form-radio text-blue-600">
+                                        <span class="text-sm">UPI / Online Payment</span>
+                                    </label>
+                                    
+                                </div>
+                            </div>
 
-                            <!-- Book Session Button -->
-                            <div class="mt-6">
-                                <button id="bookBtn" type="submit" class="bg-blue-700 text-white px-6 py-2 rounded font-semibold">
-                                    Book Session
+                            <!-- Card Payment Section -->
+                            <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
+                                <h4 class="text-sm font-medium mb-1">Enter Card Details:</h4>
+                                <input type="text" placeholder="Cardholder Name" class="w-full border rounded px-3 py-2 text-sm">
+                                <input type="text" placeholder="Card Number" maxlength="19" class="w-full border rounded px-3 py-2 text-sm">
+                                <div class="flex space-x-2">
+                                    <input type="text" placeholder="MM/YY" class="w-1/2 border rounded px-3 py-2 text-sm">
+                                    <input type="text" placeholder="CVV" maxlength="4" class="w-1/2 border rounded px-3 py-2 text-sm">
+                                </div>
+                            </div>
+
+                            <!-- UPI Section -->
+                            <div x-show="paymentMethod === 'upi'" class="space-y-2 border p-4 rounded bg-gray-50">
+                                <h4 class="text-sm font-medium mb-1">Enter UPI ID:</h4>
+                                <input type="text" placeholder="yourname@upi" class="w-full border rounded px-3 py-2 text-sm">
+                            </div>
+
+                        
+                            <!-- Apply Promocode Section -->
+                            <div>
+                                <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
+                                <div class="flex space-x-2">
+                                    <input type="text" placeholder="Enter promocode for discount"
+                                        class="w-full border rounded px-3 py-2 text-sm">
+                                    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                </div>
+                            </div>
+
+                            @php
+                                $mentorId = $mentorDetails->mentor_id;
+                                $slotPrice = $mentorDetails->per_slot_price;
+                                $taxModel = App\Models\Taxation::where('user_type', 'mentor')
+                                            ->where('is_active', 1)
+                                            ->first();
+
+                                $sessionFee = $slotPrice;
+                                $discount = $savedPrice ?? 0;
+
+                                $taxRate = $taxModel ? $taxModel->rate : 0;
+                                $taxType = $taxModel ? $taxModel->type : 'percentage';
+
+                                if ($taxType === 'percentage') {
+                                    $taxAmount = round(($sessionFee * $taxRate) / 100, 2);
+                                } else {
+                                    $taxAmount = round($taxRate, 2);
+                                }
+
+                                $grandTotal = $sessionFee + $taxAmount - $discount;
+                            @endphp
+
+                            <!-- Mentor Session Billing Information -->
+                            <div class="border rounded p-4 space-y-2 mt-4">
+                                <h3 class="text-sm font-medium border-b pb-2">Mentor Session Billing</h3>
+
+                                <div class="flex justify-between text-sm">
+                                    <span>Session Fee</span>
+                                    <span>SAR {{ number_format($sessionFee, 2) }}</span>
+                                </div>
+
+                                @if($discount > 0)
+                                <div class="flex justify-between text-sm">
+                                    <span>Discount</span>
+                                    <span>- SAR {{ number_format($discount, 2) }}</span>
+                                </div>
+                                @endif
+
+                                <div class="flex justify-between text-sm">
+                                    <span>Tax 
+                                        @if($taxType === 'percentage')
+                                            ({{ $taxRate }}%)
+                                        @endif
+                                    </span>
+                                    <span>SAR {{ number_format($taxAmount, 2) }}</span>
+                                </div>
+
+                                <div class="flex justify-between text-base font-semibold pt-2 border-t">
+                                    <span>Total Payable</span>
+                                    <span>SAR {{ number_format($grandTotal, 2) }}</span>
+                                </div>
+
+                                <button id="bookBtn" type="submit"
+                                    class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                    Proceed to Checkout
                                 </button>
                             </div>
+                        </div>
+                        </div>
+
                         </form>
 
                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                         <script>
-                            $(document).ready(function () {
-                                // Book button click validation
-                                $('#bookBtn').on('click', function(e) {
-                                    e.preventDefault();
+                        $(function () {
+                            // Validation on book
+                            $('#bookBtn').on('click', function(e) {
+                                e.preventDefault();
 
-                                    let mode = $('#modeSelect').val();
-                                    let date = $('#dateInput').val();
-                                    let slotId = $('#selectedSlotId').val();
-                                    let slotTime = $('#selectedSlotTime').val();
+                                let mode = $('#modeSelect').val();
+                                let date = $('#dateInput').val();
+                                let slotId = $('#selectedSlotId').val();
+                                let slotTime = $('#selectedSlotTime').val();
 
-                                    // Clear previous errors
-                                    $('.error-message').remove();
+                                $('.error-message').remove();
+                                let isValid = true;
 
-                                    let isValid = true;
-
-                                    if (!mode) {
-                                        $('#modeSelect').after('<span class="text-red-500 error-message">Please select assessment mode</span>');
-                                        isValid = false;
-                                    }
-
-                                    if (!date) {
-                                        $('#dateInput').after('<span class="text-red-500 error-message">Please select a date</span>');
-                                        isValid = false;
-                                    }
-
-                                    if (!slotId || !slotTime) {
-                                        $('#slotContainer').after('<span class="text-red-500 error-message">Please select a time slot</span>');
-                                        isValid = false;
-                                    }
-
-                                    if (isValid) {
-                                        $(this).closest('form').submit();
-                                    }
-                                });
-
-                                // Remove error message on change or input
-                                $('#modeSelect').on('change', function () {
-                                    $(this).next('.error-message').remove();
-                                });
-
-                                $('#dateInput').on('input change', function () {
-                                    $(this).next('.error-message').remove();
-                                });
-
-                                $('#slotContainer').on('click', 'button', function () {
-                                    $('#slotContainer').next('.error-message').remove();
-                                });
-                            });
-                        </script>
-                        <!-- Script -->
-                        <script>
-                            document.getElementById('modeSelect').addEventListener('change', fetchSlots);
-                            document.getElementById('dateInput').addEventListener('change', fetchSlots);
-
-                            function fetchSlots() {
-                                const mode = document.getElementById('modeSelect').value;
-                                const date = document.getElementById('dateInput').value;
-                                const mentorId = document.getElementById('mentorName').value;
-                                const container = document.getElementById('slotContainer');
-
-                                if (!mode || !date || !mentorId) {
-                                    container.innerHTML = '';
-                                    return;
+                                if (!mode) {
+                                    $('#modeSelect').after('<span class="text-red-500 error-message">Please select mentorship mode</span>');
+                                    isValid = false;
+                                }
+                                if (!date) {
+                                    $('#dateInput').after('<span class="text-red-500 error-message">Please select a date</span>');
+                                    isValid = false;
+                                }
+                                if (!slotId || !slotTime) {
+                                    $('#slotContainer').after('<span class="text-red-500 error-message">Please select a time slot</span>');
+                                    isValid = false;
                                 }
 
-                                const url = `{{ route('get-available-slots') }}?mode=${mode}&date=${date}&mentor_id=${mentorId}`;
+                                if (isValid) {
+                                    $(this).closest('form').submit();
+                                }
+                            });
 
-                                fetch(url)
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        container.innerHTML = '';
+                            // Clear error on change
+                            $('#modeSelect, #dateInput').on('change input', function () {
+                                $(this).next('.error-message').remove();
+                            });
+                            $('#slotContainer').on('click', 'button', function () {
+                                $('#slotContainer').next('.error-message').remove();
+                            });
+                        });
 
-                                        if (!data.status || data.slots.length === 0) {
-                                            container.innerHTML = `<p class="col-span-2 text-center text-gray-500">No slots available</p>`;
-                                            return;
+                        // Fetch slots
+                        document.getElementById('modeSelect').addEventListener('change', fetchSlots);
+                        document.getElementById('dateInput').addEventListener('change', fetchSlots);
+
+                        function fetchSlots() {
+                            const mode = document.getElementById('modeSelect').value;
+                            const date = document.getElementById('dateInput').value;
+                            const mentorId = document.getElementById('mentorName').value;
+                            const container = document.getElementById('slotContainer');
+
+                            if (!mode || !date || !mentorId) {
+                                container.innerHTML = '';
+                                return;
+                            }
+
+                            const url = `{{ route('get-available-slots') }}?mode=${mode}&date=${date}&mentor_id=${mentorId}`;
+
+                            fetch(url)
+                                .then(response => response.json())
+                                .then(data => {
+                                    container.innerHTML = '';
+
+                                    if (!data.status || data.slots.length === 0) {
+                                        container.innerHTML = `<p class="col-span-4 text-center text-gray-500">No slots available</p>`;
+                                        return;
+                                    }
+
+                                    const bookedSlotIds = data.booked_slot_ids || [];
+                                    data.slots.forEach(slot => {
+                                        const isUnavailable = slot.is_unavailable;
+                                        const isBooked = bookedSlotIds.includes(slot.id);
+
+                                        const btn = document.createElement('button');
+                                        btn.type = 'button';
+
+                                        let baseClass = 'border rounded py-2 px-3 w-full transition';
+                                        if (isUnavailable) {
+                                            baseClass += ' text-red-600 border-red-500 cursor-not-allowed bg-red-50';
+                                        } else if (isBooked) {
+                                            baseClass += ' bg-yellow-200 border-yellow-500 text-yellow-800 cursor-not-allowed';
+                                        } else {
+                                            baseClass += ' text-gray-900 hover:bg-blue-400';
                                         }
 
-                                        const bookedSlotIds = data.booked_slot_ids || [];
+                                        btn.className = baseClass;
+                                        btn.disabled = isUnavailable || isBooked;
 
-                                        data.slots.forEach(slot => {
-                                            const isUnavailable = slot.is_unavailable;
-                                            const isBooked = bookedSlotIds.includes(slot.id);
+                                        btn.innerHTML = `
+                                            <p class="font-medium">${slot.start_time} - ${slot.end_time}</p>
+                                            <p class="text-xs ${
+                                                isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-600'
+                                            }">
+                                                ${isUnavailable ? 'Unavailable' : isBooked ? 'Already Booked' : 'Available'}
+                                            </p>
+                                        `;
 
-                                            const btn = document.createElement('button');
-                                            btn.type = 'button';
+                                        if (!isUnavailable && !isBooked) {
+                                            btn.dataset.available = 'true';
+                                            btn.dataset.slotId = slot.id;
+                                            btn.onclick = function () {
+                                                selectTimeSlot(this);
+                                            };
+                                        }
 
-                                            let baseClass = 'border rounded py-2 px-3 w-full';
-                                            if (isUnavailable) {
-                                                baseClass += ' text-red-600 border-red-500 cursor-not-allowed bg-red-50';
-                                            } else if (isBooked) {
-                                                baseClass += ' bg-yellow-200 border-yellow-500 text-yellow-800'; // highlight booked
-                                            } else {
-                                                baseClass += ' text-gray-900';
-                                            }
-
-                                            btn.className = baseClass;
-                                            btn.disabled = isUnavailable;
-
-                                            btn.innerHTML = `
-                                                <p class="font-medium">${slot.start_time} - ${slot.end_time}</p>
-                                                <p class="text-xs ${
-                                                    isUnavailable ? 'text-red-600' : isBooked ? 'text-yellow-700' : 'text-green-600'
-                                                }">${isUnavailable ? 'Unavailable' : isBooked ? 'Already Booked' : 'Available'}</p>
-                                            `;
-
-                                            btn.disabled = isUnavailable || isBooked;
-
-
-                                            if (!isUnavailable) {
-                                                btn.setAttribute('data-available', 'true');
-                                                btn.setAttribute('data-slot-id', slot.id);
-                                                btn.onclick = function () {
-                                                    selectTimeSlot(this);
-                                                };
-                                            }
-
-                                            container.appendChild(btn);
-                                        });
-                                    })
-                                    .catch(error => {
-                                        console.error('Failed to fetch slots:', error);
-                                        container.innerHTML = `<p class="col-span-4 text-center text-red-600">Error loading slots</p>`;
+                                        container.appendChild(btn);
                                     });
-                            }
-
-                            function selectTimeSlot(selectedButton) {
-                                document.querySelectorAll('#slotContainer button[data-available="true"]').forEach(btn => {
-                                    btn.classList.remove('bg-blue-500', 'text-white');
-                                    btn.classList.add('text-gray-900');
+                                })
+                                .catch(() => {
+                                    container.innerHTML = `<p class="col-span-4 text-center text-red-600">Error loading slots</p>`;
                                 });
+                        }
 
-                                selectedButton.classList.add('bg-blue-500', 'text-white');
-                                selectedButton.classList.remove('text-gray-900');
-
-                                const slotId = selectedButton.getAttribute('data-slot-id');
-                                const slotTime = selectedButton.querySelector('p.font-medium').innerText;
-
-                                document.getElementById('selectedSlotId').value = slotId;
-                                document.getElementById('selectedSlotTime').value = slotTime;
-                            }
-
-                            document.querySelector('form').addEventListener('submit', function () {
-                                const btn = document.getElementById('bookBtn');
-                                btn.disabled = true;
-                                btn.innerText = 'Booking...';
+                        function selectTimeSlot(selectedButton) {
+                            document.querySelectorAll('#slotContainer button[data-available="true"]').forEach(btn => {
+                                btn.classList.remove('bg-blue-500', 'text-white');
+                                btn.classList.add('text-gray-900');
                             });
+
+                            selectedButton.classList.add('bg-blue-500', 'text-white');
+                            selectedButton.classList.remove('text-gray-900');
+
+                            document.getElementById('selectedSlotId').value = selectedButton.dataset.slotId;
+                            document.getElementById('selectedSlotTime').value = selectedButton.querySelector('p.font-medium').innerText;
+                        }
                         </script>
+
                     </section>
 
               </div>

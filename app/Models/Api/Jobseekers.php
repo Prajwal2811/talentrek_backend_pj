@@ -40,7 +40,8 @@ class Jobseekers extends Authenticatable
         'pin_code',
         'country',
         'state',
-        'national_id'
+        'national_id',
+        'is_registered'
     ];
 
     /**

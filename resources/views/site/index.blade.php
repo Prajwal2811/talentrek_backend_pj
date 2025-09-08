@@ -50,7 +50,7 @@
     }
 
     $jobseekerId = auth()->guard('jobseeker')->id();
-    
+    //All Trainer chat list with perticular jobseeker
     $trainersList = DB::table('jobseeker_training_material_purchases as p')
         ->join('trainers as t', 'p.trainer_id', '=', 't.id')
         ->leftJoin('additional_info as ai', function($join) {
@@ -66,23 +66,82 @@
         )
         ->distinct()
         ->get();
+     //All Mentor chat list with perticular jobseeker
+    $mentorsList = DB::table('jobseeker_saved_booking_session as p')
+    ->join('mentors as m', 'p.user_id', '=', 'm.id')
+    ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'm.id')
+                ->where('ai.user_type', '=', 'mentor')
+                ->where('ai.doc_type', '=', 'mentor_profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            'm.id as user_id', 
+            'm.name as mentor_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+    ->get();
+    // echo "<pre>";
+    // print_r($mentorsList);exit;
+
+    //All Mentor chat list with perticular jobseeker
+    $assessorsList = DB::table('jobseeker_saved_booking_session as p')
+    ->join('assessors as m', 'p.user_id', '=', 'm.id')
+    ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'm.id')
+                ->where('ai.user_type', '=', 'assessor')
+                ->where('ai.doc_type', '=', 'assessor_profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            'm.id as user_id', 
+            'm.name as assessor_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+    ->get();
+    // echo "<pre>";
+    // print_r($assessorsList);exit;
+
+    //All Mentor chat list with perticular jobseeker
+    $coachesList = DB::table('jobseeker_saved_booking_session as p')
+    ->join('coaches as m', 'p.user_id', '=', 'm.id')
+    ->leftJoin('additional_info as ai', function($join) {
+            $join->on('ai.user_id', '=', 'm.id')
+                ->where('ai.user_type', '=', 'coach')
+                ->where('ai.doc_type', '=', 'coach_profile_picture');
+        })
+        ->where('p.jobseeker_id', $jobseekerId)
+        ->select(
+            'm.id as user_id', 
+            'm.name as coach_name', 
+            'ai.document_path as profile_picture'
+        )
+        ->distinct()
+    ->get();
+    // echo "<pre>";
+    // print_r($coachesList);exit;
+
+    //All Admin chat list with perticular jobseeker
+    $adminsList = [];
+
+    if ($jobseekerId) {
+        $adminsList = DB::table('admins as a')
+            ->select('a.id as user_id', 'a.name as admin_name')
+            ->where('a.status', 'active')
+            ->get();
+    }
+
+    // echo "<pre>";
+    // print_r($adminsList);exit;
 
 ?>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 @include('site.componants.header')
+
+
 
 <!-- CHAT MODULE CSS START -->
 
@@ -147,7 +206,7 @@
     }
 
     /* Tabs */
-    .chat-tabs {
+    /* .chat-tabs {
     display: flex;
     border-bottom: 1px solid #ddd;
     }
@@ -165,7 +224,31 @@
     .chat-tabs button.active {
     color: #007bff;
     border-bottom: 2px solid #007bff;
+    } */
+   .chat-tabs {
+        display: flex;
+        border-bottom: 1px solid #ddd;
     }
+
+    .chat-tabs button {
+        flex: 1;                /* Equal width */
+        width: 20%;             /* 5 button → 20% each *0/
+        padding: 10px 0;
+        border: none;
+        background: #f1f1f1;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: center;     /* Center text */
+        white-space: nowrap;    /* Text ek line me rahe */
+        border-radius: 5px 5px 0 0;
+    }
+
+    .chat-tabs button.active {
+        background: #007bff;
+        color: #fff;
+    }
+
+
 
     /* Chat List Area */
     .chat-lists {
@@ -420,22 +503,10 @@
 </style>
 
 <style>
-    /* #chatMessages {
-        display: flex;
-        flex-direction: column;
-        height: 400px;
-        overflow-y: auto;
-        border: 1px solid #ccc;
-        padding: 10px;
-        background-color: #f9f9f9;
-    } */
 
     #chatMessages {
         display: flex;
         flex-direction: column;
-        /* ❌ remove height & overflow here */
-        /* height: 400px; */
-        /* overflow-y: auto; */
         padding: 10px;
         background-color: #f9f9f9;
     }
@@ -448,13 +519,12 @@
 
     .chat-body-box {
         overflow-y: scroll;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none; 
+        -ms-overflow-style: none;  
 
-        scroll-behavior: smooth; /* Optional: for smooth scrolling */
+        scroll-behavior: smooth;
     }
 
-    /* For Chrome, Safari, and Edge (WebKit browsers) */
     .chat-body-box::-webkit-scrollbar {
         display: none;
     }
@@ -473,8 +543,8 @@
     }
 
     .message.outgoing {
-        background-color: #007bff;
-        color: white;
+        background-color: rgba(219, 234, 254, var(--tw-bg-opacity));
+        color: black;
         align-self: flex-end;
         text-align: left;
         border-top-left-radius: 0;
@@ -490,8 +560,6 @@
 
 
 </style>
-
-@include('site.componants.header')
 <!-- CHAT MODULE CSS END -->
 <body>
     <div class="loading-area">
@@ -510,20 +578,37 @@
             background: white;
         }
     </style>
+      
       @include('site.componants.navbar')
         @php
             $bannerContent = App\Models\CMS::where('slug', 'web_banner')->first();
         @endphp
-        <div class="page-content">
+        <!-- <div class="page-content">
             <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" style="background-image: url('{{ $bannerContent->file_path }}');">
                 {{-- CMS Start form here --}}
                     @php
                         echo $bannerContent->description;
                     @endphp
                 {{-- CMS end form here --}}
-                <!-- Curved bottom image -->
+              
                 <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
                     <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" alt="Curved Bottom" class="w-full h-auto" />
+                </div>
+            </div> -->
+            <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" 
+                style="background-image: url('{{ asset('asset/images/banner/new_banner.webp') }}');">
+                
+                {{-- CMS Start form here --}}
+                    @php
+                        echo $bannerContent->description;
+                    @endphp
+                {{-- CMS end form here --}}
+
+                
+                <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
+                    <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" 
+                        alt="Curved Bottom" 
+                        class="w-full h-auto" />
                 </div>
             </div>
 
@@ -533,14 +618,16 @@
                
                 <!-- Font Awesome CDN -->
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-                <!-- Chat Button -->
-                <div class="chat-button" onclick="toggleChatModal()">
-                    <div class="chat-label">Chat</div>
-                    <div class="chat-icon">
-                        <i class="fa-solid fa-comments"></i>
+                <?php if($jobseekerId = auth()->guard('jobseeker')->id()){ ?>
+                    <!-- Chat Button -->
+                    <div class="chat-button" onclick="toggleChatModal()">
+                        <div class="chat-label">Chat</div>
+                        <div class="chat-icon">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
                     </div>
-                </div>
+                <?php }?>
+                
 
                 <!-- Chat Modal -->
                 <div id="chatModal" class="chat-modal hidden">
@@ -549,18 +636,21 @@
                         <button onclick="showTab('mentor')">Mentor</button>
                         <button onclick="showTab('coach')">Coach</button>
                         <button onclick="showTab('assessor')">Assessor</button>
+                        <button onclick="showTab('admin')">Admin</button>
                     </div>
 
                     <!-- Chat Lists -->
                     <div class="chat-lists">
+
                         <!-- Trainer Tab -->
                         <div id="trainer" class="tab-content active">
                             @foreach($trainersList as $trainer)
                                 <div class="chat-user" onclick="openChat({{ $trainer->trainer_id }}, 'trainer', '{{ $trainer->trainer_name }}', '{{ $trainer->profile_picture ?? asset('images/default-profile.png') }}')">
->
                                     <img src="{{ $trainer->profile_picture ?? asset('images/default-profile.png') }}" />
                                     <div class="chat-text">
-                                        <div class="chat-name">{{ $trainer->trainer_name }}</div>
+                                        <div class="chat-name">{{ $trainer->trainer_name }}
+                                            <span class="unread-count" id="unread-{{ $trainer->trainer_id }}-trainer"></span>
+                                        </div>
                                         <div class="chat-message">Click to start chat</div>
                                     </div>
                                     <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
@@ -568,44 +658,76 @@
                             @endforeach
                         </div>
 
-
                         <!-- Mentor Tab -->
                         <div id="mentor" class="tab-content">
-                            <div class="chat-user">
-                                <img src="https://randomuser.me/api/portraits/men/2.jpg" />
-                                <div class="chat-text">
-                                    <div class="chat-name">Mentor David</div>
-                                    <div class="chat-message">Mentor message sample</div>
+                            @foreach($mentorsList as $mentor)
+                                <div class="chat-user" onclick="openChat({{ $mentor->user_id }}, 'mentor', '{{ $mentor->mentor_name }}', '{{ $mentor->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $mentor->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $mentor->mentor_name }}
+                                            <span class="unread-count" id="unread-{{ $mentor->user_id }}-mentor"></span>
+                                        </div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
-                                <div class="chat-time">06:00 PM</div>
-                            </div>
+                            @endforeach
                         </div>
 
                         <!-- Coach Tab -->
                         <div id="coach" class="tab-content">
-                            <div class="chat-user">
-                                <img src="https://randomuser.me/api/portraits/women/3.jpg" />
-                                <div class="chat-text">
-                                    <div class="chat-name">Coach Lucy</div>
-                                    <div class="chat-message">Coach message sample</div>
+                            @foreach($coachesList as $coach)
+                                <div class="chat-user" onclick="openChat({{ $coach->user_id }}, 'coach', '{{ $coach->coach_name }}', '{{ $coach->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $coach->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $coach->coach_name }}
+                                            <span class="unread-count" id="unread-{{ $coach->user_id }}-coach"></span>
+                                        </div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
-                                <div class="chat-time">05:30 PM</div>
-                            </div>
+                            @endforeach
                         </div>
 
                         <!-- Assessor Tab -->
                         <div id="assessor" class="tab-content">
-                            <div class="chat-user">
-                                <img src="https://randomuser.me/api/portraits/men/4.jpg" />
-                                <div class="chat-text">
-                                    <div class="chat-name">Assessor Mike</div>
-                                    <div class="chat-message">Assessor message sample</div>
+                            @foreach($assessorsList as $assessor)
+                                <div class="chat-user" onclick="openChat({{ $assessor->user_id }}, 'assessor', '{{ $assessor->assessor_name }}', '{{ $assessor->profile_picture ?? asset('images/default-profile.png') }}')">
+                                    <img src="{{ $assessor->profile_picture ?? asset('images/default-profile.png') }}" />
+                                    <div class="chat-text">
+                                        <div class="chat-name">{{ $assessor->assessor_name }}
+                                            <span class="unread-count" id="unread-{{ $assessor->user_id }}-assessor"></span>
+                                        </div>
+                                        <div class="chat-message">Click to start chat</div>
+                                    </div>
+                                    <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
-                                <div class="chat-time">04:45 PM</div>
-                            </div>
+                            @endforeach
                         </div>
+
+                        <!-- Admin Tab -->
+                        <div id="admin" class="tab-content">
+                            @if ($jobseekerId)
+                            <div class="chat-user" 
+                                onclick="openChat(1, 'admin', 'Talententrek Contact Support', 'https://static.vecteezy.com/system/resources/previews/021/162/989/non_2x/3d-male-customer-call-service-wearing-cap-png.png')">
+
+                                <img src="https://static.vecteezy.com/system/resources/previews/021/162/989/non_2x/3d-male-customer-call-service-wearing-cap-png.png" 
+                                    alt="Talententrek Contact Support Avatar" />
+                                <div class="chat-text">
+                                    <div class="chat-name">Talententrek Contact Support
+                                        <span class="unread-count" id="unread-1-admin"></span>
+                                    </div>
+                                    <div class="chat-message">Click to start chat</div>
+                                </div>
+                                <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
+                            </div>
+                            @endif
+                        </div>
+
                     </div>
                 </div>
+
 
                 <!-- Chat Window Box -->
                 <!-- <div id="chatBox" class="chat-box hidden">
@@ -646,9 +768,66 @@
                         <input type="hidden" id="receiver_id">
                         <input type="hidden" id="receiver_type">
 
+                        <!-- Text input -->
                         <input type="text" id="message" placeholder="Write your message here ....." />
-                        <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+
+                        <!-- File select button -->
+                        <label for="fileInput" class="file-label">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </label>
+                        <input type="file" id="fileInput" style="display: none;" />
+
+                        <!-- Send button -->
+                        <button id="sendBtn" class="send-btn">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
                     </div>
+
+                    <style>
+                    .chat-input {
+                        display: flex;
+                        align-items: center;
+                        padding: 8px;
+                        background: #fff;
+                        border-top: 1px solid #ddd;
+                    }
+
+                    .chat-input input[type="text"] {
+                        flex: 1;
+                        padding: 10px 12px;
+                        border: 1px solid #ccc;
+                        border-radius: 20px;
+                        outline: none;
+                    }
+
+                    .file-label {
+                        cursor: pointer;
+                        font-size: 18px;
+                        color: #555;
+                        padding: 0 8px;
+                    }
+
+                    .file-label:hover {
+                        color: #000;
+                    }
+
+                    .send-btn {
+                        background: #007bff;
+                        border: none;
+                        color: #fff;
+                        padding: 10px 14px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        margin-left: 4px;
+                        font-size: 16px;
+                    }
+
+                    .send-btn:hover {
+                        background: #0069d9;
+                    }
+                    </style>
+
+
                 </div>
 
                 <!-- ========================================== -->
@@ -682,7 +861,212 @@
                 </script>
 
 
+
+
                 <script>
+                    const currentUserId = {{ auth()->guard('jobseeker')->id() }};
+                    const currentUserType = 'jobseeker';
+
+                    // ---------------------- Real-time Listening ----------------------
+                    Echo.channel('chat.jobseeker')
+                        .error((err) => console.error('Subscription error:', err))
+                        .listen('.message.sent', (e) => {
+                            // Ignore own messages
+                            if (parseInt(e.sender_id) !== parseInt(currentUserId)) {
+                                appendMessage(e);
+
+                                // Update unread badge
+                                const badge = $(`#unread-${e.sender_id}-${e.sender_type}`);
+                                let current = parseInt(badge.text() || 0);
+                                badge.text(current + 1).css({
+                                    "background": "red",
+                                    "color": "white",
+                                    "border-radius": "50%",
+                                    "padding": "2px 6px",
+                                    "font-size": "12px",
+                                    "margin-left": "6px"
+                                });
+
+                                scrollToBottom();
+                            }
+                        })
+                        .listen('.message.deleted', (e) => {
+                            $(`#message-${e.messageId}`).remove();
+                        });
+
+                    // ---------------------- File Input Handler ----------------------
+                    $('#fileInput').on('change', function () {
+                        const file = this.files[0];
+                        if (file) {
+                            $('#message').val(file.name); 
+                        }
+                    });
+
+                    // ---------------------- Load Initial Unread Counts ----------------------
+                    function loadUnreadCounts() {
+                        $.get('/chat/unread-counts', function(counts) {
+                            counts.forEach(c => {
+                                const badge = $(`#unread-${c.sender_id}-${c.sender_type}`);
+                                if (c.unread_count > 0) {
+                                    badge.text(c.unread_count).css({
+                                        "background": "red",
+                                        "color": "white",
+                                        "border-radius": "50%",
+                                        "padding": "2px 6px",
+                                        "font-size": "12px",
+                                        "margin-left": "6px"
+                                    });
+                                } else {
+                                    badge.text('').removeAttr('style').removeAttr('data-unread'); // 👈 reset
+                                }
+                            });
+                        });
+                    }
+                    loadUnreadCounts();
+
+                    // ---------------------- Send Message ----------------------
+                    $('#sendBtn').on('click', function(){
+                        const receiverId = $('#receiver_id').val();
+                        const receiverType = $('#receiver_type').val();
+                        const messageText = $('#message').val().trim();
+                        const file = $('#fileInput')[0].files[0];
+
+                        if(!messageText && !file) return;
+
+                        const formData = new FormData();
+                        formData.append('receiver_id', receiverId);
+                        formData.append('receiver_type', receiverType);
+                        formData.append('message', messageText);
+                        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                        if(file) formData.append('file', file);
+
+                        let url = '/chat/send';
+                        if(receiverType === 'admin') url = '/jobseeker/admin/chat/send';
+
+                        $.ajax({
+                            url: url,
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(res){
+                                $('#message').val('');
+                                $('#fileInput').val('');
+                                if(res && res.id) appendMessage(res);
+                                scrollToBottom();
+                            },
+                            error: function(xhr){
+                                console.error('Send error:', xhr.responseText);
+                                alert('Message sending failed.');
+                            }
+                        });
+                    });
+
+                    // ---------------------- Fetch Messages ----------------------
+                    function getMessages(receiverId, receiverType){
+                        let url = '/chat/messages';
+                        if(receiverType === 'admin') url = '/jobseeker/admin/chat/messages';
+
+                        $.get(url, { receiver_id: receiverId, receiver_type: receiverType }, function(messages){
+                            $('#chatMessages').html('');
+                            messages.forEach(msg => appendMessage(msg));
+                            scrollToBottom();
+                        });
+                    }
+
+                    // ---------------------- Append Message ----------------------
+                    function appendMessage(msg) {
+                        const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+                        let content = '';
+
+                        // File message
+                        if (msg.type == 2) {
+                            let cleanPath = msg.message.split('?')[0].split('#')[0];
+                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                            let ext = fileName.split('.').pop().toLowerCase();
+                            let iconPath = '';
+
+                            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                content = `<img src="${msg.message}" style="max-width:125px; border-radius:6px;" />`;
+                            } else {
+                                if (ext === 'pdf') iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                                else if (ext === 'doc' || ext === 'docx') iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png';
+                                else iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png';
+
+                                content = `
+                                    <a href="${msg.message}" target="_blank" class="file-message" style="
+                                        display: flex;
+                                        align-items: center;
+                                        background: white;
+                                        border: 2px solid #1e90ff;
+                                        border-radius: 10px;
+                                        padding: 8px 12px;
+                                        text-decoration: none;
+                                        color: black;
+                                        font-weight: bold;
+                                        max-width: 250px;
+                                        gap: 10px;
+                                    ">
+                                        <img src="${iconPath}" style="width: 30px; height: 30px;">
+                                        <span style="
+                                            white-space: nowrap;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                        ">${fileName}</span>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            content = msg.message;
+                        }
+
+                        let time = msg.created_at 
+                            ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        const msgHtml = `
+                            <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
+                                <div>${content}</div>
+                                <div class="text-xs text-gray-500 mt-1">${time}</div>
+                            </div>
+                        `;
+                        $('#chatMessages').append(msgHtml);
+                    }
+
+                    // ---------------------- Open Chat ----------------------
+                    function openChat(receiverId, receiverType, receiverName, receiverProfile) {
+                        $('#receiver_id').val(receiverId);
+                        $('#receiver_type').val(receiverType);
+                        $('#chatName').text(receiverName);
+                        $('#chatProfile').attr('src', receiverProfile);
+
+                        // Reset unread badge instantly (count + style dono)
+                        const badge = $(`#unread-${receiverId}-${receiverType}`);
+                        badge.text('').removeAttr('style').removeAttr('data-unread');
+
+                        // Mark as read in DB
+                        $.post('/chat/mark-as-read', {
+                            receiver_id: receiverId,
+                            receiver_type: receiverType,
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        });
+
+                        getMessages(receiverId, receiverType);
+                    }
+
+
+                    // ---------------------- Scroll to Bottom ----------------------
+                    function scrollToBottom() {
+                        const chatBody = document.querySelector('.chat-body-box');
+                        if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+                    }
+                </script>
+
+
+
+
+
+                <!-- <script>
                    
                     const currentUserId = {{ auth()->guard('jobseeker')->id() }};
                     const currentUserType = 'jobseeker'; 
@@ -703,44 +1087,96 @@
                         });
 
                     
+                    // $('#sendBtn').on('click', function () {
+                    //     const receiverId = $('#receiver_id').val();
+                    //     const receiverType = $('#receiver_type').val();
+                    //     const messageText = $('#message').val().trim();
+
+                    //     if (!messageText) return;
+
+                    //     $.ajax({
+                    //         url: '/chat/send',
+                    //         method: 'POST',
+                    //         data: {
+                    //             receiver_id: receiverId,
+                    //             receiver_type: receiverType,
+                    //             message: messageText,
+                    //             _token: $('meta[name="csrf-token"]').attr('content')
+                    //         },
+                    //         success: function (res) {
+                    //             $('#message').val('');
+
+                    //             if (res && res.id) {
+                    //                 appendMessage({
+                    //                     id: res.id,
+                    //                     sender_id: res.sender_id,
+                    //                     sender_type: res.sender_type,
+                    //                     message: res.message,
+                    //                     created_at: res.created_at
+                    //                 });
+                    //                 getMessages(receiverId, receiverType);
+                    //             } else {
+                    //                 console.error('Unexpected response:', res);
+                    //             }
+                    //         },
+                    //         error: function (xhr, status, error) {
+                    //             console.error('Send error:', error);
+                    //             alert('Message sending failed.');
+                    //         }
+                    //     });
+                    // });
+
+                    // Jab file select ho, uska naam input me dikhao
+                    $('#fileInput').on('change', function () {
+                        const file = this.files[0];
+                        if (file) {
+                            $('#message').val(file.name); // File ka naam text field me
+                        }
+                    });
+
+                    // ✅ Send button click - Text + File ek hi request me jayenge
                     $('#sendBtn').on('click', function () {
                         const receiverId = $('#receiver_id').val();
                         const receiverType = $('#receiver_type').val();
                         const messageText = $('#message').val().trim();
+                        const file = $('#fileInput')[0].files[0];
 
-                        if (!messageText) return;
+                        if (!messageText && !file) return; // Dono empty to kuch mat karo
+
+                        const formData = new FormData();
+                        formData.append('receiver_id', receiverId);
+                        formData.append('receiver_type', receiverType);
+                        formData.append('message', messageText);
+                        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+                        if (file) {
+                            formData.append('file', file);
+                        }
 
                         $.ajax({
-                            url: '/chat/send',
+                            url: '/chat/send', // 🔹 Backend me merged function ka route
                             method: 'POST',
-                            data: {
-                                receiver_id: receiverId,
-                                receiver_type: receiverType,
-                                message: messageText,
-                                _token: $('meta[name="csrf-token"]').attr('content')
-                            },
+                            data: formData,
+                            processData: false,
+                            contentType: false,
                             success: function (res) {
                                 $('#message').val('');
+                                $('#fileInput').val('');
 
                                 if (res && res.id) {
-                                    appendMessage({
-                                        id: res.id,
-                                        sender_id: res.sender_id,
-                                        sender_type: res.sender_type,
-                                        message: res.message,
-                                        created_at: res.created_at
-                                    });
-                                    getMessages(receiverId, receiverType);
+                                    appendMessage(res);
+                                    scrollToBottom();
                                 } else {
                                     console.error('Unexpected response:', res);
                                 }
                             },
-                            error: function (xhr, status, error) {
-                                console.error('Send error:', error);
+                            error: function (xhr) {
+                                console.error('Send error:', xhr.responseText);
                                 alert('Message sending failed.');
                             }
                         });
                     });
+
 
                     
                     function getMessages(receiverId, receiverType) {
@@ -755,17 +1191,80 @@
                     }
 
                 
+                    // function appendMessage(msg) {
+                    //     const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+
+                    //     const msgHtml = `
+                    //         <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
+                    //             ${msg.message}
+                    //         </div>
+                    //     `;
+                    //     $('#chatMessages').append(msgHtml);
+                    //     //scrollToBottom();
+                    // }
                     function appendMessage(msg) {
                         const isOutgoing = parseInt(msg.sender_id) === parseInt(currentUserId);
+                        let content = '';
+
+                        if (msg.type == 2) {
+                            // Clean path & get extension
+                            let cleanPath = msg.message.split('?')[0].split('#')[0];
+                            let fileName = decodeURIComponent(cleanPath.split('/').pop());
+                            let ext = fileName.split('.').pop().toLowerCase();
+
+                            let iconPath = '';
+                            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                // Directly show image
+                                content = `<img src="${msg.message}" style="max-width:125px; border-radius:6px;" />`;
+                            } else {
+                                // Select icon based on file type
+                                if (ext === 'pdf') {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/337/337946.png'; // PDF icon
+                                } else if (ext === 'doc' || ext === 'docx') {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/281/281760.png'; // Word icon
+                                } else {
+                                    iconPath = 'https://cdn-icons-png.flaticon.com/512/2991/2991112.png'; // Generic file
+                                }
+
+                                // File card
+                                content = `
+                                    <a href="${msg.message}" target="_blank" class="file-message" style="
+                                        display: flex;
+                                        align-items: center;
+                                        background: white;
+                                        border: 2px solid #1e90ff;
+                                        border-radius: 10px;
+                                        padding: 8px 12px;
+                                        text-decoration: none;
+                                        color: black;
+                                        font-weight: bold;
+                                        max-width: 250px;
+                                        gap: 10px;
+                                    ">
+                                        <img src="${iconPath}" style="width: 30px; height: 30px;">
+                                        <span style="
+                                            white-space: nowrap;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                        ">${fileName}</span>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            // Text message
+                            content = msg.message;
+                        }
 
                         const msgHtml = `
                             <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}" id="message-${msg.id}">
-                                ${msg.message}
+                                ${content}
                             </div>
                         `;
                         $('#chatMessages').append(msgHtml);
-                        //scrollToBottom();
                     }
+
+
+
 
                     function openChat(receiverId, receiverType, receiverName, receiverProfile) {
                         $('#receiver_id').val(receiverId);
@@ -789,9 +1288,7 @@
                     }
 
 
-                </script>
-
-
+                </script> -->
 
             
 
@@ -848,192 +1345,231 @@
 
 
 
-                <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold text-black">Training Programs</h2>
-                    <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                </div>
-
-                <div class="relative max-w-[1300px] mx-auto px-4">
-                <!-- Left Arrow (absolute left outside) -->
-                <div class="training-prev absolute -left-6 top-1/2 transform -translate-y-1/2 z-10">
-                    <button class="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow">
-                    <img src="https://img.icons8.com/ios-filled/24/000000/chevron-left.png" alt="Prev"/>
-                    </button>
-                </div>
-
-                <!-- Right Arrow (absolute right outside) -->
-                <div class="training-next absolute -right-6 top-1/2 transform -translate-y-1/2 z-10">
-                    <button class="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow">
-                    <img src="https://img.icons8.com/ios-filled/24/000000/chevron-right.png" alt="Next"/>
-                    </button>
-                </div>
-
-                @php
-                    $trainingCategory = App\Models\TrainingCategory::withCount('trainings')->get();
-                @endphp
-                <!-- Swiper Slider -->
-                <div class="swiper trainingSwiper">
-                    <div class="swiper-wrapper">
-                        @foreach ($trainingCategory as $category)
-                            <div class="swiper-slide">
-                                <div class="bg-blue-50 rounded-lg text-center p-6 space-y-4 h-full flex flex-col justify-between">
-                                    <div>
-                                        <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                            <img src="https://img.icons8.com/ios/50/money.png" class="w-6 h-6" />
-                                        </div>
-                                        <h4 class="font-semibold text-lg mb-1 leading-snug">
-                                            @php
-                                                $words = explode(' ', $category->category);
-                                            @endphp
-                                            @foreach ($words as $word)
-                                                {{ $word }}<br>
-                                            @endforeach
-                                        </h4>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-2">{{ $category->trainings_count }}+ Training programs</p>
-                                </div>
-                            </div>
-                        @endforeach
+               
+                    <!-- Section Heading -->
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-bold text-black">Training Programs</h2>
+                        <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
-                </div>
 
-                </div>
-            </section>
+                    <!-- Swiper Container -->
+                    <div class="relative max-w-[1300px] mx-auto px-4">
 
-            <!-- Swiper JS -->
-            <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+                        <!-- Left Arrow -->
+                        <div class="training-prev absolute -left-14 top-1/2 -translate-y-1/2 z-10">
+                            <button class="bg-white hover:bg-gray-200 p-3 rounded-full shadow-lg transition-all duration-300">
+                                <img src="https://img.icons8.com/ios-filled/24/000000/chevron-left.png" alt="Prev"/>
+                            </button>
+                        </div>
 
-            <!-- Swiper Initialization -->
-            <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                new Swiper(".trainingSwiper", {
-                slidesPerView: 1,
-                spaceBetween: 20,
-                loop: true,
-                navigation: {
-                    nextEl: ".training-next",
-                    prevEl: ".training-prev",
-                },
-                breakpoints: {
-                    640: {
-                    slidesPerView: 2,
-                    },
-                    768: {
-                    slidesPerView: 3,
-                    },
-                    1024: {
-                    slidesPerView: 4,
-                    },
-                    1280: {
-                    slidesPerView: 6, // ✅ Show 6 items on large screens
-                    },
-                },
-                });
-            });
-            </script>
+                        <!-- Right Arrow -->
+                        <div class="training-next absolute -right-14 top-1/2 -translate-y-1/2 z-10">
+                            <button class="bg-white hover:bg-gray-200 p-3 rounded-full shadow-lg transition-all duration-300">
+                                <img src="https://img.icons8.com/ios-filled/24/000000/chevron-right.png" alt="Next"/>
+                            </button>
+                        </div>
+
+                        @php
+                            $trainingCategory = App\Models\TrainingCategory::withCount('trainings')->get();
+                        @endphp
+
+                        <!-- Swiper Carousel -->
+                        <div class="swiper trainingSwiper">
+                            <div class="swiper-wrapper">
+                                @foreach ($trainingCategory as $category)
+                                    <div class="swiper-slide px-1"> <!-- Reduced spacing -->
+                                        <div class="bg-blue-50 rounded-lg text-center p-6 h-full min-h-[260px] flex flex-col justify-between">
+                                            <div>
+                                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
+                                                    <img src="https://img.icons8.com/ios/50/money.png" class="w-6 h-6" />
+                                                </div>
+                                                <h4 class="font-semibold text-lg mb-1 leading-snug">
+                                                    @php
+                                                        $words = explode(' ', $category->category);
+                                                    @endphp
+                                                    @foreach ($words as $word)
+                                                        {{ $word }}<br>
+                                                    @endforeach
+                                                </h4>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-2">{{ $category->trainings_count }}+ Training programs</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Swiper Styling -->
+                <style>
+                    .swiper-slide {
+                        width: auto;
+                        height: 100%;
+                    }
+
+                    @media (max-width: 768px) {
+                        .training-prev {
+                            left: -30px !important;
+                        }
+
+                        .training-next {
+                            right: -30px !important;
+                        }
+                    }
+                </style>
+
+                <!-- Swiper JS -->
+                <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+                <!-- Swiper Initialization -->
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        new Swiper(".trainingSwiper", {
+                            slidesPerView: 1,
+                            spaceBetween: 10, // 👈 Tighter spacing
+                            loop: true,
+                            navigation: {
+                                nextEl: ".training-next",
+                                prevEl: ".training-prev",
+                            },
+                            breakpoints: {
+                                640: {
+                                    slidesPerView: 2,
+                                },
+                                768: {
+                                    slidesPerView: 3,
+                                },
+                                1024: {
+                                    slidesPerView: 4,
+                                },
+                                1280: {
+                                    slidesPerView: 6, // Large screens
+                                },
+                            },
+                        });
+                    });
+                </script>
+
 
 
             <section class="py-16">
                 <div class="max-w-7xl mx-auto px-4">
                     <div class="text-center mb-12">
-                        <h2 class="text-3xl font-bold">Trending Courses</h2>
-                        <p class="text-gray-500">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    <h2 class="text-3xl font-bold">Trending Courses</h2>
+                    <p class="text-gray-500">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
+
+                    @php
+                    $allMaterials = [];
+                    foreach($trainers as $trainer) {
+                        foreach($trainer->materials as $material) {
+                            $material->trainer = $trainer;
+                            $allMaterials[] = $material;
+                        }
+                    }
+                    usort($allMaterials, function($a, $b) {
+                        return strtotime($b->created_at) <=> strtotime($a->created_at);
+                    });
+                    @endphp
+
                     <div id="courseContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        @php $index = 0; @endphp
-                        @foreach($trainers as $trainer)
-                            @foreach($trainer->materials as $material)
-                            <a href="{{ route('course.details', $material->id) }}" class="text-decoration-none text-dark">
-                                <div class="course-card {{ $index >= 4 ? 'hidden' : '' }}">
-                                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition hover:-translate-y-1">
-                                        <img src="{{ asset($material->thumbnail_file_path) }}" alt="{{ $material->training_title }}" class="w-full h-40 object-cover">
-                                        <div class="p-4">
-                                            <h6 class="text-base font-semibold mb-2">{{ $material->training_title }}</h6>
-                                            <p class="text-sm text-gray-500 mb-2">{{ $material->training_sub_title }}</p>
+                    @php $index = 0; @endphp
+                    @foreach($allMaterials as $material)
+                        <div class="course-wrapper" style="{{ $index >= 4 ? 'display: none;' : '' }}">
+                        <a href="{{ route('course.details', $material->id) }}" class="text-decoration-none text-dark block">
+                            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition hover:-translate-y-1 flex flex-col h-[480px]"> <!-- fixed height -->
+                            <img src="{{ asset($material->thumbnail_file_path) }}" alt="{{ $material->training_title }}" class="w-full h-40 object-cover flex-shrink-0">
+                            <div class="p-4 flex flex-col flex-grow">
+                                <h6 class="text-base font-semibold mb-2 line-clamp-2">{{ $material->training_title }}</h6>
+                                <p class="text-sm text-gray-500 mb-2 line-clamp-2">{{ $material->training_sub_title }}</p>
 
-                                            <div class="flex items-center text-yellow-500 text-sm mb-2">
-                                               @php
-                                                $avgRating = round($material->rating ?? 0, 1); // rounded to 1 decimal place
-                                                $filledStars = floor($avgRating); // for star display
-                                                @endphp
-
-                                                <p class="mt-1 text-yellow-500">
-                                                    @for ($i = 1; $i <= 5; $i++)
-                                                        <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
-                                                    @endfor
-                                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) Rating</span>
-                                                </p>
-                                            </div>
-
-                                            <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4">
-                                                <li><i class="bi bi-book"></i> {{ count($material->documents) }} lessons</li>
-                                                <li><i class="bi bi-clock"></i> 
-                                                    @php
-                                                        $totalHours = 0;
-                                                        foreach ($material->batches as $batch) {
-                                                            $start = strtotime($batch->start_timing);
-                                                            $end = strtotime($batch->end_timing);
-                                                            $totalHours += ($end - $start) / 3600;
-                                                        }
-                                                    @endphp
-                                                    {{ $totalHours }} hrs
-                                                </li>
-                                                <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? 'Beginner' }}</li>
-                                                <li>
-                                                    <i class="bi bi-play-circle"></i>
-                                                    {{ !empty($material->session_type) ? $material->session_type : 'Recorded' }}
-                                                </li>
-
-                                            </ul>
-
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center">
-                                                    <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/?name=' . urlencode($trainer->name) }}" 
-                                                        alt="{{ $trainer->name }}" 
-                                                        class="w-7 h-7 rounded-full mr-2">
-                                                    <span class="text-xs text-gray-600">{{ $trainer->name }}</span>
-                                                </div>
-                                                <div class="text-right text-xs">
-                                                    <span class="line-through text-gray-400">SAR {{ number_format($material->training_price, 0) }}</span>
-                                                    <span class="text-green-600 font-semibold ml-1">SAR {{ number_format($material->training_offer_price, 0) }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="flex items-center text-yellow-500 text-sm mb-2 flex-shrink-0">
+                                @php
+                                    $avgRating = round($material->rating ?? 0, 1);
+                                    $filledStars = floor($avgRating);
+                                @endphp
+                                <p class="mt-1 text-yellow-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
+                                    @endfor
+                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) Rating</span>
+                                </p>
                                 </div>
-                                @php $index++; @endphp
-                                </a>    
-                            @endforeach
-                        @endforeach
+
+                                <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4 flex-shrink-0">
+                                <li><i class="bi bi-book"></i> {{ count($material->documents) }} lessons</li>
+                                <li><i class="bi bi-clock"></i>
+                                    @php
+                                        $totalHours = 0;
+                                        foreach ($material->batches as $batch) {
+                                            $start = strtotime($batch->start_timing);
+                                            $end = strtotime($batch->end_timing);
+                                            $totalHours += ($end - $start) / 3600;
+                                        }
+                                    @endphp
+                                    {{ $totalHours }} hrs
+                                </li>
+                                <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? 'Beginner' }}</li>
+                                <li><i class="bi bi-play-circle"></i> {{ $material->session_type ?? 'Recorded' }}</li>
+                                </ul>
+
+                                <div class="mt-auto flex items-center justify-between flex-shrink-0">
+                                <div class="flex items-center">
+                                    <img src="{{ $material->trainer->profile_picture ?? 'https://ui-avatars.com/api/?name=' . urlencode($material->trainer->name) }}"
+                                        alt="{{ $material->trainer->name }}" class="w-7 h-7 rounded-full mr-2 flex-shrink-0">
+                                    <span class="text-xs text-gray-600">{{ $material->trainer->name }}</span>
+                                </div>
+                                <div class="text-right text-xs flex-shrink-0">
+                                    <span class="line-through text-gray-400">SAR {{ number_format($material->training_price, 0) }}</span>
+                                    <span class="text-green-600 font-semibold ml-1">SAR {{ number_format($material->training_offer_price, 0) }}</span>
+                                </div>
+                                </div>
+                            </div>
+                            </div>
+                        </a>
+                        </div>
+                        @php $index++; @endphp
+                    @endforeach
                     </div>
 
-                    <div class="mt-10 text-center">
-                        <button id="viewAllBtn" class="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition">
-                            View All Courses
-                        </button>
+                    <div class="mt-6 text-center">
+                    <button id="viewAllBtn" class="px-6 py-2 text-black bg-blue-100 hover:bg-blue-700 rounded-md transition">
+                        View All Courses
+                    </button>
                     </div>
-
                 </div>
             </section>
-            <script>
+
+                <script>
                 document.addEventListener("DOMContentLoaded", function () {
-                    const allCards = document.querySelectorAll(".course-card");
+                    const allCards = document.querySelectorAll(".course-wrapper");
                     let visibleCount = 4;
 
                     document.getElementById("viewAllBtn").addEventListener("click", function () {
-                        let nextVisibleCount = visibleCount + 4;
-                        for (let i = visibleCount; i < nextVisibleCount && i < allCards.length; i++) {
-                            allCards[i].classList.remove("hidden");
-                        }
-                        visibleCount = nextVisibleCount;
+                    let nextVisibleCount = visibleCount + 4;
+                    for (let i = visibleCount; i < nextVisibleCount && i < allCards.length; i++) {
+                        allCards[i].style.display = "block";
+                    }
+                    visibleCount = nextVisibleCount;
 
-                        // Hide button if all cards are visible
-                        if (visibleCount >= allCards.length) {
-                            this.style.display = "none";
-                        }
+                    if (visibleCount >= allCards.length) {
+                        this.style.display = "none";
+                    }
                     });
                 });
-            </script>
+                </script>
+
+                <style>
+                /* Tailwind plugin needed for line clamp if not present, or add this CSS */
+                .line-clamp-2 {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;  
+                    overflow: hidden;
+                }
+                </style>
+
 
             <!-- <script>
                 const courses = [
@@ -1214,38 +1750,116 @@
                             <div class="swiper-wrapper">
                                 @foreach ($testimonials as $testimonial)
                                     <div class="swiper-slide px-2">
-                                        <div class="bg-white shadow-md rounded-lg p-6 h-full flex flex-col justify-between">
-                                            <div class="flex items-center mb-4">
-                                                @if ($testimonial->file_path)
-                                                    <img src="{{ asset($testimonial->file_path) }}" class="w-10 h-10 rounded-full mr-3" alt="{{ $testimonial->name }}" />
-                                                @else
-                                                    <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full mr-3" alt="Default" />
-                                                @endif
-                                                <p class="font-medium text-sm">{{ $testimonial->name }}</p>
-                                            </div>
+                                        <!-- Card Start -->
+                                        <div class="card bg-white shadow-md border border-gray-200 rounded-lg p-6 h-72 flex flex-col justify-between">
+                                            <!-- Top Content -->
                                             <div>
+                                                <!-- Profile -->
+                                                <div class="flex items-center mb-4">
+                                                    @if ($testimonial->file_path)
+                                                        <img src="{{ asset($testimonial->file_path) }}" class="w-10 h-10 rounded-full mr-3" alt="{{ $testimonial->name }}" />
+                                                    @else
+                                                        <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full mr-3" alt="Default" />
+                                                    @endif
+                                                    <p class="font-medium text-sm">{{ $testimonial->name }}</p>
+                                                </div>
+
+                                                <!-- Title -->
                                                 <h4 class="font-semibold text-lg mb-2">{{ $testimonial->title ?? 'What They Said' }}</h4>
-                                                <p class="text-gray-600 text-sm">
+
+                                                <!-- Message -->
+                                                <div 
+                                                    class="message-box text-gray-600 text-sm overflow-hidden" 
+                                                    id="msg-{{ $loop->index }}"
+                                                    style="max-height: 80px;">
                                                     {{ $testimonial->message }}
-                                                </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- View More Button -->
+                                            <div class="mt-2 hidden" id="btn-{{ $loop->index }}">
+                                                <button 
+                                                    onclick="toggleScroll({{ $loop->index }})"
+                                                    id="btnText-{{ $loop->index }}"
+                                                    class="text-blue-600 text-sm font-medium hover:underline">
+                                                    View More
+                                                </button>
                                             </div>
                                         </div>
+                                        <!-- Card End -->
                                     </div>
                                 @endforeach
                             </div>
+
+                            <!-- Swiper Pagination -->
+                            <div class="swiper-pagination bullets mt-4 text-center"></div>
                         </div>
-
-                        <!-- Swiper Arrows -->
-                        <div class="swiper-button-prev !text-gray-500 hover:!text-black !left-0"></div>
-                        <div class="swiper-button-next !text-gray-500 hover:!text-black !right-0"></div>
-
-                        <!-- Swiper Pagination -->
-                        <div class="swiper-pagination bullets mt-6 text-center"></div>
                     </div>
-                    <!-- Swiper Pagination OUTSIDE for better spacing -->
-
                 </div>
             </section>
+
+            <!-- JS Script -->
+            <script>
+                function toggleScroll(index) {
+                    const msg = document.getElementById('msg-' + index);
+                    const btn = document.getElementById('btnText-' + index);
+
+                    if (msg.classList.contains("scrollable")) {
+                        // Collapse
+                        msg.style.maxHeight = "80px";
+                        msg.classList.remove("scrollable");
+                        btn.innerText = "View More";
+                    } else {
+                        // Expand scrollable area
+                        msg.style.maxHeight = "120px"; // You can adjust this
+                        msg.classList.add("scrollable");
+                        btn.innerText = "View Less";
+                    }
+                }
+
+                // Show "View More" button only if needed
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.querySelectorAll("[id^=msg-]").forEach((el) => {
+                        const index = el.id.split("-")[1];
+                        if (el.scrollHeight > 80) {
+                            document.getElementById("btn-" + index).classList.remove("hidden");
+                        }
+                    });
+                });
+            </script>
+
+            <!-- Style Section -->
+            <style>
+                /* Fixed height scrollable message */
+                .message-box.scrollable {
+                    overflow-y: auto;
+                }
+
+                /* Swiper pagination position */
+                .swiper-pagination {
+                    margin-top: 10px !important;
+                    position: relative !important;
+                    bottom: auto !important;
+                }
+
+                /* Optional: Swiper arrow positions if you enable them */
+                .swiper-button-prev {
+                    left: -24px !important;
+                }
+
+                .swiper-button-next {
+                    right: -24px !important;
+                }
+            </style>
+
+
+
+
+
+
+
+
+
 
 
             <!-- Swiper JS -->
@@ -1278,25 +1892,6 @@
             </script>
 
 
-            <style>
-                .stats-section {
-                background-color: #0047AB; /* Blue background */
-                color: white;
-                padding: 60px 0;
-                text-align: center;
-                }
-
-                .stats-number {
-                color: orange;
-                font-size: 2rem;
-                font-weight: bold;
-                }
-
-                .stats-description {
-                font-size: 0.95rem;
-                margin-top: 5px;
-                }
-            </style>
 
 
             <!-- <script>
@@ -1357,5 +1952,35 @@
                 </div>
             </section>
         </div>
+
+
+
+
+
+
+<style>
+    .stats-section {
+    background-color: #0047AB; /* Blue background */
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+    }
+
+    .stats-number {
+    color: orange;
+    font-size: 2rem;
+    font-weight: bold;
+    }
+
+    .stats-description {
+    font-size: 0.95rem;
+    margin-top: 5px;
+    }
+</style>
+
+
+
+
+
 
 @include('site.componants.footer')

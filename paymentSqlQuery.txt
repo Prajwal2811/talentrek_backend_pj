@@ -1,0 +1,55 @@
+CREATE TABLE `talentrek_jobseeker_sessions_booking_payment_request` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  
+  -- Reservation Info
+  `jobseeker_id` bigint(20) UNSIGNED NOT NULL,
+  `user_type` enum('mentor','coach','assessor') NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `booking_slot_id` bigint(20) UNSIGNED NOT NULL,
+  `slot_mode` varchar(191) DEFAULT NULL,
+  `slot_date` date NOT NULL,
+  `slot_time` varchar(191) NOT NULL,
+  `status` enum('awaiting_payment','confirmed','cancelled','expired') NOT NULL DEFAULT 'awaiting_payment',
+  `reserved_until` timestamp NULL DEFAULT NULL,
+
+  -- Payment Info
+  `amount` decimal(10,2) NOT NULL,
+   `tax` decimal(10,2) NOT NULL,
+   `total_amount` decimal(10,2) NOT NULL,
+  `currency` varchar(10) DEFAULT 'SAR',
+  `payment_gateway` varchar(50) DEFAULT 'Al-Rajhi', -- or stripe/paypal/etc.
+  `transaction_id` varchar(191) DEFAULT NULL, -- from payment provider
+  `payment_status` enum('pending','success','failed','refunded') NOT NULL DEFAULT 'pending',
+  `response_payload` json DEFAULT NULL, -- full response from gateway
+
+  -- Timestamps
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `talentrek_jobseeker_sessions_booking_payment_request`
+ADD COLUMN `track_id` varchar(50) NOT NULL UNIQUE COMMENT 'Unique booking reference number'
+AFTER `reserved_until`;
+
+ALTER TABLE `talentrek_jobseeker_sessions_booking_payment_request`
+ADD COLUMN `request_payload` json DEFAULT NULL COMMENT 'full request sent to gateway'
+AFTER `payment_gateway`;
+
+ALTER TABLE `talentrek_jobseeker_saved_booking_session`
+ADD COLUMN `track_id` varchar(100) DEFAULT NULL AFTER `booking_slot_id`,
+ADD COLUMN `transaction_id` varchar(191) DEFAULT NULL AFTER `track_id`,
+ADD COLUMN `payment_status` enum('pending','success','failed','refunded') NOT NULL DEFAULT 'pending' AFTER `transaction_id`,
+ADD COLUMN `response_payload` json DEFAULT NULL AFTER `payment_status`;
+
+ALTER TABLE `talentrek_jobseeker_saved_booking_session`
+-- New amount columns
+ADD COLUMN `amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER `response_payload`,
+ADD COLUMN `tax` DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER `amount`,
+ADD COLUMN `total_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER `tax`;
+
+
+
+
+

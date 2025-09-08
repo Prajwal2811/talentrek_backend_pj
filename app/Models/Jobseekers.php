@@ -41,7 +41,8 @@ class Jobseekers extends Authenticatable
         'shortlist',
         'admin_recruiter_status',
         'google_id',
-        'isSubscribtionBuy'
+        'isSubscribtionBuy',
+        'is_registered'
     ];
 
     /**

@@ -179,7 +179,7 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif($cms->slug === "course-overview" || $cms->slug === "benefits-of-training" || $cms->slug === "mentorship-overview" || $cms->slug === "benefits-of-mentorship")
+                    @elseif($cms->slug === "course-overview" || $cms->slug === "benefits-of-training" || $cms->slug === "mentorship-overview" || $cms->slug === "benefits-of-mentorship" || $cms->slug === "terms-and-conditions" || $cms->slug === "privacy-policy")
                         <div class="row clearfix">
                             <div class="col-md-12">
                                 <div class="card">
@@ -223,7 +223,7 @@
                                                     <a  href="{{ route('admin.cms') }}" class="btn btn-dark theme-bg">Back</a>
                                                     @if ($cms->slug === 'banner' ) 
                                                         <button type="submit" class="btn btn-primary theme-bg">Update Banner</button>
-                                                    @elseif($cms->slug === 'join-talentrek' || $cms->slug === 'countings' || $cms->slug === 'course-overview' || $cms->slug === 'benefits-of-training' || $cms->slug === "mentorship-overview" || $cms->slug === "benefits-of-mentorship")
+                                                    @elseif($cms->slug === 'join-talentrek' || $cms->slug === 'countings' || $cms->slug === 'course-overview' || $cms->slug === 'benefits-of-training' || $cms->slug === "mentorship-overview" || $cms->slug === "benefits-of-mentorship" || $cms->slug === "terms-and-conditions" || $cms->slug === "privacy-policy")
                                                         <button type="submit" class="btn btn-primary theme-bg">Update Section</button>
                                                      @endif
                                                 </div>

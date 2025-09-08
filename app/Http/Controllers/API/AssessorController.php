@@ -77,7 +77,7 @@ class AssessorController extends Controller
         // Validation
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:assessors,email',
-            'mobile' => 'required|string|unique:assessors,phone_number|regex:/^[0-9]{10}$/',
+            'mobile' => 'required|string|unique:assessors,phone_number|regex:/^[0-9]{9}$/',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -377,7 +377,7 @@ class AssessorController extends Controller
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
                 'national_id'      => $request->national_id,
-                'is_registered'=> true, // you should add this column to your table
+                'is_registered'=> 1, // you should add this column to your table
             ]);
 
             // Save education

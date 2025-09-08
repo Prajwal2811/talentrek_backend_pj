@@ -19,6 +19,8 @@ class PaymentHistory extends Model
         'payment_method',
         'paid_at',
         'transaction_id',
+        'subscription_plan_id',
+
     ];
 
     protected $casts = [

@@ -63,9 +63,10 @@ class AppHomeController extends Controller
                 'thumbnail_file_path as image',
                 'training_category'
             )
+            ->where('admin_status', 'superadmin_approved')
             ->with(['trainer:id,name','latestWorkExperience']) // only fetch trainer id & name
             //->with('') // only fetch trainer id & name
-            ->withAvg('trainerReviews', 'ratings')->get()->map(function ($item) {
+            ->withAvg('trainerReviews', 'ratings')->orderBy('trainer_reviews_avg_ratings', 'desc')->get()->map(function ($item) {
                 $avg = $item->trainer_reviews_avg_ratings;
                 $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                 unset($item->trainer_reviews_avg_ratings);

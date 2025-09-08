@@ -1,14 +1,11 @@
 <?php
 $user = Auth()->user();
-
+// echo "<pre>";
+// print_r($user);exit;
 $edu = $user->educations;         
 $work = $user->experiences;       
-// $skills = $user->skills;
 $skills = $user->skills->first();
 
-// echo "<pre>";
-// print_r($work);
-// exit;
 
 ?>
 
@@ -26,147 +23,11 @@ $skills = $user->skills->first();
 
     @include('site.componants.navbar')	
 
-    @if($user->isSubscribtionBuy === 'no')
-        @php
-            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
-            // print_r($subscriptions); die;
-        @endphp
-        <!-- Subscription Modal -->
-        <div id="subscriptionModal"
-            class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
-            <div class="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative">
-                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    @foreach($subscriptions as $plan)
-                        <div class="border rounded-lg p-4 shadow-sm text-center">
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                                <h4 class="font-semibold">{{ $plan->title }}</h4>
-                                <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
-                            <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
-                                @foreach(explode(',', $plan->features) as $feature)
-                                    <li>{{ trim($feature) }}</li>
-                                @endforeach
-                            </ul>
-                            <button type="button"
-                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
-                                data-plan-id="{{ $plan->id }}">
-                                Buy subscription
-                            </button>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+     @if($jobseekerNeedsSubscription)
+        @include('site.jobseeker.subscription.index')
+    @endif
 
-        <!-- Payment Modal -->
-            <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
-                <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                    <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                    <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
 
-                    <form id="paymentForm">
-                        @csrf
-                        <input type="hidden" name="plan_id" id="selectedPlanId">
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                            <input type="text" name="card_number" value="4242424242424242"
-                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                        </div>
-
-                        <div class="mb-4 flex space-x-2">
-                            <div class="w-1/2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                                <input type="text" name="expiry" value="12/30"
-                                    class="w-full border border-gray-300 rounded-md px-4 py-2">
-                            </div>
-                            <div class="w-1/2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                <input type="text" name="cvv" value="123"
-                                    class="w-full border border-gray-300 rounded-md px-4 py-2">
-                            </div>
-                        </div>
-                        <button type="submit"
-                            class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                            Pay Now
-                        </button>
-                    </form>
-                    <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
-                    <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
-                        ×
-                    </button>
-                </div>
-            </div>
-        <script>
-        function openPaymentModal(planId) {
-            document.getElementById('selectedPlanId').value = planId;
-            document.getElementById('paymentModal').classList.remove('hidden');
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.add('hidden');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Open modal on buy button click
-            document.querySelectorAll('.buy-subscription-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    openPaymentModal(this.getAttribute('data-plan-id'));
-                });
-            });
-
-            // Close modal on Escape
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') closePaymentModal();
-            });
-
-            // Handle AJAX payment
-            document.getElementById('paymentForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                let formData = new FormData(this);
-                let messageBox = document.getElementById('paymentMessage');
-                messageBox.textContent = "";
-
-                fetch("{{ route('jobseeker.subscription.payment') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: formData
-                })
-                .then(async response => {
-                    let data = await response.json();
-                    if (!response.ok) throw data;
-                    return data;
-                })
-                .then(data => {
-                    messageBox.classList.remove('text-red-500');
-                    messageBox.classList.add('text-green-500');
-                    messageBox.textContent = data.message;
-
-                    setTimeout(() => {
-                        closePaymentModal();
-                        location.reload();
-                    }, 1500);
-                })
-                .catch(error => {
-                    messageBox.classList.remove('text-green-500');
-                    messageBox.classList.add('text-red-500');
-
-                    if (error.errors) {
-                        messageBox.textContent = Object.values(error.errors).flat().join(', ');
-                    } else {
-                        messageBox.textContent = error.message || "Something went wrong!";
-                    }
-                });
-            });
-        });
-        </script>
-    @else
         <div class="page-content">
             <div class="relative bg-center bg-cover h-[400px] flex items-center" style="background-image: url('{{ asset('asset//images/banner/service page banner.png') }}');">
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
@@ -177,6 +38,21 @@ $skills = $user->skills->first();
                 </div>
             </div>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        @if(session('success'))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: "{{ session('success') }}",
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            </script>
+        @endif
+        @include('admin.errors')
         <main class="w-11/12 mx-auto py-8" x-data="{ tab: 'personal' }">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
                 <!-- Left/Main Content -->
@@ -224,7 +100,15 @@ $skills = $user->skills->first();
                     <!-- Main Section -->
                     <div class="max-w-6xl mx-auto flex px-4 py-6 gap-6">
                         <!-- Sidebar -->
-                        <div x-data="{ tab: 'profile', profileTab: 'personal' }" class="flex max-w-5xl w-full space-x-6">
+                        <!-- <div x-data="{ tab: 'profile', profileTab: 'personal' }" class="flex max-w-5xl w-full space-x-6"> -->
+                        <div 
+                            x-data="{
+                                tab: localStorage.getItem('activeTab') || 'profile',
+                                profileTab: 'personal'
+                            }"
+                            x-init="$watch('tab', value => localStorage.setItem('activeTab', value))"
+                            class="flex max-w-5xl w-full space-x-6"
+                        >    
                         <!-- Sidebar Outer Tabs -->
                         <div class="w-1/5 space-y-2" style="background-color: rgb(238, 238, 238);">
                             <ul class="text-sm font-medium">
@@ -412,11 +296,12 @@ $skills = $user->skills->first();
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Gender <span style="color: red; font-size: 17px;">*</span></label>
-                                                <select class="w-full border rounded px-3 py-2" name="gender" id = "gender">
-                                                    <option>{{Auth()->user()->gender}}</option>
-                                                    <option selected>Male</option>
-                                                    <option>Female</option>
+                                                <select class="w-full border rounded px-3 py-2" name="gender" id="gender">
+                                                    <option value="">Select Gender</option>
+                                                    <option value="Male" {{ Auth()->user()->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                                    <option value="Female" {{ Auth()->user()->gender == 'Female' ? 'selected' : '' }}>Female</option>
                                                 </select>
+
                                                 @error('gender')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -434,6 +319,7 @@ $skills = $user->skills->first();
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Date of Birth <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input 
+                                                    type="date"
                                                     name="dob" 
                                                     id="dob" 
                                                     class="w-full border rounded px-3 py-2" 
@@ -566,13 +452,23 @@ $skills = $user->skills->first();
                                                 const message = errors[field][0];
                                                 const input = form.querySelector(`[name="${field}"]`);
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = message;
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
                                 <!-- Success Message -->
@@ -733,13 +629,23 @@ $skills = $user->skills->first();
                                                 const input = inputList[parseInt(index)];
 
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[fieldName][0];
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
 
@@ -787,40 +693,47 @@ $skills = $user->skills->first();
                                                     <!-- Started From -->
                                                     <div>
                                                         <label class="block text-sm font-medium mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input readonly name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
-                                                            value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" />
+                                                        <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
+                                                            value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" max="{{ date('Y-m-d') }}"/>
                                                     </div>
 
                                                     <!-- End To & Checkbox -->
-                                                    @php
-                                                        $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-                                                            (isset($data->end_to) && $data->end_to === 'work here');
-                                                    @endphp
+                                                   @php
+    $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
+        (isset($data->end_to) && $data->end_to === 'work here');
+    $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
+@endphp
 
-                                                    <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }} }">
-                                                        <label class="block text-sm font-medium mb-1">
-                                                            To <span style="color: red; font-size: 17px;">*</span>
-                                                        </label>
+<div x-data="{ 
+        working: {{ $isWorking ? 'true' : 'false' }}, 
+        endDate: '{{ $defaultDate }}', 
+        defaultDate: '{{ $defaultDate }}'
+    }"
+>
+    <label class="block text-sm font-medium mb-1">
+        To <span style="color: red; font-size: 17px;">*</span>
+    </label>
 
-                                                        <input 
-                                                            readonly 
-                                                            name="end_to[]" 
-                                                            class="datepicker-end w-full border rounded px-3 py-2"
-                                                            x-bind:disabled="working"
-                                                            value="{{ old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '') }}"
-                                                        />
+    <input 
+        type="date" 
+        name="end_to[]" 
+        class="datepicker-end w-full border rounded px-3 py-2"
+        x-bind:disabled="working"
+        x-model="endDate"
+        max="{{ date('Y-m-d') }}"
+    />
 
-                                                        <label class="inline-flex items-center space-x-2 mt-2">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                name="currently_working[]" 
-                                                                value="{{ $i }}"
-                                                                x-model="working"
-                                                                {{ $isWorking ? 'checked' : '' }} 
-                                                            />
-                                                            <span>I currently work here</span>
-                                                        </label>
-                                                    </div>
+    <label class="inline-flex items-center space-x-2 mt-2">
+        <input 
+            type="checkbox" 
+            name="currently_working[]" 
+            value="{{ $i }}"
+            x-model="working"
+            x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
+        />
+        <span>I currently work here</span>
+    </label>
+</div>
 
 
 
@@ -932,13 +845,23 @@ $skills = $user->skills->first();
                                                 const input = inputList[parseInt(index)];
 
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[fieldName][0];
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
 
@@ -970,25 +893,35 @@ $skills = $user->skills->first();
                                         </div>
 
                                         <!-- Job Categories -->
+                                         
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                             <select class="w-full border rounded px-3 py-2" name="job_category">
                                                 <option value="">Select Job Category</option>
-                                                @foreach([
-                                                    'IT & Software',
-                                                    'Sales & Marketing',
-                                                    'Design & Creative',
-                                                    'Finance & Accounting',
-                                                    'Education & Training',
-                                                    'Healthcare',
-                                                    'Other'
-                                                ] as $category)
+                                                @php
+                                                    $categories = [
+                                                        'IT & Software',
+                                                        'Sales & Marketing',
+                                                        'Design & Creative',
+                                                        'Finance & Accounting',
+                                                        'Education & Training',
+                                                        'Healthcare',
+                                                        'Other'
+                                                    ];
+                                                    // Agar DB ki value list me nahi hai to usko append kar do
+                                                    if(!empty($skills->job_category) && !in_array($skills->job_category, $categories)){
+                                                        $categories[] = $skills->job_category;
+                                                    }
+                                                @endphp
+
+                                                @foreach($categories as $category)
                                                     <option value="{{ $category }}"
                                                         {{ old('job_category', $skills->job_category ?? '') === $category ? 'selected' : '' }}>
                                                         {{ $category }}
                                                     </option>
                                                 @endforeach
                                             </select>
+
                                         </div>
 
                                         <!-- Website Link -->
@@ -1057,13 +990,23 @@ $skills = $user->skills->first();
                                             Object.keys(errors).forEach(field => {
                                                 const input = form.querySelector(`[name="${field}"]`);
                                                 if (input) {
+                                                    let existingError = input.parentNode.querySelector('.text-red-600');
+                                                    if (existingError) existingError.remove();
+
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[field][0];
                                                     input.insertAdjacentElement('afterend', errorElem);
+
+                                                    input.addEventListener('input', function handler() {
+                                                        let errMsg = input.parentNode.querySelector('.text-red-600');
+                                                        if (errMsg) errMsg.remove();
+                                                        input.removeEventListener('input', handler); 
+                                                    });
                                                 }
                                             });
                                         });
+
                                     });
                                 </script>
     
@@ -1434,18 +1377,21 @@ $skills = $user->skills->first();
                                 let itemToRemoveId = null;
                                 let $clickedButton = null;
 
+                                // Remove button click
                                 $('.remove-item').on('click', function () {
                                     itemToRemoveId = $(this).data('id');
                                     $clickedButton = $(this);
                                     $('#removeConfirmModal').removeClass('hidden');
                                 });
 
+                                // Cancel button
                                 $('#cancelRemove').on('click', function () {
                                     itemToRemoveId = null;
                                     $clickedButton = null;
                                     $('#removeConfirmModal').addClass('hidden');
                                 });
 
+                                // Confirm remove
                                 $('#confirmRemove').on('click', function () {
                                     if (!itemToRemoveId) return;
 
@@ -1457,14 +1403,14 @@ $skills = $user->skills->first();
                                         },
                                         success: function (response) {
                                             if (response.status === 'success') {
+                                                // modal close
                                                 $('#removeConfirmModal').addClass('hidden');
-                                                $clickedButton.closest('.cart-item').remove();
 
-                                                // Optional: if no cart items left, show "Your cart is empty."
-                                                if ($('.cart-item').length === 0) {
-                                                    $('.lg\\:col-span-2').html('<p class="text-gray-500">Your cart is empty.</p>');
-                                                }
+                                                // set cart tab in localStorage
+                                                localStorage.setItem('activeTab', 'cart');
 
+                                                // reload page
+                                                location.reload();
                                             } else {
                                                 alert(response.message || 'Remove failed');
                                             }
@@ -1474,8 +1420,19 @@ $skills = $user->skills->first();
                                         }
                                     });
                                 });
+
+                                //  On page load, restore active tab from localStorage
+                                if (localStorage.getItem('activeTab')) {
+                                    document.addEventListener("alpine:init", () => {
+                                        Alpine.store('tabs', {
+                                            active: localStorage.getItem('activeTab')
+                                        });
+                                    });
+                                    localStorage.removeItem('activeTab');
+                                }
                             });
                         </script>
+
 
 
 
@@ -1716,90 +1673,93 @@ $skills = $user->skills->first();
                         </div>
 
                         @php
-                            function renderSessionCard($user, $session, $index, $type) {
-                                $reviews = $user?->reviews ?? collect();
-                                $experiences = $user?->experiences ?? collect();
-                                $averageRating = $reviews->avg('ratings') ?? 0;
-                                $totalReviews = $reviews->count();
-                                $roundedRating = round($averageRating);
-                                $stars = str_repeat('★', $roundedRating) . str_repeat('☆', 5 - $roundedRating);
-                                $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
-                                $designation = $currentExp?->job_role ?? 'No designation available';
-                                $zoomLink = $session->zoom_join_url ?? null;
-                                $slotMode = $session->slot_mode;
-                                $address = $user?->address ?? 'Address not available';
+                            if (!function_exists('renderSessionCard')) {
+                                function renderSessionCard($user, $session, $index, $type) {
+                                    $reviews = $user?->reviews ?? collect();
+                                    $experiences = $user?->experiences ?? collect();
+                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                    $totalReviews = $reviews->count();
+                                    $roundedRating = round($averageRating);
+                                    $stars = str_repeat('★', $roundedRating) . str_repeat('☆', 5 - $roundedRating);
+                                    $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                    $designation = $currentExp?->job_role ?? 'No designation available';
+                                    $zoomLink = $session->zoom_join_url ?? null;
+                                    $slotMode = $session->slot_mode;
+                                    $address = $user?->address ?? 'Address not available';
 
-                                echo '
-                                <div class="flex items-start border-b pb-4 mb-4 space-x-4">
-                                    <img src="' . $user?->profilePicture?->document_path . '" alt="' . ucfirst($type) . '" class="w-24 h-24 rounded-full object-cover">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <h3 class="text-lg font-semibold text-gray-900">' . $user?->name . '</h3>
-                                                <p class="text-sm text-gray-500 mt-1">' . $designation . '</p>
-                                                <div class="flex items-center mt-2 text-sm space-x-2">
-                                                    <div class="text-yellow-500 text-base">' . $stars . '</div>
-                                                    <span class="text-gray-500">(' . number_format($averageRating, 1) . '/5 from ' . $totalReviews . ' reviews)</span>
-                                                </div>
-                                            </div>
-                                            <div class="ml-4 shrink-0">';
-                                                if ($slotMode === 'online' && $zoomLink) {
-                                                    echo '<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal' . $type . $index . '">Join Meet</button>';
-                                                } elseif ($slotMode === 'offline') {
-                                                    echo '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal' . $type . $index . '">View Address</button>';
-                                                } else {
-                                                    echo '<p class="text-red-500 text-sm">Link not available</p>';
-                                                }
-                                            echo '</div>
-                                        </div>
-                                    </div>
-                                </div>';
-
-                                // Zoom Modal
-                                if ($slotMode === 'online' && $zoomLink) {
                                     echo '
-                                    <div class="modal fade" id="zoomModal' . $type . $index . '" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Join Zoom Meeting with ' . $user->name . '</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <div class="flex items-start border-b pb-4 mb-4 space-x-4">
+                                        <img src="' . $user?->profilePicture?->document_path . '" alt="' . ucfirst($type) . '" class="w-24 h-24 rounded-full object-cover">
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-center">
+                                                <div>
+                                                    <h3 class="text-lg font-semibold text-gray-900">' . $user?->name . '</h3>
+                                                    <p class="text-sm text-gray-500 mt-1">' . $designation . '</p>
+                                                    <div class="flex items-center mt-2 text-sm space-x-2">
+                                                        <div class="text-yellow-500 text-base">' . $stars . '</div>
+                                                        <span class="text-gray-500">(' . number_format($averageRating, 1) . '/5 from ' . $totalReviews . ' reviews)</span>
+                                                    </div>
                                                 </div>
-                                                <div class="modal-body">
-                                                    <p>Click the link below to join the meeting:</p>
-                                                    <a href="' . $zoomLink . '" target="_blank" class="text-blue-600 font-medium underline break-all">' . $zoomLink . '</a>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                    <a href="' . $zoomLink . '" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
-                                                </div>
+                                                <div class="ml-4 shrink-0">';
+                                                    if ($slotMode === 'online' && $zoomLink) {
+                                                        echo '<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#zoomModal' . $type . $index . '">Join Meet</button>';
+                                                    } elseif ($slotMode === 'offline') {
+                                                        echo '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal' . $type . $index . '">View Address</button>';
+                                                    } else {
+                                                        echo '<p class="text-red-500 text-sm">Link not available</p>';
+                                                    }
+                                                echo '</div>
                                             </div>
                                         </div>
                                     </div>';
-                                }
 
-                                // Address Modal
-                                if ($slotMode === 'offline') {
-                                    echo '
-                                    <div class="modal fade" id="addressModal' . $type . $index . '" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">' . ucfirst($type) . '\'s Address</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p class="text-gray-800">' . $address . '</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                    // Zoom Modal
+                                    if ($slotMode === 'online' && $zoomLink) {
+                                        echo '
+                                        <div class="modal fade" id="zoomModal' . $type . $index . '" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Join Zoom Meeting with ' . $user->name . '</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Click the link below to join the meeting:</p>
+                                                        <a href="' . $zoomLink . '" target="_blank" class="text-blue-600 font-medium underline break-all">' . $zoomLink . '</a>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                        <a href="' . $zoomLink . '" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>';
+                                        </div>';
+                                    }
+
+                                    // Address Modal
+                                    if ($slotMode === 'offline') {
+                                        echo '
+                                        <div class="modal fade" id="addressModal' . $type . $index . '" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">' . ucfirst($type) . '\'s Address</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p class="text-gray-800">' . $address . '</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>';
+                                    }
                                 }
                             }
                         @endphp
+
                         {{-- Mentorship --}}
                         @php
                             $mentorships = \App\Models\BookingSession::with([
@@ -1867,130 +1827,229 @@ $skills = $user->skills->first();
                     <div x-show="tab === 'subscription'" x-cloak>
                         <h2 class="text-xl font-semibold mb-4">Subscription</h2>
 
+                        @php
+                            
+
+                            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
+
+                            $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                        ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                        ->where('subscription_plans.user_type', 'jobseeker')
+                                        ->where('purchased_subscriptions.user_id', $userId)
+                                        ->orderBy('purchased_subscriptions.created_at', 'desc')
+                                        ->get();
+
+                            $showPlansModal = false;
+
+                            if ($purchasedSubscriptions->count() > 0) {
+                                // latest subscription based on created_at
+                                $latest = $purchasedSubscriptions->first();
+                                $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
+
+                                echo "Days left: " . $daysLeft;
+
+                                if ($daysLeft > 0 && $daysLeft <= 30) {
+                                    $showPlansModal = true;
+                                }
+                            }
+                        @endphp
+
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            @if($showPlansModal)
+                                document.getElementById('plansModal').classList.remove('hidden');
+                            @endif
+                        });
+                        </script>
+
                         <!-- Subscription Plans Banner -->
                         <div class="bg-white border p-4 rounded-lg shadow-sm mb-6 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-md font-semibold">Subscription Plans</h3>
-                            <p class="text-sm text-gray-500">Purchase subscription to get access to premium feature of Talentrek</p>
-                        </div>
-                        <button onclick="document.getElementById('plansModal').classList.remove('hidden')" 
-                                class="bg-blue-600 text-white text-sm font-medium px-5 py-2 rounded-md hover:bg-blue-700">
-                            View Plans
-                        </button>
+                            <div>
+                                <h3 class="text-md font-semibold">Subscription Plans</h3>
+                                <p class="text-sm text-gray-500">Purchase subscription to get access to premium features of Talentrek</p>
+                            </div>
+                            <button onclick="document.getElementById('plansModal').classList.remove('hidden')" 
+                                    class="bg-blue-600 text-white text-sm font-medium px-5 py-2 rounded-md hover:bg-blue-700">
+                                View Plans
+                            </button>
                         </div>
 
-                        <!-- Modal -->
-                        <!-- Modal -->
-                        <div id="plansModal" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 hidden">
+                        <!-- Plans Modal -->
+                        <div id="plansModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50 hidden">
                             <div class="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative">
                                 <!-- Close Button -->
                                 <button onclick="document.getElementById('plansModal').classList.add('hidden')" 
                                         class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">
-                                ✕
+                                    ✕
                                 </button>
 
                                 <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <!-- Silver Plan -->
-                                <div class="border rounded-lg p-4 shadow-sm text-center">
-                                    <div class="flex flex-col items-center">
-                                    <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                                    <h4 class="font-semibold">Silver</h4>
-                                    <p class="font-bold text-lg mt-1">AED 49</p>
-                                    </div>
-                                    <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                                    <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                                    </ul>
-                                    <button class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium">
-                                    Buy subscription
-                                    </button>
-                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    @foreach($subscriptions as $plan)
+                                        <div class="border rounded-lg p-4 shadow-sm text-center">
+                                            <div class="flex flex-col items-center">
+                                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                <h4 class="font-semibold">{{ $plan->title }}</h4>
+                                                <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
+                                            </div>
+                                            <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
+                                            @php
+                                                $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
+                                            @endphp
 
-                                <!-- Gold Plan -->
-                                <div class="border rounded-lg p-4 shadow-sm text-center">
-                                    <div class="flex flex-col items-center">
-                                    <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                                    <h4 class="font-semibold">Gold</h4>
-                                    <p class="font-bold text-lg mt-1">AED 99</p>
-                                    </div>
-                                    <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                                    <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                                    </ul>
-                                    <button class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium">
-                                    Buy subscription
-                                    </button>
-                                </div>
+                                            <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
+                                                @foreach($features as $feature)
+                                                    <li>{{ trim($feature) }}</li>
+                                                @endforeach
+                                            </ul>
 
-                                <!-- Platinum Plan -->
-                                <div class="border rounded-lg p-4 shadow-sm text-center">
-                                    <div class="flex flex-col items-center">
-                                    <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                                    <h4 class="font-semibold">Platinum</h4>
-                                    <p class="font-bold text-lg mt-1">AED 149</p>
-                                    </div>
-                                    <p class="text-sm text-gray-500 mt-2 mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                                    <ul class="text-sm text-gray-700 space-y-1 text-left pl-4 mb-4">
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem ipsum</li>
-                                    <li class="flex items-center"><i class="ph ph-check-circle text-blue-500 mr-2"></i> Lorem sit dolor amet</li>
-                                    </ul>
-                                    <button class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium">
-                                    Buy subscription
-                                    </button>
-                                </div>
+                                            <button type="button"
+                                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
+                                                data-plan-id="{{ $plan->id }}">
+                                                Buy subscription
+                                            </button>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                         </div>
-                        <!-- Subscription History Table -->
-                        <h3 class="text-md font-semibold mb-2">Subscription History</h3>
 
-                        <div class="overflow-x-auto">
-                        <table class="min-w-full border border-gray-200 text-sm">
-                            <thead class="bg-gray-100 text-left">
-                            <tr>
-                                <th class="px-4 py-2 font-medium text-gray-700">Sr. No.</th>
-                                <th class="px-4 py-2 font-medium text-gray-700">Subscription</th>
-                                <th class="px-4 py-2 font-medium text-gray-700">Duration</th>
-                                <th class="px-4 py-2 font-medium text-gray-700">Purchased on</th>
-                                <th class="px-4 py-2 font-medium text-gray-700">Expired on</th>
-                                <th class="px-4 py-2 font-medium text-gray-700">Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- Row 1 -->
-                            <tr class="bg-gray-50">
-                                <td class="px-4 py-3">1.</td>
-                                <td class="px-4 py-3">Silver tier</td>
-                                <td class="px-4 py-3">1 months</td>
-                                <td class="px-4 py-3">12/02/2025</td>
-                                <td class="px-4 py-3">11/03/2025</td>
-                                <td class="px-4 py-3">
-                                <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">Repeat</button>
-                                </td>
-                            </tr>
-                            <!-- Row 2 -->
-                            <tr>
-                                <td class="px-4 py-3">2.</td>
-                                <td class="px-4 py-3">Silver tier</td>
-                                <td class="px-4 py-3">1 months</td>
-                                <td class="px-4 py-3">12/02/2025</td>
-                                <td class="px-4 py-3">11/03/2025</td>
-                                <td class="px-4 py-3">
-                                <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">Repeat</button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                        <!-- Payment Modal -->
+                        <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
+                            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
+                                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
+                                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+
+                                <form id="paymentForm">
+                                    @csrf
+                                    <input type="hidden" name="plan_id" id="selectedPlanId">
+
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                        <input type="text" name="card_number" value="4242424242424242"
+                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                    </div>
+
+                                    <div class="mb-4 flex space-x-2">
+                                        <div class="w-1/2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                            <input type="text" name="expiry" value="12/30"
+                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                        </div>
+                                        <div class="w-1/2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                            <input type="text" name="cvv" value="123"
+                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
+                                        </div>
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+                                        Pay Now
+                                    </button>
+                                </form>
+                                <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
+                                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                                    ×
+                                </button>
+                            </div>
                         </div>
 
+                        <!-- Subscription History Table -->
+                        <h3 class="text-md font-semibold mb-2">Subscription History</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border border-gray-200 text-sm">
+                                <thead class="bg-gray-100 text-left">
+                                    <tr>
+                                        <th class="px-4 py-2 font-medium text-gray-700">Sr. No.</th>
+                                        <th class="px-4 py-2 font-medium text-gray-700">Subscription</th>
+                                        <th class="px-4 py-2 font-medium text-gray-700">Duration</th>
+                                        <th class="px-4 py-2 font-medium text-gray-700">Purchased on</th>
+                                        <th class="px-4 py-2 font-medium text-gray-700">Expired on</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($purchasedSubscriptions as $index => $subscription)
+                                        <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
+                                            <td class="px-4 py-3">{{ $index + 1 }}.</td>
+                                            <td class="px-4 py-3">{{ $subscription->title }}</td>
+                                            <td class="px-4 py-3">
+                                                {{ $subscription->duration_days }} {{ Str::plural('days', $subscription->duration_days) }}
+                                            </td>
+                                            <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->start_date)->format('d/m/Y') }}</td>
+                                            <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->end_date)->format('d/m/Y') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+
+                    <script>
+                        function openPaymentModal(planId) {
+                            document.getElementById('selectedPlanId').value = planId;
+                            document.getElementById('paymentModal').classList.remove('hidden');
+                        }
+
+                        function closePaymentModal() {
+                            document.getElementById('paymentModal').classList.add('hidden');
+                        }
+
+                        document.addEventListener('DOMContentLoaded', () => {
+                            document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                                button.addEventListener('click', function () {
+                                    openPaymentModal(this.getAttribute('data-plan-id'));
+                                });
+                            });
+
+                            document.addEventListener('keydown', function (e) {
+                                if (e.key === 'Escape') closePaymentModal();
+                            });
+
+                            document.getElementById('paymentForm').addEventListener('submit', function (e) {
+                                e.preventDefault();
+                                let formData = new FormData(this);
+                                let messageBox = document.getElementById('paymentMessage');
+                                messageBox.textContent = "";
+
+                                fetch("{{ route('jobseeker.subscription.payment') }}", {
+                                    method: "POST",
+                                    headers: {
+                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                    },
+                                    body: formData
+                                })
+                                .then(async response => {
+                                    let data = await response.json();
+                                    if (!response.ok) throw data;
+                                    return data;
+                                })
+                                .then(data => {
+                                    messageBox.classList.remove('text-red-500');
+                                    messageBox.classList.add('text-green-500');
+                                    messageBox.textContent = data.message;
+                                    setTimeout(() => {
+                                        closePaymentModal();
+                                        location.reload();
+                                    }, 1500);
+                                })
+                                .catch(error => {
+                                    messageBox.classList.remove('text-green-500');
+                                    messageBox.classList.add('text-red-500');
+                                    if (error.errors) {
+                                        messageBox.textContent = Object.values(error.errors).flat().join(', ');
+                                    } else {
+                                        messageBox.textContent = error.message || "Something went wrong!";
+                                    }
+                                });
+                            });
+
+                            // Auto-open plans modal if subscription is expiring soon
+                            @if($showPlansModal)
+                                document.getElementById('plansModal').classList.remove('hidden');
+                            @endif
+                        });
+                    </script>
 
                     <!-- Payment Tab -->
                     <div x-show="tab === 'payment'" x-cloak>
@@ -2132,7 +2191,6 @@ $skills = $user->skills->first();
             </div>
         </main>
 
-    @endif
 
 
 </div>
@@ -2170,19 +2228,19 @@ $skills = $user->skills->first();
 </script>
 <script>
     $(document).ready(function () {
-        $('#dob').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
+        // $('#dob').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     endDate: new Date(),
+        //     autoclose: true,
+        //     todayHighlight: true
+        // });
         
-        $('.datepicker-start, .datepicker-end').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
+        // $('.datepicker-start, .datepicker-end').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     endDate: new Date(),
+        //     autoclose: true,
+        //     todayHighlight: true
+        // });
     });
 </script>
 
@@ -2247,27 +2305,27 @@ $skills = $user->skills->first();
 </script> -->
 <script>
 $(document).ready(function () {
-    $('#dob').datepicker({
-        format: 'yyyy-mm-dd',
-        endDate: new Date(),
-        autoclose: true,
-        todayHighlight: true
-    });
-        function initializeDatePickers() {
-        $('.datepicker-start, .datepicker-end').datepicker({
-            format: 'yyyy-mm-dd',
-            endDate: new Date(),
-            autoclose: true,
-            todayHighlight: true
-        });
-    }
+    // $('#dob').datepicker({
+    //     format: 'yyyy-mm-dd',
+    //     endDate: new Date(),
+    //     autoclose: true,
+    //     todayHighlight: true
+    // });
+    //     function initializeDatePickers() {
+    //     $('.datepicker-start, .datepicker-end').datepicker({
+    //         format: 'yyyy-mm-dd',
+    //         endDate: new Date(),
+    //         autoclose: true,
+    //         todayHighlight: true
+    //     });
+    // }
 
-    initializeDatePickers();
+    // initializeDatePickers();
 
-    $('#add-work').on('click', function () {
+    // $('#add-work').on('click', function () {
         
-        initializeDatePickers(); 
-    });
+    //     initializeDatePickers(); 
+    // });
 });
 
 </script>

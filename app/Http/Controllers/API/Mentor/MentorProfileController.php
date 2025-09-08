@@ -25,7 +25,7 @@ class MentorProfileController extends Controller
     {
         try {
             // Fetch Trainers personal information
-            $TrainersPersonal = Mentors::select('*')->where('id', $id)->first();
+            $TrainersPersonal = Mentors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','shortlist','avatar','about_mentor', 'about_mentor as about','per_slot_price')->where('id', $id)->first();
             $TrainerPersonal = $TrainersPersonal->toArray();
             if ($TrainersPersonal && $TrainersPersonal->date_of_birth) {
                 $TrainerPersonal['date_of_birth'] = date('d/m/Y', strtotime($TrainersPersonal->date_of_birth));
@@ -76,7 +76,7 @@ class MentorProfileController extends Controller
             $image = '' ;
             foreach($TrainersAdditionalInfo  as $TrainersAdditionalInfos){
                 if($TrainersAdditionalInfos->doc_type == 'mentor_profile_picture'){
-                    $image = $TrainersAdditionalInfos->image ;
+                    $image = $TrainersAdditionalInfos->document_path ;
                 }                
             }
 
@@ -113,13 +113,16 @@ class MentorProfileController extends Controller
         $data = $request->all();
         $rules = [
             'name' => 'required|string',
-            'gender' => 'required|in:Male,Female,Other',
+            //'gender' => 'required|in:Male,Female,Other',
             'location' => 'required|string',
             'address' => 'required|string',
             'pincode' => 'required',                
+            //'about_mentor' => 'required',                
             'city' => 'required|string',                
             'state' => 'required|string',                
             'country' => 'required|string',
+            'phone_number' => 'required',
+            'per_slot_price' => 'required',
             'national_id' => [
                 'required',
                 'min:10',
@@ -181,7 +184,10 @@ class MentorProfileController extends Controller
                 'state'      => $request->state,
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
+                'phone_number'      => $request->phone_number,
+                'about_mentor'      => $request->about,
                 'national_id'      => $request->national_id,
+                'per_slot_price'      => $request->per_slot_price,
             ]);
 
             // Upload Profile Picture

@@ -11,7 +11,10 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
+    
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
@@ -22,7 +25,7 @@
 
                 <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
-                    <form action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
+                    <form id="trainingForm" action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Course Title -->
@@ -264,6 +267,8 @@
                     });
                 }
             </script> -->
+
+
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
                     const addBtn = document.getElementById('addContentBtn');
@@ -375,8 +380,48 @@
                         });
                     }
                 });
-                </script>
+            </script>
 
+<!-- SweetAlert CDN -->
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    $("#trainingForm").on("submit", function (e) {
+        let errors = [];
+        let rows = $("#courseTable tbody tr");
+
+        // 1. Check minimum 1 section
+        if (rows.length === 0) {
+            errors.push("Please add at least one course section.");
+        }
+
+        // 2. Check each row has file uploaded and duration
+        rows.each(function (i, row) {
+            let fileInput = $(row).find('input[type="file"]')[0];
+            let durationInput = $(row).find('.duration-cell input')[0];
+
+            if (!fileInput || fileInput.files.length === 0) {
+                errors.push(`Row ${i + 1}: Please upload a file.`);
+            }
+            if (!durationInput || !durationInput.value) {
+                errors.push(`Row ${i + 1}: File duration missing.`);
+            }
+        });
+
+        // 3. Show SweetAlert if errors exist
+        if (errors.length > 0) {
+            e.preventDefault();
+            swal({
+                title: "Validation Error",
+                text: errors.join("\n"),
+                icon: "error", // 👈 icon added
+                button: "OK"
+            });
+        }
+    });
+});
+</script>
 
 
 

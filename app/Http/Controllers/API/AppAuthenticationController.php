@@ -138,7 +138,7 @@ class AppAuthenticationController extends Controller
             ], 401);
         }
 //print_r($user);
-        if (!in_array($user->admin_status, ['approved', 'superadmin_approved'])) {
+        if (!in_array($user->admin_status, ['superadmin_approved'])) {
             return response()->json([
                 'status' => false,
                 'message' => 'Your request approval is pending from the administrator. Please contact the administrator for assistance.'
@@ -172,7 +172,7 @@ class AppAuthenticationController extends Controller
        $validator = Validator::make($request->all(), [
             'type'     => 'required|in:jobseeker,mentor,assessor,coach,trainer',
             'email'    => 'required|email',
-            'mobile'   => 'required|string|regex:/^[0-9]{10}$/',
+            'mobile'   => 'required|string|regex:/^[0-9]{9}$/',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -307,7 +307,7 @@ class AppAuthenticationController extends Controller
         $validator = Validator::make($request->all(), [
             'type'         => 'required|in:jobseeker,mentor,assessor,coach,trainer',
             'email'        => 'nullable|email',
-            'phone_number' => 'nullable|string|regex:/^[0-9]{10}$/',
+            'phone_number' => 'nullable|string|regex:/^[0-9]{9}$/',
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -352,65 +352,65 @@ class AppAuthenticationController extends Controller
         $user->save();
         // Send OTP
         if ($contactMethod === 'email') {
-            Mail::html('
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Password Reset OTP</title>
-                    <style>
-                        body {
-                            background-color: #f6f8fa;
-                            font-family: Arial, sans-serif;
-                            padding: 20px;
-                            margin: 0;
-                            color: #333;
-                        }
-                        .container {
-                            background-color: #ffffff;
-                            padding: 30px;
-                            max-width: 500px;
-                            margin: 20px auto;
-                            border-radius: 8px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        }
-                        .otp-box {
-                            font-size: 24px;
-                            font-weight: bold;
-                            background-color: #f0f4ff;
-                            padding: 15px;
-                            text-align: center;
-                            border: 1px dashed #007bff;
-                            border-radius: 6px;
-                            margin: 20px 0;
-                            color: #007bff;
-                        }
-                        .footer {
-                            font-size: 12px;
-                            text-align: center;
-                            margin-top: 30px;
-                            color: #888;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h2>Password Reset Request</h2>
-                        <p>Hello,</p>
-                        <p>We received a request to reset your password. Use the OTP below to proceed:</p>
-                        <div class="otp-box">' . $otp . '</div>
-                        <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
-                        <p>Thanks,<br><strong>The Talentrek Team</strong></p>
-                    </div>
-                    <div class="footer">
-                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-                    </div>
-                </body>
-                </html>
-            ', function ($message) use ($contactValue) {
-                $message->to($contactValue)
-                        ->subject('Your Password Reset OTP – Talentrek');
-            });
+            // Mail::html('
+            //     <!DOCTYPE html>
+            //     <html lang="en">
+            //     <head>
+            //         <meta charset="UTF-8">
+            //         <title>Password Reset OTP</title>
+            //         <style>
+            //             body {
+            //                 background-color: #f6f8fa;
+            //                 font-family: Arial, sans-serif;
+            //                 padding: 20px;
+            //                 margin: 0;
+            //                 color: #333;
+            //             }
+            //             .container {
+            //                 background-color: #ffffff;
+            //                 padding: 30px;
+            //                 max-width: 500px;
+            //                 margin: 20px auto;
+            //                 border-radius: 8px;
+            //                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            //             }
+            //             .otp-box {
+            //                 font-size: 24px;
+            //                 font-weight: bold;
+            //                 background-color: #f0f4ff;
+            //                 padding: 15px;
+            //                 text-align: center;
+            //                 border: 1px dashed #007bff;
+            //                 border-radius: 6px;
+            //                 margin: 20px 0;
+            //                 color: #007bff;
+            //             }
+            //             .footer {
+            //                 font-size: 12px;
+            //                 text-align: center;
+            //                 margin-top: 30px;
+            //                 color: #888;
+            //             }
+            //         </style>
+            //     </head>
+            //     <body>
+            //         <div class="container">
+            //             <h2>Password Reset Request</h2>
+            //             <p>Hello,</p>
+            //             <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+            //             <div class="otp-box">' . $otp . '</div>
+            //             <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+            //             <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+            //         </div>
+            //         <div class="footer">
+            //             &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+            //         </div>
+            //     </body>
+            //     </html>
+            // ', function ($message) use ($contactValue) {
+            //     $message->to($contactValue)
+            //             ->subject('Your Password Reset OTP – Talentrek');
+            // });
         } else {
             // Simulate SMS sending
             // SmsService::send($contactValue, "Your OTP is: $otp");
@@ -419,7 +419,8 @@ class AppAuthenticationController extends Controller
             'status' => true,
             'message' => 'OTP sent successfully',
             'via' => $contactMethod,
-            'type' => $type
+            'type' => $type,
+            'otp' =>  $otp
         ]);
     }
     public function verifyOtp(Request $request)
@@ -427,7 +428,7 @@ class AppAuthenticationController extends Controller
         $validator = Validator::make($request->all(), [
             'type'         => 'required|in:jobseeker,mentor,assessor,coach,trainer',
             'email'        => 'nullable|email',
-            'phone_number' => 'nullable|string|regex:/^[0-9]{10}$/',
+            'phone_number' => 'nullable|string|regex:/^[0-9]{9}$/',
             'otp'          => 'required|digits:6',
         ]);
 
@@ -488,7 +489,7 @@ class AppAuthenticationController extends Controller
         $validator = Validator::make($request->all(), [
             'type'          => 'required|in:jobseeker,mentor,assessor,coach,trainer',
             'email'         => 'nullable|email',
-            'phone_number'  => 'nullable|string|regex:/^[0-9]{10}$/',
+            'phone_number'  => 'nullable|string|regex:/^[0-9]{9}$/',
             'new_password'  => 'required|string|min:6|confirmed',
         ]);
 

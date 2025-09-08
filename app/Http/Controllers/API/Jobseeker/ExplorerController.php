@@ -8,6 +8,7 @@ use App\Models\Api\TrainingMaterial;
 use App\Models\Api\Trainers;
 use App\Models\Api\Review;
 use App\Models\Api\JobseekerTrainingMaterialPurchase;
+use App\Models\Api\AssessmentJobseekerDataStatus;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -79,6 +80,8 @@ class ExplorerController extends Controller
             $trainingMaterials = TrainingMaterial::select('id', 'trainer_id', 'training_title', 'training_price', 'training_offer_price', 'thumbnail_file_path as image')
                 ->with(['trainer:id,name', 'latestWorkExperience'])
                 ->withAvg('trainerReviews', 'ratings')
+                ->where('admin_status', 'superadmin_approved')
+                ->orderBy('training_title', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $avg = $item->trainer_reviews_avg_ratings;
@@ -108,6 +111,7 @@ class ExplorerController extends Controller
             $mentorsList = Mentors::select('id', 'name', 'email', 'phone_code', 'phone_number', 'date_of_birth', 'city')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('mentorReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
@@ -164,6 +168,7 @@ class ExplorerController extends Controller
             $assessorList = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','about_assessor as description')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('assessorReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
@@ -178,8 +183,8 @@ class ExplorerController extends Controller
                     }, 0);
                     $item->total_experience_days = $totalDays;
                     $years = floor($totalDays / 365);
-                $months = floor(($totalDays % 365) / 30);
-                $item->total_experience_years =  $years.'.'.$months ;
+                    $months = floor(($totalDays % 365) / 30);
+                    $item->total_experience_years =  $years.'.'.$months ;
                     // Get the most recent job_role based on nearest end_to (null means current)
                     $mostRecentExp = $item->WorkExperience
                     ->sortByDesc(function ($exp) {
@@ -221,6 +226,7 @@ class ExplorerController extends Controller
             $coachList = Coach::select('id', 'name', 'email', 'phone_code', 'phone_number', 'date_of_birth', 'city')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('coachReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
@@ -240,15 +246,17 @@ class ExplorerController extends Controller
                     $avg = $item->coach_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $mostRecentExp = $item->WorkExperience
-                    ->sortByDesc(function ($exp) {
-                        $endTo = strtolower(trim($exp->end_to));
-                        return $endTo === 'work here'
-                            ? Carbon::now()->timestamp
-                            : Carbon::parse($exp->end_to)->timestamp;
-                    })
-                    ->first();
-                    $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                   $item->recent_job_role  = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? $exp->job_role 
+                            : $exp->job_role;
+
+                        return $end;
+                    }, 0);
+                    //$item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->image = $item->additionalInfo->document_path ?? null;
                     unset($item->additionalInfo,$item->coach_reviews_avg_ratings, $item->WorkExperience);
                     return $item;
@@ -270,26 +278,26 @@ class ExplorerController extends Controller
     public function trainingMaterialDetailById($trainingId,$jobSeekerId)
     {
         try {
-            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
-                ->withCount('trainingMaterialDocuments')
-                ->with('trainingMaterialDocuments')
-                ->with(['trainer:id,name', 'latestWorkExperience'])
-                ->with('trainerReviews')
-                ->withAvg('trainerReviews', 'ratings')
-                ->where('id', $trainingId)
-                ->first();
-            if ($TrainingMaterial) {
-                $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
-                $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+                $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
+                    ->withCount('trainingMaterialDocuments')
+                    ->with('trainingMaterialDocuments')
+                    ->with(['trainer:id,name,address', 'latestWorkExperience','additionalInfo'])
+                    ->with('trainerReviews')
+                    ->withAvg('trainerReviews', 'ratings')
+                    ->where('id', $trainingId)
+                    ->first();
+                if ($TrainingMaterial) {
+                    $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
+                    $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
 
-                $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
-                    $parts = explode(':', $doc->file_duration); // HH:MM:SS
-                    if (count($parts) === 3) {
-                        $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
-                        return $carry + $seconds;
-                    }
-                    return $carry;
-                }, 0);
+                    $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
+                        $parts = explode(':', $doc->file_duration); // HH:MM:SS
+                        if (count($parts) === 3) {
+                            $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+                            return $carry + $seconds;
+                        }
+                        return $carry;
+                    }, 0);
 
                 // Convert total seconds back to HH:MM:SS
                 $TrainingMaterial->total_duration = gmdate('H:i:s', $totalSeconds);
@@ -300,24 +308,77 @@ class ExplorerController extends Controller
                 $TrainingMaterial->durationInMinutes = $minutes. ' Min' . ($minutes !== 1 ? 's' : '');
                 $TrainingMaterial->durationInSeconds = $seconds. ' Second' . ($seconds !== 1 ? 's' : '');
                 
-                // Optional: remove the raw field if not needed in response
-                unset($TrainingMaterial->trainer_reviews_avg_ratings);
-                unset($TrainingMaterial->trainerReviews);
-
-                // Check if jobseeker purchased the training from this trainer
-                $isPurchased = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobSeekerId)
+                $purchase = JobseekerTrainingMaterialPurchase::with('batch')->where('jobseeker_id', $jobSeekerId)
                 ->where('trainer_id', $TrainingMaterial->trainer_id)
                 ->where('material_id', $trainingId)
-                ->exists();
+                ->first();
+                $isPurchased = !empty($purchase);
                 $TrainingMaterial->isPurchased = $isPurchased; // true/false
+                $TrainingMaterial->assessmentStartButton = false ;
+                
+                if($isPurchased){
+                    $TrainingMaterial->batch = $purchase->batch;
+                    $hasSubmitted = AssessmentJobseekerDataStatus::where('material_id', $trainingId)
+                        ->where('jobseeker_id', $jobSeekerId)
+                        ->where('submitted', 1)
+                        ->exists();
+
+                        // 🔹 Check for re-assessment
+                        $needsReAssessment = AssessmentJobseekerDataStatus::where('material_id', $trainingId)
+                        ->where('jobseeker_id', $jobSeekerId)
+                        ->where('submitted', 0)
+                        ->exists();
+                        
+                        $TrainingMaterial->reAssessmentButton = $needsReAssessment ? true : false;
+                        $TrainingMaterial->viewCertificatePdf = $hasSubmitted ? true : false;
+
+                    if(!$TrainingMaterial->viewCertificatePdf){
+                        if($TrainingMaterial->training_type == 'recorded'){
+                            // TODO: Add your video % logic here
+                            $TrainingMaterial->assessmentStartButton = false ; 
+                        } elseif (in_array($TrainingMaterial->training_type, ['online', 'classroom'])){
+                            if ($purchase->batch) {
+                                // Combine date + time
+                                $batchEnd = Carbon::parse(
+                                    $purchase->batch->end_date . ' ' . $purchase->batch->end_time
+                                );
+
+                                // Check if current time is greater than batch end datetime
+                                if (Carbon::now()->greaterThanOrEqualTo($batchEnd)) {
+                                    $TrainingMaterial->assessmentStartButton = true;
+                                } else {
+                                    $TrainingMaterial->assessmentStartButton = false;
+                                }
+                            }                        
+                        }
+                    }
+                    else{
+                        $TrainingMaterial->assessmentStartButton = false ;
+                    }
+                    $TrainingMaterial->sessionJoinLink = false ; 
+                    if ($purchase->batch) {
+                        $today = Carbon::now()->format('Y-m-d');
+                        $currentTime = Carbon::now()->format('H:i:s');
+                        $currentDayName = Carbon::now()->format('l');
+                        // Calculate the join link start time (10 minutes before batch start)
+                        $joinLinkStartTime = Carbon::parse($purchase->batch->start_timing)->subMinutes(10)->format('H:i:s');
+
+                        if (
+                                $today >= $purchase->batch->start_date &&
+                                $today <= $purchase->batch->end_date &&
+                                $currentTime >= $joinLinkStartTime  &&
+                                $currentTime <= $purchase->batch->end_timing &&
+                                in_array($currentDayName, $purchase->batch->days)
+                        ) {
+                            $TrainingMaterial->sessionJoinLink = true;
+                        }
+                    }
+                }
                 $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
-                // if(!$isPurchased){
-                //     unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
-                // }
+                unset($TrainingMaterial->trainer_reviews_avg_ratings,$TrainingMaterial->trainerReviews,$TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->batch);
                 unset($TrainingMaterial->trainingMaterialDocuments);
 
-            }
-            
+            }            
             return $this->successResponse($TrainingMaterial, 'Training course details with review  percentage fetched successfully.');
         } catch (\Exception $e) {
             return response()->json([
@@ -351,7 +412,9 @@ class ExplorerController extends Controller
                 return $carry + $start->diffInDays($end);
             }, 0);
             $MentorsDetails->total_experience_days = $totalDays;
-            $MentorsDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $MentorsDetails->total_experience_years =  $years.'.'.$months ;
             
             // Set average rating and clean raw data
             $avg = $MentorsDetails->mentor_reviews_avg_ratings;
@@ -366,7 +429,9 @@ class ExplorerController extends Controller
                 })
                 ->first();
                 $MentorsDetails->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
-                $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+                
+                    $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+                
                 unset($MentorsDetails->additionalInfo);
                 unset(
                     $MentorsDetails->mentorReviews,
@@ -402,7 +467,10 @@ class ExplorerController extends Controller
                     return $carry + $start->diffInDays($end);
                 }, 0);
             $AssessorDetails->total_experience_days = $totalDays;
-            $AssessorDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $AssessorDetails->total_experience_years =  $years.'.'.$months ;
+            //$AssessorDetails->total_experience_years = round($totalDays / 365, 1);
             
             // Set average rating
             $avg = $AssessorDetails->assessor_reviews_avg_ratings;
@@ -453,7 +521,9 @@ class ExplorerController extends Controller
                     return $carry + $start->diffInDays($end);
                 }, 0);
             $CoachDetails->total_experience_days = $totalDays;
-            $CoachDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $CoachDetails->total_experience_years =  $years.'.'.$months ;
             
             // Set average rating
             $avg = $CoachDetails->coach_reviews_avg_ratings;

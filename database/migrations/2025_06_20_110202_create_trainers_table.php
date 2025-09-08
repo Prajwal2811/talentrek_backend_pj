@@ -21,7 +21,11 @@ return new class extends Migration
             $table->string('phone_code')->nullable();       // e.g., +91, +1
             $table->string('phone_number')->nullable();     // e.g., 9876543210
             $table->date('date_of_birth')->nullable();
-            $table->string('city')->nullable(); 
+            $table->string('city')->nullable();         // e.g., city or state
+            $table->string('state')->nullable();         // e.g., city or state
+            $table->string('address')->nullable();
+            $table->string('pin_code')->nullable();
+            $table->text('country')->nullable();
             $table->string('password')->nullable(); 
             $table->string('pass')->nullable(); 
             $table->string('otp')->nullable();            
@@ -29,7 +33,9 @@ return new class extends Migration
             $table->string('admin_status')->nullable();            
             $table->text('inactive_reason')->nullable(); // Removed ->after('status')
             $table->text('rejection_reason')->nullable(); // Removed ->after('status') 
-            $table->string('isSubscribtionBuy')->default('no');           // e.g., Mumbai, Delhi
+            $table->string('is_registered')->default('0');  
+            $table->string('isSubscribtionBuy')->default('no');  
+            $table->string('active_subscription_plan_id')->nullable();         // e.g., Mumbai, Delhi
             $table->timestamps();
         });
     }

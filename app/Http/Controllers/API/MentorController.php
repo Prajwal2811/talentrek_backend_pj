@@ -80,7 +80,7 @@ class MentorController extends Controller
             // Validation
            $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:mentors,email',
-                'mobile' => 'required|string|unique:mentors,phone_number|regex:/^[0-9]{10}$/',
+                'mobile' => 'required|string|unique:mentors,phone_number|regex:/^[0-9]{9}$/',
                 'password' => 'required|string|min:6|confirmed',
             ], [
                 'email.required' => 'The email field is required.',
@@ -90,7 +90,7 @@ class MentorController extends Controller
                 'mobile.required' => 'The mobile number is required.',
                 'mobile.string' => 'The mobile number must be a string.',
                 'mobile.unique' => 'This mobile number is already registered.',
-                'mobile.regex' => 'The mobile number must be exactly 10 digits.',
+                'mobile.regex' => 'The mobile number must be exactly 9 digits.',
 
                 'password.required' => 'The password is required.',
                 'password.min' => 'The password must be at least 6 characters.',
@@ -277,9 +277,9 @@ class MentorController extends Controller
                 'job_category' => 'required|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
-                'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-                'profile_picture' => 'required|file|image|max:2048',
-                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+                // 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+                // 'profile_picture' => 'required|file|image|max:2048',
+                // 'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'pincode' => 'required',                
                 'city' => 'required|string',                
                 'state' => 'required|string',                
@@ -394,7 +394,7 @@ class MentorController extends Controller
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
                 'national_id'      => $request->national_id,
-                'is_registered'=> true, // you should add this column to your table
+                'is_registered'=> 1, // you should add this column to your table
             ]);
 
             // Save education

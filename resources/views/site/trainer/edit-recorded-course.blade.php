@@ -11,7 +11,10 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
+    
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             @include('site.trainer.componants.sidebar')
@@ -21,7 +24,7 @@
                     <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
 
                     
-                    <form action="{{ route('trainer.training.recorded.update.data', $training->id) }}" method="POST" enctype="multipart/form-data">
+                    <form id="trainingForm" action="{{ route('trainer.training.recorded.update.data', $training->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Course Title -->
@@ -230,52 +233,9 @@
                             </button>
                         </div>
                     </form>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            document.querySelectorAll('.upload-btn').forEach(function (btn) {
-                                btn.addEventListener('click', function () {
-                                    const input = btn.nextElementSibling;
-                                    if (input && input.type === 'file') {
-                                        input.click();
-                                    }
-                                });
-                            });
-                        });
-                    </script>
 
-                     
                 </main>
-                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-                <script>
-                    const otherCheckbox = document.getElementById('other-checkbox');
-                    const otherTextInput = document.getElementById('other-text');
-                    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
 
-                    otherCheckbox.addEventListener('change', () => {
-                        if (otherCheckbox.checked) {
-                            // Uncheck all other checkboxes and hide their effect
-                            categoryCheckboxes.forEach(cb => {
-                                cb.checked = false;
-                            });
-                            otherTextInput.style.display = 'block';
-                            otherTextInput.focus();
-                        } else {
-                            otherTextInput.style.display = 'none';
-                            otherTextInput.value = '';
-                        }
-                    });
-
-                    categoryCheckboxes.forEach(cb => {
-                        cb.addEventListener('change', () => {
-                            if (cb.checked) {
-                                // If any other checkbox is checked, uncheck "Others" and hide text input
-                                otherCheckbox.checked = false;
-                                otherTextInput.style.display = 'none';
-                                otherTextInput.value = '';
-                            }
-                        });
-                    });
-                </script>
 
 
 
@@ -286,10 +246,9 @@
                         const contentInput = document.getElementById('contentText');
                         const tableBody = document.querySelector('#courseTable tbody');
 
-                        // Start from existing count
                         let index = tableBody.querySelectorAll('tr').length;
 
-                        // ✅ Add new row
+                        // Add new content section row
                         addBtn.addEventListener('click', function (e) {
                             e.preventDefault();
 
@@ -336,31 +295,29 @@
                             updateSerialNumbers();
                         });
 
-                        // ✅ Handle clicks for Upload & Delete buttons (delegation)
+                        // Delegate click events for delete and upload buttons
                         tableBody.addEventListener('click', (e) => {
                             if (e.target.closest('.delete-btn')) {
                                 e.target.closest('tr').remove();
                                 updateSerialNumbers();
-                            } 
-                            else if (e.target.closest('.upload-btn')) {
+                            } else if (e.target.closest('.upload-btn')) {
                                 const btn = e.target.closest('.upload-btn');
                                 const fileInput = btn.nextElementSibling;
-                                fileInput.click();
+                                if (fileInput && fileInput.type === 'file') {
+                                    fileInput.click();
+                                }
                             }
                         });
 
-                        // ✅ Handle file selection for BOTH existing & new rows
+                        // Handle file input change event for duration extraction
                         tableBody.addEventListener('change', (e) => {
                             if (e.target.type === 'file') {
                                 const fileInput = e.target;
                                 const file = fileInput.files[0];
                                 const btn = fileInput.previousElementSibling;
 
-                                if (!file) {
-                                    return;
-                                }
+                                if (!file) return;
 
-                                // File size limit check (20MB)
                                 if (file.size > 20 * 1024 * 1024) {
                                     alert("File size must be less than or equal to 20MB.");
                                     fileInput.value = '';
@@ -373,27 +330,49 @@
                                 // Calculate video duration
                                 const video = document.createElement('video');
                                 video.preload = 'metadata';
+
                                 video.onloadedmetadata = function () {
                                     window.URL.revokeObjectURL(video.src);
                                     const durationInSeconds = video.duration;
-
                                     const minutes = Math.floor(durationInSeconds / 60);
                                     const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
-                                    const formatted = `${minutes}:${seconds}`;
+                                    const formattedDuration = `${minutes}:${seconds}`;
 
                                     const tr = fileInput.closest('tr');
-                                    const durationCell = tr.querySelector('.duration-cell');
-                                    durationCell.innerHTML = `
-                                        ${formatted}
-                                        <input type="hidden" name="${fileInput.name.replace('[file]', '[file_duration]')}" value="${formatted}">
-                                    `;
+                                    const durationCell = tr.querySelector('td:nth-child(5)'); // More reliable selector
+
+                                    if (!durationCell) {
+                                        console.error('Duration cell not found in row');
+                                        return;
+                                    }
+
+                                    // Update the duration display
+                                    const hiddenInput = durationCell.querySelector('input[type="hidden"]');
+                                    if (hiddenInput) {
+                                        hiddenInput.value = formattedDuration;
+                                    } else {
+                                        // Create hidden input if it doesn't exist
+                                        const newInput = document.createElement('input');
+                                        newInput.type = 'hidden';
+                                        newInput.name = fileInput.name.replace('[file]', '[file_duration]');
+                                        newInput.value = formattedDuration;
+                                        durationCell.appendChild(newInput);
+                                    }
+                                    
+                                    // Update the visible text
+                                    const textNodes = [...durationCell.childNodes].filter(node => node.nodeType === Node.TEXT_NODE);
+                                    if (textNodes.length > 0) {
+                                        textNodes[0].nodeValue = formattedDuration;
+                                    } else {
+                                        durationCell.insertBefore(document.createTextNode(formattedDuration), durationCell.firstChild);
+                                    }
                                 };
 
                                 video.src = URL.createObjectURL(file);
                             }
                         });
 
-                        // ✅ Serial number updater
+                        // Update Sr. No column after add/delete row
                         function updateSerialNumbers() {
                             [...tableBody.rows].forEach((row, i) => {
                                 row.cells[0].textContent = i + 1;
@@ -405,10 +384,96 @@
 
 
 
+                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                <script>
+                    const otherCheckbox = document.getElementById('other-checkbox');
+                    const otherTextInput = document.getElementById('other-text');
+                    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+
+                    otherCheckbox.addEventListener('change', () => {
+                        if (otherCheckbox.checked) {
+                            // Uncheck all other checkboxes and hide their effect
+                            categoryCheckboxes.forEach(cb => {
+                                cb.checked = false;
+                            });
+                            otherTextInput.style.display = 'block';
+                            otherTextInput.focus();
+                        } else {
+                            otherTextInput.style.display = 'none';
+                            otherTextInput.value = '';
+                        }
+                    });
+
+                    categoryCheckboxes.forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            if (cb.checked) {
+                                // If any other checkbox is checked, uncheck "Others" and hide text input
+                                otherCheckbox.checked = false;
+                                otherTextInput.style.display = 'none';
+                                otherTextInput.value = '';
+                            }
+                        });
+                    });
+                </script>
+
+
+                <!-- <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        document.querySelectorAll('.upload-btn').forEach(function (btn) {
+                            btn.addEventListener('click', function () {
+                                const input = btn.nextElementSibling;
+                                if (input && input.type === 'file') {
+                                    input.click();
+                                }
+                            });
+                        });
+                    });
+                </script> -->
+
             </div>
         </div>
     </div>
 
+    <!-- SweetAlert CDN -->
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    $("#trainingForm").on("submit", function (e) {
+        let errors = [];
+        let rows = $("#courseTable tbody tr");
+
+        // 1. Check minimum 1 section
+        if (rows.length === 0) {
+            errors.push("Please add at least one course section.");
+        }
+
+        // 2. Check each row has file uploaded and duration
+        rows.each(function (i, row) {
+            let fileInput = $(row).find('input[type="file"]')[0];
+            let durationInput = $(row).find('.duration-cell input')[0];
+
+            if (!fileInput || fileInput.files.length === 0) {
+                errors.push(`Row ${i + 1}: Please upload a file.`);
+            }
+            if (!durationInput || !durationInput.value) {
+                errors.push(`Row ${i + 1}: File duration missing.`);
+            }
+        });
+
+        // 3. Show SweetAlert if errors exist
+        if (errors.length > 0) {
+            e.preventDefault();
+            swal({
+                title: "Validation Error",
+                text: errors.join("\n"),
+                icon: "error", // 👈 icon added
+                button: "OK"
+            });
+        }
+    });
+});
+</script>
 
 
             @include('site.trainer.componants.footer')

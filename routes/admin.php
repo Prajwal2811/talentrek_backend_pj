@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
-
+use App\Http\Controllers\NotificationController;
 
 // Admin Routes
 Route::group(['prefix' => 'admin'], function() {
@@ -182,6 +182,34 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::get('/resume-format', [AdminController::class, 'resume'])->name('admin.resume');
 			Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
 			
+		});
+
+
+		// ==================== TAXATION ====================
+		Route::middleware('admin.module:Taxation')->group(function () {
+			Route::get('/taxations', [AdminController::class, 'taxations'])->name('admin.taxations.taxations');
+			Route::get('/taxations/create', [AdminController::class, 'createTax'])->name('admin.taxations.create');
+			Route::post('/taxations', [AdminController::class, 'storeTax'])->name('admin.taxations.store');
+			Route::get('/taxations/{type}', [AdminController::class, 'showTaxations'])->name('admin.taxations.taxations.view');
+			Route::put('/taxations/{type}', [AdminController::class, 'updateTax'])->name('admin.taxations.update');
+
+			Route::delete('/taxations/{id}', [AdminController::class, 'destroyTax'])->name('admin.taxations.destroy');
+		});
+
+		// ==================== COUPONS ====================
+		Route::middleware('admin.module:Coupons')->group(function () {
+			Route::get('/coupons', [AdminController::class, 'coupons'])->name('admin.coupons.coupons');
+			Route::get('/coupons/create', [AdminController::class, 'createCoupon'])->name('admin.coupons.create');
+			Route::post('/coupons', [AdminController::class, 'storeCoupon'])->name('admin.coupons.store');
+			Route::get('/coupons/{id}/edit', [AdminController::class, 'editCoupon'])->name('admin.coupons.edit');
+			Route::put('/coupons/{id}', [AdminController::class, 'updateCoupon'])->name('admin.coupons.update');
+			Route::delete('/coupons/{id}', [AdminController::class, 'destroyCoupon'])->name('admin.coupons.destroy');
+		});
+
+		// ==================== Notifications ====================
+		Route::middleware('admin.module:Notifications')->group(function () {
+			Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
+			Route::get('/notifications/view/{id}', [NotificationController::class, 'view'])->name('admin.notifications.view');
 		});
 	});
 });

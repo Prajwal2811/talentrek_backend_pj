@@ -26,7 +26,10 @@ class Assessors extends Model
         'pin_code',
         'country',
         'state',
-        'national_id'
+        'national_id',
+        'about_assessor',
+        'is_registered',
+        'per_slot_price'
     ];
 
     /**
@@ -63,6 +66,6 @@ class Assessors extends Model
     public function additionalInfo()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'assessor');
+                    ->where('user_type', 'assessor')->where('doc_type', 'assessor_profile_picture');
     }
 }

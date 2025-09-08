@@ -17,25 +17,17 @@ class PurchasedSubscription extends Model
     protected $fillable = [
         'user_id',
         'user_type',
-        'price',
-        'status',
+        'amount_paid',
         'payment_status',
         'subscription_plan_id',
         'subscribable_id',
         'subscribable_type',
         'start_date',
         'end_date',
+        'company_id'
     ];
 
-    public function subscribable()
-    {
-        return $this->morphTo();
-    }
-
-    public function plan()
-    {
-        return $this->belongsTo(SubscriptionPlan::class);
-    }
+   
 }
 
 

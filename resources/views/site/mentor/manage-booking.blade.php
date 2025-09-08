@@ -8,6 +8,10 @@
             </div>
         </div>
     </div>
+
+    @if($mentorNeedsSubscription)
+    @include('site.mentor.subscription.index')
+@endif
     <div class="page-wraper">
         <div class="flex h-screen">
             @include('site.mentor.componants.sidebar')
@@ -125,7 +129,9 @@
                                 <template x-for="(slot, index) in activeSlots" :key="index">
                                     <tr class="border-b">
                                         <td class="px-4 py-2" x-text="index + 1"></td>
-                                        <td class="px-4 py-2" x-text="slot.start_time + ' - ' + slot.end_time"></td>
+                                        <!-- <td class="px-4 py-2" x-text="slot.start_time + ' - ' + slot.end_time"></td> -->
+                                        <td class="px-4 py-2" x-text="formatTime12Hour(slot.start_time) + ' - ' + formatTime12Hour(slot.end_time)"></td>
+
                                         <td class="px-4 py-2">
                                             <div class="flex items-center gap-2" x-data="{ updateUrl: @js(route('mentor.update-slot-status')) }">
                                                 <input 

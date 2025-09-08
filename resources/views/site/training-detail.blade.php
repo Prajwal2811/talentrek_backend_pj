@@ -16,6 +16,7 @@
             background: white;
         }
     </style>
+    
       @include('site.componants.navbar')
 
 
@@ -122,7 +123,7 @@
                         {{ $totalHours }} hrs
                     </span>
 
-                    <span>🏷️ {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
+                    <span>📈 {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
                     <span>🎥 {{ ucfirst($material->session_type ?? 'recorded') }}</span>
                 </div>
 
@@ -130,7 +131,9 @@
                 <div class="flex gap-6 border-b mb-6 text-sm font-medium">
                     <!-- <button class="tab-link pb-2 text-blue-600 border-b-2 border-blue-600 active-tab" data-tab="overview">Course overview</button>
                     <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="benefits">Benefits of training</button> -->
-                    <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="content">Training content</button>
+                    <?php if($material->training_type !== 'online'){ ?>
+                        <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="content">Training content</button>
+                    <?php } ?>
                     <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="reviews">Reviews</button>
                 </div>
                 <!-- < ?PHP dd($material);exit;?>               -->
@@ -248,14 +251,31 @@
                 </div> -->
                  
                 <script src="//unpkg.com/alpinejs" defer></script>
-                <h2 class="text-lg font-bold mb-4">E learning</h2>
-                <div x-data="{ showPopup: false }">
+             
+                @php
+                    use App\Models\JobseekerTrainingMaterialPurchase;
+
+                    $userId = auth('jobseeker')->id();
+                    $courseId = $material->id;
+
+                    // Check if the jobseeker purchased this material
+                    $isCourseBuy = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', $userId)
+                        ->where('material_id', $courseId)
+                        ->exists();
+                @endphp
+
+                @if($material->training_type !== 'online')
+                    <h2 class="text-lg font-bold mb-4">E learning</h2>
+                @endif
+
+                <div x-data="videoModal(@json($isCourseBuy))" class="relative">
                     <!-- Grid of Videos -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         @foreach ($material->documents as $key => $doc)
-                            <div class="bg-white shadow rounded overflow-hidden cursor-pointer"
-                                @click="showPopup = true">
-
+                            <div 
+                                class="bg-white shadow rounded overflow-hidden cursor-pointer"
+                                @click="openVideo('{{ $doc->file_path }}')"
+                            >
                                 <div class="relative">
                                     <img src="https://img.icons8.com/ios-filled/100/000000/video.png"
                                         alt="Video Preview"
@@ -264,7 +284,11 @@
                                     <!-- Play Button Overlay -->
                                     <div class="absolute inset-0 flex items-center justify-center">
                                         <div class="bg-black bg-opacity-50 rounded-full p-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                                class="h-8 w-8 text-white" 
+                                                fill="none" 
+                                                viewBox="0 0 24 24" 
+                                                stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M14.752 11.168l-6.518-3.896A1 1 0 007 8.104v7.792a1 1 0 001.234.97l6.518-1.696A1 1 0 0015 14.168V12a1 1 0 00-.248-.832z" />
                                             </svg>
@@ -279,29 +303,86 @@
                         @endforeach
                     </div>
 
-                    <!-- Subscription Popup Modal -->
+                    <!-- Draggable Video Modal -->
+                    <div 
+                        x-show="activeVideo"
+                        x-cloak
+                        :style="`top: ${posY}px; left: ${posX}px;`"
+                        @mousedown.stop="dragging = true; offsetX = $event.clientX - posX; offsetY = $event.clientY - posY"
+                        @mousemove.window="if(dragging){ posX = $event.clientX - offsetX; posY = $event.clientY - offsetY }"
+                        @mouseup.window="dragging = false"
+                        class="fixed z-50 w-96 bg-white rounded-lg shadow-lg border border-gray-300"
+                    >
+                        <div class="flex justify-between items-center bg-gray-100 p-2 cursor-move">
+                            <span class="font-medium">Video Player</span>
+                            <button @click="closeVideo" class="text-red-500 font-bold">✕</button>
+                        </div>
+
+                        <video 
+                            x-ref="videoPlayer" 
+                            x-bind:src="activeVideo" 
+                            controls 
+                            autoplay 
+                            controlsList="nodownload" 
+                            oncontextmenu="return false;" 
+                            class="w-full rounded-b-lg"
+                            @loadedmetadata="
+                                const lastTime = localStorage.getItem(activeVideo);
+                                if(lastTime){ $refs.videoPlayer.currentTime = parseFloat(lastTime); }
+                            "
+                            @timeupdate.debounce.500="
+                                localStorage.setItem(activeVideo, $refs.videoPlayer.currentTime);
+                            "
+                        ></video>
+                    </div>
+
+                    <!-- Purchase Popup -->
                     <div x-show="showPopup" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Unlock this premium content</h3>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Purchase Required</h3>
                             <p class="text-sm text-gray-600 mb-6">
-                                This video is available for premium members only.<br>
-                                Upgrade your plan to access exclusive learning material.
+                                You must purchase this course to view the videos.
                             </p>
                             <div class="flex justify-center gap-4">
                                 <button @click="showPopup = false"
                                     class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Close</button>
-                                <a href="/subscribe"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                                    Upgrade Plan
-                                </a>
                             </div>
                         </div>
                     </div>
-
                 </div>
+
+                <script>
+                function videoModal(isPurchased) {
+                    return {
+                        activeVideo: null,
+                        showPopup: false,
+                        posX: 100,
+                        posY: 100,
+                        dragging: false,
+                        offsetX: 0,
+                        offsetY: 0,
+                        openVideo(video) {
+                            if(isPurchased){
+                                this.activeVideo = video;
+                                this.$nextTick(() => { this.$refs.videoPlayer.play(); });
+                            } else {
+                                this.showPopup = true;
+                            }
+                        },
+                        closeVideo() {
+                            if(this.$refs.videoPlayer){
+                                this.$refs.videoPlayer.pause();
+                                this.$refs.videoPlayer.currentTime = 0;
+                            }
+                            this.activeVideo = null;
+                        }
+                    }
+                }
+                </script>
+
                 <style>
-                    [x-cloak] { display: none !important; }
-                </style>     
+                [x-cloak] { display: none !important; }
+                </style>
 
 
 
@@ -512,71 +593,108 @@
                 </div>
 
                 @php
+                    use Carbon\Carbon;
+
                     $existOrNot = false;
+                    $enableJoin = false;
+                    $today = Carbon::now();
+
                     if (auth('jobseeker')->check()) {
                         $existOrNot = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', auth('jobseeker')->id())
                             ->where('material_id', $material->id)
                             ->exists();
                     }
+
+                    $batch = null;
+                    if ($existOrNot) {
+                        $batch = App\Models\TrainingBatch::where('training_material_id', $material->id)->first();
+
+                        if ($batch) {
+                            $batchDays = json_decode($batch->days, true);
+                            $dayName = $today->format('l');
+                            $startDate = Carbon::parse($batch->start_date);
+                            $endDate   = $batch->end_date ? Carbon::parse($batch->end_date) : $startDate;
+                            $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
+                            $endTime   = Carbon::parse($batch->end_timing);
+
+                            if ($today->between($startDate, $endDate) && in_array($dayName, $batchDays)) {
+                                if ($today->between($startTime, $endTime)) {
+                                    $enableJoin = true;
+                                }
+                            }
+                        }
+                    }
                 @endphp
 
-                @if (auth('jobseeker')->check())
-                    @if (!$existOrNot)
+                @if(auth('jobseeker')->check())
+                    
+                    @if(!$existOrNot)
                         <!-- Not purchased yet -->
                         <a href="{{ route('buy-course', ['id' => $material->id]) }}">
                             <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
                                 Buy course
                             </button>
                         </a>
-                        <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                                Buy for team
-                            </button>
-                        </a>
-                        
-                        @if(in_array($material->id, $cartItems))
-                            <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium">
-                                Go to Cart
-                            </a>
-                        @else
-                            <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium"
-                                data-id="{{ $material->id }}">
-                            Add to cart
-                        </button>
-                        @endif
-
-                    @else
-                        <!-- Already purchased -->
-                        <a href="{{ route('jobseeker.profile') }}">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                Go to course
-                            </button>
-                        </a>
                     @endif
-                @else
-                    <!-- Not purchased yet -->
-                    <a href="{{ route('buy-course', ['id' => $material->id]) }}">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                            Buy course
-                        </button>
-                    </a>
+
+                    @if($existOrNot)
+                        <!-- Already purchased -->
+                        @if($material->training_type == 'online')
+                            @if($enableJoin)
+                                <a href="{{ $batch->zoom_join_url }}">
+                                    <button class="bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Join
+                                    </button>
+                                </a>
+                            @else
+                                <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+                                    Join (Not Available Yet)
+                                </button>
+                            @endif
+                        @elseif($material->training_type == 'classroom')
+                            @if($enableJoin)
+                                <a href="{{ $batch->location ? $batch->location : '#' }}">
+                                    <button class="bg-purple-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Visit
+                                    </button>
+                                </a>
+                            @else
+                                <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+                                    Visit (Not Available Yet)
+                                </button>
+                            @endif
+                        @endif
+                    @endif
+
+                    <!-- Buy for Team button -->
                     <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
                         <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                            Buy for team
+                            Buy for Team
                         </button>
                     </a>
-                    @if(in_array($material->id, $cartItems))
-                        <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium">
-                            Go to Cart
-                        </a>
-                    @else
-                        <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium"
-                            data-id="{{ $material->id }}">
-                        Add to cart
-                    </button>
+
+                    <!-- Add to Cart / Go to Cart (Moved below) -->
+                    @if(!$existOrNot)
+                        @if(!in_array($material->id, $cartItems))
+                            <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
+                                data-id="{{ $material->id }}">
+                                Add to Cart
+                            </button>
+                        @else
+                            <a href="{{ route('jobseeker.profile') }}" 
+                            onclick="localStorage.setItem('activeTab','cart')"
+                            class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
+                            Go to Cart  
+                            </a>
+
+
+                        @endif
                     @endif
 
                 @endif
+
+
+
 
               </aside>
 

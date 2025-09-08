@@ -54,6 +54,7 @@
 
 
 ?>
+
 @include('site.componants.header')
 <body>
     <div class="loading-area">
@@ -103,283 +104,355 @@
             <div class="flex max-w-7xl mx-auto px-4 py-6">
                 <!-- Sidebar Filter -->
                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-                <aside class="w-1/4 pr-6" x-data="filtersApp()" x-init="initFilters()">
+
+                <aside class="w-1/4 pr-6" x-data="courseFilter()">
                     <button class="block text-gray-700 font-semibold mb-6">☰ Filter</button>
 
-                    <!-- Course topic -->
+                    @php
+                        use App\Models\Trainers;
+                        use App\Models\TrainingCategory;
+                        use App\Models\TrainingMaterial;
+
+                        $trainers = Trainers::with('materials')->get();
+                        $categories = TrainingCategory::all();
+                        $materials = TrainingMaterial::all();
+                    @endphp
+
+                    <!-- Course Topic -->
                     <div class="mb-6">
-                        <div class="flex justify-between items-center cursor-pointer" onclick="toggleSection('topicSection', 'iconTopic')">
                         <h3 class="font-semibold text-gray-900 mb-2">Course topic</h3>
-                        <i id="iconTopic" class="ph ph-caret-down transition-transform duration-300"></i>
-                        </div>
                         <div id="topicSection" class="space-y-2">
-                            @php
-                                $categories = App\Models\TrainingCategory::all();
-                            @endphp
                             @foreach ($categories as $category)
-                                <label class="block"><input type="checkbox" class="mr-2" value="Design" @change="$dispatch('filter-change')">{{ $category->category }}</label>
+                            <label class="block">
+                                <input type="checkbox"
+                                    value="{{ $category->category }}"
+                                    @change="$dispatch('filter-change', {type: 'category', value: '{{ $category->category }}', checked: $event.target.checked})"
+                                    class="mr-2">
+                                {{ $category->category }}
+                            </label>
                             @endforeach
                         </div>
                     </div>
 
-                    <!-- Course level -->
+
+                    <!-- Course Level -->
                     <div class="mb-6">
-                        <div class="flex justify-between items-center cursor-pointer" onclick="toggleSection('levelSection', 'iconLevel')">
                         <h3 class="font-semibold text-gray-900 mb-2">Course level</h3>
-                        <i id="iconLevel" class="ph ph-caret-down transition-transform duration-300"></i>
-                        </div>
                         <div id="levelSection" class="space-y-2">
-                        <label class="block"><input type="checkbox" class="mr-2" value="Beginner" @change="$dispatch('filter-change')">Beginner</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Intermediate" @change="$dispatch('filter-change')">Intermediate</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Advanced" @change="$dispatch('filter-change')">Advanced</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="All" @change="$dispatch('filter-change')">All</label>
+                            @foreach(['Beginner','Intermediate','Advanced'] as $level)
+                            <label class="block">
+                                <input type="checkbox"
+                                    value="{{ $level }}"
+                                    @change="$dispatch('filter-change', {type: 'level', value: '{{ $level }}', checked: $event.target.checked})"
+                                    class="mr-2">
+                                {{ $level }}
+                            </label>
+                            @endforeach
+
                         </div>
                     </div>
 
-                    <!-- Training type -->
-                    <div>
-                        <div class="flex justify-between items-center cursor-pointer" onclick="toggleSection('typeSection', 'iconType')">
+                    <!-- Training Type -->
+                    <div class="mb-6">
                         <h3 class="font-semibold text-gray-900 mb-2">Training type</h3>
-                        <i id="iconType" class="ph ph-caret-down transition-transform duration-300"></i>
-                        </div>
                         <div id="typeSection" class="space-y-2">
-                        <label class="block"><input type="checkbox" class="mr-2" value="Offline in classroom" @change="$dispatch('filter-change')">Offline in classroom</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Virtual/Online" @change="$dispatch('filter-change')">Virtual/Online</label>
-                        <label class="block"><input type="checkbox" class="mr-2" value="Recorded lectures" @change="$dispatch('filter-change')">Recorded lectures</label>
+                            @foreach(['online','classroom','recorded'] as $type)
+                            <label class="block">
+                                <input type="checkbox"
+                                    value="{{ $type }}"
+                                    @change="$dispatch('filter-change', {type: 'training_type', value: '{{ $type }}', checked: $event.target.checked})"
+                                    class="mr-2">
+                                {{ ucfirst($type) }}
+                            </label>
+                            @endforeach
                         </div>
                     </div>
+
                 </aside>
 
-                <main class="w-3/4 mx-auto">
+
+                <main class="w-3/4 mx-auto" x-data="courseFilter()">
 
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-xl font-semibold">Courses</h1>
                         <span class="text-sm text-gray-500">
-                            Showing <span id="total-results">0</span> total results
+                            Showing <span x-text="filteredCourses.length"></span> total results
                         </span>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="mb-6 relative">
+                        <input type="text" placeholder="Search here..."
+                            x-model="search"
+                            @input="filterCourses"
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12" />
+                        <span class="absolute right-3 top-2.5 text-gray-400">🔍</span>
                     </div>
 
                     <!-- Course List -->
                     <div id="course-list">
-                        @foreach($trainers as $trainer)
-                            @foreach($trainer->materials as $material)
-                                <div class="course-item flex border rounded-md overflow-hidden shadow-sm mb-4 bg-white">
-                                    <!-- Thumbnail -->
-                                    <div style="min-width: 250px; max-width: 250px; overflow: hidden;">
-                                        <img src="{{ asset($material->thumbnail_file_path) }}"
-                                            alt="Thumbnail"
-                                            class="h-full w-full object-cover" />
+                        <template x-for="material in paginatedCourses() " :key="material.id">
+                            <div class="course-item flex border rounded-md overflow-hidden shadow-sm mb-4 bg-white">
+                                <!-- Thumbnail -->
+                                <div style="min-width: 250px; max-width: 250px; overflow: hidden;">
+                                    <img :src="material.thumbnail_file_path 
+                                            ? '{{ asset('uploads') }}/' + material.thumbnail_file_path.split('/').pop() 
+                                            : '/default.png'" 
+                                        alt="Thumbnail"
+                                        class="h-full w-full object-cover" />
+
+
+
+                                </div>
+
+                                <!-- Details -->
+                                <div class="p-4 flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <a :href="`{{ route('course.details', '') }}/${material.id}`">
+                                            <h2 class="font-semibold text-lg text-gray-800" x-text="material.training_title"></h2>
+                                        </a>
+
+                                        <p class="text-sm text-gray-600 mt-1" x-text="material.training_sub_title"></p>
+
+                                        <!-- Rating -->
+                                        <p class="mt-1 text-yellow-500">
+                                            <template x-for="i in 5">
+                                                <span :class="i <= Math.floor(material.rating ?? 0) ? '' : 'text-gray-300'">★</span>
+                                            </template>
+                                            <span class="text-gray-700 font-medium ml-2">(<span x-text="material.rating ?? 0"></span>/5)</span>
+                                        </p>
                                     </div>
 
-                                    <!-- Details -->
-                                    <div class="p-4 flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <a href="{{ route('course.details', $material->id) }}">
-                                                <h2 class="font-semibold text-lg text-gray-800">{{ $material->training_title }}</h2>
-                                            </a>
-                                            <p class="text-sm text-gray-600 mt-1">{{ $material->training_sub_title }}</p>
-                                            @php
-                                                $avgRating = round($material->rating ?? 0, 1); // rounded to 1 decimal place
-                                                $filledStars = floor($avgRating); // for star display
-                                            @endphp
-
-                                            <p class="mt-1 text-yellow-500">
-                                                @for ($i = 1; $i <= 5; $i++)
-                                                    <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
-                                                @endfor
-                                                <span class="text-gray-700 font-medium ml-2">({{ $avgRating }}/5)</span>
-                                            </p>
+                                    <div class="flex items-center text-sm text-gray-700 space-x-6 mt-4 flex-wrap">
+                                        <!-- Trainer -->
+                                        <div class="flex items-center space-x-1">
+                                            <img :src="material.trainer?.profile_picture ?? 'https://ui-avatars.com/api/?name=' + encodeURIComponent(material.trainer?.name)"
+                                                class="rounded-full w-6 h-6" />
+                                            <span x-text="material.trainer?.name"></span>
+                                        </div>
+                                        
+                                        <!-- Lessons -->
+                                        <div x-show="material.training_type === 'recorded'" class="flex items-center space-x-1">
+                                            📘 <span x-text="material.documents?.length ?? 0"></span> lessons
                                         </div>
 
-
-                                        <div class="flex items-center text-sm text-gray-700 space-x-6 mt-4 flex-wrap">
-                                            <div class="flex items-center space-x-1">
-                                                <img src="{{ $trainer->profile_picture ?? 'https://ui-avatars.com/api/?name=' . urlencode($trainer->name) }}"
-                                                    alt="{{ $trainer->name }}"
-                                                    class="rounded-full w-6 h-6" />
-                                                <span>{{ $trainer->name }}</span>
-                                            </div>
-                                            <div class="flex items-center space-x-1">📘 {{ count($material->documents) }} lessons</div>
-                                            <div class="flex items-center space-x-1">
-                                                ⏱️ 
-                                                @php
-                                                    $totalHours = 0;
-                                                    foreach ($material->batches as $batch) {
-                                                        $start = strtotime($batch->start_timing);
-                                                        $end = strtotime($batch->end_timing);
-                                                        $totalHours += ($end - $start) / 3600;
-                                                    }
-                                                @endphp
-                                                {{ $totalHours }} hrs
-                                            </div>
-                                            <div>📈 {{ $material->training_level ?? 'Beginner' }}</div>
-                                            <div>🎥 {{ $material->session_type ?? 'Recorded' }}</div>
+                                        <!-- Duration -->
+                                        <div x-show="material.training_type === 'recorded'" class="flex items-center space-x-1">
+                                            ⏱️ <span x-text="calculateHours(material.batches)"></span> hrs
                                         </div>
-                                    </div>
 
-                                    <!-- Price -->
-                                    <div class="flex flex-col justify-center items-end p-4 w-32 text-right">
-                                        <span class="text-gray-400 line-through text-sm">
-                                            SAR {{ number_format($material->training_price, 0) }}
-                                        </span>
-                                        <span class="text-xl font-semibold text-gray-800">
-                                            SAR {{ number_format($material->training_offer_price, 0) }}
-                                        </span>
+                                         <!-- Lessons -->
+                                        <!-- <div class="flex items-center space-x-1">📘 <span x-text="material.documents?.length ?? 0"></span> lessons</div> -->
+
+                                        <!-- Duration -->
+                                        <!-- <div class="flex items-center space-x-1">
+                                            ⏱️ <span x-text="calculateHours(material.batches)"></span> hrs
+                                        </div> -->
+
+
+                                        <!-- Level -->
+                                        <div>📈 <span x-text="material.training_level ?? 'Beginner'"></span></div>
+
+                                        <!-- Session -->
+                                        <div>🎥 <span x-text="material.session_type ?? 'Recorded'"></span></div>
                                     </div>
                                 </div>
-                            @endforeach
-                        @endforeach
+
+                                <!-- Price -->
+                                <div class="flex flex-col justify-center items-end p-4 w-32 text-right">
+                                    <span class="text-gray-400 line-through text-sm">
+                                        SAR <span x-text="Number(material.training_price).toFixed(0)"></span>
+                                    </span>
+                                    <span class="text-xl font-semibold text-gray-800">
+                                        SAR <span x-text="Number(material.training_offer_price).toFixed(0)"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
                     </div>
+                    <!-- Pagination Controls -->
+                    <div class="flex justify-center items-center space-x-2 mt-6">
+                        <button @click="prevPage" :disabled="currentPage === 1"
+                            class="px-3 py-1 rounded border"
+                            :class="{'opacity-50 cursor-not-allowed': currentPage === 1}">
+                            Previous
+                        </button>
 
-                    <!-- Pagination -->
-                    <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
+                        <template x-for="page in totalPages()" :key="page">
+                            <button @click="goToPage(page)"
+                                class="px-3 py-1 rounded border"
+                                :class="{'bg-blue-500 text-white': currentPage === page}">
+                                <span x-text="page"></span>
+                            </button>
+                        </template>
 
+                        <button @click="nextPage" :disabled="currentPage === totalPages()"
+                            class="px-3 py-1 rounded border"
+                            :class="{'opacity-50 cursor-not-allowed': currentPage === totalPages()}">
+                            Next
+                        </button>
+                    </div>
                 </main>
+
+
+                <script>
+                    function courseFilter() {
+                        return {
+                            allCourses: @json($materials), // Laravel se sab data aa gaya
+                            filteredCourses: [],
+                            search: '',
+                            selectedCategories: [],
+                            selectedLevels: [],
+                            selectedTypes: [],
+
+                            // 🔹 Pagination states
+                            currentPage: 1,
+                            perPage: 10,
+
+                            init() {
+                                this.filteredCourses = this.allCourses;
+
+                                // Filter checkboxes ke events handle karne ke liye listener
+                                window.addEventListener('filter-change', (e) => {
+                                    const { type, value, checked } = e.detail;
+
+                                    if (type === 'category') {
+                                        if (checked) this.selectedCategories.push(value);
+                                        else this.selectedCategories = this.selectedCategories.filter(c => c !== value);
+                                    }
+
+                                    if (type === 'level') {
+                                        if (checked) this.selectedLevels.push(value);
+                                        else this.selectedLevels = this.selectedLevels.filter(l => l !== value);
+                                    }
+
+                                    if (type === 'training_type') {
+                                        if (checked) this.selectedTypes.push(value);
+                                        else this.selectedTypes = this.selectedTypes.filter(t => t !== value);
+                                    }
+
+                                    this.filterCourses();
+                                });
+                            },
+
+                            filterCourses() {
+                                this.filteredCourses = this.allCourses.filter(course => {
+                                    const categoryMatch = this.selectedCategories.length === 0 
+                                        || this.selectedCategories.includes(String(course.training_category));
+
+                                    const levelMatch = this.selectedLevels.length === 0 
+                                        || this.selectedLevels.includes(course.training_level);
+
+                                    const typeMatch = this.selectedTypes.length === 0 
+                                        || this.selectedTypes.includes(course.training_type);
+
+                                    const searchMatch = course.training_title.toLowerCase().includes(this.search.toLowerCase());
+
+                                    return categoryMatch && levelMatch && typeMatch && searchMatch;
+                                });
+
+                                // 🔹 Reset page after filter
+                                this.currentPage = 1;
+                            },
+
+                            // 🔹 Pagination helpers
+                            totalPages() {
+                                return Math.ceil(this.filteredCourses.length / this.perPage);
+                            },
+
+                            paginatedCourses() {
+                                const start = (this.currentPage - 1) * this.perPage;
+                                return this.filteredCourses.slice(start, start + this.perPage);
+                            },
+
+                            nextPage() {
+                                if (this.currentPage < this.totalPages()) this.currentPage++;
+                            },
+
+                            prevPage() {
+                                if (this.currentPage > 1) this.currentPage--;
+                            },
+
+                            goToPage(page) {
+                                this.currentPage = page;
+                            },
+
+                            calculateHours(batches) {
+                                if (!batches) return 0;
+                                let total = 0;
+                                batches.forEach(b => {
+                                    const start = new Date('1970-01-01T' + b.start_timing);
+                                    const end = new Date('1970-01-01T' + b.end_timing);
+                                    total += (end - start) / 3600000;
+                                });
+                                return total;
+                            }
+                        }
+                    }
+
+                </script>
+
+
+
 
                 <!-- JS Pagination Script -->
                 <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const items = document.querySelectorAll('.course-item');
-                    const perPage = 10;
-                    let currentPage = 1;
-                    const totalPages = Math.ceil(items.length / perPage);
-                    const pagination = document.getElementById('pagination-controls');
-                    document.getElementById('total-results').textContent = items.length;
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const items = document.querySelectorAll('.course-item');
+                        const perPage = 10;
+                        let currentPage = 1;
+                        const totalPages = Math.ceil(items.length / perPage);
+                        const pagination = document.getElementById('pagination-controls');
+                        document.getElementById('total-results').textContent = items.length;
 
-                    function showPage(page) {
-                        const start = (page - 1) * perPage;
-                        const end = start + perPage;
+                        function showPage(page) {
+                            const start = (page - 1) * perPage;
+                            const end = start + perPage;
 
-                        items.forEach((item, index) => {
-                            item.style.display = (index >= start && index < end) ? 'flex' : 'none';
-                        });
+                            items.forEach((item, index) => {
+                                item.style.display = (index >= start && index < end) ? 'flex' : 'none';
+                            });
 
-                        renderPagination(page);
-                    }
-
-                    function renderPagination(page) {
-                        pagination.innerHTML = '';
-
-                        // Prev button
-                        const prevBtn = document.createElement('button');
-                        prevBtn.textContent = 'Previous';
-                        prevBtn.className = 'px-3 py-1 rounded border';
-                        prevBtn.disabled = page === 1;
-                        prevBtn.onclick = () => showPage(page - 1);
-                        pagination.appendChild(prevBtn);
-
-                        // Page numbers
-                        for (let i = 1; i <= totalPages; i++) {
-                            const btn = document.createElement('button');
-                            btn.textContent = i;
-                            btn.className = `px-3 py-1 rounded border ${i === page ? 'bg-blue-500 text-white' : ''}`;
-                            btn.onclick = () => showPage(i);
-                            pagination.appendChild(btn);
+                            renderPagination(page);
                         }
 
-                        // Next button
-                        const nextBtn = document.createElement('button');
-                        nextBtn.textContent = 'Next';
-                        nextBtn.className = 'px-3 py-1 rounded border';
-                        nextBtn.disabled = page === totalPages;
-                        nextBtn.onclick = () => showPage(page + 1);
-                        pagination.appendChild(nextBtn);
-                    }
+                        function renderPagination(page) {
+                            pagination.innerHTML = '';
 
-                    showPage(currentPage);
-                });
-                </script>
+                            // Prev button
+                            const prevBtn = document.createElement('button');
+                            prevBtn.textContent = 'Previous';
+                            prevBtn.className = 'px-3 py-1 rounded border';
+                            prevBtn.disabled = page === 1;
+                            prevBtn.onclick = () => showPage(page - 1);
+                            pagination.appendChild(prevBtn);
 
-
-
-                @php
-                    $trainings = \App\Models\TrainingMaterial::select('*')
-                                ->where('admin_status', 'approved', 'superadmin_approved')
-                                ->get();
-
-                @endphp
-                <script>
-                    function courseApp() {
-                        return {
-                        searchTerm: '',
-                        courses: [
-                            @foreach($trainings as $course)
-                                {
-                                    id: {{ $course->id }},
-                                    title: @json($course->training_title),
-                                    description: @json($course->training_sub_title),
-                                    image: "{{ asset('storage/' . $course->thumbnail_file_path) }}",
-                                    rating: {{ $course->rating ?? 0 }},
-                                    instructor: @json($course->instructor_name),
-                                    instructorImage: "{{ $course->instructor_image ?? 'https://randomuser.me/api/portraits/lego/1.jpg' }}",
-                                    lessons: {{ $course->lessons ?? 0 }},
-                                    duration: @json($course->duration ?? 'N/A'),
-                                    level: @json($course->level ?? 'N/A'),
-                                    topic: @json($course->topic ?? 'N/A'),
-                                    trainingType: @json($course->training_type ?? 'N/A'),
-                                    originalPrice: @json($course->original_price ?? 'N/A'),
-                                    discountedPrice: @json($course->discounted_price ?? 'N/A'),
-                                },
-                            @endforeach
-                        ],
-
-                        filteredCourses: [],
-                        filters: {
-                            topics: [],
-                            levels: [],
-                            types: [],
-                        },
-                        currentPage: 1,
-                        perPage: 4,
-
-                        init() {
-                            this.filteredCourses = this.courses
-                        },
-
-                        get totalPages() {
-                            return Math.ceil(this.filteredCourses.length / this.perPage) || 1
-                        },
-
-                        get paginatedCourses() {
-                            const start = (this.currentPage - 1) * this.perPage
-                            return this.filteredCourses.slice(start, start + this.perPage)
-                        },
-
-                        updateFilters() {
-                            this.filters.topics = Array.from(document.querySelectorAll('#topicSection input[type=checkbox]:checked')).map(i => i.value)
-                            this.filters.levels = Array.from(document.querySelectorAll('#levelSection input[type=checkbox]:checked')).map(i => i.value)
-                            this.filters.types = Array.from(document.querySelectorAll('#typeSection input[type=checkbox]:checked')).map(i => i.value)
-                            this.currentPage = 1
-                            this.filterCourses()
-                        },
-
-                        filterCourses() {
-                            let term = this.searchTerm.trim().toLowerCase()
-                            this.filteredCourses = this.courses.filter(course => {
-                            const matchesSearch = term === '' ||
-                                course.title.toLowerCase().includes(term) ||
-                                course.description.toLowerCase().includes(term) ||
-                                course.instructor.toLowerCase().includes(term)
-
-                            const topicsSelected = this.filters.topics.length === 0
-                            const matchesTopic = topicsSelected || this.filters.topics.includes(course.topic)
-
-                            const levelsSelected = this.filters.levels.length === 0 || this.filters.levels.includes('All')
-                            const matchesLevel = levelsSelected || this.filters.levels.includes(course.level)
-
-                            const typesSelected = this.filters.types.length === 0
-                            const matchesType = typesSelected || this.filters.types.includes(course.trainingType)
-
-                            return matchesSearch && matchesTopic && matchesLevel && matchesType
-                            })
-                            if (this.currentPage > this.totalPages) {
-                            this.currentPage = this.totalPages
+                            // Page numbers
+                            for (let i = 1; i <= totalPages; i++) {
+                                const btn = document.createElement('button');
+                                btn.textContent = i;
+                                btn.className = `px-3 py-1 rounded border ${i === page ? 'bg-blue-500 text-white' : ''}`;
+                                btn.onclick = () => showPage(i);
+                                pagination.appendChild(btn);
                             }
+                            
+                            // Next button
+                            const nextBtn = document.createElement('button');
+                            nextBtn.textContent = 'Next';
+                            nextBtn.className = 'px-3 py-1 rounded border';
+                            nextBtn.disabled = page === totalPages;
+                            nextBtn.onclick = () => showPage(page + 1);
+                            pagination.appendChild(nextBtn);
                         }
-                        }
-                    }
+                        
+                        showPage(currentPage);
+                    });
                 </script>
+
             </div>
+
+
+
 
       
 @include('site.componants.footer')
