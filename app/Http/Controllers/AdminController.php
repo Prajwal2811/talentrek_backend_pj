@@ -1382,15 +1382,15 @@ class AdminController extends Controller
     {
         $trainer = Trainers::findOrFail($id);
         $educations = $trainer->educations()->orderBy('id', 'desc')->get();
-        $experiences = $trainer->experiences()->orderBy('id', 'desc')->get();
-        $experience = $trainer->experience()->orderBy('id', 'desc')->get();
+        $workExperiences  = $trainer->experiences()->orderBy('id', 'desc')->get();
+        $trainingExperiences  = $trainer->experience()->orderBy('id', 'desc')->get();
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','trainer')->get();
         $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
                                                     ->where('purchased_subscriptions.user_id', $id)
                                                     ->where('purchased_subscriptions.user_type', 'trainer')
                                                     ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
                                                     ->get();
-        return view('admin.trainers.view', compact('trainer', 'educations', 'experiences', 'experience','additioninfos','subscriptionPlans'));
+        return view('admin.trainers.view', compact('trainer', 'educations', 'workExperiences', 'trainingExperiences','additioninfos','subscriptionPlans'));
     }
 
 

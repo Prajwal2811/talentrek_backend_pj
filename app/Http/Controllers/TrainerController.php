@@ -352,16 +352,29 @@ class TrainerController extends Controller
             }
 
             // Save work experience
+            // foreach ($request->job_role as $index => $role) {
+            //     WorkExperience::create([
+            //         'user_id' => $trainer->id,
+            //         'user_type' => 'trainer',
+            //         'job_role' => $role,
+            //         'organization' => $request->organization[$index],
+            //         'starts_from' => $request->starts_from[$index],
+            //         'end_to' => $request->end_to[$index],
+            //     ]);
+            // }
             foreach ($request->job_role as $index => $role) {
+                $isCurrentlyWorking = isset($request->currently_working[$index]) && $request->currently_working[$index] === 'on';
+
                 WorkExperience::create([
                     'user_id' => $trainer->id,
                     'user_type' => 'trainer',
                     'job_role' => $role,
                     'organization' => $request->organization[$index],
                     'starts_from' => $request->starts_from[$index],
-                    'end_to' => $request->end_to[$index],
+                    'end_to' => $isCurrentlyWorking ? 'work here' : $request->end_to[$index], // ✅ Save "Work Here"
                 ]);
             }
+
 
             // Save training experience
             TrainingExperience::create([
