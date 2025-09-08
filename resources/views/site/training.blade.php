@@ -230,14 +230,25 @@
                                                 class="rounded-full w-6 h-6" />
                                             <span x-text="material.trainer?.name"></span>
                                         </div>
-
+                                        
                                         <!-- Lessons -->
-                                        <div class="flex items-center space-x-1">📘 <span x-text="material.documents?.length ?? 0"></span> lessons</div>
+                                        <div x-show="material.training_type === 'recorded'" class="flex items-center space-x-1">
+                                            📘 <span x-text="material.documents?.length ?? 0"></span> lessons
+                                        </div>
 
                                         <!-- Duration -->
-                                        <div class="flex items-center space-x-1">
+                                        <div x-show="material.training_type === 'recorded'" class="flex items-center space-x-1">
                                             ⏱️ <span x-text="calculateHours(material.batches)"></span> hrs
                                         </div>
+
+                                         <!-- Lessons -->
+                                        <!-- <div class="flex items-center space-x-1">📘 <span x-text="material.documents?.length ?? 0"></span> lessons</div> -->
+
+                                        <!-- Duration -->
+                                        <!-- <div class="flex items-center space-x-1">
+                                            ⏱️ <span x-text="calculateHours(material.batches)"></span> hrs
+                                        </div> -->
+
 
                                         <!-- Level -->
                                         <div>📈 <span x-text="material.training_level ?? 'Beginner'"></span></div>
