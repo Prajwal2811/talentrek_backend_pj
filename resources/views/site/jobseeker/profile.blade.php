@@ -100,7 +100,15 @@ $skills = $user->skills->first();
                     <!-- Main Section -->
                     <div class="max-w-6xl mx-auto flex px-4 py-6 gap-6">
                         <!-- Sidebar -->
-                        <div x-data="{ tab: 'profile', profileTab: 'personal' }" class="flex max-w-5xl w-full space-x-6">
+                        <!-- <div x-data="{ tab: 'profile', profileTab: 'personal' }" class="flex max-w-5xl w-full space-x-6"> -->
+                        <div 
+                            x-data="{
+                                tab: localStorage.getItem('activeTab') || 'profile',
+                                profileTab: 'personal'
+                            }"
+                            x-init="$watch('tab', value => localStorage.setItem('activeTab', value))"
+                            class="flex max-w-5xl w-full space-x-6"
+                        >    
                         <!-- Sidebar Outer Tabs -->
                         <div class="w-1/5 space-y-2" style="background-color: rgb(238, 238, 238);">
                             <ul class="text-sm font-medium">
@@ -1369,18 +1377,21 @@ $skills = $user->skills->first();
                                 let itemToRemoveId = null;
                                 let $clickedButton = null;
 
+                                // Remove button click
                                 $('.remove-item').on('click', function () {
                                     itemToRemoveId = $(this).data('id');
                                     $clickedButton = $(this);
                                     $('#removeConfirmModal').removeClass('hidden');
                                 });
 
+                                // Cancel button
                                 $('#cancelRemove').on('click', function () {
                                     itemToRemoveId = null;
                                     $clickedButton = null;
                                     $('#removeConfirmModal').addClass('hidden');
                                 });
 
+                                // Confirm remove
                                 $('#confirmRemove').on('click', function () {
                                     if (!itemToRemoveId) return;
 
@@ -1392,14 +1403,14 @@ $skills = $user->skills->first();
                                         },
                                         success: function (response) {
                                             if (response.status === 'success') {
+                                                // modal close
                                                 $('#removeConfirmModal').addClass('hidden');
-                                                $clickedButton.closest('.cart-item').remove();
 
-                                                // Optional: if no cart items left, show "Your cart is empty."
-                                                if ($('.cart-item').length === 0) {
-                                                    $('.lg\\:col-span-2').html('<p class="text-gray-500">Your cart is empty.</p>');
-                                                }
+                                                // set cart tab in localStorage
+                                                localStorage.setItem('activeTab', 'cart');
 
+                                                // reload page
+                                                location.reload();
                                             } else {
                                                 alert(response.message || 'Remove failed');
                                             }
@@ -1409,8 +1420,19 @@ $skills = $user->skills->first();
                                         }
                                     });
                                 });
+
+                                //  On page load, restore active tab from localStorage
+                                if (localStorage.getItem('activeTab')) {
+                                    document.addEventListener("alpine:init", () => {
+                                        Alpine.store('tabs', {
+                                            active: localStorage.getItem('activeTab')
+                                        });
+                                    });
+                                    localStorage.removeItem('activeTab');
+                                }
                             });
                         </script>
+
 
 
 

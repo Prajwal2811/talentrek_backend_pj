@@ -123,7 +123,7 @@
                         {{ $totalHours }} hrs
                     </span>
 
-                    <span>🏷️ {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
+                    <span>📈 {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
                     <span>🎥 {{ ucfirst($material->session_type ?? 'recorded') }}</span>
                 </div>
 
@@ -681,9 +681,13 @@
                                 Add to Cart
                             </button>
                         @else
-                            <a href="{{ route('jobseeker.profile') }}" class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
-                                Go to Cart
+                            <a href="{{ route('jobseeker.profile') }}" 
+                            onclick="localStorage.setItem('activeTab','cart')"
+                            class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
+                            Go to Cart  
                             </a>
+
+
                         @endif
                     @endif
 
