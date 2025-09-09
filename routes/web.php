@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\LangController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -197,10 +197,12 @@ Route::group(['middleware' => 'admin.auth'], function() {
 });
 
 
+Route::get('lang/home', [LangController::class, 'index']);
+Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');
 
-
-
-
+//Language Switcher
+Route::get('/form', [LangController::class, 'showForm']);
+Route::post('/change-language', [LangController::class, 'changeLanguage'])->name('change.language');
 
 
 

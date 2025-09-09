@@ -104,7 +104,15 @@
 <script src="{{ asset('asset/js/swiper-bundle.min.js') }}"></script>
 <script src="{{ asset('asset/js/custom.js') }}"></script>
 <script src="{{ asset('asset/js/switcher.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+    var url = "{{ route('changeLang') }}";
+    $(".changeLang").change(function(){
 
+        window.location.href = url + "?lang="+ $(this).val();
+
+    });
+</script>
 </body>
 </html>
 
