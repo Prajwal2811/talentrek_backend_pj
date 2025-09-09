@@ -1363,7 +1363,55 @@ class RecruiterController extends Controller
 
 
 
+     public function getUnreadCount(Request $request)
+     {
+        $recruiterId = auth()->guard('recruiter')->id();
 
+        $query = DB::table('admin_group_chats')
+            ->where('receiver_id', $recruiterId)
+            ->where('receiver_type', 'recruiter')
+            ->where('is_read', 0);
+
+        // Agar admin-support page par hai to mark all as read
+        if ($request->query('mark_read') == 1) {
+            $query->update(['is_read' => 1]);
+            $count = 0;
+        } else {
+            $count = $query->count();
+        }
+
+        return response()->json(['count' => $count]);
+     }
+
+
+     public function markMessagesRead()
+     {
+          $recruiterId = auth()->guard('recruiter')->id();
+
+          DB::table('admin_group_chats')
+               ->where('receiver_id', $recruiterId)
+               ->where('receiver_type', 'recruiter')
+               ->where('is_read', 0)
+               ->update(['is_read' => 1]);
+
+          return response()->json(['success' => true]);
+     }
+
+     public function markMessagesSeen()
+     {
+          $recruiterId = auth()->guard('recruiter')->id();
+
+          DB::table('admin_group_chats')
+               ->where('receiver_id', $recruiterId)
+               ->where('receiver_type', 'recruiter')
+               ->where('is_read', 0)
+               ->update(['is_read' => 1]);
+
+          // Realtime broadcast
+          event(new \App\Events\MessageSeen($recruiterId, 'recruiter', 'admin', 'admin'));
+
+          return response()->json(['success' => true]);
+     }
 
 
 

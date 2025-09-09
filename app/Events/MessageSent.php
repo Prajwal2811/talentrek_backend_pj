@@ -102,6 +102,11 @@ class MessageSent implements ShouldBroadcast
             $channels[] = 'chat.admin';
         }
 
+        if ($this->message->sender_type === 'recruiter') {
+            $channels[] = 'chat.recruiter';
+            $channels[] = 'chat.admin';
+        }
+
         if ($this->message->receiver_type) {
             $channels[] = 'chat.' . $this->message->receiver_type;
         }

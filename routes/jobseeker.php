@@ -15,8 +15,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
 		
 
-		Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
-		Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
+		// Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
+		// Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
 
 
 		Route::get('/registration', [JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
@@ -35,17 +35,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		
 
 
-		Route::get('jobseeker/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
-		Route::get('jobseeker/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
-
-		
-		Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
-		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
-		
-		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
-		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
-
 		Route::post('/check-promocode', [JobseekerController::class, 'check'])->name('jobseeker.check-promocode');
+		Route::get('auth/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
+		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
+
+		
 
 	});
 	

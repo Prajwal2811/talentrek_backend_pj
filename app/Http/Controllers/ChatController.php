@@ -123,6 +123,10 @@ class ChatController extends Controller
         {
             return ['id' => auth()->guard('admin')->id(), 'type' => 'admin'];
         }
+        elseif (auth()->guard('recruiter')->check()) 
+        {
+            return ['id' => auth()->guard('recruiter')->id(), 'type' => 'recruiter'];
+        }
 
         return ['id' => null, 'type' => null];
     }
@@ -410,6 +414,27 @@ class ChatController extends Controller
             ->get();
          
         return response()->json($coaches);
+    }
+
+    public function getRecruitersList()
+    {
+        $recruiters = DB::table('recruiters as j')
+            ->select(
+                'j.id as user_id',
+                'j.name as recruiter_name',
+                DB::raw('COUNT(talentrek_m.id) as unread_count')
+            )
+            ->leftJoin('admin_group_chats as m', function ($join) {
+                $join->on('j.id', '=', 'm.sender_id')
+                    ->where('m.sender_type', '=', 'recruiter')   
+                    ->where('m.receiver_type', '=', 'group')    
+                    ->where('m.is_read', '=', 0);               
+            })
+            ->where('j.status', '=', 'active')
+            ->groupBy('j.id', 'j.name')
+            ->get();
+         
+        return response()->json($recruiters);
     }
 
  
