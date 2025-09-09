@@ -44,6 +44,12 @@ Broadcast::channel('chat.admin.{id}', function ($admin, $id) {
     
 });
 
+Broadcast::channel('chat.recruiter.{id}', function ($recruiter, $id) {
+    return auth()->guard('recruiter')->check() && $recruiter->id == $id;
+    
+});
+
+
 // Broadcast::channel('chat.{id}', function ($user, $id) {
 //     return (int) $user->id === (int) $id;
 // }, ['guards' => ['jobseeker', 'trainer', 'coach']]);

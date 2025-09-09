@@ -3213,6 +3213,10 @@ class JobseekerController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Item removed']);
     }
 
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
 
 
     public function handleGoogleCallback()
@@ -3236,7 +3240,7 @@ class JobseekerController extends Controller
 
             if ($jobseeker->status !== 'active') {
                 session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                return redirect()->route('jobseeker.sign-in');
+                return redirect()->route('signin.form');
             }
 
             Auth::guard('jobseeker')->login($jobseeker);
@@ -3248,7 +3252,7 @@ class JobseekerController extends Controller
             session()->flash('error', 'Google login failed. Please try again.');
         }
 
-        return redirect()->route('jobseeker.sign-in');
+        return redirect()->route('signin.form');
     }
 
     public function applyCoupon(Request $request)

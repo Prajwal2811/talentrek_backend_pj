@@ -125,28 +125,34 @@ $coachesList = DB::table('coaches as j')
                                         </div>
 
                                         {{-- Recruiters --}}
-                                         <div class="tab-pane vivify fadeIn" id="chats-Recruiters">
+                                        <div class="tab-pane vivify fadeIn" id="chats-Recruiters">
                                             <ul class="right_chat recruiters_list list-unstyled mb-0 animation-li-delay">
                                                 @foreach($recruitersList as $recruiter)
-                                                    <li class="online">
-                                                        <a href="javascript:void(0);" class="media openChat"
-                                                            data-id="{{ $recruiter->user_id }}"
-                                                            data-name="{{ $recruiter->recruiter_name }}" data-type="Recruiter">
-                                                            <img class="media-object" src="../assets/images/xs/avatar5.jpg"
-                                                                alt="">
-                                                            <div class="media-body">
-                                                                <span class="name">
-                                                                    {{ $recruiter->recruiter_name }}
-                                                                    <small class="text-muted font-12">Active</small>
-                                                                </span>
-                                                                <span class="message">Click to chat</span>
-                                                                <span class="badge badge-outline status"></span>
+                                                    <li class="chat-user" data-id="{{ $recruiter->user_id }}" data-type="recruiter">
+                                                        <a href="javascript:void(0);" 
+                                                        class="openChat d-flex align-items-center p-2 rounded hover-bg"
+                                                        data-id="{{ $recruiter->user_id }}"
+                                                        data-name="{{ $recruiter->recruiter_name }}"
+                                                        data-type="Recruiter">
+
+                                                            {{-- Avatar Circle --}}
+                                                            <div class="avatar me-3">
+                                                                <span>{{ strtoupper(substr($recruiter->recruiter_name,0,1)) }}</span>
+                                                            </div>
+
+                                                            {{-- Name + Message --}}
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <span class="name fw-semibold">{{ $recruiter->recruiter_name }}</span>
+                                                                </div>
+                                                                <small class="text-muted">Click to chat</small>
                                                             </div>
                                                         </a>
                                                     </li>
                                                 @endforeach
                                             </ul>
                                         </div>
+
 
 
 
