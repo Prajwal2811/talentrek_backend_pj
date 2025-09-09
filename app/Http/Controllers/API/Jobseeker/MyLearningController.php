@@ -9,6 +9,7 @@ use App\Models\Api\Mentors;
 use App\Models\Api\Coach;
 use App\Models\Api\TrainingMaterial;
 use App\Models\Api\TrainingBatch;
+use App\Models\Api\AssessmentJobseekerDataStatus;
 use App\Models\Api\Trainers;
 use App\Models\Api\Review;
 use App\Models\Api\JobseekerTrainingMaterialPurchase;
@@ -17,7 +18,9 @@ use App\Models\Api\BookingSession;
 use App\Models\Api\BookingSlot;
 use App\Models\Api\BookingSlotUnavailableDate;
 use App\Models\Setting;
+use App\Models\Payment\JobseekerSessionBookingPaymentRequest;
 use Carbon\Carbon;
+use App\Services\PaymentHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -56,12 +59,17 @@ class MyLearningController extends Controller
                         $start = Carbon::parse($batch->start_date);
                         $end = Carbon::parse($batch->end_date);
 
+                        $endDateTime = Carbon::parse($batch->end_date . ' ' . $batch->end_timing);
                         if ($today->lt($start)) {
                             $purchase->batch_status = 'upcoming';
-                        } elseif ($today->between($start, $end)) {
+                        } elseif (Carbon::now()->gte($endDateTime)) {
+                            $hasSubmitted = AssessmentJobseekerDataStatus::where('material_id', $purchase->material->material_id)
+                            ->where('jobseeker_id', $purchase->material->jobseeker_id)
+                            ->where('submitted', 1)
+                            ->exists();
+                            $purchase->batch_status = $hasSubmitted ? 'completed' : 'ongoing';
+                        } elseif ($today->between($start, $end, false)) {
                             $purchase->batch_status = 'ongoing';
-                        } else {
-                            $purchase->batch_status = 'completed';
                         }
                     }
                     else{
@@ -580,7 +588,7 @@ class MyLearningController extends Controller
                 'message' => $validator->errors()->first()
             ], 200);
         }
-       try {
+       //try {
             // $validator = Validator::make($request->all(), [
             //     'jobSeekerId'   => 'required|integer',
             //     'sessionDate'   => 'required|date',        // Optional: ensure it's a valid date
@@ -607,30 +615,133 @@ class MyLearningController extends Controller
 
             if ($exists) {
                 return response()->json(['success' => false, 'message' => ucwords($request->roleType).'  '.ucwords($request->trainingMode).' session booking already exists.']);
-            }
+            }            
+            
+            $slotPrice = $this->getUserSlotPrice($request->userId,$request->roleType);
+            $slotTax = $this->getSlotPercentage($request->roleType) ;
+            $slotTotalAmount = $slotPrice + ($slotPrice * $slotTax / 100); 
 
-            // If not exists, insert
-            BookingSession::create([
+            $referenceNo0 = 'TRK-' . strtoupper(substr($request->roleType, 0, 3)) . '-' .$request->userId . '-' .
+               $request->slot_id . '-' . 
+               $request->jobSeekerId . '-' . 
+               date('YmdHi', strtotime($sessionDate));
+            $booking = JobseekerSessionBookingPaymentRequest::create([
                 'jobseeker_id' => $request->jobSeekerId,
-                'user_id' => $request->userId,
                 'user_type' => $request->roleType,
-                'slot_date' => $sessionDate,
-                'slot_time' =>  '',
+                'user_id' => $request->userId,
                 'booking_slot_id' => $request->slot_id,
                 'slot_mode' => $request->trainingMode,
+                'slot_date' => $sessionDate,
+                'slot_time' => '',
+                'track_id' => $referenceNo0,
+                'status' => 'awaiting_payment',
+                'reserved_until' => now()->addDays(5), // hold slot for 15 min
+                'amount' => $slotPrice,
+                'tax' => $slotTax,
+                'total_amount' => $slotTotalAmount,
+                'currency' => 'SAR',
+                'payment_gateway' => 'Al-Rajhi',
             ]);
+
+            $trackId = strtoupper(substr($request->roleType, 0, 3)). '-' . $booking->id . '-' .$request->userId . '-' .
+               $request->slot_id . '-' . 
+               $request->jobSeekerId . '-' . 
+               date('YmdHi', strtotime($sessionDate));
+            $referenceNo =  "TRK-" .  $trackId ;
+
+            $booking->update(['track_id' => $referenceNo]);
+            $config = config('neoleap');
+            $transactionDetails = [
+                "id"          => $config['tranportal_id'], // Your Merchant ID from Al Rajhi
+                "amt"         => number_format($slotTotalAmount, 2, '.', ''),          // Transaction amount
+                "action"      => "1",               // 1 = Purchase, 4 = Authorization
+                "password"    => "T4#2H#ma5yHv\$G7",
+                "currencyCode"=> "682",             // ISO numeric code (682 = SAR)
+                "trackId"     => "TRK-" .  $trackId ,          // Unique tracking ID
+                "udf1"        => $request->jobSeekerId,     // Jobseeker Id
+                "udf2"        => $request->roleType,        // Mentor/Coach/Assessor
+                "udf3"        => $request->userId,          // Mentor/Coach/Assessor Id
+                "udf4"        => $request->slot_id,         // Booking slot id 
+                "udf5"        => $request->trainingMode,    // Online/Classroom
+                "udf6"        => $sessionDate,              // Session booking Date
+                "udf7"        => $slotTax,              // Mentor Session Tax
+                "udf8"        => $slotPrice,              // Mentor session Slot Price
+                "langid"      => "en",                      // change to ar when goes live for arabic default
+                "responseURL" => $config['success_booking_session_url'],
+                "errorURL"    => $config['success_booking_session_url']
+            ];
+            $payload = [$transactionDetails];
+
+            $jsonTrandata = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        
+            $trandata = PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']);
+            $trandatas = strtoupper($trandata) ;
+            $booking->update(['request_payload' => $jsonTrandata]);
+            $payload = [[
+                "id"          => $config['tranportal_id'],
+                "trandata"    => $trandatas, // ✅ variable here
+                "responseURL" => $config['success_booking_session_url'],
+                "errorURL"    => $config['success_booking_session_url']
+            ]];
+            $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES) ;
+
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $payloads,
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+            //echo $response;exit;
+            // Decode JSON
+            $data = json_decode($response, true);
+
+            // Get the "result" value
+            $result = $data[0]['result'];
+
+            // Split by colon
+            list($paymentId, $paymentUrl) = explode(":", $result, 2);
+
+            
+            // Final redirect URL
+            $redirectUrl = $paymentUrl . "?PaymentID=" . $paymentId;
+            // If not exists, insert
+            // BookingSession::create([
+            //     'jobseeker_id' => $request->jobSeekerId,
+            //     'user_id' => $request->userId,
+            //     'user_type' => $request->roleType,
+            //     'slot_date' => $sessionDate,
+            //     'slot_time' =>  '',
+            //     'booking_slot_id' => $request->slot_id,
+            //     'slot_mode' => $request->trainingMode,
+            // ]);
 
             // Return success with data
             return response()->json([
                 'success' => true,
+                'redirectUrl' => $redirectUrl,
                 'message' => ucwords($request->roleType).'  '.ucwords($request->trainingMode).' slot booked successfully.'
             ]);
 
-        } catch (\Exception $e) {
-            // Log error if needed: Log::error($e);
-            return $this->errorResponse('An error occurred while fetching training courses.', 500,[]);
-        }
+        // } catch (\Exception $e) {
+        //     // Log error if needed: Log::error($e);
+        //     return $this->errorResponse('An error occurred while fetching training courses.', 500,[]);
+        // }
     }
+
+    
 
     public function sessionDetailByIdForMCA($id,$sessionId,$type)
     {

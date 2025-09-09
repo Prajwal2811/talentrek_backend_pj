@@ -246,7 +246,7 @@ class TrainingController extends Controller
                     'date_format:d/m/Y',
                     function ($attribute, $value, $fail) {
                         $date = Carbon::createFromFormat('d/m/Y', $value);
-                        if ($date->isPast()) {
+                         if ($date->isBefore(Carbon::today())) {
                             $fail("$attribute should not be a past date.");
                         }
                     },
@@ -386,11 +386,11 @@ class TrainingController extends Controller
 
                   
 
-                    $zoom = new ZoomService();
-                    $date = Carbon::createFromFormat('d/m/Y', $section['batch_date'])->format('Y-m-d');
-                    $startTime = $date . ' ' . $section['start_time'];
+                    // $zoom = new ZoomService();
+                    // $date = Carbon::createFromFormat('d/m/Y', $section['batch_date'])->format('Y-m-d');
+                    // $startTime = $date . ' ' . $section['start_time'];
 
-                    $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+                    // $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
  
                     // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
                     //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");

@@ -13,7 +13,7 @@ class Setting extends Model
         'footer_logo',
         'favicon',
         'trainingMaterialTax',
-        'trainingMaterialBatchTax',    
+        'trainingMaterialBatchTax',
         'coachTax',
         'mentorTax',
         'assessorTax'

@@ -403,7 +403,7 @@ class TrainerController extends Controller
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
                 'national_id'      => $request->national_id,
-                'is_registered'=> true, // you should add this column to your table
+                'is_registered'=> 1, // you should add this column to your table
             ]);
 
             // Save education

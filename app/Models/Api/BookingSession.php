@@ -30,6 +30,15 @@ class BookingSession extends Model
         'zoom_access_token',
         'zoom_refresh_token',
         'zoom_token_expires_at',
+        'amount',
+        'tax',
+        'total_amount',
+        'response_payload',
+        'payment_status',
+        'track_id',
+        'transaction_id'
+
+
     ];
 
     // Relationships

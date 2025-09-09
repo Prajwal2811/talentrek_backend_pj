@@ -741,7 +741,16 @@ $coach = Auth()->user();
                                                     <label class="block font-medium mb-1">About coach</label>
                                                     <textarea name="about_coach" class="w-full border rounded px-3 py-2 h-24">{{ $coach->about_coach }}</textarea>
                                                 </div>
+                                                <!-- <h3 class="text-lg font-semibold mt-5">Session Price</h3> -->
+                                                <h3 class="text-2xl font-bold mt-5">Session Price</h3>
 
+                                                    <div class="grid grid-cols-2 gap-6 mt-3">
+                                                        <!-- Price Per Session -->
+                                                        <div>
+                                                            <label class="block mb-1 font-medium">Price Per Session</label>
+                                                            <input type="text" name="per_slot_price" value="{{ $coach->per_slot_price }}" class="w-full border rounded px-3 py-2" />
+                                                        </div>
+                                                    </div>
                                                 <!-- Buttons -->
                                                 <div class="mt-6 flex justify-end gap-4">
                                                     <button @click.prevent="activeSubTab = 'education'" class="border px-6 py-2 rounded hover:bg-gray-100">Next</button>

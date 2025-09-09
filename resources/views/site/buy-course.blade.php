@@ -111,7 +111,7 @@
                                                 <th class="px-4 py-2">Duration</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <!-- <tbody>
                                             @if($material->batches->isNotEmpty())
                                                 @foreach ($material->batches as $batch)
                                                     @php
@@ -173,7 +173,76 @@
 
 
 
+                                        </tbody> -->
+                                        <tbody>
+                                            @if($material->batches->isNotEmpty())
+                                                @foreach ($material->batches as $batch)
+                                                    @php
+                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
+                                                        $now = \Carbon\Carbon::now();
+
+                                                        // Parse duration
+                                                        $duration = strtolower($batch->duration);
+                                                        preg_match('/\d+/', $duration, $matches);
+                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
+
+                                                        // Calculate end date
+                                                        if (str_contains($duration, 'day')) {
+                                                            $endDate = $startDate->copy()->addDays($durationValue);
+                                                        } elseif (str_contains($duration, 'month')) {
+                                                            $endDate = $startDate->copy()->addMonths($durationValue);
+                                                        } elseif (str_contains($duration, 'year')) {
+                                                            $endDate = $startDate->copy()->addYears($durationValue);
+                                                        } else {
+                                                            $endDate = $startDate;
+                                                        }
+
+                                                        $isStarted = $startDate->isPast();
+                                                        $isEnded = $endDate->isPast();
+
+                                                        // Check batch strength
+                                                        $bookedCount = \DB::table('jobseeker_training_material_purchases')
+                                                                        ->where('batch_id', $batch->id)
+                                                                        ->count();
+                                                        $isFull = $bookedCount >= $batch->strength;
+                                                    @endphp
+
+                                                    <tr class="border-t {{ $isEnded || $isFull ? 'bg-gray-200 text-red-500' : 'cursor-pointer' }}" 
+                                                        onclick="{{ ($isEnded || $isFull) ? '' : 'selectRadio(' . $batch->id . ')' }}">
+                                                        
+                                                        <td class="px-4 py-3">
+                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
+                                                                id="batch-radio-{{ $batch->id }}" {{ ($isEnded || $isFull) ? 'disabled' : '' }}>
+                                                        </td>
+
+                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
+
+                                                        <td class="px-4 py-3">
+                                                            {{ $startDate->format('d M Y') }}
+                                                            @if ($isFull)
+                                                                <div class="text-sm font-semibold text-red-600">Batch Full</div>
+                                                            @elseif ($isStarted && !$isEnded)
+                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
+                                                            @elseif ($isEnded)
+                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
+                                                            @endif
+                                                        </td>
+
+                                                        <td class="px-4 py-3">
+                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
+                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                        </td>
+
+                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
+                                                </tr>
+                                            @endif
                                         </tbody>
+
                                     </table>
                                     @error('batch')
                                         <small class="text-danger">{{ $message }}</small>
@@ -326,49 +395,106 @@
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                             </div>
 
-                            <!-- Apply Promocode Section -->
                             <div>
                                 <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
                                 <div class="flex space-x-2">
-                                    <input type="text" placeholder="Enter promocode for discount"
+                                    <input type="text" id="promocode" placeholder="Enter promocode for discount"
                                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                    <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                    <button type="button" id="applyCouponBtn"
+                                        class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
                                 </div>
+                                <p id="couponMessage" class="text-sm mt-2"></p>
                             </div>
-
 
                             @php
                                 $actualPrice = $material->training_price;
                                 $offerPrice = $material->training_offer_price;
                                 $savedPrice = $actualPrice - $offerPrice;
-
-                                $tax = round($offerPrice * 0.10, 2); // 10% tax, rounded to 2 decimal places
+                                $tax = round($offerPrice * 0.10, 2);
                                 $total = $offerPrice + $tax;
                             @endphp
 
-                            <!-- Billing Information -->
-                            <div class="border rounded p-4 space-y-2">
+                            <div class="border rounded p-4 space-y-2" id="billingSection">
                                 <h3 class="text-sm font-medium border-b pb-2">Billing Information</h3>
 
                                 <div class="flex justify-between text-sm">
                                     <span>Course total</span>
-                                    <span>SAR {{ number_format($offerPrice, 2) }}</span>
+                                    <span id="courseTotal">SAR {{ number_format($offerPrice, 2) }}</span>
+                                </div>
+
+                                <div class="flex justify-between text-sm" id="discountRow" style="display:none;">
+                                    <span>Coupon Discount</span>
+                                    <span id="discountAmount">SAR 0.00</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
                                     <span>Saved amount</span>
-                                    <span>SAR {{ number_format($savedPrice, 2) }}</span>
+                                    <span id="savedAmount">SAR {{ number_format($savedPrice, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
                                     <span>Tax (10%)</span>
-                                    <span>SAR {{ number_format($tax, 2) }}</span>
+                                    <span id="taxAmount">SAR {{ number_format($tax, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-base font-semibold pt-2 border-t">
                                     <span>Total</span>
-                                    <span>SAR {{ number_format($total, 2) }}</span>
+                                    <span id="totalAmount">SAR {{ number_format($total, 2) }}</span>
                                 </div>
+                            </div>
+
+                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                           <script>
+$('#applyCouponBtn').click(function () {
+    let code = $('#promocode').val().trim();
+    // Pass numeric literals to JS safely
+    let price = parseFloat("{{ number_format($offerPrice, 2, '.', '') }}");
+    let actualPrice = parseFloat("{{ number_format($actualPrice, 2, '.', '') }}");
+
+    if (!code) {
+        $('#couponMessage').text('Please enter a coupon code').css('color', 'red');
+        return;
+    }
+
+    $.ajax({
+        url: "{{ route('jobseeker.apply-coupon') }}",
+        method: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            code: code,
+            price: price
+        },
+        success: function (response) {
+            if (response.success) {
+                $('#discountRow').show();
+                $('#discountAmount').text("- SAR " + Number(response.discount).toFixed(2));
+
+                // Update course total to the discounted price (before tax)
+                $('#courseTotal').text("SAR " + Number(response.newPrice).toFixed(2));
+
+                // Tax & total
+                $('#taxAmount').text("SAR " + Number(response.tax).toFixed(2));
+                $('#totalAmount').text("SAR " + Number(response.total).toFixed(2));
+
+                // Saved amount = difference between original full price and final price after coupon
+                let newSaved = actualPrice - Number(response.newPrice);
+                $('#savedAmount').text("SAR " + Number(newSaved).toFixed(2));
+
+                $('#couponMessage').text(response.message).css("color", "green");
+            } else {
+                $('#discountRow').hide();
+                $('#couponMessage').text(response.message).css("color", "red");
+            }
+        },
+        error: function () {
+            $('#couponMessage').text("Something went wrong!").css("color", "red");
+        }
+    });
+});
+</script>
+
+
+
 
                                 <button type="submit"
                                     class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">

@@ -20,6 +20,7 @@ use App\Models\BookingSession;
 use App\Models\TrainingCategory;
 use App\Models\BookingSlot;
 use App\Models\Assessors;
+use App\Models\Notification;
 use Carbon\Carbon;
 use DB;
 use Auth;
@@ -240,15 +241,26 @@ class AssessorController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // Now attempt login only if status is active
+        // ✅ Check admin_status
+        if ($assessor->admin_status === 'superadmin_reject' || $assessor->admin_status === 'rejected') {
+            session()->flash('error', 'Your account has been rejected by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        if ($assessor->admin_status !== 'superadmin_approved') {
+            session()->flash('error', 'Your account is not yet approved by administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
+        // ✅ Now attempt login only if status is active and admin_status is approved
         if (Auth::guard('assessor')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            // return view('site.trainer.trainer-dashboard');
             return redirect()->route('assessor.dashboard');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
     public function showAssessorDashboard()
     {
@@ -558,6 +570,17 @@ class AssessorController extends Controller
 
         DB::commit();
 
+        $data = [
+            'sender_id' => $assessor->id,
+            'sender_type' => 'Registration by Assessor.',
+            'receiver_id' => '1',
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$assessor->name,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'assessor'
+        ];
+
+        Notification::insert($data);
         session()->forget('assessor_id');
         return redirect()->route('assessor.login')->with('success_popup', true);
     }
@@ -626,6 +649,8 @@ class AssessorController extends Controller
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
             'about_assessor' => 'nullable|string',
+            'per_slot_price' => 'required',
+            
         ]);
 
         $assessor->update([
@@ -640,6 +665,7 @@ class AssessorController extends Controller
             'country' => $validated['country'] ?? null,
             'pin_code' => $validated['pin_code'] ?? null,
             'about_assessor' => $validated['about_assessor'] ?? null,
+            'per_slot_price' => $validated['per_slot_price'] ?? null,
         ]);
 
         return response()->json([
@@ -1151,4 +1177,55 @@ class AssessorController extends Controller
     public function adminSupportAssessor(){
         return view('site.assessor.admin-support-assessor'); 
     }
+
+     public function getUnreadCount(Request $request)
+    {
+        $assessorId = auth()->guard('assessor')->id();
+
+        $query = DB::table('admin_group_chats')
+            ->where('receiver_id', $assessorId)
+            ->where('receiver_type', 'assessor')
+            ->where('is_read', 0);
+
+        // Agar admin-support page par hai to mark all as read
+        if ($request->query('mark_read') == 1) {
+            $query->update(['is_read' => 1]);
+            $count = 0;
+        } else {
+            $count = $query->count();
+        }
+
+        return response()->json(['count' => $count]);
+    }
+
+
+    public function markMessagesRead()
+    {
+        $assessorId = auth()->guard('assessor')->id();
+
+        DB::table('admin_group_chats')
+            ->where('receiver_id', $assessorId)
+            ->where('receiver_type', 'assessor')
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function markMessagesSeen()
+    {
+        $assessorId = auth()->guard('assessor')->id();
+
+        DB::table('admin_group_chats')
+            ->where('receiver_id', $assessorId)
+            ->where('receiver_type', 'assessor')
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        // Realtime broadcast
+        event(new \App\Events\MessageSeen($assessorId, 'assessor', 'admin', 'admin'));
+
+        return response()->json(['success' => true]);
+    }
 }
+

@@ -38,9 +38,11 @@ class Assessors extends Authenticatable
         'shortlist',
         'admin_recruiter_status',
         'google_id',
+        'per_slot_price',
         'avatar',
         'about_assessor',
         'isSubscribtionBuy',
+        'is_registered'
     ];
 
     /**
@@ -65,7 +67,9 @@ class Assessors extends Authenticatable
 
     public function trainingexperience()
     {
-        return $this->hasMany(TrainingExperience::class, 'user_id');
+        // return $this->hasMany(TrainingExperience::class, 'user_id');
+        return $this->hasOne(\App\Models\TrainingExperience::class, 'user_id', 'id')
+                ->where('user_type', 'assessor');
        
     }
 

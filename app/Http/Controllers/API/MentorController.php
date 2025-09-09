@@ -277,9 +277,9 @@ class MentorController extends Controller
                 'job_category' => 'required|string',
                 'website_link' => 'nullable|url',
                 'portfolio_link' => 'nullable|url',
-                'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-                'profile_picture' => 'required|file|image|max:2048',
-                'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+                // 'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+                // 'profile_picture' => 'required|file|image|max:2048',
+                // 'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
                 'pincode' => 'required',                
                 'city' => 'required|string',                
                 'state' => 'required|string',                
@@ -394,7 +394,7 @@ class MentorController extends Controller
                 'country'      => $request->country,
                 'pin_code'      => $request->pincode,
                 'national_id'      => $request->national_id,
-                'is_registered'=> true, // you should add this column to your table
+                'is_registered'=> 1, // you should add this column to your table
             ]);
 
             // Save education

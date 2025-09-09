@@ -61,7 +61,12 @@
                                             @foreach($recruiters as $index => $recruiter)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $recruiter->name }}</td>
+                                                <td>
+                                                    {{ $recruiter->name }}
+                                                    @if($recruiter->role === 'main')
+                                                        (Head)
+                                                    @endif
+                                                </td>
                                                 <td>{{ $recruiter->email }}</td>
                                                 <td>{{ $recruiter->company->company_name ?? '-' }}</td>
                                                 <td>

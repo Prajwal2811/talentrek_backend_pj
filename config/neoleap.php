@@ -9,4 +9,9 @@ return [
     'payment_url'   => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
     'callback_url'  => env('APP_URL').env('NEOLEAP_SUCCESS_URL '),
     'return_url'    => env('APP_URL').env('NEOLEAP_SUCCESS_URL'),
+    'success_booking_session_url'    => env('APP_URL').env('NEOLEAP_BOOKING_SESSION_SUCCESS_URL'),
+
+    // Subscription-specific
+    'subscription_success_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_SUCCESS_URL'),
+    'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_FAILURE_URL'),
 ];
