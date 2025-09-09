@@ -16,12 +16,13 @@ class JobseekerTrainingMaterialPurchase extends Model
         'training_type',
         'session_type',
         'batch_id',
-        'payment_method',
+        'purchase_for',
         'amount',
         'tax',
         'discount',
         'status',
         'transaction_id',
+        'member_count'
     ];
 
 

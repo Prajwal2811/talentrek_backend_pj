@@ -14,52 +14,63 @@
                         <p class="text-gray-600 mb-8">Monitor platform-wide user activity and growth.</p>
 
                         <!-- User Type Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                            <a href="{{ route('admin.jobseekers') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Jobseekers</p>
                                 <h2 class="text-3xl font-bold text-blue-600">{{ $jobseekerCount }}</h2>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                            </a>
+
+                            <a href="{{ route('admin.recruiters') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Recruiters</p>
                                 <h2 class="text-3xl font-bold text-green-600">{{ $recruiterCount }}</h2>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                            </a>
+
+                            <a href="{{ route('admin.trainers') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Trainers</p>
                                 <h2 class="text-3xl font-bold text-purple-600">{{ $trainerCount }}</h2>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                            </a>
+
+                            <a href="{{ route('admin.expats') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Expats</p>
                                 {{-- <h2 class="text-3xl font-bold text-blue-500">{{ $expatCount }}</h2> --}}
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
-                                <p class="text-gray-500">Coaches</p>
+                            </a>
+
+                            <a href="{{ route('admin.coach') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Coach</p>
                                 <h2 class="text-3xl font-bold text-red-500">{{ $coachCount }}</h2>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                            </a>
+
+                            <a href="{{ route('admin.mentors') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Mentors</p>
                                 <h2 class="text-3xl font-bold text-yellow-500">{{ $mentorCount }}</h2>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                            </a>
+
+                            <a href="{{ route('admin.assessors') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Assessors</p>
                                 <h2 class="text-3xl font-bold text-red-500">{{ $assessorCount }}</h2>
+                            </a>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Training Material Sales</p> 
+                                <h2 class="text-3xl font-bold text-indigo-600">₹{{ number_format($materialSales) }}</h2> 
                             </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
-                                <p class="text-gray-500">Training Material Sales</p>
-                                <h2 class="text-3xl font-bold text-indigo-600">₹{{ number_format($materialSales) }}</h2>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Mentor Sessions Booked</p> 
+                                <h2 class="text-3xl font-bold text-purple-600">{{ $mentorSessionCount }}</h2> 
                             </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
-                                <p class="text-gray-500">Mentor Sessions Booked</p>
-                                <h2 class="text-3xl font-bold text-purple-600">{{ $mentorSessionCount }}</h2>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Coach Sessions Booked</p> 
+                                {{-- <h2 class="text-3xl font-bold text-blue-600">{{ $coachSessionCount }}</h2> --}} 
                             </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
-                                <p class="text-gray-500">Coach Sessions Booked</p>
-                                {{-- <h2 class="text-3xl font-bold text-blue-600">{{ $coachSessionCount }}</h2> --}}
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl shadow-md">
-                                <p class="text-gray-500">Assessor Sessions Booked</p>
-                                {{-- <h2 class="text-3xl font-bold text-pink-600">{{ $assessorSessionCount }}</h2> --}}
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Assessor Sessions Booked</p> 
+                                {{-- <h2 class="text-3xl font-bold text-pink-600">{{ $assessorSessionCount }}</h2> --}} 
                             </div>
                         </div>
+
 
 
                         <!-- Charts Grid -->

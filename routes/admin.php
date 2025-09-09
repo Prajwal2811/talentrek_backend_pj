@@ -73,7 +73,7 @@ Route::group(['prefix' => 'admin'], function() {
 		});
         // Expats Module
         Route::middleware('admin.module:Expats')->group(function () {
-			Route::get('/expat', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expat');
+			Route::get('/expats', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expats');
 		});
         // Assessors Module
         Route::middleware('admin.module:Assessors')->group(function () {

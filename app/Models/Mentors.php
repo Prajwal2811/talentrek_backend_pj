@@ -38,6 +38,7 @@ class Mentors extends Authenticatable
         'per_slot_price',
         'avatar',
         'isSubscribtionBuy',
+        'is_registered'
 
     ];
 

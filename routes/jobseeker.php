@@ -45,6 +45,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
 		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
 
+		Route::post('/check-promocode', [JobseekerController::class, 'check'])->name('jobseeker.check-promocode');
+
 	});
 	
  	// Routes accessible after login but before subscription

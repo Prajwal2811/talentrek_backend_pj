@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
 
@@ -248,6 +249,9 @@ Route::group(['middleware' => 'admin.auth'], function() {
 });
 
 
+Route::get('/pay', [PaymentController::class, 'pay']);
+Route::post('/success', [PaymentController::class, 'success']);
+Route::post('/failure', [PaymentController::class, 'failure']);
 
 // routes/web.php
 // Route::get('/', function () {

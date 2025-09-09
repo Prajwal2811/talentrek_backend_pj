@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Jobseekers;
 use App\Models\Recruiters;
 use App\Models\Trainers;
+use App\Models\Taxation;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentOption;
 use App\Models\EducationDetails;
@@ -1925,6 +1926,7 @@ class JobseekerController extends Controller
         // If online, create Zoom meeting
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
+            
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
             $zoomMeeting = $zoom->createMeeting("Mentorship with #{$jobseeker->id}", $startTime);
 
@@ -2610,19 +2612,42 @@ class JobseekerController extends Controller
         try {
             $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
 
+            $batch = null;
+            $availableSeats = null;
+
+            if ($request->training_type === 'online' || $request->training_type === 'classroom') {
+                $batch = $material->batches()->findOrFail($request->batch);
+
+                $strength = $batch->strength;
+                $enrolled = JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                            ->where('material_id', $material->id)
+                            ->count();
+
+                $availableSeats = $strength - $enrolled;
+
+                // Maximum extra members = availableSeats - 1 (current user occupies one seat)
+                if ($request->member_count > $availableSeats) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', "Only " . ($availableSeats - 1) . " extra seats are available in this batch.");
+                }
+            }
+
             $actualPrice = $material->training_price;
-            $offerPrice  = $material->training_offer_price;
+            $offerPrice  = $material->training_offer_price ?? $actualPrice;
             $savedAmount = $actualPrice - $offerPrice;
 
-            // Total price per member
-            $taxPerMember   = round($offerPrice * 0.10, 2); // 10% tax
+            $taxation = Taxation::where('user_type', 'trainer')->where('is_active', 1)->first();
+            $taxRate = $taxation ? ($taxation->rate / 100) : 0; // e.g., 12.5% = 0.125
+
+            // Tax per member
+            $taxPerMember = round($offerPrice * $taxRate, 2);
             $totalPerMember = $offerPrice + $taxPerMember;
 
-            // Multiply by team size
             $memberCount = (int)$request->member_count;
-            $grandTotal  = $totalPerMember * $memberCount;
-            $grandTax    = $taxPerMember * $memberCount;
-            $grandSaved  = $savedAmount * $memberCount;
+            $grandTotal  = round($totalPerMember * $memberCount, 2);
+            $grandTax    = round($taxPerMember * $memberCount, 2);
+            $grandSaved  = round($savedAmount * $memberCount, 2);
 
             // Create purchase
             $purchase = JobseekerTrainingMaterialPurchase::create([
@@ -2631,18 +2656,18 @@ class JobseekerController extends Controller
                 'material_id'    => $material->id,
                 'training_type'  => $request->training_type,
                 'session_type'   => $request->session_type ?? null,
-                'batch_id'       => $request->batch ?? null,
-                'payment_method' => $request->payment_method,
+                'batch_id'       => $batch->id ?? null,
+                'purchase_for'   => 'team',
                 'amount'         => $grandTotal,
                 'tax'            => $grandTax,
                 'discount'       => $grandSaved,
                 'status'         => 'paid',
                 'member_count'   => $memberCount,
+                'transaction_id' => 'static'
             ]);
 
-            // Save member emails in both tables
+            // Save member emails and create Jobseeker accounts if not exist
             foreach ($request->member_emails as $email) {
-                // Insert into team_course_members
                 DB::table('team_course_members')->insert([
                     'purchase_id' => $purchase->id,
                     'email'       => $email,
@@ -2650,32 +2675,25 @@ class JobseekerController extends Controller
                     'updated_at'  => now(),
                 ]);
 
-                // Create Jobseeker account if not exists
-                // Create Jobseeker account if not exists
                 $existing = Jobseekers::where('email', $email)->first();
                 if (!$existing) {
                     $username = strstr($email, '@', true);
-
-                    // Create new password based on email prefix
                     $password = $username . '@talentrek';
 
                     Jobseekers::create([
-                        'name'     => 'Team Member', // optional, you can customize
+                        'name'     => 'Team Member',
                         'email'    => $email,
-                        'password' => Hash::make($password), // store securely
-                        'pass'     => $password,             // store plain text if column exists
+                        'password' => Hash::make($password),
+                        'pass'     => $password,
                     ]);
-
-                    // Optional: send credentials via email
-                    // Mail::to($email)->send(new TeamMemberCredentialsMail($email, $password));
                 }
-
             }
 
             DB::commit();
 
             return redirect()->route('course.details', $material->id)
                 ->with('success', 'Course purchased successfully for your team!');
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Team course purchase failed: ' . $e->getMessage());
@@ -2683,6 +2701,8 @@ class JobseekerController extends Controller
             return redirect()->back()->with('error', 'Something went wrong while processing your purchase.');
         }
     }
+
+
 
 
 
@@ -3303,5 +3323,22 @@ class JobseekerController extends Controller
     }
 
 
+
+    public function check(Request $request)
+    {
+    $coupon = Coupon::where('code', $request->code)
+                    ->where('is_active', 1)
+                    ->first();
+
+    if ($coupon) {
+        // Return discount amount
+        return response()->json([
+            'valid' => true,
+            'discount_amount' => $coupon->discount_value // assuming flat discount
+        ]);
+    }
+
+    return response()->json(['valid' => false]);
+    }
 
 }

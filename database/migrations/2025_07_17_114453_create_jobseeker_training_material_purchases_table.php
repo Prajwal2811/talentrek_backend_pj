@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('jobseeker_id')->nullable();
             $table->string('trainer_id')->nullable();
             $table->string('material_id')->nullable();
-            
+
             // Nullable enum types
             $table->enum('training_type', ['online', 'classroom', 'recorded'])->nullable();
             $table->enum('session_type', ['online', 'classroom'])->nullable();
@@ -36,12 +36,20 @@ return new class extends Migration
 
             // Status
             $table->string('batchStatus')->nullable();
-
             $table->string('transaction_id')->nullable();
-            $table->string('status')->default('pending')->change();
-            
+            $table->string('status')->default('pending');
+
+            // Billing fields
+            $table->decimal('amount', 10, 2)->nullable();
+            $table->decimal('tax', 10, 2)->nullable();
+            $table->decimal('discount', 10, 2)->nullable();
+
+            // Team members count
+            $table->unsignedInteger('member_count')->nullable();
+
             $table->timestamps();
         });
+
 
     }
 
