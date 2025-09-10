@@ -1,66 +1,78 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talentrek - README</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+  <h1>Talentrek</h1>
+  <p>
+    Talentrek is a <strong>talent management and recruitment platform</strong> built with <strong>Laravel</strong>, offering 
+    features for <strong>jobseekers, recruiters, trainers, mentors, coaches, and assessors</strong>. It provides a modern and 
+    interactive dashboard with advanced functionalities for career development, training management, assessments, and recruitment.
+  </p>
 
-## About Laravel
+  <h2>🚀 Features</h2>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+  <h3>👨‍💼 For Jobseekers</h3>
+  <ul>
+    <li>Profile creation with personal, educational, and professional details</li>
+    <li>Upload and manage resumes/certificates</li>
+    <li>Search and apply for jobs</li>
+    <li>Book training, mentorship, and coaching sessions</li>
+    <li>Take online assessments and track results</li>
+    <li>Real-time chat with admin and mentors</li>
+  </ul>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+  <h3>🏢 For Recruiters</h3>
+  <ul>
+    <li>Post and manage job listings</li>
+    <li>Review and shortlist candidates</li>
+    <li>Schedule interviews and provide feedback</li>
+    <li>Manage recruiter team access</li>
+    <li>Role-based approval workflow</li>
+  </ul>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+  <h3>🎓 For Trainers, Mentors, Coaches, Assessors</h3>
+  <ul>
+    <li>Create and manage training programs (online, offline, recorded)</li>
+    <li>Manage mentorship &amp; coaching sessions with scheduling</li>
+    <li>Conduct assessments and quizzes</li>
+    <li>Track batch schedules with conflict detection</li>
+    <li>View participant feedback and ratings</li>
+  </ul>
 
-## Learning Laravel
+  <h3>📊 For Admin &amp; Superadmin</h3>
+  <ul>
+    <li>Dashboard with stats and analytics (jobseekers, mentors, trainings, etc.)</li>
+    <li>Notification system for registrations, bookings, and approvals</li>
+    <li>Role-based authentication and permissions</li>
+    <li>Real-time chat with multiple user roles</li>
+    <li>Reports &amp; data exports (CSV, PDF)</li>
+  </ul>
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+  <h2>🛠️ Tech Stack</h2>
+  <ul>
+    <li><strong>Backend:</strong> Laravel 10 (PHP 8+)</li>
+    <li><strong>Frontend:</strong> Blade, Alpine.js, Bootstrap, Tailwind CSS</li>
+    <li><strong>Database:</strong> MySQL</li>
+    <li><strong>Authentication:</strong> Laravel Breeze / Passport (multi-guard setup)</li>
+    <li><strong>Real-time Communication:</strong> Laravel Echo + Pusher / WebSockets</li>
+    <li><strong>Charts &amp; Reports:</strong> Chart.js, Recharts, Laravel Excel, DomPDF</li>
+  </ul>
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+  <h2>📂 Modules</h2>
+  <ul>
+    <li>Authentication &amp; Role Management</li>
+    <li>Job Portal (Jobseeker + Recruiter)</li>
+    <li>Training Management (Trainers)</li>
+    <li>Mentorship &amp; Coaching</li>
+    <li>Assessment &amp; Quizzes</li>
+    <li>Notifications &amp; Chat</li>
+    <li>Admin Dashboard with Analytics</li>
+  </ul>
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+</body>
+</html>
