@@ -6,7 +6,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\LangController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -241,6 +241,14 @@ Route::group(['middleware' => 'recruiter.auth'], function() {
 
 });
 
+
+Route::get('lang/home', [LangController::class, 'index']);
+Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');
+
+//Language Switcher
+Route::get('/form', [LangController::class, 'showForm']);
+Route::post('/change-language', [LangController::class, 'changeLanguage'])->name('change.language');
+
 // routes/web.php
 // Route::get('/', function () {
 //     return view('site.index');
@@ -249,6 +257,7 @@ Route::group(['middleware' => 'recruiter.auth'], function() {
 Route::get('/', function () {
     return view('site.index');
 })->name('home')->middleware('redirect.role.home');
+
 
 
 
