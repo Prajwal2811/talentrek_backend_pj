@@ -309,14 +309,32 @@
                                                     <td>{{ $batch->strength }}</td>
                                                     <td>
                                                         @php
-                                                            $days = is_array($batch->days) ? $batch->days : json_decode($batch->days, true);
+                                                            $days = $batch->days;
+
+                                                            // If value is null or empty, set as an empty array
+                                                            if (empty($days)) {
+                                                                $days = [];
+                                                            }
+                                                            // If value is a JSON string (e.g. '["Mon","Tue"]'), decode it into an array
+                                                            elseif (is_string($days) && ($decoded = json_decode($days, true)) !== null) {
+                                                                $days = $decoded;
+                                                            }
+                                                            // If value is a simple string (e.g. "Monday"), wrap it inside an array
+                                                            elseif (is_string($days)) {
+                                                                $days = [$days];
+                                                            }
+                                                            // If value is already an array, leave it as it is
+                                                            // If it’s any other unexpected type, set it as an empty array
+                                                            elseif (!is_array($days)) {
+                                                                $days = []; // fallback safe case
+                                                            }
                                                         @endphp
-                                                        @if(!empty($days))
-                                                            @foreach($days as $day)
-                                                                <span class="badge bg-light text-dark border">{{ $day }}</span>
-                                                            @endforeach
-                                                        @endif
+
+                                                        @foreach((array) $days as $day)
+                                                            <span class="badge bg-light text-dark border">{{ $day }}</span>
+                                                        @endforeach
                                                     </td>
+
                                                 </tr>
                                             @empty
                                                 <tr>

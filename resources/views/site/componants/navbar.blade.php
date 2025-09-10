@@ -46,6 +46,10 @@
                     class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
                     Coaching
                 </a>
+                <a href="#"
+                    class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
+                    Expact
+                </a>
             </nav>
 
 
@@ -54,6 +58,27 @@
             <button class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white">
                 <i data-feather="bell" class="w-4 h-4"></i>
             </button>
+         
+            <script>
+                function toggleBellDropdown() {
+                    const dropdown = document.getElementById('bellDropdown');
+                    dropdown.classList.toggle('hidden');
+                }
+
+                document.addEventListener('click', function (e) {
+                    const dropdown = document.getElementById('bellDropdown');
+                    const button = e.target.closest('button[onclick="toggleBellDropdown()"]');
+
+                    if (!dropdown.contains(e.target) && !button) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            </script>
+            <style>
+               #bellDrowpdown{
+                    width: 308px;
+               }
+            </style>
 
             <!-- Language Selector -->
             <div class="relative flex items-center space-x-1">

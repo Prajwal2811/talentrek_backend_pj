@@ -1415,6 +1415,73 @@ class RecruiterController extends Controller
 
 
 
+     public function redirectToGoogle()
+     {
+          return Socialite::driver('google')->redirect();
+     }
+
+     public function handleGoogleCallback()
+     {
+          try {
+               $googleUser = Socialite::driver('google')->user();
+
+               // Check user
+               $recruiter = Recruiters::where('email', $googleUser->getEmail())->first();
+
+               // Case 1: New Google user (email not exist)
+               if (!$recruiter) {
+                    $plainPassword = Str::random(16);
+
+                    $recruiter = Recruiters::create([
+                         'name'              => $googleUser->getName(),
+                         'email'             => $googleUser->getEmail(),
+                         'status'            => 'active',
+                         'password'          => bcrypt($plainPassword),
+                         'pass'              => $plainPassword,
+                         'email_verified_at' => now(),
+                         'is_registered'     => 0, //  not registered yet
+                         'google_id'         => $googleUser->getId(),
+                         'avatar'            => $googleUser->getAvatar(),
+                    ]);
+
+                    // Store ID + email in session
+                    session([
+                         'recruiter_id'    => $recruiter->id,
+                         'email' => $recruiter->email,
+                    ]);
+
+                    //  Send to registration form
+                    return redirect()->route('recruiter.registration');
+               }
+
+               // Agar inactive account hai
+               if ($recruiter->status !== 'active') {
+                    session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                    return redirect()->route('recruiter.login');
+               }
+
+               // Case 2: Existing user with complete registration
+               if ($recruiter->is_registered == 1) {
+                    // ✅ Direct login and go to profile/dashboard
+                    Auth::guard('recruiter')->login($recruiter);
+                    return redirect()->route('recruiter.dashboard');
+               }
+
+               // Case 3: Existing but registration incomplete
+               session([
+                    'recruiter_id'    => $recruiter->id,
+                    'email' => $recruiter->email,
+               ]);
+               return redirect()->route('recruiter.registration');
+
+          } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+               session()->flash('error', 'Invalid state. Please try again.');
+          } catch (\Exception $e) {
+               session()->flash('error', 'Google login failed. Please try again.');
+          }
+
+          return redirect()->route('recruiter.login');
+     }
 
 
 

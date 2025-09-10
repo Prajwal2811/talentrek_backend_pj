@@ -24,6 +24,9 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::post('/submit-reset-password', [CoachController::class, 'resetPassword'])->name('coach.reset-password.submit');
 		Route::post('/registration/store', [CoachController::class, 'storeCoachInformation'])->name('coach.registration.store');
 		Route::post('/coach/login', [CoachController::class, 'loginCoach'])->name('coach.login.submit');
+
+		Route::get('auth/google/redirect', [CoachController::class, 'redirectToGoogle'])->name('coach.google.redirect');
+		Route::get('auth/google/callback', [CoachController::class, 'handleGoogleCallback'])->name('coach.google.callback');
 	});
 	
 	// Routes accessible after login but before subscription

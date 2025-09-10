@@ -24,6 +24,10 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::post('/submit-reset-password', [MentorController::class, 'resetPassword'])->name('mentor.reset-password.submit');
 		Route::post('/registration/store', [MentorController::class, 'storeMentorInformation'])->name('mentor.registration.store');
 		Route::post('/mentor/login', [MentorController::class, 'loginMentor'])->name('mentor.login.submit');
+
+		Route::get('auth/google/redirect', [MentorController::class, 'redirectToGoogle'])->name('mentor.google.redirect');
+		Route::get('auth/google/callback', [MentorController::class, 'handleGoogleCallback'])->name('mentor.google.callback');
+
 	});
 	
 

@@ -26,6 +26,9 @@ use DB;
 use Auth;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class AssessorController extends Controller
 {
@@ -1227,5 +1230,76 @@ class AssessorController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            // Check user
+            $assessor = Assessors::where('email', $googleUser->getEmail())->first();
+
+            // Case 1: New Google user (email not exist)
+            if (!$assessor) {
+                $plainPassword = Str::random(16);
+
+                $assessor = Assessors::create([
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
+                    'email_verified_at' => now(),
+                    'is_registered'     => 0, //  not registered yet
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
+                ]);
+
+                // Store ID + email in session
+                session([
+                    'assessor_id'    => $assessor->id,
+                    'email' => $assessor->email,
+                ]);
+
+                //  Send to registration form
+                return redirect()->route('assessor.registration');
+            }
+
+            // Agar inactive account hai
+            if ($assessor->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('assessor.login');
+            }
+
+            // Case 2: Existing user with complete registration
+            if ($assessor->is_registered == 1) {
+                // ✅ Direct login and go to profile/dashboard
+                Auth::guard('assessor')->login($assessor);
+                return redirect()->route('assessor.dashboard');
+            }
+
+            // Case 3: Existing but registration incomplete
+            session([
+                'assessor_id'    => $assessor->id,
+                'email' => $assessor->email,
+            ]);
+            return redirect()->route('assessor.registration');
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed. Please try again.');
+        }
+
+        return redirect()->route('assessor.login');
+    }
+
+    
 }
 

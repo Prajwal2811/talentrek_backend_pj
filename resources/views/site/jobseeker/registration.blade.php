@@ -133,7 +133,7 @@
                                                 </select>
                                                 <input name="phone_number" placeholder="Enter Phone number" type="tel"
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
-                                                    value="{{ old('phone_number', $phone) }}" readonly />
+                                                    value="{{ old('phone_number') }}"  />
                                             </div>
                                             @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

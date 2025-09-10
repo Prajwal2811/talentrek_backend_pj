@@ -1443,6 +1443,16 @@ class AdminController extends Controller
             if (!Str::startsWith($status, 'superadmin_') || $course->admin_status !== 'approved') {
                 return response()->json(['message' => 'Superadmin can only act after admin approval.'], 422);
             }
+            $data = [
+                'sender_id' => $user->id,
+                'sender_type' => 'Training material approved by Superadmin',
+                'receiver_id' => '1',
+                'message' => $user->name.' Training material approved by Superadmin.',
+                'is_read_users' => 0,
+                'user_type' => 'jobseeker'
+            ];
+
+            Notification::insert($data);
         }
 
         // Admin cannot perform superadmin actions

@@ -93,7 +93,7 @@
                                                     <option value="+966">+966</option>
                                                     <option value="+971">+971</option>
                                                 </select>
-                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2 mt-1" value="{{old('phone_number', $phone)}}" readonly/>
+                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2 mt-1" value="{{old('phone_number')}}" />
                                                 
                                             </div>
                                             @error('phone_number')

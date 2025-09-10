@@ -36,8 +36,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		Route::post('/check-promocode', [JobseekerController::class, 'check'])->name('jobseeker.check-promocode');
-		Route::get('auth/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
-		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
+		Route::get('auth/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('jobseeker.google.callback');
 
 		
 

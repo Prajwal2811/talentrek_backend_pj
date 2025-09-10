@@ -25,6 +25,9 @@ use Carbon\Carbon;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
 use App\Models\Notification;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class CoachController extends Controller
 {
@@ -1257,5 +1260,75 @@ class CoachController extends Controller
         event(new \App\Events\MessageSeen($coachId, 'coach', 'admin', 'admin'));
 
         return response()->json(['success' => true]);
+    }
+
+
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            // Check user
+            $coach = Coach::where('email', $googleUser->getEmail())->first();
+
+            // Case 1: New Google user (email not exist)
+            if (!$coach) {
+                $plainPassword = Str::random(16);
+
+                $coach = Coach::create([
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
+                    'email_verified_at' => now(),
+                    'is_registered'     => 0, //  not registered yet
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
+                ]);
+
+                // Store ID + email in session
+                session([
+                    'coach_id'    => $coach->id,
+                    'email' => $coach->email,
+                ]);
+
+                //  Send to registration form
+                return redirect()->route('coach.registration');
+            }
+
+            // Agar inactive account hai
+            if ($coach->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('coach.login');
+            }
+
+            // Case 2: Existing user with complete registration
+            if ($coach->is_registered == 1) {
+                // ✅ Direct login and go to profile/dashboard
+                Auth::guard('coach')->login($coach);
+                return redirect()->route('coach.dashboard');
+            }
+
+            // Case 3: Existing but registration incomplete
+            session([
+                'coach_id'    => $coach->id,
+                'email' => $coach->email,
+            ]);
+            return redirect()->route('coach.registration');
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed. Please try again.');
+        }
+
+        return redirect()->route('coach.login');
     }
 }

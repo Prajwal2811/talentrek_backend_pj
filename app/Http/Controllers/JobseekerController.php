@@ -159,7 +159,7 @@ class JobseekerController extends Controller
     public function showDetailsForm()
     {
         $email = session('email');
-        $phone = session('phone_number');
+        // $phone = session('phone_number');
         $jobseekerId = session('jobseeker_id');
         $jobseeker = Jobseekers::find($jobseekerId);
 
@@ -2117,12 +2117,11 @@ class JobseekerController extends Controller
 
 
 
-    public function courseDetails($id)
+   public function courseDetails($id)
     {
-        $jobseeker =  auth()->guard('jobseeker')->user();
-        $jobseekerId = auth()->id();
-        
-        
+        $jobseeker = auth()->guard('jobseeker')->user();
+        $jobseekerId = $jobseeker->id;
+
         $material = DB::table('training_materials')->where('id', $id)->first();
         if (!$material) {
             abort(404, 'Course not found');
@@ -2131,58 +2130,71 @@ class JobseekerController extends Controller
         $material->documents = DB::table('training_materials_documents')
             ->where('training_material_id', $material->id)
             ->get();
-       
+
         $material->batches = DB::table('training_batches')
             ->where('training_material_id', $material->id)
             ->get();
 
-        // $cartItems = DB::table('jobseeker_cart_items')
-        //     ->where('jobseeker_id', $jobseekerId)
-        //     ->pluck('material_id')
-        //     ->toArray();    
         $cartItems = JobseekerCartItem::where('jobseeker_id', auth('jobseeker')->id())
             ->pluck('material_id')
-            ->toArray();    
-        //print_r( $cartItems);exit;
+            ->toArray();
 
         $userType = null;
         $userId = null;
         $user = null;
+        $profile = null;
 
-        // Detect user type and get basic info
+        // Detect user type and assign proper id + table
         if (!empty($material->trainer_id)) {
             $userType = 'trainer';
-            $userId = $material->trainer_id;
-            $user = DB::table('trainers')->where('id', $userId)->first();
+            $userId   = $material->trainer_id;
+            $user     = DB::table('trainers')->where('id', $userId)->first();
+            $profile  = DB::table('additional_info')
+                ->where('user_id', $userId)
+                ->where('user_type', 'trainer')
+                ->where('doc_type', 'trainer_profile_picture')
+                ->orderByDesc('id')
+                ->first();
+
         } elseif (!empty($material->mentor_id)) {
             $userType = 'mentor';
-            $userId = $material->mentor_id;
-            $user = DB::table('mentors')->where('id', $userId)->first();
+            $userId   = $material->mentor_id;
+            $user     = DB::table('mentors')->where('id', $userId)->first();
+            $profile  = DB::table('additional_info')
+                ->where('user_id', $userId)
+                ->where('user_type', 'mentor')
+                ->where('doc_type', 'mentor_profile_picture')
+                ->orderByDesc('id')
+                ->first();
+
         } elseif (!empty($material->coach_id)) {
             $userType = 'coach';
-            $userId = $material->coach_id;
-            $user = DB::table('coaches')->where('id', $userId)->first();
+            $userId   = $material->coach_id;
+            $user     = DB::table('coaches')->where('id', $userId)->first();
+            $profile  = DB::table('additional_info')
+                ->where('user_id', $userId)
+                ->where('user_type', 'coach')
+                ->where('doc_type', 'coach_profile_picture')
+                ->orderByDesc('id')
+                ->first();
+
         } elseif (!empty($material->assessor_id)) {
             $userType = 'assessor';
-            $userId = $material->assessor_id;
-            $user = DB::table('assessors')->where('id', $userId)->first();
+            $userId   = $material->assessor_id;
+            $user     = DB::table('assessors')->where('id', $userId)->first();
+            $profile  = DB::table('additional_info')
+                ->where('user_id', $userId)
+                ->where('user_type', 'assessor')
+                ->where('doc_type', 'assessor_profile_picture')
+                ->orderByDesc('id')
+                ->first();
         }
 
         if (!$userType || !$userId || !$user) {
             abort(404, 'User info not found');
         }
 
-        // Fetch profile picture from talentrek_additional_info
-        $profile = DB::table('additional_info')
-
-        ->where('user_id', $userId)
-        ->where('user_type', 'trainer')
-        ->where('doc_type', 'trainer_profile_picture')
-        ->orderByDesc('id')
-        ->first();
-
-
-        $material->user_name = $user->name ?? '';
+        $material->user_name    = $user->name ?? '';
         $material->user_profile = $profile->document_path ?? asset('asset/images/avatar.png');
 
         // Ratings and reviews
@@ -2240,6 +2252,7 @@ class JobseekerController extends Controller
 
 
 
+
     
     public function addToCart(Request $request, $id)
     {
@@ -2276,44 +2289,59 @@ class JobseekerController extends Controller
 
 
 
-    public function submitReview(Request $request)
-    {
-        $user = auth()->guard('jobseeker')->user();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
-
-        if (!in_array($request->user_type, $allowedTypes)) {
-            return response()->json(['success' => false, 'message' => 'Invalid user type'], 400);
-        }
-
-        $data = [
-            'jobseeker_id' => $user->id,
-            'user_type' => $request->user_type,
-            'user_id' => $request->user_id,
-            'reviews' => $request->reviews,
-            'ratings' => $request->ratings,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
-
-        if ($request->user_type === 'trainer' && $request->filled('material_id')) {
-            $data['trainer_material'] = $request->material_id;
-        }
-
-        DB::table('reviews')->insert($data);
-
-        return response()->json([
-            'success' => true,
-            'review' => [
-                'jobseeker_name' => $user->name,
-                'ratings' => $request->ratings,
-                'reviews' => $request->reviews
-            ]
-        ]);
+public function submitReview(Request $request)
+{
+    $jobseeker = auth()->guard('jobseeker')->user();
+    if (!$jobseeker) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
     }
+
+    $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
+
+    $request->validate([
+        'user_type'   => 'required|string|in:' . implode(',', $allowedTypes),
+        'ratings'     => 'required|integer|min:1|max:5',
+        'reviews'     => 'required|string',
+        'material_id' => 'nullable|integer',
+    ]);
+
+    $userId = $request->user_id;
+
+  
+    if ($request->user_type === 'trainer' && $request->filled('material_id')) {
+        $material = DB::table('training_materials')->where('id', $request->material_id)->first();
+        if ($material) {
+            $userId = $material->trainer_id;  
+        }
+    }
+
+    $data = [
+        'jobseeker_id'    => $jobseeker->id,
+        'user_type'       => $request->user_type,
+        'user_id'         => $userId,  
+        'reviews'         => $request->reviews,
+        'ratings'         => $request->ratings,
+        'trainer_material'=> $request->user_type === 'trainer' ? $request->material_id : null,
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ];
+
+    DB::table('reviews')->insert($data);
+
+    return response()->json([
+        'success' => true,
+        'review' => [
+            'jobseeker_id'   => $jobseeker->id,
+            'jobseeker_name' => $jobseeker->name,
+            'user_type'      => $request->user_type,
+            'user_id'        => $userId, 
+            'material_id'    => $request->material_id,
+            'ratings'        => $request->ratings,
+            'reviews'        => $request->reviews,
+        ]
+    ]);
+}
+
 
 
     public function buyCourseDetails($id)
@@ -3233,38 +3261,101 @@ class JobseekerController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Item removed']);
     }
 
+  
+    // public function handleGoogleCallback()
+    // {
+    //     try {
+    //         $googleUser = Socialite::driver('google')->user();
+
+    //         $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
+
+    //         if (!$jobseeker) {
+    //             // Auto-register new jobseeker
+    //             $jobseeker = Jobseekers::create([
+    //                 'name' => $googleUser->getName(),
+    //                 'email' => $googleUser->getEmail(),
+    //                 'status' => 'active', // or 'pending' if you require manual approval
+    //                 'password' => bcrypt(Str::random(16)), // Random placeholder password
+    //                 'email_verified_at' => now(),
+    //                 // other fields if needed
+    //             ]);
+    //         }
+
+    //         if ($jobseeker->status !== 'active') {
+    //             session()->flash('error', 'Your account is inactive. Please contact administrator.');
+    //             return redirect()->route('signin.form');
+    //         }
+
+    //         Auth::guard('jobseeker')->login($jobseeker);
+    //         return redirect()->intended(route('jobseeker.dashboard'));
+
+    //     } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+    //         session()->flash('error', 'Invalid state. Please try again.');
+    //     } catch (\Exception $e) {
+    //         session()->flash('error', 'Google login failed. Please try again.');
+    //     }
+
+    //     return redirect()->route('signin.form');
+    // }
+   
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();
     }
-
 
     public function handleGoogleCallback()
     {
         try {
             $googleUser = Socialite::driver('google')->user();
 
+            // Check user
             $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
 
+            // Case 1: New Google user (email not exist)
             if (!$jobseeker) {
-                // Auto-register new jobseeker
+                $plainPassword = Str::random(16);
+
                 $jobseeker = Jobseekers::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'status' => 'active', // or 'pending' if you require manual approval
-                    'password' => bcrypt(Str::random(16)), // Random placeholder password
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
                     'email_verified_at' => now(),
-                    // other fields if needed
+                    'is_registered'     => 0, //  not registered yet
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
                 ]);
+
+                // Store ID + email in session
+                session([
+                    'jobseeker_id'    => $jobseeker->id,
+                    'email' => $jobseeker->email,
+                ]);
+
+                //  Send to registration form
+                return redirect()->route('jobseeker.registration');
             }
 
+            // Agar inactive account hai
             if ($jobseeker->status !== 'active') {
                 session()->flash('error', 'Your account is inactive. Please contact administrator.');
                 return redirect()->route('signin.form');
             }
 
-            Auth::guard('jobseeker')->login($jobseeker);
-            return redirect()->intended(route('jobseeker.dashboard'));
+            // Case 2: Existing user with complete registration
+            if ($jobseeker->is_registered == 1) {
+                // ✅ Direct login and go to profile/dashboard
+                Auth::guard('jobseeker')->login($jobseeker);
+                return redirect()->route('jobseeker.profile');
+            }
+
+            // Case 3: Existing but registration incomplete
+            session([
+                'jobseeker_id'    => $jobseeker->id,
+                'email' => $jobseeker->email,
+            ]);
+            return redirect()->route('jobseeker.registration');
 
         } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
             session()->flash('error', 'Invalid state. Please try again.');
@@ -3274,6 +3365,8 @@ class JobseekerController extends Controller
 
         return redirect()->route('signin.form');
     }
+
+
 
     public function applyCoupon(Request $request)
     {

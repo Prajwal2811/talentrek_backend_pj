@@ -24,6 +24,9 @@ Route::group(['prefix' => 'recruiter'], function() {
 
 		Route::post('/submit-verify-otp', [RecruiterController::class, 'verifyOtp'])->name('recruiter.verify-otp.submit');
 		Route::post('/submit-reset-password', [RecruiterController::class, 'resetPassword'])->name('recruiter.reset-password.submit');
+
+		Route::get('auth/google/redirect', [RecruiterController::class, 'redirectToGoogle'])->name('recruiter.google.redirect');
+		Route::get('auth/google/callback', [RecruiterController::class, 'handleGoogleCallback'])->name('recruiter.google.callback');
 	});
 	
 		// Routes accessible after login but before subscription

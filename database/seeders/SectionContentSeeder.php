@@ -39,9 +39,11 @@ class SectionContentSeeder extends Seeder
                                     <p class="text-base text-gray-100 max-w-md">
                                     Improve your skills & engage with certified professional / industry leaders - anytime, anywhere
                                     </p>
-                                    <button class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded text-sm">
-                                        Sign In / Sign Up
-                                    </button>
+                                    <a href="'.route('signin.form').'" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded text-sm">
+                                    Sign In / Sign Up
+                                    </a>
+
                                     </div>
                                 </div>',
                 'file_name' => 'Banner.png',
