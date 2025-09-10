@@ -35,9 +35,9 @@
                                     </div>
                                     <div>
                                         @php
-                                        $status = $course->admin_status;
-                                        $userRole = auth()->user()->role;
-                                    @endphp
+                                            $status = $course->admin_status;
+                                            $userRole = auth()->user()->role;
+                                        @endphp
 
                                     <!-- Status Buttons -->
                                     @if(!$status && $userRole === 'admin')

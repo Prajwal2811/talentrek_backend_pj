@@ -962,6 +962,10 @@ class TrainerController extends Controller
 
                 'thumbnail_file_path'    => $thumbnailFilePath,
 
+                'admin_status'           => null,
+
+                'rejection_reason'       => null,
+                
                 'created_at'             => now(),
 
                 'updated_at'             => now(),

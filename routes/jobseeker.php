@@ -46,7 +46,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
  	// Routes accessible after login but before subscription
     Route::middleware(['jobseeker.auth'])->group(function () {
         Route::get('/subscription', [JobseekerController::class, 'showSubscriptionPlans'])->name('jobseeker.subscription.index');
-        Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
+        // Route::post('/subscription-payment', [JobseekerController::class, 'processSubscriptionPayment'])->name('jobseeker.subscription.payment');
     });
 
 
@@ -93,8 +93,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
     	Route::get('/chat/messages', [JobseekerController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 
-
-
+		
 	});
 
 		Route::get('/mentorship-details/{id}', [JobseekerController::class, 'mentorshipDetails'])->name('mentorship-details');
