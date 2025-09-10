@@ -6,7 +6,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\LangController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -249,6 +249,7 @@ Route::group(['middleware' => 'admin.auth'], function() {
 });
 
 
+
 Route::get('/pay', [PaymentController::class, 'pay']);
 Route::post('/success', [PaymentController::class, 'success']);
 Route::post('/failure', [PaymentController::class, 'failure']);
@@ -264,6 +265,14 @@ Route::post('/subscription/payment/failure', [PaymentController::class, 'failure
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);
 
 
+Route::get('lang/home', [LangController::class, 'index']);
+Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');
+
+//Language Switcher
+Route::get('/form', [LangController::class, 'showForm']);
+Route::post('/change-language', [LangController::class, 'changeLanguage'])->name('change.language');
+
+
 // routes/web.php
 // Route::get('/', function () {
 //     return view('site.index');
@@ -272,6 +281,7 @@ Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlo
 Route::get('/', function () {
     return view('site.index');
 })->name('home')->middleware('redirect.role.home');
+
 
 
 
