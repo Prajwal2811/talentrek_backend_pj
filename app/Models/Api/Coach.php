@@ -23,7 +23,13 @@ class Coach extends Model
         'date_of_birth',
         'city',
         'password',
-        'pass'
+        'pass',
+        'pin_code',
+        'country',
+        'state',
+        'national_id',
+        'about_coach',
+        'is_registered'
     ];
 
     /**
@@ -60,6 +66,6 @@ class Coach extends Model
     public function additionalInfo()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'coach');
+                    ->where('user_type', 'coach')->where('doc_type', 'coach_profile_picture');
     }
 }

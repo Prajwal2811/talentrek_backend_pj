@@ -4,7 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+
     "content-hash": "5aca71e2dc96565b044f371d49432553",
+
     "packages": [
         {
             "name": "beyondcode/laravel-websockets",
@@ -2441,6 +2443,53 @@
                 "source": "https://github.com/thephpleague/oauth1-client/tree/v1.11.0"
             },
             "time": "2024-12-10T19:59:05+00:00"
+        },
+        {
+            "name": "mfrouh/arjbank",
+            "version": "2.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mfrouh/arjbank.git",
+                "reference": "44dda63f4b57917ffb2df1aaee72e71f412b304d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mfrouh/arjbank/zipball/44dda63f4b57917ffb2df1aaee72e71f412b304d",
+                "reference": "44dda63f4b57917ffb2df1aaee72e71f412b304d",
+                "shasum": ""
+            },
+            "type": "library",
+            "extra": {
+                "aliases": {
+                    "ArjBank": "MFrouh\\ArjBank\\Facades\\ArjBank"
+                },
+                "laravel": {
+                    "providers": [
+                        "MFrouh\\ArjBank\\Providers\\ArjBankServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MFrouh\\ArjBank\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mfrouh",
+                    "email": "mohamedfrouh96@gmail.com"
+                }
+            ],
+            "description": "Package Payment Gateway With Alrajhi Bank with laravel",
+            "support": {
+                "issues": "https://github.com/mfrouh/arjbank/issues",
+                "source": "https://github.com/mfrouh/arjbank/tree/2.9"
+            },
+            "time": "2023-10-02T06:33:40+00:00"
         },
         {
             "name": "monolog/monolog",

@@ -74,7 +74,7 @@ class BookingSession extends Model
     public function jobseekerAdditionalInfo()
     {
         return $this->hasMany(AdditionalInfo::class, 'user_id', 'jobseeker_id')
-                    ->where('user_type', 'jobseeker');
+                    ->where('user_type', 'jobseeker')->where('doc_type', 'profile_picture');
     }
 
     

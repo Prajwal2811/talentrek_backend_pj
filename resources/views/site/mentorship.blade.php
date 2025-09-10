@@ -46,22 +46,28 @@
 
             <!-- Alpine.js CDN -->
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-            @php
-                $mentors = App\Models\Mentors::with([
-                        'reviews' => function ($q) {
-                            $q->where('user_type', 'mentor');
-                        },
-                        'additionalInfo' => function ($q) {
-                            $q->where('user_type', 'mentor');
-                        },
-                        'profilePicture' => function ($q) {
-                            $q->where('user_type', 'mentor')
-                            ->where('doc_type', 'mentor_profile_picture');
-                        }
-                    ])->where('status', 'active')->get();
 
-            
+            @php
+                // ✅ Fetch all training categories for filter sidebar
                 $trainingCategory = App\Models\TrainingCategory::select('training_categories.*')->get();
+
+                // ✅ Fetch all mentors with required relationships
+                $mentors = App\Models\Mentors::with([
+                    'reviews' => function ($q) {
+                        $q->where('user_type', 'mentor');
+                    },
+                    'additionalInfo' => function ($q) {
+                        $q->where('user_type', 'mentor');
+                    },
+                    'profilePicture' => function ($q) {
+                        $q->where('user_type', 'mentor')
+                        ->where('doc_type', 'mentor_profile_picture');
+                    },
+                    'trainingexperience' => function ($q) {
+                        $q->where('user_type', 'mentor');
+                    }
+
+                ])->where('status', 'active')->get();
 
                 $mentorshipOverview = App\Models\Cms::where('slug', 'mentorship-overview')->first();
                 $benefitsOfMentorship = App\Models\Cms::where('slug', 'benefits-of-mentorship')->first();
@@ -72,25 +78,17 @@
                 <aside class="w-1/4 pr-6">
                     <button class="block text-gray-700 font-semibold mb-6">☰ Filter</button>
 
-                    <!-- Course topic -->
+                    <!-- ✅ Course topic filters -->
                     <div class="mb-6">
                         <h3 class="font-semibold text-gray-900 mb-2">Course topic</h3>
                         <div class="space-y-2">
                             @foreach($trainingCategory->unique('category') as $category)
                                 <label class="block">
-                                    <input type="checkbox" class="mr-2"> {{ $category->category }}
+                                    <!-- ✅ class added for JS -->
+                                    <input type="checkbox" class="filter-checkbox mr-2" value="{{ $category->category }}">
+                                    {{ $category->category }}
                                 </label>
                             @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Mentorship level -->
-                    <div class="mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-2">Mentorship level</h3>
-                        <div class="space-y-2">
-                            <label class="block"><input type="checkbox" class="mr-2">Basic </label>
-                            <label class="block"><input type="checkbox" class="mr-2">Advanced </label>
-                            <label class="block"><input type="checkbox" class="mr-2">Intermidiate </label>
                         </div>
                     </div>
                 </aside>
@@ -103,39 +101,44 @@
                         <span class="text-sm text-gray-500">Showing {{ count($mentors) }} total results</span>
                     </div>
 
-                    <!-- Search (static) -->
+                    <!-- Search -->
                     <div class="mb-6 relative">
-                        <input type="text" id="searchInput" placeholder="Search here..." class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12" />
-                        <span class="absolute right-3 top-2.5 text-gray-400"></span>
+                        <input type="text" id="searchInput" placeholder="Search here..."
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12" />
+                        <span class="absolute right-3 top-2.5 text-gray-400">🔍</span>
                     </div>
 
-
-                    <!-- Mentorship Overview (static) -->
+                    <!-- Mentorship Overview -->
                     <div class="border-b pb-4 mb-4">
                         <h2 class="text-lg font-semibold mb-2">Mentorship overview</h2>
                         <p>{{ $mentorshipOverview->description }}</p>
                     </div>
 
-                    <!-- Benefits (static) -->
+                    <!-- Benefits -->
                     <div class="border-b pb-4 mb-6">
                         <h2 class="text-lg font-semibold mb-2">Benefits of mentorship</h2>
-                         <p>{{ $benefitsOfMentorship->description }}</p>
+                        <p>{{ $benefitsOfMentorship->description }}</p>
                     </div>
 
-                    <!-- Mentor cards -->
+                    <!-- ✅ Mentor Cards -->
                     <div id="mentorList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         @foreach($mentors as $mentor)
                             @php
                                 $avgRating = $mentor->reviews->avg('ratings');
-                                $ratingCount = $mentor->reviews->count();
                                 $imagePath = $mentor->profilePicture?->document_path ?? 'default.jpg';
+                                
+                                $areaOfInterest = strtolower(trim(optional($mentor->trainingexperience->first())->area_of_interest ?? ''));
+                                
                             @endphp
-                            <div class="bg-white rounded-lg shadow p-4 text-center mentor-card">
-                                <img src="{{  $imagePath }}" alt="{{ $mentor->name }}" class="w-full h-48 object-cover rounded-md mb-4 mx-auto">
+
+                            <!-- ✅ Add category filter data attribute -->
+                            <div class="bg-white rounded-lg shadow p-4 text-center mentor-card"
+                                data-areas="{{ $areaOfInterest }}">
+                                <img src="{{ $imagePath }}" alt="{{ $mentor->name }}"
+                                    class="w-full h-48 object-cover rounded-md mb-4 mx-auto">
                                 <a href="{{ route('mentorship-details', ['id' => $mentor->id]) }}">
                                     <h3 class="text-lg font-semibold text-gray-900 mentor-name">{{ $mentor->name }}</h3>
                                 </a>
-                                {{-- <p class="text-sm text-gray-600 mt-1 mentor-role">{{ $mentor->role ?? 'N/A' }}</p> --}}
                                 <div class="flex items-center justify-center mt-2">
                                     <span class="text-orange-500 text-sm mr-1">★</span>
                                     <span class="text-sm text-gray-700">
@@ -145,9 +148,11 @@
                             </div>
                         @endforeach
                     </div>
+
+                    <!-- Pagination -->
                     <div id="pagination" class="flex justify-start items-center mt-8 space-x-2"></div>
 
-
+                    <!-- ✅ Pagination Script -->
                     <script>
                         const mentorCards = Array.from(document.querySelectorAll('.mentor-card'));
                         const mentorList = document.getElementById('mentorList');
@@ -157,21 +162,19 @@
 
                         function renderPage(page) {
                             currentPage = page;
+                            const visibleCards = mentorCards.filter(card => card.style.display !== 'none');
                             const start = (page - 1) * perPage;
                             const end = start + perPage;
 
-                            // Clear and show current page's cards
                             mentorList.innerHTML = '';
-                            mentorCards.slice(start, end).forEach(card => mentorList.appendChild(card));
-
-                            renderPagination();
+                            visibleCards.slice(start, end).forEach(card => mentorList.appendChild(card));
+                            renderPagination(visibleCards.length);
                         }
 
-                        function renderPagination() {
-                            const totalPages = Math.ceil(mentorCards.length / perPage);
+                        function renderPagination(totalVisible) {
+                            const totalPages = Math.ceil(totalVisible / perPage);
                             paginationContainer.innerHTML = '';
 
-                            // Prev button
                             const prevBtn = document.createElement('button');
                             prevBtn.textContent = 'Prev';
                             prevBtn.className = 'px-3 py-1 border rounded hover:bg-gray-100';
@@ -180,7 +183,6 @@
                             prevBtn.addEventListener('click', () => renderPage(currentPage - 1));
                             paginationContainer.appendChild(prevBtn);
 
-                            // Page numbers
                             for (let i = 1; i <= totalPages; i++) {
                                 const btn = document.createElement('button');
                                 btn.textContent = i;
@@ -189,7 +191,6 @@
                                 paginationContainer.appendChild(btn);
                             }
 
-                            // Next button
                             const nextBtn = document.createElement('button');
                             nextBtn.textContent = 'Next';
                             nextBtn.className = 'px-3 py-1 border rounded hover:bg-gray-100';
@@ -199,30 +200,44 @@
                             paginationContainer.appendChild(nextBtn);
                         }
 
-                        // Initial render
                         renderPage(1);
                     </script>
 
+                    <!-- ✅ Search + Filter Script -->
+                    <script>
+                        const searchInput = document.getElementById("searchInput");
+                        const checkboxes = document.querySelectorAll(".filter-checkbox");
+
+                        checkboxes.forEach(cb => cb.addEventListener("change", filterMentors));
+                        searchInput.addEventListener("input", filterMentors);
+
+                        function filterMentors() {
+                            const query = searchInput.value.toLowerCase();
+                            const selectedCategories = Array.from(checkboxes)
+                                .filter(cb => cb.checked)
+                                .map(cb => cb.value.toLowerCase().trim());
+
+                            mentorCards.forEach(card => {
+                                const name = card.querySelector(".mentor-name").innerText.toLowerCase();
+                                const rawAreas = card.getAttribute("data-areas")?.toLowerCase() ?? "";
+
+                                // ✅ Convert area_of_interest to array (e.g. "soft skills, leadership" → ["soft skills", "leadership"])
+                                const areaArray = rawAreas.split(',').map(a => a.trim());
+
+                                const matchesName = name.includes(query);
+                                const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => areaArray.includes(cat));
+
+                                card.style.display = (matchesName && matchesCategory) ? "block" : "none";
+                            });
+
+                            renderPage(1);
+                        }
+
+                    </script>
                 </main>
-                <script>
-                    document.getElementById('searchInput').addEventListener('input', function () {
-                        const query = this.value.toLowerCase();
-                        const mentorCards = document.querySelectorAll('.mentor-card');
-
-                        mentorCards.forEach(card => {
-                            const name = card.querySelector('.mentor-name').textContent.toLowerCase();
-                            const role = card.querySelector('.mentor-role').textContent.toLowerCase();
-
-                            if (name.includes(query) || role.includes(query)) {
-                                card.style.display = 'block';
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        });
-                    });
-                </script>
-
             </div>
+
+
 
 
 

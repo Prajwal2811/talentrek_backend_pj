@@ -26,6 +26,11 @@ class Trainers extends Model
         'admin_status',
         'inactive_reason',
         'rejection_reason',
+        'national_id',
+        'country',
+        'pin_code',
+        'state',
+        'is_registered'
     ];
 
     /**

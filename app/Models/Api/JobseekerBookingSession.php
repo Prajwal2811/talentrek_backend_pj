@@ -58,7 +58,7 @@ class JobseekerBookingSession extends Model
 
     public function mentorAdditionalInfo()
     {
-        return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
+        return $this->hasMany(AdditionalInfo::class, 'user_id', 'user_id')
                     ->where('user_type', 'mentor');
     }
 
@@ -84,7 +84,7 @@ class JobseekerBookingSession extends Model
 
     public function coachAdditionalInfo()
     {
-        return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
+        return $this->hasMany(AdditionalInfo::class, 'user_id', 'user_id')
                     ->where('user_type', 'coach');
     }
 
@@ -104,7 +104,7 @@ class JobseekerBookingSession extends Model
 
     public function assessorAdditionalInfo()
     {
-        return $this->hasMany(AdditionalInfo::class, 'user_id', 'id')
+        return $this->hasMany(AdditionalInfo::class, 'user_id', 'user_id')
         
         ->where('user_type', 'assessor');
     }
@@ -113,5 +113,10 @@ class JobseekerBookingSession extends Model
     {
         return $this->hasMany(WorkExperience::class, 'user_id', 'user_id')
         ->where('user_type', 'assessor');
+    }
+
+    public function bookingSlot()
+    {
+        return $this->belongsTo(BookingSlot::class, 'booking_slot_id');
     }
 }

@@ -15,8 +15,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
 		
 
-		Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
-		Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
+		// Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
+		// Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
 
 
 		Route::get('/registration', [JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
@@ -35,15 +35,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		
 
 
-		Route::get('jobseeker/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
-		Route::get('jobseeker/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
+		Route::post('/check-promocode', [JobseekerController::class, 'check'])->name('jobseeker.check-promocode');
+		Route::get('auth/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
+		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
 
 		
-		Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
-		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
-		
-		// Route::get('auth/google', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
-		// Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback']);
 
 	});
 	
@@ -79,6 +75,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-mentor-review', [JobseekerController::class, 'submitMentorReview'])->name('submit.mentor.review');
 			
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
 
 		Route::post('/jobseeker/save-answer', [JobseekerController::class, 'saveJobseekerAnswer'])->name('jobseeker.saveAnswer');
 		Route::post('/jobseeker/submit-quiz', [JobseekerController::class, 'submitQuiz'])->name('jobseeker.submitQuiz');
@@ -126,6 +123,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 		Route::get('/buy-course-for-team/{id}', [JobseekerController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');
 		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
 
 
 		// Zoom OAuth routes
@@ -142,6 +140,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
 		Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
 
+		Route::post('/apply-coupon', [JobseekerController::class, 'applyCoupon'])->name('jobseeker.apply-coupon');
 
 
 });

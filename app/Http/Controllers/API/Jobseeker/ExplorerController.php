@@ -11,6 +11,8 @@ use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 class ExplorerController extends Controller
 {
     use ApiResponse;
@@ -38,12 +40,22 @@ class ExplorerController extends Controller
             ->get()
             ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
-                    $start = \Carbon\Carbon::parse($exp->start_from);
-                    $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                    $start = Carbon::parse($exp->starts_from);
+
+                    $endRaw = strtolower(trim($exp->end_to));
+                    $end = ($endRaw === 'work here' || empty($endRaw)) 
+                        ? now() 
+                        : Carbon::parse($endRaw);
+
                     return $carry + $start->diffInDays($end);
                 }, 0);
+
                 $item->total_experience_days = $totalDays;
-                $item->total_experience_years = round($totalDays / 365, 1);
+                $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
+                
+                
                 $avg = $item->mentor_reviews_avg_ratings;
                 $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                 unset($item->mentor_reviews_avg_ratings); // remove raw avg field
@@ -67,6 +79,8 @@ class ExplorerController extends Controller
             $trainingMaterials = TrainingMaterial::select('id', 'trainer_id', 'training_title', 'training_price', 'training_offer_price', 'thumbnail_file_path as image')
                 ->with(['trainer:id,name', 'latestWorkExperience'])
                 ->withAvg('trainerReviews', 'ratings')
+                ->where('admin_status', 'superadmin_approved')
+                ->orderBy('training_title', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $avg = $item->trainer_reviews_avg_ratings;
@@ -96,19 +110,32 @@ class ExplorerController extends Controller
             $mentorsList = Mentors::select('id', 'name', 'email', 'phone_code', 'phone_number', 'date_of_birth', 'city')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('mentorReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
-                        $start = \Carbon\Carbon::parse($exp->start_from);
-                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? now() 
+                            : Carbon::parse($endRaw);
+
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                $months = floor(($totalDays % 365) / 30);
+                $item->total_experience_years =  $years.'.'.$months ;
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-                    })->first();
+                    $mostRecentExp = $item->WorkExperience
+                    ->sortByDesc(function ($exp) {
+                        $endTo = strtolower(trim($exp->end_to));
+                        return $endTo === 'work here'
+                            ? Carbon::now()->timestamp
+                            : Carbon::parse($exp->end_to)->timestamp;
+                    })
+                    ->first();
                     $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $avg = $item->mentor_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
@@ -137,33 +164,39 @@ class ExplorerController extends Controller
     {
         try {
             // Fetch assessors with work experience and average ratings
-            $assessorList = Assessors::select(
-                    'id',
-                    'company_name as name',
-                    'company_email as email',
-                    'phone_code',
-                    'company_phone_number as phone_number',
-                    'company_instablishment_date',
-                    'industry_type',
-                    'company_website'
-                )
+            $assessorList = Assessors::select('id','name','email','national_id','phone_code','phone_number','date_of_birth','city','state','address','pin_code','country','about_assessor as description')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('assessorReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
-                        $start = \Carbon\Carbon::parse($exp->start_from);
-                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? now() 
+                            : Carbon::parse($endRaw);
+
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                    $months = floor(($totalDays % 365) / 30);
+                    $item->total_experience_years =  $years.'.'.$months ;
+                    // Get the most recent job_role based on nearest end_to (null means current)
+                    $mostRecentExp = $item->WorkExperience
+                    ->sortByDesc(function ($exp) {
+                        $endTo = strtolower(trim($exp->end_to));
+                        return $endTo === 'work here'
+                            ? Carbon::now()->timestamp
+                            : Carbon::parse($exp->end_to)->timestamp;
+                    })
+                    ->first();
                     $avg = $item->assessor_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-                    })->first();
+                    
                     $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->image = $item->additionalInfo->document_path ?? null;
                     unset($item->additionalInfo);
@@ -192,25 +225,39 @@ class ExplorerController extends Controller
             $coachList = Coach::select('id', 'name', 'email', 'phone_code', 'phone_number', 'date_of_birth', 'city')
                 ->with('WorkExperience','additionalInfo')
                 ->withAvg('coachReviews', 'ratings')
+                ->orderBy('name', 'asc') 
                 ->get()
                 ->map(function ($item) {
                     $totalDays = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
-                        $start = \Carbon\Carbon::parse($exp->start_from);
-                        $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? now() 
+                            : Carbon::parse($endRaw);
+
                         return $carry + $start->diffInDays($end);
                     }, 0);
                     $item->total_experience_days = $totalDays;
-                    $item->total_experience_years = round($totalDays / 365, 1);
+                    $years = floor($totalDays / 365);
+                    $months = floor(($totalDays % 365) / 30);
+                    $item->total_experience_years =  $years.'.'.$months ;
                     $avg = $item->coach_reviews_avg_ratings;
                     $item->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-                    })->first();
-                    $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
+                   $item->recent_job_role  = collect($item->WorkExperience)->reduce(function ($carry, $exp) {
+                        $start = Carbon::parse($exp->starts_from);
+
+                        $endRaw = strtolower(trim($exp->end_to));
+                        $end = ($endRaw === 'work here' || empty($endRaw)) 
+                            ? $exp->job_role 
+                            : $exp->job_role;
+
+                        return $end;
+                    }, 0);
+                    //$item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->image = $item->additionalInfo->document_path ?? null;
-                unset($item->additionalInfo);
-                    unset($item->coach_reviews_avg_ratings, $item->WorkExperience);
+                    unset($item->additionalInfo,$item->coach_reviews_avg_ratings, $item->WorkExperience);
                     return $item;
                 });
             // Handle empty data case
@@ -230,10 +277,10 @@ class ExplorerController extends Controller
     public function trainingMaterialDetailById($trainingId,$jobSeekerId)
     {
         try {
-            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
+            $TrainingMaterial = TrainingMaterial::select('id','trainer_id','training_type','training_level','training_title','training_sub_title','training_descriptions','training_category','training_offer_price','training_price','thumbnail_file_path as image','thumbnail_file_name','training_objective','session_type','admin_status','rejection_reason','created_at','updated_at')
                 ->withCount('trainingMaterialDocuments')
                 ->with('trainingMaterialDocuments')
-                ->with(['trainer:id,name', 'latestWorkExperience'])
+                ->with(['trainer:id,name', 'latestWorkExperience','additionalInfo'])
                 ->with('trainerReviews')
                 ->withAvg('trainerReviews', 'ratings')
                 ->where('id', $trainingId)
@@ -241,6 +288,25 @@ class ExplorerController extends Controller
             if ($TrainingMaterial) {
                 $avg = $TrainingMaterial->trainer_reviews_avg_ratings;
                 $TrainingMaterial->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
+
+                $totalSeconds = $TrainingMaterial->trainingMaterialDocuments->reduce(function ($carry, $doc) {
+                    $parts = explode(':', $doc->file_duration); // HH:MM:SS
+                    if (count($parts) === 3) {
+                        $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+                        return $carry + $seconds;
+                    }
+                    return $carry;
+                }, 0);
+
+                // Convert total seconds back to HH:MM:SS
+                $TrainingMaterial->total_duration = gmdate('H:i:s', $totalSeconds);
+                $hours = (int)gmdate('H', $totalSeconds);
+                $minutes = (int)gmdate('i', $totalSeconds);
+                $seconds = (int)gmdate('s', $totalSeconds);
+                $TrainingMaterial->durationInHours = $hours. ' Hr' . ($hours !== 1 ? 's' : '');
+                $TrainingMaterial->durationInMinutes = $minutes. ' Min' . ($minutes !== 1 ? 's' : '');
+                $TrainingMaterial->durationInSeconds = $seconds. ' Second' . ($seconds !== 1 ? 's' : '');
+                
                 // Optional: remove the raw field if not needed in response
                 unset($TrainingMaterial->trainer_reviews_avg_ratings);
                 unset($TrainingMaterial->trainerReviews);
@@ -252,9 +318,9 @@ class ExplorerController extends Controller
                 ->exists();
                 $TrainingMaterial->isPurchased = $isPurchased; // true/false
                 $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
-                if(!$isPurchased){
-                    unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
-                }
+                // if(!$isPurchased){
+                //     unset($TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->videos);
+                // }
                 unset($TrainingMaterial->trainingMaterialDocuments);
 
             }
@@ -282,22 +348,36 @@ class ExplorerController extends Controller
             }
             // Calculate total experience
             $totalDays = collect($MentorsDetails->WorkExperience)->reduce(function ($carry, $exp) {
-                $start = \Carbon\Carbon::parse($exp->start_from);
-                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
+                $start = Carbon::parse($exp->starts_from);
+
+                $endRaw = strtolower(trim($exp->end_to));
+                $end = ($endRaw === 'work here' || empty($endRaw)) 
+                    ? now() 
+                    : Carbon::parse($endRaw);
+
                 return $carry + $start->diffInDays($end);
             }, 0);
             $MentorsDetails->total_experience_days = $totalDays;
-            $MentorsDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $MentorsDetails->total_experience_years =  $years.'.'.$months ;
             
             // Set average rating and clean raw data
             $avg = $MentorsDetails->mentor_reviews_avg_ratings;
             $MentorsDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
             // Get the most recent job_role based on nearest end_to (null means current)
-            $mostRecentExp = $MentorsDetails->WorkExperience->sortByDesc(function ($exp) {
-                return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-            })->first();
+                $mostRecentExp = $MentorsDetails->WorkExperience
+                ->sortByDesc(function ($exp) {
+                    $endTo = strtolower(trim($exp->end_to));
+                    return $endTo === 'work here'
+                        ? Carbon::now()->timestamp
+                        : Carbon::parse($exp->end_to)->timestamp;
+                })
+                ->first();
                 $MentorsDetails->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
-                $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+                
+                    $MentorsDetails->image = $MentorsDetails->additionalInfo->document_path ?? null;
+                
                 unset($MentorsDetails->additionalInfo);
                 unset(
                     $MentorsDetails->mentorReviews,
@@ -323,20 +403,33 @@ class ExplorerController extends Controller
             }
             // Calculate total experience
             $totalDays = collect($AssessorDetails->WorkExperience)->reduce(function ($carry, $exp) {
-                $start = \Carbon\Carbon::parse($exp->start_from);
-                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
-                return $carry + $start->diffInDays($end);
-            }, 0);
+                    $start = Carbon::parse($exp->starts_from);
+
+                    $endRaw = strtolower(trim($exp->end_to));
+                    $end = ($endRaw === 'work here' || empty($endRaw)) 
+                        ? now() 
+                        : Carbon::parse($endRaw);
+
+                    return $carry + $start->diffInDays($end);
+                }, 0);
             $AssessorDetails->total_experience_days = $totalDays;
-            $AssessorDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $AssessorDetails->total_experience_years =  $years.'.'.$months ;
+            //$AssessorDetails->total_experience_years = round($totalDays / 365, 1);
             
             // Set average rating
             $avg = $AssessorDetails->assessor_reviews_avg_ratings;
             $AssessorDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
             // Get the most recent job_role based on nearest end_to (null means current)
-            $mostRecentExp = $AssessorDetails->WorkExperience->sortByDesc(function ($exp) {
-                return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-            })->first();
+            $mostRecentExp = $AssessorDetails->WorkExperience
+                ->sortByDesc(function ($exp) {
+                    $endTo = strtolower(trim($exp->end_to));
+                    return $endTo === 'work here'
+                        ? Carbon::now()->timestamp
+                        : Carbon::parse($exp->end_to)->timestamp;
+                })
+                ->first();
             $AssessorDetails->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
             $AssessorDetails->image = $AssessorDetails->additionalInfo->document_path ?? null;
             unset($AssessorDetails->additionalInfo);
@@ -364,20 +457,32 @@ class ExplorerController extends Controller
             }
             // Calculate total experience
             $totalDays = collect($CoachDetails->WorkExperience)->reduce(function ($carry, $exp) {
-                $start = \Carbon\Carbon::parse($exp->start_from);
-                $end = \Carbon\Carbon::parse($exp->end_to ?? now());
-                return $carry + $start->diffInDays($end);
-            }, 0);
+                    $start = Carbon::parse($exp->starts_from);
+
+                    $endRaw = strtolower(trim($exp->end_to));
+                    $end = ($endRaw === 'work here' || empty($endRaw)) 
+                        ? now() 
+                        : Carbon::parse($endRaw);
+
+                    return $carry + $start->diffInDays($end);
+                }, 0);
             $CoachDetails->total_experience_days = $totalDays;
-            $CoachDetails->total_experience_years = round($totalDays / 365, 1);
+            $years = floor($totalDays / 365);
+            $months = floor(($totalDays % 365) / 30);
+            $CoachDetails->total_experience_years =  $years.'.'.$months ;
             
             // Set average rating
             $avg = $CoachDetails->coach_reviews_avg_ratings;
             $CoachDetails->average_rating = $avg ? rtrim(rtrim(number_format($avg, 1, '.', ''), '0'), '.') : 0;
             // Get the most recent job_role based on nearest end_to (null means current)
-            $mostRecentExp = $CoachDetails->WorkExperience->sortByDesc(function ($exp) {
-                return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-            })->first();
+            $mostRecentExp = $CoachDetails->WorkExperience
+                ->sortByDesc(function ($exp) {
+                    $endTo = strtolower(trim($exp->end_to));
+                    return $endTo === 'work here'
+                        ? Carbon::now()->timestamp
+                        : Carbon::parse($exp->end_to)->timestamp;
+                })
+                ->first();
             $CoachDetails->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                 $CoachDetails->image = $CoachDetails->additionalInfo->document_path ?? null;
                 unset($CoachDetails->additionalInfo);
@@ -448,7 +553,7 @@ class ExplorerController extends Controller
     public function submitQuizAnswer(Request $request)
     {
         try {
-            $request->validate([
+           $validator = Validator::make($request->all(), [
                 'training_id'     => 'required|integer',
                 'trainer_id'      => 'required|integer',
                 'jobseeker_id'    => 'required|integer',
@@ -456,6 +561,13 @@ class ExplorerController extends Controller
                 'question_id'     => 'required|integer',
                 'selected_answer' => 'required|integer',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Only one error shown
+                ], 422);
+            }
             // Get correct answer for the question
             $correctAnswerId = AssessmentOption::where('question_id', $request->question_id)
                 ->where('correct_option', 1)
@@ -489,13 +601,20 @@ class ExplorerController extends Controller
     public function submitReviewByJobSeeker(Request $request)
     {
         try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'jobseeker_id' => 'required|integer',
                 'user_id'      => 'required|integer',
                 'review'       => 'required|string',
                 'rating'       => 'required|integer|min:1|max:5',
-                'reviewType'   => 'required|string|in:trainer,mentor,coach,assessor,training'
+                'reviewType'   => 'required|string|in:trainer,mentor,coach,assessor,training',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
+                ], 422);
+            }
             Review::create([
                 'jobseeker_id'      => $request->jobseeker_id,
                 'user_type'         => $request->reviewType,

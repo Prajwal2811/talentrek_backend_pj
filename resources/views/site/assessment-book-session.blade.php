@@ -171,10 +171,13 @@
                             }
                         }, 10000);
                     </script>
+                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
                     <section class="max-w-7xl mx-auto p-4">
                         <form method="POST" action="{{ route('assessor-booking-submit') }}">
                             @csrf
-
+                    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-6">
                             <!-- assessment mode & Date -->
                             <div class="grid grid-cols-2 gap-6 mb-6">
                                 <div>
@@ -205,12 +208,114 @@
                                 <input type="hidden" name="slot_id" id="selectedSlotId" required />
                                 <input type="hidden" name="slot_time" id="selectedSlotTime" required />
                             </div>
+                        </div>
 
-                            <!-- Book Session Button -->
-                            <div class="mt-6">
-                                <button id="bookBtn" type="submit" class="bg-blue-700 text-white px-6 py-2 rounded font-semibold">
-                                    Book Session
+                        <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
+                            <!-- Select Payment Method -->
+                            <div>
+                                <h3 class="text-sm font-medium mb-2">Select Payment Method:</h3>
+                                <div class="space-y-2">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="payment_method" value="card" x-model="paymentMethod"
+                                            class="form-radio text-blue-600">
+                                        <span class="text-sm">Credit / Debit Card</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="payment_method" value="upi" x-model="paymentMethod"
+                                            class="form-radio text-blue-600">
+                                        <span class="text-sm">UPI / Online Payment</span>
+                                    </label>
+                                    
+                                </div>
+                            </div>
+
+                            <!-- Card Payment Section -->
+                            <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
+                                <h4 class="text-sm font-medium mb-1">Enter Card Details:</h4>
+                                <input type="text" placeholder="Cardholder Name" class="w-full border rounded px-3 py-2 text-sm">
+                                <input type="text" placeholder="Card Number" maxlength="19" class="w-full border rounded px-3 py-2 text-sm">
+                                <div class="flex space-x-2">
+                                    <input type="text" placeholder="MM/YY" class="w-1/2 border rounded px-3 py-2 text-sm">
+                                    <input type="text" placeholder="CVV" maxlength="4" class="w-1/2 border rounded px-3 py-2 text-sm">
+                                </div>
+                            </div>
+
+                            <!-- UPI Section -->
+                            <div x-show="paymentMethod === 'upi'" class="space-y-2 border p-4 rounded bg-gray-50">
+                                <h4 class="text-sm font-medium mb-1">Enter UPI ID:</h4>
+                                <input type="text" placeholder="yourname@upi" class="w-full border rounded px-3 py-2 text-sm">
+                            </div>
+
+                            <!-- Apply Promocode Section -->
+                            <div>
+                                <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
+                                <div class="flex space-x-2">
+                                    <input type="text" placeholder="Enter promocode for discount"
+                                        class="w-full border rounded px-3 py-2 text-sm">
+                                    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                </div>
+                            </div>
+
+                            @php
+                                $assessorId = $assessorDetails->mentor_id;
+                                $slotPrice = $assessorDetails->per_slot_price;
+                                $taxModel = App\Models\Taxation::where('user_type', 'assessor')
+                                            ->where('is_active', 1)
+                                            ->first();
+
+                                $sessionFee = $slotPrice;
+                                $discount = $savedPrice ?? 0;
+
+                                $taxRate = $taxModel ? $taxModel->rate : 0;
+                                $taxType = $taxModel ? $taxModel->type : 'percentage';
+
+                                if ($taxType === 'percentage') {
+                                    $taxAmount = round(($sessionFee * $taxRate) / 100, 2);
+                                } else {
+                                    $taxAmount = round($taxRate, 2);
+                                }
+
+                                $grandTotal = $sessionFee + $taxAmount - $discount;
+                            @endphp
+
+                            <!-- Mentor Session Billing Information -->
+                            <div class="border rounded p-4 space-y-2 mt-4">
+                                <h3 class="text-sm font-medium border-b pb-2">Assessor Session Billing</h3>
+
+                                <div class="flex justify-between text-sm">
+                                    <span>Session Fee</span>
+                                    <span>SAR {{ number_format($sessionFee, 2) }}</span>
+                                </div>
+
+                                @if($discount > 0)
+                                <div class="flex justify-between text-sm">
+                                    <span>Discount</span>
+                                    <span>- SAR {{ number_format($discount, 2) }}</span>
+                                </div>
+                                @endif
+
+                                <div class="flex justify-between text-sm">
+                                    <span>Tax 
+                                        @if($taxType === 'percentage')
+                                            ({{ $taxRate }}%)
+                                        @endif
+                                    </span>
+                                    <span>SAR {{ number_format($taxAmount, 2) }}</span>
+                                </div>
+
+                                <div class="flex justify-between text-base font-semibold pt-2 border-t">
+                                    <span>Total Payable</span>
+                                    <span>SAR {{ number_format($grandTotal, 2) }}</span>
+                                </div>
+
+                                <button id="bookBtn" type="submit"
+                                    class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                    Proceed to Checkout
                                 </button>
+                            </div>
+                        </div>
+
+                           
                             </div>
                         </form>
                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -15,10 +15,11 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'assessment_title' => 'Laravel Basics',
                 'assessment_description' => 'Introductory Laravel assessment',
                 'assessment_level' => 'Beginner',
-                'total_questions' => 30,
-                'passing_questions' => 20,
+                'total_questions' => 15,
+                'passing_questions' => 10,
                 'passing_percentage' => 66.67,
                 'material_id' => 1,
+                'time_per_question' => 2, // in minutes
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -31,6 +32,7 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'passing_questions' => 28,
                 'passing_percentage' => 70.00,
                 'material_id' => 2,
+                'time_per_question' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -43,6 +45,7 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'passing_questions' => 15,
                 'passing_percentage' => 60.00,
                 'material_id' => 3,
+                'time_per_question' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -55,6 +58,7 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'passing_questions' => 21,
                 'passing_percentage' => 60.00,
                 'material_id' => 4,
+                'time_per_question' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -67,6 +71,7 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'passing_questions' => 21,
                 'passing_percentage' => 70.00,
                 'material_id' => 5,
+                'time_per_question' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -79,6 +84,7 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'passing_questions' => 24,
                 'passing_percentage' => 80.00,
                 'material_id' => 6,
+                'time_per_question' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -91,10 +97,11 @@ class TrainerAssessmentsTableSeeder extends Seeder
                 'passing_questions' => 14,
                 'passing_percentage' => 70.00,
                 'material_id' => 7,
+                'time_per_question' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ]);
-
     }
+
 }

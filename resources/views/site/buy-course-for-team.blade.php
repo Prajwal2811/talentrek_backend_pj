@@ -45,56 +45,56 @@
           </script>
 
 
-    @php
-        $memberCount = 4; // Default count shown on load
+            @php
+                $memberCount = 4; // Default count shown on load
 
-        $actualPrice = $material->training_price;  // per member actual price
-        $offerPrice = $material->training_offer_price; // per member offer price
-        $savedPrice = ($material->training_price - $material->training_offer_price) * $memberCount;
+                $actualPrice = $material->training_price;  // per member actual price
+                $offerPrice = $material->training_offer_price; // per member offer price
+                $savedPrice = ($material->training_price - $material->training_offer_price) * $memberCount;
 
-        $tax = round($offerPrice * 0.10, 2); // 10% tax
-        $total = $offerPrice + $tax;
-    @endphp
+                $tax = round($offerPrice * 0.10, 2); // 10% tax
+                $total = $offerPrice + $tax;
+            @endphp
 
 
-  <script>
-    let memberCount = 1; // start at 1
+        <script>
+            let memberCount = 1; // start at 1
 
-    const offerPrice = {{ $offerPrice }}; // per member
-    const actualPrice = {{ $actualPrice }}; // per member
-    const taxRate = 0.10; // 10%
+            const offerPrice = {{ $offerPrice }}; // per member
+            const actualPrice = {{ $actualPrice }}; // per member
+            const taxRate = 0.10; // 10%
 
-    function updateBilling() {
-        const courseTotal = offerPrice * memberCount;
-        const savedAmount = (actualPrice - offerPrice) * memberCount;
-        const tax = courseTotal * taxRate;
-        const total = courseTotal + tax;
+            function updateBilling() {
+                const courseTotal = offerPrice * memberCount;
+                const savedAmount = (actualPrice - offerPrice) * memberCount;
+                const tax = courseTotal * taxRate;
+                const total = courseTotal + tax;
 
-        document.getElementById("billingCourseTotal").textContent = `SAR ${courseTotal.toFixed(2)}`;
-        document.getElementById("billingSavedAmount").textContent = `SAR ${savedAmount.toFixed(2)}`;
-        document.getElementById("billingTax").textContent = `SAR ${tax.toFixed(2)}`;
-        document.getElementById("billingTotal").textContent = `SAR ${total.toFixed(2)}`;
-    }
+                document.getElementById("billingCourseTotal").textContent = `SAR ${courseTotal.toFixed(2)}`;
+                document.getElementById("billingSavedAmount").textContent = `SAR ${savedAmount.toFixed(2)}`;
+                document.getElementById("billingTax").textContent = `SAR ${tax.toFixed(2)}`;
+                document.getElementById("billingTotal").textContent = `SAR ${total.toFixed(2)}`;
+            }
 
-    function increaseCount() {
-        memberCount++;
-        document.getElementById("memberCount").textContent = memberCount;
-        document.getElementById("memberCountInput").value = memberCount;
-        updateBilling();
-    }
+            function increaseCount() {
+                memberCount++;
+                document.getElementById("memberCount").textContent = memberCount;
+                document.getElementById("memberCountInput").value = memberCount;
+                updateBilling();
+            }
 
-    function decreaseCount() {
-        if (memberCount > 1) { // minimum 1
-            memberCount--;
-            document.getElementById("memberCount").textContent = memberCount;
-            document.getElementById("memberCountInput").value = memberCount;
-            updateBilling();
-        }
-    }
+            function decreaseCount() {
+                if (memberCount > 1) { // minimum 1
+                    memberCount--;
+                    document.getElementById("memberCount").textContent = memberCount;
+                    document.getElementById("memberCountInput").value = memberCount;
+                    updateBilling();
+                }
+            }
 
-    // run once on page load so billing matches default 1 member
-    document.addEventListener("DOMContentLoaded", updateBilling);
-</script>
+            // run once on page load so billing matches default 1 member
+            document.addEventListener("DOMContentLoaded", updateBilling);
+        </script>
 
 
 
@@ -131,516 +131,245 @@
                     }, 3000);
                 </script>
                 
-                <form accept="multipart/form-data" action="{{ route('jobseeker.purchase-course') }}" method="POST">
+                <form accept="multipart/form-data" action="{{ route('jobseeker.team-purchase-course') }}" method="POST">
                     @csrf
-                    <input type="text" name="material_id" value="{{ $material->id }}" hidden>
-                    <input type="text" name="training_type" value="{{ $material->training_type }}" hidden>
+                    <input type="hidden" name="material_id" value="{{ $material->id }}">
+                    <input type="hidden" name="training_type" value="{{ $material->training_type }}">
 
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 space-y-6">
-                            @if($material->training_type  === "online" || $material->training_type  === "classroom")
+
+                            @if($material->training_type === "online" || $material->training_type === "classroom")
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
                                     <input type="hidden" name="session_type" value="{{ $material->training_type }}">
-                                    <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" >
+                                    <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" disabled>
                                         <option value="" disabled>Select Training Mode</option>
-                                        <option value="online" @if($material->training_type === 'online') selected @endif disabled>Online</option>
-                                        <option value="classroom" @if($material->training_type === 'classroom') selected @endif disabled>Classroom</option>
+                                        <option value="online" @if($material->training_type === 'online') selected @endif>Online</option>
+                                        <option value="classroom" @if($material->training_type === 'classroom') selected @endif>Classroom</option>
                                     </select>
                                 </div>
                                 @error('session_type')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
+
                                 <div>
                                     <h3 class="text-sm font-medium mb-2">Select batch</h3>
-                                    <table class="w-full border border-gray-200 rounded">
-                                        <thead class="bg-gray-100 text-gray-700 text-left text-sm">
-                                            <tr>
-                                                <th class="px-4 py-2">Select</th>
-                                                <th class="px-4 py-2">Batch No</th>
-                                                <th class="px-4 py-2">Start Date</th>
-                                                <th class="px-4 py-2">Timings</th>
-                                                <th class="px-4 py-2">Duration</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if($material->batches->isNotEmpty())
-                                                @foreach ($material->batches as $batch)
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full table-auto border border-gray-200 rounded text-sm text-center">
+                                            <thead class="bg-gray-100 text-gray-700">
+                                                <tr>
+                                                    <th class="px-4 py-2">Select</th>
+                                                    <th class="px-4 py-2">Batch No</th>
+                                                    <th class="px-4 py-2">Start Date</th>
+                                                    <th class="px-4 py-2">Timings</th>
+                                                    <th class="px-4 py-2">Duration</th>
+                                                    <th class="px-4 py-2">Strength</th>
+                                                    <th class="px-4 py-2">Days</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($material->batches as $batch)
                                                     @php
-                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
+                                                        $start = \Carbon\Carbon::parse($batch->start_date);
                                                         $now = \Carbon\Carbon::now();
-
-                                                        // Parse duration
-                                                        $duration = strtolower($batch->duration);
-                                                        preg_match('/\d+/', $duration, $matches);
-                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
-
-                                                        // Calculate end date
-                                                        if (str_contains($duration, 'day')) {
-                                                            $endDate = $startDate->copy()->addDays($durationValue);
-                                                        } elseif (str_contains($duration, 'month')) {
-                                                            $endDate = $startDate->copy()->addMonths($durationValue);
-                                                        } elseif (str_contains($duration, 'year')) {
-                                                            $endDate = $startDate->copy()->addYears($durationValue);
-                                                        } else {
-                                                            $endDate = $startDate;
-                                                        }
-
-                                                        $isStarted = $startDate->isPast();
-                                                        $isEnded = $endDate->isPast();
+                                                        preg_match('/\d+/', strtolower($batch->duration), $m);
+                                                        $end = match (true) {
+                                                            str_contains(strtolower($batch->duration),'day') => $start->copy()->addDays($m[0] ?? 0),
+                                                            str_contains(strtolower($batch->duration),'month') => $start->copy()->addMonths($m[0] ?? 0),
+                                                            str_contains(strtolower($batch->duration),'year') => $start->copy()->addYears($m[0] ?? 0),
+                                                            default => $start
+                                                        };
+                                                        $ended = $end->isPast();
+                                                        $started = $start->isPast() && !$ended;
+                                                        $strength = $batch->strength;
+                                                        $enrolled = App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                                                                        ->where('material_id', $material->id)
+                                                                        ->count();
+                                                        $availableSeats = $strength - $enrolled;
+                                                        $isFull = $availableSeats <= 0;
                                                     @endphp
-
-                                                    <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
-                                                        onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
-                                                        
-                                                        <td class="px-4 py-3">
-                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
-                                                                id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
+                                                    <tr class="border-t {{ $ended || $isFull ? 'bg-gray-200 text-gray-500' : 'cursor-pointer hover:bg-gray-50' }}"
+                                                        onclick="{{ ($ended || $isFull) ? '' : 'selectRadio(' . $batch->id . ',' . $availableSeats . ')' }}">
+                                                        <td class="px-4 py-2">
+                                                            <input type="radio" name="batch" value="{{ $batch->id }}" class="form-radio" id="batch-radio-{{ $batch->id }}"
+                                                                {{ ($ended || $isFull) ? 'disabled' : '' }}>
                                                         </td>
-
-                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
-
-                                                        <td class="px-4 py-3">
-                                                            {{ $startDate->format('d M Y') }}
-                                                            @if ($isStarted && !$isEnded)
-                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
-                                                            @elseif ($isEnded)
-                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
+                                                        <td class="px-4 py-2">{{ $batch->batch_no }}</td>
+                                                        <td class="px-4 py-2">
+                                                            {{ $start->format('d M Y') }}
+                                                            @if($started)
+                                                                <div class="text-xs text-orange-600 mt-1 font-semibold">Batch has started</div>
+                                                            @elseif($ended)
+                                                                <div class="text-xs text-red-600 mt-1 font-semibold">Batch ended</div>
+                                                            @elseif($isFull)
+                                                                <div class="text-xs text-red-600 mt-1 font-semibold">Batch full</div>
                                                             @endif
                                                         </td>
-
-                                                        <td class="px-4 py-3">
-                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                                        </td>
-
-                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
+                                                        <td class="px-4 py-2">{{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}</td>
+                                                        <td class="px-4 py-2">{{ $batch->duration }}</td>
+                                                        <td class="px-4 py-2">{{ $batch->strength.' ('.$availableSeats.')' }}</td>
+                                                        @php
+                                                            $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days;
+                                                        @endphp
+                                                        <td class="px-4 py-2">{{ $days }}</td>
                                                     </tr>
-                                                @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
-                                                </tr>
-                                            @endif
-
-
-
-                                        </tbody>
-                                    </table>
+                                                @empty
+                                                    <tr><td colspan="7" class="px-4 py-2 text-gray-500">No batches available.</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     @error('batch')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
+
                                     <script>
-                                        function selectRadio(id) {
+                                        function selectRadio(id, availableSeats) {
                                             const radio = document.getElementById('batch-radio-' + id);
                                             if (radio) {
                                                 radio.checked = true;
+                                                const emailsContainer = document.getElementById('memberEmails');
+                                                // Max additional members = availableSeats - 1 (current user counts as 1)
+                                                const maxAdditionalMembers = availableSeats > 2 ? availableSeats - 2 : 1;
+                                                emailsContainer.dataset.maxMembers = maxAdditionalMembers;
+
+                                                const countEl = document.getElementById('memberCount');
+                                                const inputEl = document.getElementById('memberCountInput');
+                                                let current = parseInt(countEl.textContent);
+
+                                                if(current > maxAdditionalMembers + 1) { 
+                                                    changeCount(maxAdditionalMembers + 1 - current);
+                                                }
                                             }
                                         }
                                     </script>
                                 </div>
-                                <div class="flex border rounded p-4 space-x-4">
-                                    <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
-                                        alt="Course" class="w-28 h-20 object-cover rounded">
-
-                                    <div class="flex-1">
-                                        <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
-
-                                        <p class="text-xs text-gray-600 mt-1">
-                                            {{ Str::limit($material->training_descriptions, 80) }}
-                                        </p>
-
-                                        <!-- <div class="flex items-center text-sm text-yellow-500 mt-1">
-                                            ★★★★☆ 
-                                            <span class="ml-1 text-gray-500 text-xs">(4.5) Rating</span>
-                                        </div> -->
-                                        <div class="flex items-center text-yellow-500">
-                                            @for ($i = 1; $i <= 5; $i++)
-                                                @if ($i <= floor($average))
-                                                    ★
-                                                @elseif ($i - $average < 1)
-                                                    ☆
-                                                @else
-                                                    ☆
-                                                @endif
-                                            @endfor
-                                            <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
-                                        </div>
-
-
-                                        <div class="flex items-center space-x-2 mt-2">
-                                            <span class="text-gray-400 line-through text-sm">SAR
-                                                {{ $material->training_price  }}</span>
-                                            <span class="text-sm font-bold text-blue-600">SAR
-                                                {{ $material->training_offer_price  }}</span>
-                                        </div>
-
-                                        <div class="flex items-center space-x-4">
-                                            <span class="text-sm font-medium text-gray-700">Number of members</span>
-                                            <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
-                                                <button type="button" onclick="decreaseCount()" class="text-gray-600 text-lg">◀</button>
-                                                <span id="memberCount" class="text-base font-semibold text-gray-800">1</span>
-                                                <button type="button" onclick="increaseCount()" class="text-gray-600 text-lg">▶</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Hidden input so member count is sent with form -->
-                                        <input type="hidden" name="member_count" id="memberCountInput" value="1">
-
-
-                                    </div>
-                                </div>
-                            @elseif($material->training_type  === "recorded")
-                                <div class="flex border rounded p-4 space-x-4">
-                                    <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}"
-                                        alt="Course" class="w-28 h-20 object-cover rounded">
-
-                                        
-                                    <div class="flex-1">
-                                        <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
-
-                                        <p class="text-xs text-gray-600 mt-1">
-                                            {{ Str::limit($material->training_descriptions, 80) }}
-                                        </p>
-                                        <div class="flex items-center text-yellow-500">
-                                            @for ($i = 1; $i <= 5; $i++)
-                                                @if ($i <= floor($average))
-                                                    ★
-                                                @elseif ($i - $average < 1)
-                                                    ☆
-                                                @else
-                                                    ☆
-                                                @endif
-                                            @endfor
-                                            <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
-                                        </div>
-                                        <div class="flex items-center space-x-2 mt-2">
-                                            <span class="text-gray-400 line-through text-sm">SAR
-                                                {{ $material->training_price  }}</span>
-                                            <span class="text-sm font-bold text-blue-600">SAR
-                                                {{ $material->training_offer_price  }}</span>
-                                        </div>
-                                       <div class="flex items-center space-x-4">
-                                            <span class="text-sm font-medium text-gray-700">Number of members</span>
-                                            <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
-                                                <button type="button" onclick="decreaseCount()" class="text-gray-600 text-lg">◀</button>
-                                                <span id="memberCount" class="text-base font-semibold text-gray-800">1</span>
-                                                <button type="button" onclick="increaseCount()" class="text-gray-600 text-lg">▶</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Hidden input so member count is sent with form -->
-                                        <input type="hidden" name="member_count" id="memberCountInput" value="1">
-
-
-                                    </div>
-                                </div>
                             @endif
+
+                            <!-- Member selection -->
+                            <div class="flex border rounded p-4 space-x-4">
+                                <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}" alt="Course" class="w-28 h-20 object-cover rounded">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <span class="text-sm font-medium text-gray-700">Number of members</span>
+                                        <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
+                                            <button type="button" onclick="changeCount(-1)" class="text-gray-600 text-lg">◀</button>
+                                            <span id="memberCount" class="text-base font-semibold text-gray-800">2</span>
+                                            <button type="button" onclick="changeCount(1)" class="text-gray-600 text-lg">▶</button>
+                                        </div>
+                                    </div>
+                                    <small id="memberCountError" class="text-red-600 text-sm mt-1 block hidden"></small>
+                                    <input type="hidden" name="member_count" id="memberCountInput" value="2">
+                                </div>
+                            </div>
+
+                            <!-- Emails container -->
+                            <div id="memberEmails" class="mt-3" data-max-members="0">
+                                <input type="email" name="member_emails[]" placeholder="Enter email for member 1" class="border p-2 rounded w-full mb-2">
+                                <input type="email" name="member_emails[]" placeholder="Enter email for member 2" class="border p-2 rounded w-full mb-2">
+                            </div>
+
+                            <script>
+                                function changeCount(delta) {
+                                    const countEl = document.getElementById('memberCount');
+                                    const inputEl = document.getElementById('memberCountInput');
+                                    const emailsContainer = document.getElementById('memberEmails');
+                                    const errorEl = document.getElementById('memberCountError');
+
+                                    const maxAdditionalMembers = parseInt(emailsContainer.dataset.maxMembers);
+
+                                    if (isNaN(maxAdditionalMembers) || maxAdditionalMembers === 0) {
+                                        errorEl.textContent = "Please select a batch first.";
+                                        errorEl.classList.remove('hidden');
+                                        return;
+                                    } else {
+                                        errorEl.textContent = "";
+                                        errorEl.classList.add('hidden');
+                                    }
+
+                                    let current = parseInt(countEl.textContent);
+                                    let newCount = current + delta;
+
+                                    if (newCount < 2) newCount = 2; 
+                                    if (newCount > maxAdditionalMembers + 1) newCount = maxAdditionalMembers + 1;
+
+                                    countEl.textContent = newCount;
+                                    inputEl.value = newCount;
+
+                                    const existingInputs = emailsContainer.querySelectorAll('input');
+                                    const memberInputsNeeded = newCount - 1;
+
+                                    if (memberInputsNeeded > existingInputs.length) {
+                                        for (let i = existingInputs.length + 1; i <= memberInputsNeeded; i++) {
+                                            const input = document.createElement('input');
+                                            input.type = 'email';
+                                            input.name = 'member_emails[]';
+                                            input.placeholder = `Enter email for member ${i + 1}`;
+                                            input.className = 'border p-2 rounded w-full mb-2';
+                                            emailsContainer.appendChild(input);
+                                        }
+                                    } else if (memberInputsNeeded < existingInputs.length) {
+                                        for (let i = existingInputs.length; i > memberInputsNeeded; i--) {
+                                            emailsContainer.removeChild(existingInputs[i - 1]);
+                                        }
+                                    }
+                                }
+                            </script>
+
                         </div>
 
-                        <!-- Include Alpine.js -->
-                        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
+                        <!-- Billing & Checkout -->
                         <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
-
-                            <!-- Select Payment Method -->
-                            <div>
-                                <h3 class="text-sm font-medium mb-2">Select Payment Method:</h3>
-                                <div class="space-y-2">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="payment_method" value="card" x-model="paymentMethod"
-                                            class="form-radio text-blue-600">
-                                        <span class="text-sm">Credit / Debit Card</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="payment_method" value="upi" x-model="paymentMethod"
-                                            class="form-radio text-blue-600">
-                                        <span class="text-sm">UPI / Online Payment</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Card Payment Section -->
-                            <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter Card Details:</h4>
-                                <input type="text" placeholder="Cardholder Name"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Card Number" maxlength="19"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <div class="flex space-x-2">
-                                    <input type="text" placeholder="MM/YY"
-                                        class="w-1/2 border border-gray-300 rounded px-3 py-2 text-sm">
-                                    <input type="text" placeholder="CVV" maxlength="4"
-                                        class="w-1/2 border border-gray-300 rounded px-3 py-2 text-sm">
-                                </div>
-                            </div>
-
-                            <!-- UPI Section -->
-                            <div x-show="paymentMethod === 'upi'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter UPI ID:</h4>
-                                <input type="text" placeholder="yourname@upi"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            </div>
-
-                            <!-- Bank Transfer Section -->
-                            <div x-show="paymentMethod === 'bank'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter Bank Transfer Details:</h4>
-                                <input type="text" placeholder="Account Holder Name"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Bank Name"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Transaction Reference Number"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            </div>
-
-                            <!-- Apply Promocode Section -->
-                            <div>
-                                <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
-                                <div class="flex space-x-2">
-                                    <input type="text" placeholder="Enter promocode for discount"
-                                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                    <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
-                                </div>
-                            </div>
-
-
                             @php
-                                $actualPrice = $material->training_price;
-                                $offerPrice = $material->training_offer_price;
+                                $taxation = App\Models\Taxation::where('user_type', 'trainer')->where('is_active', 1)->first();
+                                $actualPrice = floatval($material->training_price);
+                                $offerPrice = floatval($material->training_offer_price ?? $actualPrice);
                                 $savedPrice = $actualPrice - $offerPrice;
-
-                                $tax = round($offerPrice * 0.10, 2); // 10% tax, rounded to 2 decimal places
-                                $total = $offerPrice + $tax;
+                                $taxRate = floatval($taxation->rate);
+                                $tax = round($offerPrice * ($taxRate / 100), 2);
+                                $total = round($offerPrice + $tax, 2);
                             @endphp
 
-                            <!-- Billing Information -->
                             <div class="border rounded p-4 space-y-2">
                                 <h3 class="text-sm font-medium border-b pb-2">Billing Information</h3>
-
                                 <div class="flex justify-between text-sm">
-    <span>Course total</span>
-    <span id="billingCourseTotal">SAR {{ number_format($offerPrice, 2) }}</span>
-</div>
-
-<div class="flex justify-between text-sm">
-    <span>Saved amount</span>
-    <span id="billingSavedAmount">SAR {{ number_format($savedPrice, 2) }}</span>
-</div>
-
-<div class="flex justify-between text-sm">
-    <span>Tax (10%)</span>
-    <span id="billingTax">SAR {{ number_format($tax, 2) }}</span>
-</div>
-
-<div class="flex justify-between text-base font-semibold pt-2 border-t">
-    <span>Total</span>
-    <span id="billingTotal">SAR {{ number_format($total, 2) }}</span>
-</div>
-
-
-                                <button type="submit"
-                                    class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                    <span>Course total</span>
+                                    <span>SAR {{ number_format($offerPrice, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Saved amount</span>
+                                    <span>SAR {{ number_format($savedPrice, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Tax ({{ $taxation->rate }}%)</span>
+                                    <span>SAR {{ number_format($tax, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-base font-semibold pt-2 border-t">
+                                    <span>Total</span>
+                                    <span>SAR {{ number_format($total, 2) }}</span>
+                                </div>
+                                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
                                     Proceed to Checkout
                                 </button>
-
                             </div>
                         </div>
-
                     </div>
                 </form>
+
+
+                    <style>
+                        .active-tab {
+                            border-bottom-color: #2563eb;
+                            color: #2563eb;
+                        }
+                    </style>
 
             </div>
         </div>
     </main>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const tabs = document.querySelectorAll('.tab-link');
-            const contents = document.querySelectorAll('.tab-content');
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => {
-                        t.classList.remove('active-tab', 'border-blue-600', 'text-blue-600');
-                        t.classList.add('text-gray-600', 'border-transparent');
-                    });
-
-                    contents.forEach(content => content.classList.add('hidden'));
-
-                    tab.classList.add('active-tab', 'border-blue-600', 'text-blue-600');
-                    tab.classList.remove('text-gray-600', 'border-transparent');
-
-                    const tabName = tab.getAttribute('data-tab');
-                    const activeContent = document.querySelector(`.tab-content[data-tab-content="${tabName}"]`);
-                    if (activeContent) activeContent.classList.remove('hidden');
-                });
-            });
-        });
-    </script>
-    <script>
-        document.querySelector('form').addEventListener('submit', function (e) {
-            const trainingType = "{{ $material->training_type }}";
-            if (trainingType === "online") {
-                const batchSelected = document.querySelector('input[name="batch"]:checked');
-                if (!batchSelected) {
-                    alert("Please select a batch before proceeding.");
-                    e.preventDefault();
-                }
-            }
-        });
-    </script>
-    <style>
-        .active-tab {
-            border-bottom-color: #2563eb;
-            color: #2563eb;
-        }
-    </style>
-
-{{-- 
-          <main class="w-11/12 mx-auto py-8">
-            <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
-              <!-- Left/Main Content -->
-              <div class="flex-1">
-                <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Course and Quantity Section -->
-                <div class="lg:col-span-2 space-y-6 border-b pb-6">
-                  <div class="flex space-x-4">
-                    <!-- Image and Counter Column -->
-                    <div class="flex flex-col items-start space-y-4">
-                      <!-- Course Image -->
-                      <img src="{{ asset('asset/images/gallery/pic-4.png') }}" alt="Course" class="w-64 h-42 object-cover rounded">
-                      <!-- Quantity Selector -->
-                      <div class="flex items-center space-x-4">
-                        <span class="text-sm font-medium text-gray-700">Number of members</span>
-                        <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
-                          <button onclick="decreaseCount()" class="text-gray-600 text-lg">◀</button>
-                          <span id="memberCount" class="text-base font-semibold text-gray-800">4</span>
-                          <button onclick="increaseCount()" class="text-gray-600 text-lg">▶</button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Course Details -->
-                    <div class="flex-1">
-                      <h3 class="font-semibold text-sm">Graphic design - Advance level</h3>
-                      <p class="text-xs text-gray-600 mt-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                      
-                      <div class="flex items-center text-sm text-yellow-500 mt-1">
-                        ★★★★☆ <span class="ml-1 text-gray-500 text-xs">(4/5) Rating</span>
-                      </div>
-
-                      <div class="flex items-center space-x-2 mt-2">
-                        <span class="text-gray-400 line-through text-sm">SAR 89</span>
-                        <span class="text-sm font-bold text-blue-600">SAR 356</span>
-                      </div>
-
-                    </div>
-                  </div>
-                  <button class="text-red-500 text-sm mt-4 hover:underline">🗑 Remove</button>
-                </div>
-
-                <script>
-                  let count = 4;
-                  const countDisplay = document.getElementById('memberCount');
-
-                  function increaseCount() {
-                    count++;
-                    countDisplay.textContent = count;
-                  }
-
-                  function decreaseCount() {
-                    if (count > 1) {
-                      count--;
-                      countDisplay.textContent = count;
-                    }
-                  }
-                </script>
-
-
-                <!-- Promo and Billing Section -->
-                <div class="space-y-4">
-                  <!-- Include Alpine.js -->
-                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-                    <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
-
-                        <!-- Select Payment Method -->
-                        <div>
-                            <h3 class="text-sm font-medium mb-2">Select Payment Method:</h3>
-                            <div class="space-y-2">
-                                <label class="flex items-center space-x-2">
-                                    <input type="radio" name="payment_method" value="card" x-model="paymentMethod" class="form-radio text-blue-600">
-                                    <span class="text-sm">Credit / Debit Card</span>
-                                </label>
-                                <label class="flex items-center space-x-2">
-                                    <input type="radio" name="payment_method" value="upi" x-model="paymentMethod" class="form-radio text-blue-600">
-                                    <span class="text-sm">UPI / Online Payment</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Card Payment Section -->
-                        <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
-                            <h4 class="text-sm font-medium mb-1">Enter Card Details:</h4>
-                            <input type="text" placeholder="Cardholder Name" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            <input type="text" placeholder="Card Number" maxlength="19" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            <div class="flex space-x-2">
-                                <input type="text" placeholder="MM/YY" class="w-1/2 border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="CVV" maxlength="4" class="w-1/2 border border-gray-300 rounded px-3 py-2 text-sm">
-                            </div>
-                        </div>
-
-                        <!-- UPI Section -->
-                        <div x-show="paymentMethod === 'upi'" class="space-y-2 border p-4 rounded bg-gray-50">
-                            <h4 class="text-sm font-medium mb-1">Enter UPI ID:</h4>
-                            <input type="text" placeholder="yourname@upi" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                        </div>
-
-                        <!-- Bank Transfer Section -->
-                        <div x-show="paymentMethod === 'bank'" class="space-y-2 border p-4 rounded bg-gray-50">
-                            <h4 class="text-sm font-medium mb-1">Enter Bank Transfer Details:</h4>
-                            <input type="text" placeholder="Account Holder Name" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            <input type="text" placeholder="Bank Name" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            <input type="text" placeholder="Transaction Reference Number" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                        </div>
-
-                  <!-- Promo Code -->
-                  <div>
-                    <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
-                    <div class="flex space-x-2">
-                      <input type="text" placeholder="Enter promocode for dicount" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                      <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
-                    </div>
-                  </div>
-
-                  <!-- Billing Info -->
-                  <div class="border rounded p-4 space-y-2">
-                    <h3 class="text-sm font-semibold border-b pb-2">Billing Information</h3>
-                    <div class="flex justify-between text-sm">
-                      <span>Course total</span>
-                      <span>SAR 356</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                      <span>Saved amount</span>
-                      <span>SAR 5</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                      <span>Tax</span>
-                      <span>SAR 2</span>
-                    </div>
-                    <div class="flex justify-between text-base font-semibold pt-2 border-t">
-                      <span>Total</span>
-                      <span>SAR 353</span>
-                    </div>
-                    <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                      Proceed to Checkout
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main> --}}
+    
         </div>
 
 @include('site.componants.footer')

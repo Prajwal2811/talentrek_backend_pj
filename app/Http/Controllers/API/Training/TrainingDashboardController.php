@@ -73,20 +73,26 @@ class TrainingDashboardController extends Controller
     public function enrolledJobSeekerListing($trainerId)
     {        
         try {                       
-           $enrolledJobseekers = JobseekerTrainingMaterialPurchase::select('id','enrolmentId',)->where('trainer_id', $trainerId)->distinct('jobseeker_id')
-                ->with('WorkExperience','jobseeker')
+           $enrolledJobseekers = JobseekerTrainingMaterialPurchase::select('id' ,	'jobseeker_id' ,	'trainer_id' ,	'material_id' ,	'training_type' ,	'session_type', 	'batch_id' ,	'purchase_for' ,	'payment_id')->where('trainer_id', $trainerId)->distinct('jobseeker_id')
+                ->with('WorkExperience','jobseeker','additionalInfo')
                 ->get()
                 ->map(function ($item) {
                     // Get the most recent job_role based on nearest end_to (null means current)
-                    $mostRecentExp = $item->WorkExperience->sortByDesc(function ($exp) {
-                        return \Carbon\Carbon::parse($exp->end_to ?? now())->timestamp;
-                    })->first();
+                    $mostRecentExp = $item->WorkExperience
+                    ->sortByDesc(function ($exp) {
+                        $endTo = strtolower(trim($exp->end_to));
+                        return $endTo === 'work here'
+                            ? Carbon::now()->timestamp
+                            : Carbon::parse($exp->end_to)->timestamp;
+                    })
+                    ->first();
                     $item->recent_job_role = $mostRecentExp ? $mostRecentExp->job_role : null;
                     $item->jobseekerName = $item->jobseeker?->name ;
-                    unset( $item->WorkExperience,$item->jobseeker);
+                    $item->image = $item->additionalInfo?->document_path ?? '' ;
+                    unset( $item->WorkExperience,$item->jobseeker,$item->additionalInfo);
                     return $item;
                 });
-            // Return response
+            
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -109,7 +115,7 @@ class TrainingDashboardController extends Controller
         try { 
             $today = Carbon::today();                      
            // Jobseeker count who purchased any course of that trainer
-           $sessions = TrainingBatch::select('id', 'trainer_id', 'training_material_id', 'batch_no', 'duration')
+           $sessions = TrainingBatch::select('id', 'trainer_id', 'training_material_id', 'batch_no', 'duration','start_timing')
             ->with('trainingMaterial:id,id,training_title') // Load only required fields
             ->where('trainer_id', $trainerId)
             ->whereDate('start_date', '<=', $today)
@@ -117,6 +123,7 @@ class TrainingDashboardController extends Controller
             ->get()
             ->map(function ($session) {
                 $session->training_title = $session->trainingMaterial ? $session->trainingMaterial->training_title : null;
+                $session->start_timing =  Carbon::parse($session->start_timing)->format('h:i A');
                 unset($session->trainingMaterial); // Optional: remove the full relation if only title needed
                 return $session;
             });

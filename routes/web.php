@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LangController;
@@ -12,11 +13,7 @@ Route::fallback(function () {
 });
 
 
-	// Route::middleware(['jobseeker.auth', 'check.jobseeker.subscription'])->group(function () {
-        Route::get('/', function () {
-            return view('site.index');
-        })->name('home');
-
+	
 
         Route::get('training', function () {
             return view('site.training');
@@ -92,6 +89,17 @@ Route::fallback(function () {
             return view('site.coach-booking-success');
         })->name('coach-booking-success');
 
+
+
+        Route::get('terms-and-conditions', function () {
+            return view('site.terms-and-conditions');
+        })->name('terms-and-conditions');
+
+
+        Route::get('privacy-policy', function () {
+            return view('site.privacy-policy');
+        })->name('privacy-policy');
+        
 	// });
 
 
@@ -140,6 +148,18 @@ Route::group(['middleware' => 'jobseeker.auth'], function () {
 
     Route::post('/jobseeker/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('jobseeker.group.chat.send');
 	Route::get('/jobseeker/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('jobseeker.group.chat.fetch');
+
+    Route::get('/chat/unread-counts', [ChatController::class, 'getUnreadCounts']);
+    Route::post('/chat/mark-as-read', [ChatController::class, 'markAsRead']);
+
+    Route::post('/jobseeker/admin/chat/mark-as-read', [ChatController::class,'markMessagesAsRead']);
+    Route::get('/chat/unread-counts', [ChatController::class, 'getUnreadCounts']);
+    Route::post('/chat/mark-as-read', [ChatController::class, 'markAsRead']);
+    Route::post('/chat/unread-jobseeker-counts', [ChatController::class, '   getUnreadCountsForJobseeker']);
+    Route::post('/chat/unread-combined-counts', [ChatController::class, 'getCombinedUnreadCountsForJobseeker']);
+
+ 
+
 });
 
 Route::group(['middleware' => 'trainer.auth'], function () {
@@ -154,6 +174,13 @@ Route::group(['middleware' => 'mentor.auth'], function() {
 
     Route::post('/mentor/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('mentor.group.chat.send');
 	Route::get('/mentor/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('mentor.group.chat.fetch');
+
+   
+    Route::get('/mentor/unread-count', [\App\Http\Controllers\MentorController::class, 'getUnreadCount'])->name('mentor.getUnreadCount');
+    Route::post('/mentor/mark-messages-read', [\App\Http\Controllers\MentorController::class, 'markMessagesAsRead'])->name('mentor.markMessagesRead');
+    Route::post('mentor/mark-seen', [\App\Http\Controllers\MentorController::class, 'markMessagesSeen'])->name('mentor.markMessagesSeen');
+
+
 });
 
 Route::group(['middleware' => 'coach.auth'], function() {
@@ -162,6 +189,12 @@ Route::group(['middleware' => 'coach.auth'], function() {
 
     Route::post('/coach/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('coach.group.chat.send');
 	Route::get('/coach/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('coach.group.chat.fetch');
+
+    Route::get('/coach/unread-count', [\App\Http\Controllers\CoachController::class, 'getUnreadCount'])->name('coach.getUnreadCount');
+    Route::post('/coach/mark-messages-read', [\App\Http\Controllers\CoachController::class, 'markMessagesAsRead'])->name('coach.markMessagesRead');
+    Route::post('coach/mark-seen', [\App\Http\Controllers\CoachController::class, 'markMessagesSeen'])->name('coach.markMessagesSeen');
+
+
 });
 
 Route::group(['middleware' => 'assessor.auth'], function() {
@@ -170,19 +203,17 @@ Route::group(['middleware' => 'assessor.auth'], function() {
 
     Route::post('/assessor/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('assessor.group.chat.send');
 	Route::get('/assessor/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('assessor.group.chat.fetch');
+
+    Route::get('/assessor/unread-count', [\App\Http\Controllers\AssessorController::class, 'getUnreadCount'])->name('assessor.getUnreadCount');
+    Route::post('/assessor/mark-messages-read', [\App\Http\Controllers\AssessorController::class, 'markMessagesAsRead'])->name('assessor.markMessagesRead');
+    Route::post('assessor/mark-seen', [\App\Http\Controllers\AssessorController::class, 'markMessagesSeen'])->name('assessor.markMessagesSeen');
+
+
 });
 
 
 
 Route::group(['middleware' => 'admin.auth'], function() {
-	// Route::post('/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
-	// Route::get('/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
-    // Route::post('admin/chat/messages/markSeen', [ChatController::class, 'markMessagesAsRead'])->name('admin.group.chat.seen');
-
-    // // Jobseekers list with unread counts
-    // Route::get('/admin/jobseekers/list', [App\Http\Controllers\ChatController::class, 'getJobseekersList'])
-    //     ->name('admin.jobseekers.list');
-
     Route::get('/admin/jobseekers/list', [ChatController::class, 'getJobseekersList'])->name('admin.jobseekers.list');
     Route::get('/admin/mentors/list', [ChatController::class, 'getMentorsList'])->name('admin.mentors.list');
     Route::get('/admin/recruiters/list', [ChatController::class, 'getRecruitersList'])->name('admin.recruiters.list');
@@ -191,7 +222,21 @@ Route::group(['middleware' => 'admin.auth'], function() {
     Route::get('/admin/group/chat/fetch', [ChatController::class, 'fetchGroupMessages'])->name('admin.group.chat.fetch');
     Route::post('/admin/group/chat/send', [ChatController::class, 'sendGroupMessage'])->name('admin.group.chat.send');
     Route::post('/admin/group/chat/seen', [ChatController::class, 'markMessagesAsRead'])->name('admin.group.chat.seen');
-    
+});
+
+Route::group(['middleware' => 'recruiter.auth'], function() {
+
+    Route::get('/pay', [PaymentController::class, 'pay']);
+    Route::post('/success', [PaymentController::class, 'success']);
+    Route::post('/failure', [PaymentController::class, 'failure']);
+
+
+    Route::post('/recruiter/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('recruiter.group.chat.send');
+	Route::get('/recruiter/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('recruiter.group.chat.fetch');
+
+    Route::get('/recruiter/unread-count', [\App\Http\Controllers\RecruiterController::class, 'getUnreadCount'])->name('recruiter.getUnreadCount');
+    Route::post('/recruiter/mark-messages-read', [\App\Http\Controllers\RecruiterController::class, 'markMessagesAsRead'])->name('recruiter.markMessagesRead');
+    Route::post('recruiter/mark-seen', [\App\Http\Controllers\RecruiterController::class, 'markMessagesSeen'])->name('recruiter.markMessagesSeen');
 
 
 });
@@ -203,6 +248,19 @@ Route::get('lang/change', [LangController::class, 'change'])->name('changeLang')
 //Language Switcher
 Route::get('/form', [LangController::class, 'showForm']);
 Route::post('/change-language', [LangController::class, 'changeLanguage'])->name('change.language');
+
+// routes/web.php
+// Route::get('/', function () {
+//     return view('site.index');
+// })->middleware('redirect.role.home');
+
+Route::get('/', function () {
+    return view('site.index');
+})->name('home')->middleware('redirect.role.home');
+
+
+
+
 
 
 

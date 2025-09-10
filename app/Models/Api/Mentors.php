@@ -21,6 +21,13 @@ class Mentors extends Model
         'phone_number',
         'date_of_birth',
         'city',
+        'pin_code',
+        'country',
+        'state',
+        'national_id',
+        'pin_code',
+        'about_mentor',
+        'is_registered'
     ];
 
     /**
@@ -59,7 +66,7 @@ class Mentors extends Model
     public function additionalInfo()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'mentor');
+                    ->where('user_type', 'mentor')->where('doc_type', 'mentor_profile_picture');
     }
 
 }

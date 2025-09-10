@@ -18,6 +18,12 @@ return new class extends Migration
             $table->string('header_logo')->nullable();
             $table->string('footer_logo')->nullable();
             $table->string('favicon')->nullable();
+            $table->double('trainingMaterialTax', 8, 2)->nullable();
+            $table->double('trainingMaterialBatchTax', 8, 2)->nullable();
+            $table->double('coachTax', 8, 2)->nullable();
+            $table->double('mentorTax', 8, 2)->nullable();
+            $table->double('assessorTax', 8, 2)->nullable();
+
             $table->timestamps();
         });
     }

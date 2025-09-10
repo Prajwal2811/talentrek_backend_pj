@@ -572,12 +572,15 @@ class MentorController extends Controller
         // echo "<pre>";    
         // print_r($cancelled);exit; 
 
+        
+
         return view('site.mentor.mentor-dashboard', [
             'upcoming' => $sessions['pending'] ?? [],
             'completed' => $sessions['completed'] ?? [],
             'cancelled' => $cancelled,
             'todayCount' => $todayCount,
             'upcomingCount' => $upcomingCount,
+            
         ]);   
     }
 
@@ -946,6 +949,7 @@ class MentorController extends Controller
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
             'about_mentor' => 'nullable|string',
+            'per_slot_price' => 'required',
         ]);
 
         $mentor->update([
@@ -960,6 +964,7 @@ class MentorController extends Controller
             'country' => $validated['country'] ?? null,
             'pin_code' => $validated['pin_code'] ?? null,
             'about_mentor' => $validated['about_mentor'] ?? null,
+            'per_slot_price' => $validated['per_slot_price'] ?? null,
         ]);
 
         return response()->json([
@@ -1239,4 +1244,57 @@ class MentorController extends Controller
             ], 500);
         }
     }
+
+    public function getUnreadCount(Request $request)
+    {
+        $mentorId = auth()->guard('mentor')->id();
+
+        $query = DB::table('admin_group_chats')
+            ->where('receiver_id', $mentorId)
+            ->where('receiver_type', 'mentor')
+            ->where('is_read', 0);
+
+        // Agar admin-support page par hai to mark all as read
+        if ($request->query('mark_read') == 1) {
+            $query->update(['is_read' => 1]);
+            $count = 0;
+        } else {
+            $count = $query->count();
+        }
+
+        return response()->json(['count' => $count]);
+    }
+
+
+
+
+    public function markMessagesRead()
+    {
+        $mentorId = auth()->guard('mentor')->id();
+
+        DB::table('admin_group_chats')
+            ->where('receiver_id', $mentorId)
+            ->where('receiver_type', 'mentor')
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function markMessagesSeen()
+    {
+        $mentorId = auth()->guard('mentor')->id();
+
+        DB::table('admin_group_chats')
+            ->where('receiver_id', $mentorId)
+            ->where('receiver_type', 'mentor')
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        // Realtime broadcast
+        event(new \App\Events\MessageSeen($mentorId, 'mentor', 'admin', 'admin'));
+
+        return response()->json(['success' => true]);
+    }
+
 }

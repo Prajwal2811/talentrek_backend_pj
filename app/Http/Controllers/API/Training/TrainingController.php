@@ -12,10 +12,12 @@ use App\Models\Api\TrainingBatch;
 use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\TrainerAssessment;
 use App\Models\Api\AssessmentOption;
+use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Models\Api\AssessmentQuestion;
 use App\Models\Api\AdditionalInfo;
-
+use App\Services\ZoomService;
 use Carbon\Carbon;
+
 
 use Illuminate\Support\Facades\Mail;
 class TrainingController extends Controller
@@ -38,17 +40,16 @@ class TrainingController extends Controller
                 'content_sections' => 'array',
                 'content_sections.*.title' => 'required|string|max:255',
                 'content_sections.*.description' => 'required|string',
-                'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
+                'content_sections.*.file_duration' => 'required',
+                'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $validator->errors()
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
                 ], 422);
             }
-
             $trainerId = $request->trainerId ;
             $trainer = Trainers::where('id', $trainerId)->first();
             DB::beginTransaction();
@@ -60,7 +61,7 @@ class TrainingController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $file = $request->file('thumbnail');
                 $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads'), $thumbnailFileName);
+                $file->move('uploads', $thumbnailFileName);
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
 
@@ -72,7 +73,7 @@ class TrainingController extends Controller
                 $training->training_type = 'recorded';
                 $training->training_title = $request->training_title;
                 $training->training_sub_title = $request->training_sub_title;
-                $training->training_descriptions = $request->training_descriptions;
+                $training->training_objective = $request->training_descriptions;
                 $training->training_category = $request->training_category;
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
@@ -87,7 +88,7 @@ class TrainingController extends Controller
                 $training->training_type = 'recorded';
                 $training->training_title = $request->training_title;
                 $training->training_sub_title = $request->training_sub_title;
-                $training->training_descriptions = $request->training_descriptions;
+                $training->training_objective = $request->training_descriptions;
                 $training->training_category = $request->training_category;
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
@@ -131,7 +132,7 @@ class TrainingController extends Controller
                     if (isset($section['file']) && $section['file'] instanceof \Illuminate\Http\UploadedFile) {
                         $uploadedFile = $section['file'];
                         $fileName = 'section_' . time() . '_' . $index . '.' . $uploadedFile->getClientOriginalExtension();
-                        $uploadedFile->move(public_path('uploads'), $fileName);
+                        $uploadedFile->move('uploads', $fileName);
                         $filePath = asset('uploads/' . $fileName);
                     }
 
@@ -148,6 +149,7 @@ class TrainingController extends Controller
                             if ($filePath) {
                                 $document->file_path = $filePath;
                                 $document->file_name = $fileName;
+                                $document->file_duration = $section['file_duration'];
                             }
                             $document->save();
                             continue;
@@ -162,6 +164,7 @@ class TrainingController extends Controller
                     $document->description = $section['description'];
                     $document->file_path = $filePath;
                     $document->file_name = $fileName;
+                    $document->file_duration = $section['file_duration'];
                     $document->save();
                 }
             }
@@ -218,35 +221,63 @@ class TrainingController extends Controller
 
     public function saveTrainingOnlineData(Request $request)
     {
-        try {           
+        $data = $request->all();
 
-             $validator = Validator::make($request->all(), [
-                'trainerId' => 'required',
-                'training_title'         => 'required|string|max:255',
-                'training_sub_title'     => 'nullable|string|max:255',
-                'training_objective'     => 'nullable|string',
-                'training_descriptions'  => 'nullable|string',
-                'training_category'      => 'required|string',
-                'training_level'         => 'required|string',
-                'training_price'         => 'required|numeric',
-                'training_offer_price'   => 'required|numeric',
-                'thumbnail'              => 'nullable|image|max:2048',
-                'training_type'          => 'required|string',            
-                'content_sections'               => 'required|array|min:1',
-                'content_sections.*.batch_no'    => 'required|string|max:255',
-                'content_sections.*.batch_date'  => 'required|date',
-                'content_sections.*.start_time'  => 'required|string',
-                'content_sections.*.end_time'    => 'required|string',
-                'content_sections.*.duration'    => 'required|string',
-            ]);
+        $rules = [
+            'trainerId'             => 'required',
+            'training_title'        => 'required|string|max:255',
+            'training_sub_title'    => 'nullable|string|max:255',
+            'training_objective'    => 'nullable|string',
+            'training_descriptions' => 'nullable|string',
+            'training_category'     => 'required|string',
+            'training_level'        => 'required|string',
+            'training_price'        => 'required|numeric',
+            'training_offer_price'  => 'required|numeric',
+            'thumbnail'             => 'nullable|image|max:2048',
+            'training_type'         => 'required|string',
+        ];
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $validator->errors()
-                ], 422);
+        // Check if content_sections exist
+        if (!empty($data['content_sections'])) {
+            foreach ($data['content_sections'] as $index => $section) {
+                $rules["content_sections.$index.batch_no"]   = 'required|string|max:255';
+                $rules["content_sections.$index.batch_date"] = [
+                    'required',
+                    'date_format:d/m/Y',
+                    function ($attribute, $value, $fail) {
+                        $date = Carbon::createFromFormat('d/m/Y', $value);
+                        if ($date->isPast()) {
+                            $fail("$attribute should not be a past date.");
+                        }
+                    },
+                ];
+                
+                // $rules["content_sections.$index.batch_date"] = 'required|date';
+                $rules["content_sections.$index.start_time"] = 'required|string';
+                $rules["content_sections.$index.end_time"]   = 'required|string';
+                $rules["content_sections.$index.duration"]   = 'required|string';
+                $rules["content_sections.$index.duration_type"]   = 'required|string';
+                $rules["content_sections.$index.strength"]   = 'required|integer|min:1';
+                $rules["content_sections.$index.days"]       = 'required';
             }
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'At least one content section is required.'
+            ], 200);
+        }
+
+        $validator = Validator::make($data, $rules);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
+
+        try {
 
             $trainerId = $request->trainerId ;
             $trainer = Trainers::where('id', $trainerId)->first();
@@ -257,10 +288,12 @@ class TrainingController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $file = $request->file('thumbnail');
                 $thumbnailFileName = 'thumbnail_' . time() . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads'), $thumbnailFileName);
+                $file->move('uploads', $thumbnailFileName);
                 $thumbnailFilePath = asset('uploads/' . $thumbnailFileName);
             }
 
+            
+                
             $training = TrainingMaterial::where('id', $request->courseId)->first();
             // Save training using Eloquent
             if ($training) {
@@ -276,6 +309,7 @@ class TrainingController extends Controller
                 $training->training_offer_price = $request->training_offer_price;
                 $training->thumbnail_file_path = $thumbnailFilePath;
                 $training->thumbnail_file_name = $thumbnailFileName;
+                //$training->strength = $request->strength;
             } else {
                 // Create new training
                 $training = new TrainingMaterial();
@@ -293,6 +327,7 @@ class TrainingController extends Controller
                 $training->training_objective = null;
                 $training->session_type = null;
                 $training->admin_status = 'pending';
+                //$training->strength = $request->strength;
             }
             $training->save();
             
@@ -318,6 +353,49 @@ class TrainingController extends Controller
             if ($request->has('content_sections')) {
                 foreach ($request->content_sections as $index => $section) {
                     // Check if content section has an ID (for update)
+
+                    $startDate = Carbon::createFromFormat('d/m/Y', $section['batch_date']);
+                    //$document->start_date = $startDate;
+
+                    // Calculate end_date based on duration_type
+                    switch (strtolower($section['duration_type'])) {
+                        case 'days':
+                        case 'day':
+                            $endDate = $startDate->copy()->addDays((int)$section['duration']);
+                            break;
+
+                        case 'weeks':
+                        case 'week':
+                            $endDate = $startDate->copy()->addWeeks((int)$section['duration']);
+                            break;
+
+                        case 'months':
+                        case 'month':
+                            $endDate = $startDate->copy()->addMonths((int)$section['duration']);
+                            break;
+
+                        case 'years':
+                        case 'year':
+                            $endDate = $startDate->copy()->addYears((int)$section['duration']);
+                            break;
+
+                        default:
+                            $endDate = $startDate; // fallback: same as start
+                            break;
+                    }
+
+                  
+
+                    $zoom = new ZoomService();
+                    $date = Carbon::createFromFormat('d/m/Y', $section['batch_date'])->format('Y-m-d');
+                    $startTime = $date . ' ' . $section['start_time'];
+
+                    $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+ 
+                    // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                    //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+                    // }
+
                     if (isset($section['id'])) {
                         $document = TrainingBatch::where('id', $section['id'])
                                     ->where('training_material_id', $training->id)
@@ -328,24 +406,42 @@ class TrainingController extends Controller
                             $document->trainer_id = $trainer->id;
                             $document->training_material_id = $training->id;
                             $document->batch_no     = $section['batch_no'];
-                            $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
+                            $document->start_date   = Carbon::createFromFormat('d/m/Y', $section['batch_date']) ;
+                            $document->end_date = $endDate;
                             $document->start_timing = date("H:i", strtotime($section['start_time']));
                             $document->end_timing   = date("H:i", strtotime($section['end_time']));
-                            $document->duration     = $section['duration'];
+                            $document->duration     = $section['duration'].' '.$section['duration_type'];
+                            $document->strength     = $section['strength'];
+                            if (is_string($section['days'])) {
+                                $document->days = json_decode($section['days'], true);
+                            } else {
+                                $document->days = $section['days'];
+                            }
+
                             $document->save();
                             continue;
                         }
                     }
-
+//echo $section['days'] ; exit;
                     // Create new record
                     $document = new TrainingBatch();
                     $document->trainer_id = $trainer->id;
                     $document->training_material_id = $training->id;
                     $document->batch_no     = $section['batch_no'];
-                    $document->start_date   = date("Y-m-d", strtotime($section['batch_date'])) ;
+                    $document->start_date   = Carbon::createFromFormat('d/m/Y', $section['batch_date']) ;
+                    $document->end_date = $endDate;
                     $document->start_timing = date("H:i", strtotime($section['start_time']));
                     $document->end_timing   = date("H:i", strtotime($section['end_time']));
-                    $document->duration     = $section['duration'];
+                    $document->duration     = $section['duration'].' '.$section['duration_type'];
+                    $document->strength     = $section['strength'];
+                   if (is_string($section['days'])) {
+                        $document->days = json_decode($section['days'], true);
+                    } else {
+                        $document->days = $section['days'];
+                    }
+
+                    $document->zoom_start_url      = '';//$zoomMeeting['start_url'];
+                    $document->zoom_join_url        = '';//$zoomMeeting['join_url'];
                     $document->save();
                 }
             }
@@ -411,9 +507,8 @@ class TrainingController extends Controller
 
             if ($validator->fails()) {
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $validator->errors(),
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Return only the first error
                 ], 422);
             }
             $trainerId = $request->trainerId ;
@@ -483,7 +578,8 @@ class TrainingController extends Controller
                     'thumbnail_file_path as image'
                 )
                 ->where('trainer_id', $trainer_id)
-                ->where('training_type','!=', 'recorded')
+                ->where('admin_status', 'superadmin_approved')
+                ->orderBy('training_title', 'asc') 
                 ->get();
 
             return response()->json([
@@ -563,10 +659,17 @@ class TrainingController extends Controller
     {
         try {
             // Validate the request
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'assessment_id' => 'required|exists:trainer_assessments,id',
-                'course_id' => 'required|exists:training_materials,id',
+                'course_id'     => 'required|exists:training_materials,id',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(), // ✅ Returns only the first error
+                ], 422);
+            }
 
             // Find and update the assessment
             $assessment = TrainerAssessment::find($request->assessment_id);
@@ -575,7 +678,7 @@ class TrainingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Course assigned successfully.'
+                'message' => 'Course has been successfully assigned to the assessment.'
             ], 200);
 
         } catch (\Exception $e) {
@@ -709,7 +812,24 @@ class TrainingController extends Controller
                 ->with('batches')
                 ->where('id', $trainerMaterialId)
                 ->where('training_type','!=', 'recorded')
-                ->get();
+                ->get()
+                ->map(function ($training) {
+                    $training->batches->transform(function ($batch) {
+                        if (!empty($batch->duration)) {
+                            // Separate numeric value & text (duration type)
+                            preg_match('/(\d+)\s*([a-zA-Z]+)/', $batch->duration, $matches);
+
+                            $batch->durationValue = $matches[1] ?? null;
+                            $batch->durationType  = $matches[2] ?? null;
+                        } else {
+                            $batch->durationValue = null;
+                            $batch->durationType  = null;
+                        }
+
+                        return $batch;
+                    });
+                    return $training;
+                });
 
             return response()->json([
                 'success' => true,
@@ -722,6 +842,56 @@ class TrainingController extends Controller
                 'success' => false,
                 'message' => 'Something went wrong while fetching training list.',
                 'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteTrainingMaterialById($trainerMaterialId)
+    {
+        try {
+           $TrainingMaterial = TrainingMaterial::where('id', $trainerMaterialId)->first();
+
+           if (!$TrainingMaterial) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Training material not found.'
+                ], 404);
+            }
+
+            if($TrainingMaterial->training_type == 'recorded'){
+                $JobseekerTrainingMaterialPurchase = JobseekerTrainingMaterialPurchase::where('material_id', $trainerMaterialId)->first();
+                 if($JobseekerTrainingMaterialPurchase){
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Some job seeker already purchase this material ,So unable to delete.'
+                    ], 200);
+                }
+                TrainingMaterialsDocument::where('training_material_id', $trainerMaterialId)->delete();
+                //TrainerAssessment::where('material_id', $trainerMaterialId)->delete();                
+            }
+            else{
+                $JobseekerTrainingMaterialPurchase = JobseekerTrainingMaterialPurchase::where('material_id', $trainerMaterialId)->first();
+                 if($JobseekerTrainingMaterialPurchase){
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Some job seeker already purchase this material ,So unable to delete.'
+                    ], 200);
+                }
+                TrainingBatch::where('training_material_id', $trainerMaterialId)->delete();
+                //TrainerAssessment::where('material_id', $trainerMaterialId)->delete();
+            }           
+            
+            $TrainingMaterial->delete(); // Remove DB record
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Training material deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while deleting the file.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

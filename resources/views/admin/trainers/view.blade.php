@@ -344,10 +344,10 @@
                                                 <!-- Work Experience -->
                                                 <div class="tab-pane fade" id="work">
                                                     <form>
-                                                        @if ($experiences->isEmpty())
+                                                        @if ($workExperiences->isEmpty())
                                                             <p class="text-muted">No work experience found.</p>
                                                         @else
-                                                            @foreach ($experiences as $experience)
+                                                            @foreach ($workExperiences as $experience)
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Job role</label>
@@ -363,7 +363,7 @@
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>To</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
                                                                     </div>
                                                                 </div>
                                                                 @if (!$loop->last)
@@ -377,10 +377,10 @@
                                                 <!-- experience -->
                                                 <div class="tab-pane fade" id="experience">
                                                     <form>
-                                                        @if ($experience->isEmpty())
+                                                        @if ($trainingExperiences->isEmpty())
                                                             <p class="text-muted">No experience or training details found.</p>
                                                         @else
-                                                            @foreach ($experience as $skill)
+                                                            @foreach ($trainingExperiences as $skill)
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>experience</label>

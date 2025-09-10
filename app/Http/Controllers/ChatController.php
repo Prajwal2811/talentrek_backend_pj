@@ -123,6 +123,10 @@ class ChatController extends Controller
         {
             return ['id' => auth()->guard('admin')->id(), 'type' => 'admin'];
         }
+        elseif (auth()->guard('recruiter')->check()) 
+        {
+            return ['id' => auth()->guard('recruiter')->id(), 'type' => 'recruiter'];
+        }
 
         return ['id' => null, 'type' => null];
     }
@@ -412,7 +416,94 @@ class ChatController extends Controller
         return response()->json($coaches);
     }
 
+    public function getRecruitersList()
+    {
+        $recruiters = DB::table('recruiters as j')
+            ->select(
+                'j.id as user_id',
+                'j.name as recruiter_name',
+                DB::raw('COUNT(talentrek_m.id) as unread_count')
+            )
+            ->leftJoin('admin_group_chats as m', function ($join) {
+                $join->on('j.id', '=', 'm.sender_id')
+                    ->where('m.sender_type', '=', 'recruiter')   
+                    ->where('m.receiver_type', '=', 'group')    
+                    ->where('m.is_read', '=', 0);               
+            })
+            ->where('j.status', '=', 'active')
+            ->groupBy('j.id', 'j.name')
+            ->get();
+         
+        return response()->json($recruiters);
+    }
 
+ 
+    public function getUnreadCounts(){
+        $userId = auth()->guard('jobseeker')->id();
+        $userType = 'jobseeker';
+        $counts = DB::table('messages')
+            ->select('sender_id','sender_type', DB::raw('COUNT(*) as unread_count'))
+            ->where('receiver_id',$userId)
+            ->where('receiver_type',$userType)
+            ->where('is_read',0)
+            ->groupBy('sender_id','sender_type')->get();
+        return response()->json($counts);
+
+    }
+
+    public function markAsRead(Request $request){
+        DB::table('messages')
+            ->where('sender_id',$request->receiver_id)
+            ->where('sender_type',$request->receiver_type)
+            ->where('receiver_id',auth()->guard('jobseeker')->id())
+            ->where('receiver_type','jobseeker')
+            ->where('is_read',0)
+            ->update(['is_read'=>1]);
+        return response()->json(['status'=>'success']);
+    }
+
+
+  
+    public function getCombinedUnreadCountsForJobseeker()
+{
+    $user = $this->getSender();
+
+    if ($user['type'] !== 'jobseeker') {
+        return response()->json([]);
+    }
+
+    // ---------------- Messages table ----------------
+    $messagesCounts = DB::table('messages')
+        ->select('sender_id', 'sender_type', DB::raw('COUNT(*) as unread_count'))
+        ->where('receiver_id', $user['id'])
+        ->where('receiver_type', 'jobseeker')
+        ->where('is_read', 0)
+        ->groupBy('sender_id', 'sender_type');
+
+    // ---------------- Admin group chat ----------------
+    $adminCounts = DB::table('admin_group_chats')
+        ->select('sender_id', 'sender_type', DB::raw('COUNT(*) as unread_count'))
+        ->where('receiver_id', $user['id'])
+        ->where('receiver_type', 'jobseeker')
+        ->where('is_read', 0)
+        ->groupBy('sender_id', 'sender_type');
+
+    // Union both
+    $combined = $messagesCounts->unionAll($adminCounts)->get();
+
+    // Optional: combine counts if same sender_id & type exist in both tables
+    $result = [];
+    foreach($combined as $c){
+        $key = $c->sender_type . '_' . $c->sender_id;
+        if(isset($result[$key])){
+            $result[$key]->unread_count += $c->unread_count;
+        } else {
+            $result[$key] = $c;
+        }
+    }
+
+    return response()->json(array_values($result));
+}
 
 
 

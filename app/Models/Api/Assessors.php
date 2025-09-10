@@ -16,13 +16,19 @@ class Assessors extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'company_name',
-        'company_email',
+        'name',
+        'email',
         'phone_code',
-        'company_phone_number',
-        'company_instablishment_date',
+        'phone_number',
+        'instablishment_date',
         'industry_type',
-        'company_website',
+        'website',
+        'pin_code',
+        'country',
+        'state',
+        'national_id',
+        'about_assessor',
+        'is_registered'
     ];
 
     /**
@@ -59,6 +65,6 @@ class Assessors extends Model
     public function additionalInfo()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id', 'id')
-                    ->where('user_type', 'assessor');
+                    ->where('user_type', 'assessor')->where('doc_type', 'assessor_profile_picture');
     }
 }

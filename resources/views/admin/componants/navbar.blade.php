@@ -74,39 +74,11 @@
                                 @if($notifications->count() < 0)
                                    <h4>No Data Found</h4>
                                 @endif
-                                <!-- <li>
-                                    <a href="javascript:void(0);">
-                                        <div class="mr-4"><i class="fa fa-user text-info"></i></div>
-                                        <div class="feeds-body">
-                                            <h4 class="title text-info">New User <small class="float-right text-muted font-12">9:15 AM</small></h4>
-                                            <small>I feel great! Thanks team</small>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0);">
-                                        <div class="mr-4"><i class="fa fa-question-circle text-warning"></i></div>
-                                        <div class="feeds-body">
-                                            <h4 class="title text-warning">Server Warning <small class="float-right text-muted font-12">9:17 AM</small></h4>
-                                            <small>Your connection is not private</small>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0);">
-                                        <div class="mr-4"><i class="fa fa-thumbs-o-up text-success"></i></div>
-                                        <div class="feeds-body">
-                                            <h4 class="title text-success">2 New Feedback <small class="float-right text-muted font-12">9:22 AM</small></h4>
-                                            <small>It will give a smart finishing to your site</small>
-                                        </div>
-                                    </a>
-                                </li> -->
                             </ul>
                             <script>
                                 function refreshSection() {
                                 document.getElementById("notify").refresh();
                                 }
-
                                 // Refresh every 5 seconds
                                 setInterval(refreshSection, 5000);
                             </script>
