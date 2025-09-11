@@ -2012,7 +2012,7 @@ $skills = $user->skills->first();
                                 let messageBox = document.getElementById('paymentMessage');
                                 messageBox.textContent = "";
 
-                                fetch("{{ route('jobseeker.subscription.payment') }}", {
+                                fetch("{{ route('subscription.payment') }}", {
                                     method: "POST",
                                     headers: {
                                         "X-CSRF-TOKEN": "{{ csrf_token() }}"

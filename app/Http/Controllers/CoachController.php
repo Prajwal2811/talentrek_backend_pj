@@ -701,6 +701,17 @@ class CoachController extends Controller
             'per_slot_price' => $validated['per_slot_price'] ?? null,
         ]);
 
+        $data = [
+            'sender_id' => $coach->id,
+            'sender_type' => 'Coach updated his profile',
+            'receiver_id' => '1',
+            'message' => $validated['name'].' updated his profile successfully.',
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'coach'
+        ];
+
+        Notification::insert($data);
         return response()->json([
             'status' => 'success',
             'message' => 'Profile updated successfully!'

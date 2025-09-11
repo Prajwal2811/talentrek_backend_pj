@@ -1441,6 +1441,7 @@ class AdminController extends Controller
         // Superadmin can act only after admin approval
         if ($user->role === 'superadmin') {
             if (!Str::startsWith($status, 'superadmin_') || $course->admin_status !== 'approved') {
+                
                 return response()->json(['message' => 'Superadmin can only act after admin approval.'], 422);
             }
             $data = [
@@ -1545,6 +1546,7 @@ class AdminController extends Controller
                             ->subject('Application Rejected – Talentrek');
                 });
             }
+
         }
 
         return response()->json(['message' => 'Status updated.']);

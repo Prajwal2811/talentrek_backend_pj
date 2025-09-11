@@ -555,6 +555,17 @@ class TrainerController extends Controller
             }
 
             DB::commit();
+            $data = [
+                'sender_id' => auth()->id(),
+                'sender_type' => 'Trainer add assessment for material/course',
+                'receiver_id' => '1',
+                'message' => $questionData['text'].' assessment add successfully for material/course.',
+                'is_read' => 0,
+                'is_read_admin' => 0,
+                'user_type' => 'coach'
+            ];
+
+            Notification::insert($data);
             return redirect()->route('assessment.list')->with('success', 'Assessment created successfully.');
         } catch (\Exception $e) {
             DB::rollback();
@@ -965,6 +976,10 @@ class TrainerController extends Controller
 
                 'thumbnail_file_path'    => $thumbnailFilePath,
 
+                'admin_status'           => null,
+
+                'rejection_reason'       => null,
+                
                 'created_at'             => now(),
 
                 'updated_at'             => now(),
@@ -2033,6 +2048,17 @@ class TrainerController extends Controller
             'national_id' => $validated['national_id'],
         ]);
 
+        $data = [
+            'sender_id' => $user->id,
+            'sender_type' => 'Trainer updated his profile',
+            'receiver_id' => '1',
+            'message' => $validated['name'].' updated his profile successfully.',
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'trainer'
+        ];
+
+        Notification::insert($data);
         return response()->json([
             'status' => 'success',
             'message' => 'Personal information updated successfully!',
@@ -2493,6 +2519,18 @@ class TrainerController extends Controller
             }
 
             DB::commit();
+
+            $data = [
+                'sender_id' => $trainer->id,
+                'sender_type' => 'Annual subscription for trainer.',
+                'receiver_id' => '1',
+                'message' => 'Trainer Plan Subscription paid in AED '.$plan->price .' active from '.now().' to '.now()->addDays($plan->duration_days) ,
+                'is_read' => 0,
+                'is_read_admin' => 0,
+                'user_type' => 'trainer'
+            ];
+
+            Notification::insert($data);
 
             return response()->json([
                 'status' => 'success',
