@@ -596,7 +596,7 @@
                 </div>
             </div> -->
             <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" 
-                style="background-image: url('{{ asset('asset/images/banner/new_banner.webp') }}');">
+                style="background-image: url('{{ $bannerContent->file_path }}');">
                 
                 {{-- CMS Start form here --}}
                     @php

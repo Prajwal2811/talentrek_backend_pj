@@ -21,6 +21,7 @@ return new class extends Migration
             $table->tinyInteger('type')->nullable()->comment('1 = Text, 2 = File');
             $table->integer('is_read')->default(0);
             $table->integer('is_read_admin')->nullable();
+            $table->integer('is_read_users')->nullable();
             $table->timestamps();
         });
     }

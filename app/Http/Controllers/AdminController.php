@@ -1068,7 +1068,9 @@ class AdminController extends Controller
         $request->validate([
             'slug'         => 'required|string|exists:cms_module,slug',
             'heading'      => 'string|max:255',
+            'ar_heading'      => 'string|max:255',
             'description'  => 'string',
+            'ar_description'  => 'string',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
@@ -1089,7 +1091,9 @@ class AdminController extends Controller
 
             // Update text fields
             $cms->heading     = $request->heading;
+            $cms->ar_heading     = $request->ar_heading;
             $cms->description = $request->description;
+            $cms->ar_description = $request->ar_description;
 
             // Save record
             $cms->save();

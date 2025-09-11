@@ -42,10 +42,19 @@ return new class extends Migration
             $table->decimal('amount_paid', 8, 2)->nullable();
             $table->string('payment_status')->nullable(); // e.g. 'paid', 'pending', 'failed'
 
+            // Extra payment gateway details
+            $table->string('transaction_id')->nullable(); // tranid from gateway
+            $table->string('payment_id')->nullable();     // paymentid from gateway
+            $table->string('track_id')->nullable();       // trackid from gateway
+            $table->string('order_id')->nullable();       // our udf4
+            $table->string('currency', 10)->nullable();   // SAR, USD etc.
+            $table->string('result')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->longText('raw_response')->nullable(); // store full gateway JSON
+
             $table->timestamps();
         });
-
     }
+
 
     /**
      * Reverse the migrations.

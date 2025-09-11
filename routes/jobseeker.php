@@ -7,8 +7,8 @@ use App\Http\Controllers\JobseekerController;
 // Joobseeker Routes
 Route::group(['prefix' => 'jobseeker'], function() {
 	Route::group(['middleware' => 'jobseeker.guest'], function(){
-		Route::view('/sign-in','site.jobseeker.sign-in')->name('jobseeker.sign-in');
-		Route::view('/sign-up','site.jobseeker.sign-up')->name('jobseeker.sign-up');
+		// Route::view('/sign-in','site.jobseeker.sign-in')->name('jobseeker.sign-in');
+		// Route::view('/sign-up','site.jobseeker.sign-up')->name('jobseeker.sign-up');
 		Route::view('/forget-password','site.jobseeker.forget-password')->name('jobseeker.forget-password');
 		Route::view('/verify-otp','site.jobseeker.verify-otp')->name('jobseeker.verify-otp');
 		Route::view('/reset-password','site.jobseeker.reset-password')->name('jobseeker.reset-password');

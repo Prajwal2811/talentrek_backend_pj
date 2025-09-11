@@ -48,7 +48,8 @@ class DatabaseSeeder extends Seeder
             SubscriptionPlanSeeder::class,
             CouponSeeder::class,
             TaxationSeeder::class,
-            TeamCourseMembersSeeder::class
+            TeamCourseMembersSeeder::class,
+            NotificationSeeder::class
         ]);
         
     }

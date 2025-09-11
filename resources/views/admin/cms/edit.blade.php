@@ -32,33 +32,58 @@
                                             @csrf
                                             <input type="hidden" class="form-control" name="slug" value="{{ $cms->slug }}" readonly>
                                             <div class="row">
-                                                <!-- Section (Read-only) -->
-                                                <div class="form-group c_form_group col-md-12">
-                                                    <label>Section</label>
-                                                    <input type="text" class="form-control" name="section" value="{{ old('section', $cms->section ) }}" readonly>
-                                                    @error('section') <small class="text-danger">{{ $message }}</small> @enderror
-                                                </div>
+                                               <!-- Section (Read-only) -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Section</label>
+                                                <input type="text" class="form-control" name="section" value="{{ old('section', $cms->section ) }}" readonly>
+                                                @error('section') <small class="text-danger">{{ $message }}</small> @enderror
+                                            </div>
 
-                                                <!-- Heading -->
-                                                <div class="form-group c_form_group col-md-12">
-                                                    <label>Heading</label>
-                                                    <input type="text" class="form-control" name="heading" placeholder="Enter heading" value="{{ old('heading', $cms->heading ) }}" required>
-                                                    @error('heading') <small class="text-danger">{{ $message }}</small> @enderror
-                                                </div>
+                                            <!-- Section (Read-only) - Arabic -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Section (Arabic)</label>
+                                                <input type="text" class="form-control" name="ar_section" value="{{ old('ar_section', $cms->ar_section ) }}" readonly>
+                                                @error('ar_section') <small class="text-danger">{{ $message }}</small> @enderror
+                                            </div>
 
-                                                <!-- RichTextEditor -->
-                                                <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
-                                                <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
-                                                <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
-                                                <!-- Description -->
-                                                <div class="form-group c_form_group col-md-12">
-                                                    <label>Description (HTML content)</label>
-                                                    <textarea id="div_editor1" name="description">{{ old('description', $cms->description) }}</textarea>
-                                                    @error('description') <small class="text-danger">{{ $message }}</small> @enderror
-                                                </div>
-                                                <script>
-                                                    var editor1 = new RichTextEditor("#div_editor1");
-                                                </script>
+                                            <!-- Heading -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Heading</label>
+                                                <input type="text" class="form-control" name="heading" placeholder="Enter heading" value="{{ old('heading', $cms->heading ) }}" required>
+                                                @error('heading') <small class="text-danger">{{ $message }}</small> @enderror
+                                            </div>
+
+                                            <!-- Heading - Arabic -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Heading (Arabic)</label>
+                                                <input type="text" class="form-control" name="ar_heading" placeholder="Enter heading in Arabic" value="{{ old('ar_heading', $cms->ar_heading ) }}" required>
+                                                @error('ar_heading') <small class="text-danger">{{ $message }}</small> @enderror
+                                            </div>
+
+                                            <!-- Description -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Description (HTML content)</label>
+                                                <textarea id="div_editor1" name="description">{{ old('description', $cms->description) }}</textarea>
+                                                @error('description') <small class="text-danger">{{ $message }}</small> @enderror
+                                            </div>
+
+                                            <!-- Description - Arabic -->
+                                            <div class="form-group c_form_group col-md-12">
+                                                <label>Description (HTML content - Arabic)</label>
+                                                <textarea id="div_editor1_ar" name="ar_description">{{ old('ar_description', $cms->ar_description) }}</textarea>
+                                                @error('ar_description') <small class="text-danger">{{ $message }}</small> @enderror
+                                            </div>
+
+                                            <!-- RichTextEditor scripts -->
+                                            <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
+                                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
+                                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+
+                                            <script>
+                                                var editor1 = new RichTextEditor("#div_editor1");
+                                                var editor1_ar = new RichTextEditor("#div_editor1_ar");
+                                            </script>
+
 
 
                                                 <!-- Banner Image Upload Only -->
@@ -135,19 +160,37 @@
                                                     @error('section') <small class="text-danger">{{ $message }}</small> @enderror
                                                 </div>
 
-                                                <!-- RichTextEditor -->
+                                                <!-- Section (Read-only) - Arabic -->
+                                                <div class="form-group c_form_group col-md-12">
+                                                    <label>Section (Arabic)</label>
+                                                    <input type="text" class="form-control" name="ar_section" value="{{ old('ar_section', $cms->ar_section ) }}" readonly>
+                                                    @error('ar_section') <small class="text-danger">{{ $message }}</small> @enderror
+                                                </div>
+
+                                                <!-- RichTextEditor CSS/JS -->
                                                 <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
                                                 <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
                                                 <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+
                                                 <!-- Description -->
                                                 <div class="form-group c_form_group col-md-12">
                                                     <label>Description (HTML content)</label>
                                                     <textarea id="div_editor1" name="description">{{ old('description', $cms->description) }}</textarea>
                                                     @error('description') <small class="text-danger">{{ $message }}</small> @enderror
                                                 </div>
+
+                                                <!-- Description - Arabic -->
+                                                <div class="form-group c_form_group col-md-12">
+                                                    <label>Description (HTML content - Arabic)</label>
+                                                    <textarea id="div_editor1_ar" name="ar_description">{{ old('ar_description', $cms->ar_description) }}</textarea>
+                                                    @error('ar_description') <small class="text-danger">{{ $message }}</small> @enderror
+                                                </div>
+
                                                 <script>
                                                     var editor1 = new RichTextEditor("#div_editor1");
+                                                    var editor1_ar = new RichTextEditor("#div_editor1_ar");
                                                 </script>
+
 
                                                 <!-- Submit Button -->
                                                 <div class="col-md-12 mt-3">
@@ -198,25 +241,51 @@
                                                     @error('section') <small class="text-danger">{{ $message }}</small> @enderror
                                                 </div>
 
+                                                <!-- Section (Read-only) - Arabic -->
+                                                <div class="form-group c_form_group col-md-12">
+                                                    <label>Section (Arabic)</label>
+                                                    <input type="text" class="form-control" name="ar_section" value="{{ old('ar_section', $cms->ar_section ) }}" readonly>
+                                                    @error('ar_section') <small class="text-danger">{{ $message }}</small> @enderror
+                                                </div>
+
+                                                <!-- Heading -->
                                                 <div class="form-group c_form_group col-md-12">
                                                     <label>Heading</label>
                                                     <input type="text" class="form-control" name="heading" placeholder="Enter heading" value="{{ old('heading', $cms->heading ) }}" required>
                                                     @error('heading') <small class="text-danger">{{ $message }}</small> @enderror
                                                 </div>
 
-                                                <!-- RichTextEditor -->
+                                                <!-- Heading - Arabic -->
+                                                <div class="form-group c_form_group col-md-12">
+                                                    <label>Heading (Arabic)</label>
+                                                    <input type="text" class="form-control" name="ar_heading" placeholder="Enter heading in Arabic" value="{{ old('ar_heading', $cms->ar_heading ) }}" required>
+                                                    @error('ar_heading') <small class="text-danger">{{ $message }}</small> @enderror
+                                                </div>
+
+                                                <!-- RichTextEditor CSS/JS -->
                                                 <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
                                                 <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
                                                 <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+
                                                 <!-- Description -->
                                                 <div class="form-group c_form_group col-md-12">
                                                     <label>Description (HTML content)</label>
                                                     <textarea id="div_editor1" name="description">{{ old('description', $cms->description) }}</textarea>
                                                     @error('description') <small class="text-danger">{{ $message }}</small> @enderror
                                                 </div>
+
+                                                <!-- Description - Arabic -->
+                                                <div class="form-group c_form_group col-md-12">
+                                                    <label>Description (HTML content - Arabic)</label>
+                                                    <textarea id="div_editor1_ar" name="ar_description">{{ old('ar_description', $cms->ar_description) }}</textarea>
+                                                    @error('ar_description') <small class="text-danger">{{ $message }}</small> @enderror
+                                                </div>
+
                                                 <script>
                                                     var editor1 = new RichTextEditor("#div_editor1");
+                                                    var editor1_ar = new RichTextEditor("#div_editor1_ar");
                                                 </script>
+
 
                                                 <!-- Submit Button -->
                                                 <div class="col-md-12 mt-3">

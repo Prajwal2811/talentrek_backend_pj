@@ -168,6 +168,8 @@
                         class="hidden absolute right-4 top-full mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50">
                         <a href="{{ url('/jobseeker/sign-in') }}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('sign_in_as_jobseeker') }}</a>
+                        <a href="#}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Expat</a>
                         <a href="{{ url('/mentor/sign-in') }}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Mentor</a>
                         <a href="{{ url('/trainer/sign-in') }}"

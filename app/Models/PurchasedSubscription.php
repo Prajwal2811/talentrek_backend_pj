@@ -17,14 +17,25 @@ class PurchasedSubscription extends Model
     protected $fillable = [
         'user_id',
         'user_type',
-        'amount_paid',
-        'payment_status',
+        'company_id',
+
+        // Subscription info
         'subscription_plan_id',
-        'subscribable_id',
-        'subscribable_type',
         'start_date',
         'end_date',
-        'company_id'
+
+        // Payment info
+        'amount_paid',
+        'payment_status',
+
+        // Extra gateway details
+        'transaction_id',
+        'payment_id',
+        'track_id',
+        'order_id',
+        'currency',
+        'result',
+        'raw_response',
     ];
 
    

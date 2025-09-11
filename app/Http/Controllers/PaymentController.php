@@ -9,6 +9,8 @@ use App\Models\Api\BookingSession;
 use App\Models\Payment\JobseekerSessionBookingPaymentRequest;
 use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
+use App\Models\Jobseekers;
+use Auth;
 
 
 class PaymentController extends Controller
@@ -114,6 +116,7 @@ class PaymentController extends Controller
         $responseTrandata = $request->input('trandata');
         $decrypted = $this->decryptTrandata($responseTrandata, $config['secret_key']);
         $data = json_decode($decrypted, true);
+        // echo "<pre>"; print_r($data); die;
 
         if ($data && $data['result'] === 'CAPTURED') {
             // ✅ Payment success
@@ -133,6 +136,7 @@ class PaymentController extends Controller
         $responseTrandata = $request->input('trandata');
         $decrypted = $this->decryptTrandata($responseTrandata, $config['secret_key']);
         $data = json_decode($decrypted, true);
+        echo "<pre>"; print_r($data); die;
 
         if ($data && $data['result'] === 'CAPTURED') {
             // ✅ Payment success
@@ -230,7 +234,7 @@ class PaymentController extends Controller
     
 
 
-   // Subscription
+    // Subscription
     public function processSubscriptionPayment(Request $request)
     {
         $request->validate([
@@ -247,6 +251,7 @@ class PaymentController extends Controller
             'pending_user_id' => $jobseeker->id,
         ]);
 
+        // echo "<pre>"; print_r(session()->all()); die;
         // Redirect to hosted payment page
         return $this->redirectToGatewaySubscription($plan->price);
     }
@@ -258,6 +263,7 @@ class PaymentController extends Controller
     {
         $config = config('neoleap');
         $orderId = uniqid('ORD-');
+
 
         $transactionDetails = [
             "id"           => $config['tranportal_id'],
@@ -275,9 +281,12 @@ class PaymentController extends Controller
             "errorURL"     => $config['subscription_failure_url']
         ];
 
+        //  echo "<pre>"; print_r($transactionDetails); die;
+
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
         $trandata     = PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']);
         $trandata     = strtoupper($trandata);
+
 
         $payload = [[
             "id"          => $config['tranportal_id'],
@@ -286,7 +295,10 @@ class PaymentController extends Controller
             "errorURL"    => $config['subscription_failure_url']
         ]];
 
+
         $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES);
+
+        //  echo "<pre>"; print_r($payloads); die;
 
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -304,9 +316,11 @@ class PaymentController extends Controller
 
         $response = curl_exec($curl);
         curl_close($curl);
-
+        
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
+        // echo "<pre>"; print_r($data); die;
+        // echo "<pre>"; print_r(session()->all()); die;
 
         if ($result) {
             [$paymentId, $paymentUrl] = explode(":", $result, 2);
@@ -329,17 +343,22 @@ class PaymentController extends Controller
                 ->with('error', 'Invalid payment response.');
         }
 
-        $decrypted = PaymentHelper::decryptAES($responseTrandata, $config['secret_key']);
+        $decrypted =  urldecode($trandata = PaymentHelper::decryptAES($responseTrandata, $config['secret_key']));
         $data = json_decode($decrypted, true);
-
-        if ($data && ($data['result'] ?? null) === 'CAPTURED') {
+        $data =$data[0];
+        // echo "<pre>"; print_r($data); die;
+        echo "<pre>"; print_r(session()->all()); die;
+         if ($data && $data['result'] === 'CAPTURED') {
             $planId = session('pending_plan_id');
             $amount = session('pending_amount');
             $userId = session('pending_user_id');
-
+            echo "<pre>"; print_r($planId); 
+            echo "<pre>"; print_r($amount);
+            echo "<pre>"; print_r($userId); die;
             if ($planId && $userId) {
+                echo "done"; die;
                 $plan = SubscriptionPlan::findOrFail($planId);
-                $jobseeker = User::find($userId); // Use session user id
+                $jobseeker = Jobseekers::find($userId);
 
                 $subscription = PurchasedSubscription::create([
                     'user_id'              => $jobseeker->id,
@@ -349,13 +368,27 @@ class PaymentController extends Controller
                     'end_date'             => now()->addDays($plan->duration_days),
                     'amount_paid'          => $amount,
                     'payment_status'       => 'paid',
+
+                    // Gateway details
+                    'transaction_id'       => $data['tranid']   ?? null,
+                    'payment_id'           => $data['paymentid'] ?? null,
+                    'track_id'             => $data['trackid'] ?? null,
+                    'order_id'             => $data['udf4']    ?? null,
+                    'currency'             => $data['currency'] ?? null,
+                    'result'               => $data['result'] ?? null,
+                    'raw_response'         => json_encode($data, JSON_UNESCAPED_SLASHES),
                 ]);
 
-                // Update jobseeker active subscription
+                // Update jobseeker subscription
                 $jobseeker->isSubscriptionBuy = 'yes';
                 $jobseeker->active_subscription_plan_id = $subscription->id;
                 $jobseeker->save();
+
+                // 🔑 Re-login the jobseeker so they don't get logged out after redirect
+                Auth::guard('jobseeker')->login($jobseeker);
             }
+
+             echo "not-done"; die;
 
             // Clear session
             session()->forget(['pending_plan_id', 'pending_amount', 'pending_user_id']);
@@ -367,6 +400,8 @@ class PaymentController extends Controller
         return redirect()->route('jobseeker.dashboard')
             ->with('error', 'Payment failed or cancelled.');
     }
+
+
 
     /**
      * Payment failure callback
