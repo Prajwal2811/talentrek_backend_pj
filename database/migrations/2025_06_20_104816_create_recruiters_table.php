@@ -28,6 +28,8 @@ return new class extends Migration
             $table->string('role')->nullable();
             $table->string('recruiter_of')->nullable();
             $table->string('company_id')->nullable();
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
             $table->string('is_registered')->default('0');
             $table->string('inactive_reason')->nullable(); 
             $table->string('admin_status')->nullable(); 

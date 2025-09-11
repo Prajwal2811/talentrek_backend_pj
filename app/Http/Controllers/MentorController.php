@@ -16,9 +16,7 @@ use App\Models\Review;
 use App\Models\BookingSlotUnavailableDate;
 use App\Models\Notification;
 use App\Models\BookingSession;
-
 use App\Models\TrainingCategory;
-
 use Illuminate\Support\Facades\Log;
 use DB;
 use Auth;
@@ -26,6 +24,9 @@ use App\Models\BookingSlot;
 use Carbon\Carbon;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class MentorController extends Controller
 {
@@ -1295,6 +1296,75 @@ class MentorController extends Controller
         event(new \App\Events\MessageSeen($mentorId, 'mentor', 'admin', 'admin'));
 
         return response()->json(['success' => true]);
+    }
+
+
+     public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            // Check user
+            $mentor = Mentors::where('email', $googleUser->getEmail())->first();
+
+            // Case 1: New Google user (email not exist)
+            if (!$mentor) {
+                $plainPassword = Str::random(16);
+
+                $mentor = Mentors::create([
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
+                    'email_verified_at' => now(),
+                    'is_registered'     => 0, //  not registered yet
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
+                ]);
+
+                // Store ID + email in session
+                session([
+                    'mentor_id'    => $mentor->id,
+                    'email' => $mentor->email,
+                ]);
+
+                //  Send to registration form
+                return redirect()->route('mentor.registration');
+            }
+
+            // Agar inactive account hai
+            if ($mentor->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('mentor.login');
+            }
+
+            // Case 2: Existing user with complete registration
+            if ($mentor->is_registered == 1) {
+                // ✅ Direct login and go to profile/dashboard
+                Auth::guard('mentor')->login($mentor);
+                return redirect()->route('mentor.dashboard');
+            }
+
+            // Case 3: Existing but registration incomplete
+            session([
+                'mentor_id'    => $mentor->id,
+                'email' => $mentor->email,
+            ]);
+            return redirect()->route('mentor.registration');
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed. Please try again.');
+        }
+
+        return redirect()->route('mentor.login');
     }
 
 }

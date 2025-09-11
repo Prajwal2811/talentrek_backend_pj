@@ -252,7 +252,7 @@
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                                                 <div>
                                                     <label class="block mb-1 text-sm font-medium mt-3">Recruiter's phone number <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="phone_number" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's phone_number"  value="{{ old('phone_number', $phone_number) }}" readonly/>
+                                                    <input type="text" name="phone_number" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's phone_number"  value="{{ old('phone_number') }}" />
                                                     @error('phone_number')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror

@@ -22,6 +22,17 @@ if (!function_exists('notificationSent')) {
     }
 }
 
+
+// if (!function_exists('notificationUsersSent')) {
+//     function notificationUsersSent($user_type)
+//     {
+//         $user = Auth::user();
+//         $notifications = DB::table('notifications')->select('notifications.*','jobseekers.name')->join('jobseekers','jobseekers.id','=','notifications.receiver_id'
+//         )->where(['notifications.is_read_users' => 0,'user_type' => 'jobseeker'])->get();
+//         return $notifications;
+//     }
+// }
+
 if (!function_exists('notificationUsersSent')) {
     function notificationUsersSent($user_type)
     {
@@ -45,3 +56,4 @@ if (!function_exists('langLabel')) {
         return $translations[$code] ?? ucfirst($code);
     }
 }
+

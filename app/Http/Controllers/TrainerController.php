@@ -30,6 +30,9 @@ use Carbon\Carbon;
 use App\Services\ZoomService;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 
 class TrainerController extends Controller
@@ -2544,4 +2547,72 @@ class TrainerController extends Controller
         }
     }
 
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            // Check user
+            $trainer = Trainers::where('email', $googleUser->getEmail())->first();
+
+            // Case 1: New Google user (email not exist)
+            if (!$trainer) {
+                $plainPassword = Str::random(16);
+
+                $trainer = Trainers::create([
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
+                    'email_verified_at' => now(),
+                    'is_registered'     => 0, //  not registered yet
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
+                ]);
+
+                // Store ID + email in session
+                session([
+                    'trainer_id'    => $trainer->id,
+                    'email' => $trainer->email,
+                ]);
+
+                //  Send to registration form
+                return redirect()->route('trainer.registration');
+            }
+
+            // Agar inactive account hai
+            if ($trainer->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('trainer.login');
+            }
+
+            // Case 2: Existing user with complete registration
+            if ($trainer->is_registered == 1) {
+                // ✅ Direct login and go to profile/dashboard
+                Auth::guard('trainer')->login($trainer);
+                return redirect()->route('trainer.dashboard');
+            }
+
+            // Case 3: Existing but registration incomplete
+            session([
+                'trainer_id'    => $trainer->id,
+                'email' => $trainer->email,
+            ]);
+            return redirect()->route('trainer.registration');
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed. Please try again.');
+        }
+
+        return redirect()->route('trainer.login');
+    }
 }
