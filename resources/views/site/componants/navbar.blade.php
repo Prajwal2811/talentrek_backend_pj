@@ -46,6 +46,10 @@
                     class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
                     {{ langLabel('coaching') }}
                 </a>
+                <a href="#"
+                    class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
+                    Expact
+                </a>
             </nav>
 
 
@@ -81,6 +85,7 @@
                     @endif
                 </div>
             </div>
+
             <script>
                 function toggleBellDropdown() {
                     const dropdown = document.getElementById('bellDropdown');
@@ -96,11 +101,7 @@
                     }
                 });
             </script>
-            <style>
-               #bellDrowpdown{
-                    width: 308px;
-               }
-            </style>
+            
             <!-- Language Selector -->
             <div class="relative flex items-center space-x-1">
                 <div class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white">

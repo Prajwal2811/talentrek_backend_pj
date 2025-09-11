@@ -27,6 +27,10 @@ Route::group(['prefix' => 'assessor'], function() {
 		Route::post('/registration/store', [AssessorController::class, 'storeAssessorInformation'])->name('assessor.registration.store');
 		Route::post('/assessor/login', [AssessorController::class, 'loginAssessor'])->name('assessor.login.submit');
 
+
+		Route::get('auth/google/redirect', [AssessorController::class, 'redirectToGoogle'])->name('assessor.google.redirect');
+		Route::get('auth/google/callback', [AssessorController::class, 'handleGoogleCallback'])->name('assessor.google.callback');
+
 	});
 	
 

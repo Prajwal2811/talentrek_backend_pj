@@ -1371,6 +1371,7 @@
 
                         @php
                             $trainingCategory = App\Models\TrainingCategory::withCount('trainings')->get();
+                           
                         @endphp
 
                         <!-- Swiper Carousel -->
@@ -1380,9 +1381,13 @@
                                     <div class="swiper-slide px-1"> <!-- Reduced spacing -->
                                         <div class="bg-blue-50 rounded-lg text-center p-6 h-full min-h-[260px] flex flex-col justify-between">
                                             <div>
-                                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                                    <img src="https://img.icons8.com/ios/50/money.png" class="w-6 h-6" />
+                                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4 overflow-hidden">
+                                                    <img src="{{ $category->image_path ?? 'https://img.icons8.com/ios/50/money.png' }}" 
+                                                        alt="{{ $category->category }}" 
+                                                        class="w-full h-full object-contain" />
                                                 </div>
+
+
                                                 <h4 class="font-semibold text-lg mb-1 leading-snug">
                                                     @php
                                                         $words = explode(' ', $category->category);

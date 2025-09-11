@@ -22,7 +22,7 @@ Route::fallback(function () {
 
         Route::get('training', function () {
             return view('site.training');
-        })->name('training');
+        })->name('training'); 
 
 
         Route::get('training-detail', function () {

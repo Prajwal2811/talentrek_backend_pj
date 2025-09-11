@@ -23,6 +23,11 @@ Route::group(['prefix' => 'trainer'], function() {
         Route::post('/submit-reset-password', [TrainerController::class, 'resetPassword'])->name('trainer.reset-password.submit');
         Route::post('/registration/store', [TrainerController::class, 'storeTrainerInformation'])->name('trainer.registration.store');
         Route::post('/trainer/login', [TrainerController::class, 'loginTrainer'])->name('trainer.login.submit');
+
+
+        Route::get('auth/google/redirect', [TrainerController::class, 'redirectToGoogle'])->name('trainer.google.redirect');
+		Route::get('auth/google/callback', [TrainerController::class, 'handleGoogleCallback'])->name('trainer.google.callback');
+
     });
 
     // Routes accessible after login but before subscription

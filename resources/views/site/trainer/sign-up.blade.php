@@ -96,10 +96,11 @@
                                         </button>
 
 
-                                        <button type="button" class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md hover:bg-gray-100">
-                                            <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5">
-                                            <span>Sign in with Google</span>
-                                        </button>
+                                        <a href="{{ route('trainer.google.redirect') }}" 
+                                        class="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 mb-3">
+                                            <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5 mr-2">
+                                            Sign in with Google
+                                        </a>
 
                                         <div class="text-center text-gray-500 text-sm mt-4">- or -</div>
 

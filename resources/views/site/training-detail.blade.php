@@ -105,23 +105,24 @@
 
                         <span class="font-semibold">{{ $material->user_name }}</span>
                     </div>
-
+                      <!-- < ?php echo"<pre>"; print_r($material);exit;?> -->
                     <span class="mx-2">|</span>
+                    <!-- Lessons and Hours -->
                     @if(strtolower($material->training_type) === 'recorded' && isset($material->documents) && count($material->documents) > 0)
                         <span>📘 {{ count($material->documents) }} lessons</span>
-                    @endif
 
-                    <span>⏱️ 
-                        @php
-                            $totalHours = 0;
-                            foreach ($material->batches as $batch) {
-                                $start = strtotime($batch->start_timing);
-                                $end = strtotime($batch->end_timing);
-                                $totalHours += ($end - $start) / 3600;
-                            }
-                        @endphp
-                        {{ $totalHours }} hrs
-                    </span>
+                        <span>⏱️ 
+                            @php
+                                $totalHours = 0;
+                                foreach ($material->batches as $batch) {
+                                    $start = strtotime($batch->start_timing);
+                                    $end = strtotime($batch->end_timing);
+                                    $totalHours += ($end - $start) / 3600;
+                                }
+                            @endphp
+                            {{ number_format($totalHours, 1) }} hrs
+                        </span>
+                    @endif
 
                     <span>📈 {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
                     <span>🎥 {{ ucfirst($material->session_type ?? 'recorded') }}</span>
@@ -493,7 +494,7 @@
                     document.getElementById('review-text').value = '';
                     selectedRating = 0;
                     highlightStars(0);
-
+                    location.reload();
                     const newReview = `
                       <div class="border p-4 rounded shadow-sm bg-white">
                         <p class="text-sm font-semibold">${data.review.jobseeker_name}</p>
@@ -551,10 +552,11 @@
                           @endif
                       </li>
 
-                      @if(strtolower($material->training_type) === 'online')
+                     @if(strtolower($material->training_type) === 'recorded')
                         <li class="flex items-center space-x-2">
                             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                                <circle cx="12" cy="12" r="10"></circle>
                             </svg>
                             <span>
                                 @php
@@ -568,7 +570,8 @@
                                 {{ number_format($totalHours, 1) }} hrs
                             </span>
                         </li>
-                      @endif
+                    @endif
+
 
                       <li class="flex items-center space-x-2">
                           <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -592,34 +595,50 @@
                   </div>
                 </div>
 
-                @php
+               @php
                     use Carbon\Carbon;
 
-                    $existOrNot = false;
-                    $enableJoin = false;
-                    $today = Carbon::now();
+                    $existOrNot = false;  
+                    $enableJoin = false;   
+                    $now = Carbon::now();
+                    $batch = null;
 
                     if (auth('jobseeker')->check()) {
-                        $existOrNot = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', auth('jobseeker')->id())
+                        // Check if user has purchased this course
+                        $purchase = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', auth('jobseeker')->id())
                             ->where('material_id', $material->id)
-                            ->exists();
-                    }
+                            ->first();
 
-                    $batch = null;
-                    if ($existOrNot) {
-                        $batch = App\Models\TrainingBatch::where('training_material_id', $material->id)->first();
+                        if ($purchase) {
+                            $existOrNot = true;
 
-                        if ($batch) {
-                            $batchDays = json_decode($batch->days, true);
-                            $dayName = $today->format('l');
-                            $startDate = Carbon::parse($batch->start_date);
-                            $endDate   = $batch->end_date ? Carbon::parse($batch->end_date) : $startDate;
-                            $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
-                            $endTime   = Carbon::parse($batch->end_timing);
+                            if ($purchase->batch_id) {
+                                $batch = App\Models\TrainingBatch::find($purchase->batch_id);
 
-                            if ($today->between($startDate, $endDate) && in_array($dayName, $batchDays)) {
-                                if ($today->between($startTime, $endTime)) {
-                                    $enableJoin = true;
+                                if ($batch) {
+                                    $batchDays = json_decode($batch->days, true);   // e.g. ["Monday","Wednesday"]
+                                    $dayName   = $now->format('l');                 // Current day
+
+                                    $startDate = Carbon::parse($batch->start_date);
+                                    $endDate   = $batch->end_date ? Carbon::parse($batch->end_date) : $startDate;
+
+                                    $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
+                                    $endTime   = Carbon::parse($batch->end_timing);
+
+                                    // Handle overnight sessions (end time is before start time)
+                                    if ($endTime->lessThan($startTime)) {
+                                        $endTime->addDay();
+                                    }
+
+                                    // Now use full datetime comparison
+                                    $startDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $now->format('Y-m-d') . ' ' . $startTime->format('H:i:s'));
+                                    $endDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $now->format('Y-m-d') . ' ' . $endTime->format('H:i:s'));
+
+                                    if ($now->between($startDate, $endDate) && in_array($dayName, $batchDays)) {
+                                        if ($now->between($startDateTime, $endDateTime)) {
+                                            $enableJoin = true;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -627,9 +646,9 @@
                 @endphp
 
                 @if(auth('jobseeker')->check())
-                    
+
+                    {{-- Buy Button --}}
                     @if(!$existOrNot)
-                        <!-- Not purchased yet -->
                         <a href="{{ route('buy-course', ['id' => $material->id]) }}">
                             <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
                                 Buy course
@@ -637,10 +656,10 @@
                         </a>
                     @endif
 
+                    {{-- Join or Visit Button --}}
                     @if($existOrNot)
-                        <!-- Already purchased -->
                         @if($material->training_type == 'online')
-                            @if($enableJoin)
+                            @if($enableJoin && $batch)
                                 <a href="{{ $batch->zoom_join_url }}">
                                     <button class="bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
                                         Join
@@ -652,7 +671,7 @@
                                 </button>
                             @endif
                         @elseif($material->training_type == 'classroom')
-                            @if($enableJoin)
+                            @if($enableJoin && $batch)
                                 <a href="{{ $batch->location ? $batch->location : '#' }}">
                                     <button class="bg-purple-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
                                         Visit
@@ -666,14 +685,14 @@
                         @endif
                     @endif
 
-                    <!-- Buy for Team button -->
+                    {{-- Buy for Team --}}
                     <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
                         <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
                             Buy for Team
                         </button>
                     </a>
 
-                    <!-- Add to Cart / Go to Cart (Moved below) -->
+                    {{-- Add to Cart / Go to Cart --}}
                     @if(!$existOrNot)
                         @if(!in_array($material->id, $cartItems))
                             <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
@@ -684,14 +703,14 @@
                             <a href="{{ route('jobseeker.profile') }}" 
                             onclick="localStorage.setItem('activeTab','cart')"
                             class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
-                            Go to Cart  
+                                Go to Cart
                             </a>
-
-
                         @endif
                     @endif
 
                 @endif
+
+
 
 
 
