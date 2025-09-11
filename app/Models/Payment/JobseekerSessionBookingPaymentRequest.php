@@ -38,4 +38,6 @@ class JobseekerSessionBookingPaymentRequest extends Model
         'reserved_until' => 'datetime',
         'response_payload' => 'array',
     ];
+
+    
 }

@@ -11,17 +11,9 @@ use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
 use App\Models\Jobseekers;
 use Auth;
-use Illuminate\Support\Facades\Validator;
-use App\Models\PurchasedSubscriptionPaymentRequest;
-use App\Models\Mentors;
-use App\Models\Assessors;
-use App\Models\Recruiters;
-use App\Models\Trainers;
-use App\Models\Coach;
 
 
-
-class PaymentController extends Controller
+class PaymentControllersss extends Controller
 {
     public function checkout()
     {
@@ -243,84 +235,58 @@ class PaymentController extends Controller
 
 
     // Subscription
-    /**
-     * Process subscription payment
-     */
     public function processSubscriptionPayment(Request $request)
     {
-        // Validate input
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'plan_id' => 'required|exists:subscription_plans,id',
-            'user_id' => 'required',
-            'type'    => 'required|in:jobseeker,mentor,assessor,coach,trainer,recruiter',
         ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->with('error', $validator->errors()->first());
-        }
 
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
+        $jobseeker = auth('jobseeker')->user();
 
-        // Map user type to model
-        $modelMap = [
-            'jobseeker' => Jobseekers::class,
-            'mentor'    => Mentors::class,
-            'assessor'  => Assessors::class,
-            'coach'     => Coach::class,
-            'trainer'   => Trainers::class,
-            'recruiter' => Recruiters::class,
-        ];
-        $model = $modelMap[$request->type];
-
-        $user = $model::findOrFail($request->user_id);
-
-        // Generate reference
-        $referenceNo = "TRK-SUB-" . strtoupper(substr($request->type, 0, 3)) . '-' . $request->plan_id . '-' . $request->user_id . '-' . date('YmdHi');
-
-        // Create payment request record
-        $booking = PurchasedSubscriptionPaymentRequest::create([
-            'subscription_plan_id' => $plan->id,
-            'user_id'              => $request->user_id,
-            'user_type'            => $request->type,
-            'status'               => 'pending',
-            'track_id'             => $referenceNo,
-            'amount'               => $plan->price,
-            'tax'                  => 0.00,
-            'total_amount'         => $plan->price,
-            'currency'             => 'SAR',
-            'payment_gateway'      => 'Al Rajhi',
-            'request_payload'      => null,
-            'transaction_id'       => null,
-            'payment_status'       => 'initiated',
-            'response_payload'     => null,
+        // Save only plan & user info in session (not inserting record here)
+        session([
+            'pending_plan_id' => $plan->id,
+            'pending_amount'  => $plan->price,
+            'pending_user_id' => $jobseeker->id,
         ]);
 
-        // Prepare transaction payload for Neoleap
+        // echo "<pre>"; print_r(session()->all()); die;
+        // Redirect to hosted payment page
+        return $this->redirectToGatewaySubscription($plan->price);
+    }
+
+    /**
+     * Redirect to Neoleap payment gateway
+     */
+    protected function redirectToGatewaySubscription($amount)
+    {
         $config = config('neoleap');
+        $orderId = uniqid('ORD-');
+
+
         $transactionDetails = [
             "id"           => $config['tranportal_id'],
-            "amt"          => number_format($plan->price, 2, '.', ''),
+            "amt"          => $amount,
             "action"       => "1",
-            "password"     => "T4#2H#ma5yHv\$G7", // moved to config
-            "currencyCode" => "682",
-            "trackId"      => $referenceNo,
-            "udf1"         => $request->user_id,
-            "udf2"         => $request->type,
-            "udf3"         => $booking->id,
-            "udf4"         => $plan->id,
-            "udf5"         => $request->type,
-            "udf6"         => $plan->duration_days,
-            "udf7"         => '0.00',
-            "udf8"         => number_format($plan->price, 2, '.', ''),
+            "password" => "T4#2H#ma5yHv\$G7",
+            "currencyCode" => "682", // SAR
+            "trackId"      => "Talentrek-" . time(),
+            "udf1"         => "Talentrek",
+            "udf2"         => "Sub-" . uniqid(),
+            "udf3"         => session('pending_user_id'),
+            "udf4"         => $orderId,
             "langid"       => "en",
             "responseURL"  => $config['subscription_success_url'],
-            "errorURL"     => $config['subscription_failure_url'],
+            "errorURL"     => $config['subscription_failure_url']
         ];
 
-        $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
-        $trandata     = strtoupper(PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']));
+        //  echo "<pre>"; print_r($transactionDetails); die;
 
-        $booking->update(['request_payload' => $jsonTrandata]);
+        $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
+        $trandata     = PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']);
+        $trandata     = strtoupper($trandata);
+
 
         $payload = [[
             "id"          => $config['tranportal_id'],
@@ -329,106 +295,123 @@ class PaymentController extends Controller
             "errorURL"    => $config['subscription_failure_url']
         ]];
 
+
         $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES);
 
-        // Send request to Neoleap
+        //  echo "<pre>"; print_r($payloads); die;
+
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL            => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
+            CURLOPT_ENCODING       => '',
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_TIMEOUT        => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST  => 'POST',
             CURLOPT_POSTFIELDS     => $payloads,
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         ]);
 
         $response = curl_exec($curl);
         curl_close($curl);
-
+        
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
+        // echo "<pre>"; print_r($data); die;
+        // echo "<pre>"; print_r(session()->all()); die;
 
         if ($result) {
             [$paymentId, $paymentUrl] = explode(":", $result, 2);
             return redirect()->away($paymentUrl . "?PaymentID=" . $paymentId);
         }
 
-        return redirect()->back()->with('error', 'Unable to initiate payment. Please try again.');
+        return back()->with('error', 'Unable to initiate payment, please try again.');
     }
 
     /**
-     * Success callback
+     * Payment success callback
      */
     public function successSubscription(Request $request)
     {
-        $data = $request->all();
+        $config = config('neoleap');
+        $responseTrandata = $request->input('trandata');
 
-        $trackId   = $data['trackId'] ?? null;
-        $paymentId = $data['transId'] ?? null;
-        $result    = $data['result'] ?? null;
-
-        if (!$trackId) {
-            return redirect()->back()->with('error', 'Invalid payment response. Track ID missing.');
+        if (!$responseTrandata) {
+            return redirect()->route('jobseeker.dashboard')
+                ->with('error', 'Invalid payment response.');
         }
 
-        $booking = PurchasedSubscriptionPaymentRequest::where('track_id', $trackId)->first();
+        $decrypted =  urldecode($trandata = PaymentHelper::decryptAES($responseTrandata, $config['secret_key']));
+        $data = json_decode($decrypted, true);
+        $data =$data[0];
+        // echo "<pre>"; print_r($data); die;
+        echo "<pre>"; print_r(session()->all()); die;
+         if ($data && $data['result'] === 'CAPTURED') {
+            $planId = session('pending_plan_id');
+            $amount = session('pending_amount');
+            $userId = session('pending_user_id');
+            echo "<pre>"; print_r($planId); 
+            echo "<pre>"; print_r($amount);
+            echo "<pre>"; print_r($userId); die;
+            if ($planId && $userId) {
+                echo "done"; die;
+                $plan = SubscriptionPlan::findOrFail($planId);
+                $jobseeker = Jobseekers::find($userId);
 
-        if (!$booking) {
-            return redirect()->back()->with('error', 'Subscription payment request not found.');
+                $subscription = PurchasedSubscription::create([
+                    'user_id'              => $jobseeker->id,
+                    'user_type'            => 'jobseeker',
+                    'subscription_plan_id' => $plan->id,
+                    'start_date'           => now(),
+                    'end_date'             => now()->addDays($plan->duration_days),
+                    'amount_paid'          => $amount,
+                    'payment_status'       => 'paid',
+
+                    // Gateway details
+                    'transaction_id'       => $data['tranid']   ?? null,
+                    'payment_id'           => $data['paymentid'] ?? null,
+                    'track_id'             => $data['trackid'] ?? null,
+                    'order_id'             => $data['udf4']    ?? null,
+                    'currency'             => $data['currency'] ?? null,
+                    'result'               => $data['result'] ?? null,
+                    'raw_response'         => json_encode($data, JSON_UNESCAPED_SLASHES),
+                ]);
+
+                // Update jobseeker subscription
+                $jobseeker->isSubscriptionBuy = 'yes';
+                $jobseeker->active_subscription_plan_id = $subscription->id;
+                $jobseeker->save();
+
+                // 🔑 Re-login the jobseeker so they don't get logged out after redirect
+                Auth::guard('jobseeker')->login($jobseeker);
+            }
+
+             echo "not-done"; die;
+
+            // Clear session
+            session()->forget(['pending_plan_id', 'pending_amount', 'pending_user_id']);
+
+            return redirect()->route('jobseeker.dashboard')
+                ->with('success', 'Subscription purchased successfully!');
         }
 
-        $booking->update([
-            'transaction_id'   => $paymentId,
-            'status'           => $result === 'CAPTURED' ? 'confirmed' : 'awaiting_payment',
-            'payment_status'   => $result === 'CAPTURED' ? 'success' : 'failed',
-            'response_payload' => json_encode($data),
-        ]);
-
-        if ($result === 'CAPTURED') {
-            $plan = SubscriptionPlan::find($booking->subscription_plan_id);
-
-            PurchasedSubscription::create([
-                'subscription_plan_id' => $booking->subscription_plan_id,
-                'user_id'              => $booking->user_id,
-                'user_type'            => $booking->user_type,
-                'start_date'           => now(),
-                'end_date'             => now()->addDays($plan->duration_days),
-            ]);
-
-            return redirect()->back()->with('success', 'Subscription purchased successfully!');
-        }
-
-        return redirect()->back()->with('error', 'Payment not captured. Please try again.');
+        return redirect()->route('jobseeker.dashboard')
+            ->with('error', 'Payment failed or cancelled.');
     }
 
+
+
     /**
-     * Failure callback
+     * Payment failure callback
      */
     public function failureSubscription(Request $request)
     {
-        $data      = $request->all();
-        $trackId   = $data['trackId'] ?? null;
-        $paymentId = $data['transId'] ?? null;
-        $result    = $data['result'] ?? null;
+        session()->forget(['pending_plan_id', 'pending_amount', 'pending_user_id']);
 
-        if ($trackId) {
-            $booking = PurchasedSubscriptionPaymentRequest::where('track_id', $trackId)->first();
-
-            if ($booking) {
-                $status = in_array($result, ['NOT CAPTURED', 'DECLINED', 'FAILED', 'CANCELED'])
-                    ? 'failed'
-                    : 'awaiting_payment';
-
-                $booking->update([
-                    'transaction_id'   => $paymentId,
-                    'status'           => $status,
-                    'payment_status'   => $status,
-                    'response_payload' => json_encode($data),
-                ]);
-            }
-        }
-
-        return redirect()->back()->with('error', 'Payment failed or cancelled. Please try again.');
+        return redirect()->route('jobseeker.dashboard')
+            ->with('error', 'Payment failed. Please try again.');
     }
-
 
 }
