@@ -681,13 +681,11 @@
                         @if($assessmentStatus)
                             @if($assessmentStatus->submitted == 1)
                                 {{-- Certificate Download --}}
-                                <a href="#">
+                                <a href="{{ route('download.certificate', $material->id) }}">
                                     <button class="flex items-center justify-center gap-2 bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3 hover:bg-green-700 transition">
-                                        <!-- Download Icon -->
                                         <i class="fas fa-download"></i>
                                         <span>Download Training Certificate</span>
                                     </button>
-
                                 </a>
                             @else
                                 {{-- Re-Assessment --}}
