@@ -15,15 +15,26 @@ return new class extends Migration
     {
         Schema::create('team_course_members', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('purchase_id');
+            
+            $table->unsignedBigInteger('main_jobseeker_id'); // main jobseeker
+            $table->unsignedBigInteger('jobseeker_id'); // main jobseeker
+            $table->unsignedBigInteger('trainer_id')->nullable(); // trainer
+            $table->unsignedBigInteger('training_material_purchases_id'); // purchase relation
+            $table->unsignedBigInteger('material_id')->nullable(); // training material
+            $table->string('training_type')->nullable(); // e.g., online/offline
+            $table->string('session_type')->nullable(); // e.g., group/individual
+            $table->unsignedBigInteger('batch_id')->nullable();
+            $table->string('transaction_id')->nullable();
+            $table->string('payment_status')->nullable();
+            $table->string('track_id')->nullable();
             $table->string('email');
             $table->timestamps();
 
             // Foreign key relation with purchases table
-            $table->foreign('purchase_id')
-                  ->references('id')
-                  ->on('jobseeker_training_material_purchases')
-                  ->onDelete('cascade');
+            $table->foreign('training_material_purchases_id', 'team_course_members_purchase_fk')
+                            ->references('id')
+                            ->on('jobseeker_training_material_purchases')
+                            ->onDelete('cascade');
         });
     }
 

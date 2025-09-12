@@ -93,15 +93,14 @@
                                         <p class="text-sm text-gray-800 font-semibold" x-text="`${progress}%`"></p>
                                     </div>
 
-                                    <!-- Timer -->
                                    <!-- Timer -->
-                        <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
-                            <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Total Quiz Time: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
-                            </p>
-                        </div>
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
+                                        <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Total Quiz Time: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
+                                        </p>
+                                    </div>
 
 
                                     <!-- Navigation Buttons -->

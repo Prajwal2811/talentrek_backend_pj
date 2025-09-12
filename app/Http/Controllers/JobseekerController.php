@@ -2044,7 +2044,7 @@ class JobseekerController extends Controller
    public function courseDetails($id)
     {
         $jobseeker = auth()->guard('jobseeker')->user();
-        $jobseekerId = $jobseeker->id;
+        $jobseekerId = auth()->guard('jobseeker')->id();
 
         $material = DB::table('training_materials')->where('id', $id)->first();
         if (!$material) {
