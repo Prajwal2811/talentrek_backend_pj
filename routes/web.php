@@ -7,6 +7,7 @@ use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LangController;
+use App\Http\Controllers\SubscriptionController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -255,16 +256,6 @@ Route::post('/success', [PaymentController::class, 'success']);
 Route::post('/failure', [PaymentController::class, 'failure']);
 
 
-
-// Route::post('/subscription/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
-// Route::post('/subscription/payment/success', [PaymentController::class, 'successSubscription'])->name('subscription.payment.success');
-// Route::post('/subscription/payment/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.payment.failure');
-
-
-
-Route::post('/subscriptions/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
-Route::any('/subscriptions/success', [PaymentController::class, 'successSubscription'])->name('subscription.success');
-Route::any('/subscriptions/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.failure');
 
 
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);

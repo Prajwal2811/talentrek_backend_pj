@@ -12,12 +12,14 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-       'success',   // your responseURL path
+        'success',   // your responseURL path
         'successBookingSlot',   // your errorURL path
         'successBookingSession',
         'processSubscriptionPayment',
         'successSubscription',
         'failureSubscription',
-        'subscription/payment/success'
+        'subscription/payment/success',
+        'subscription/payment/failure',
+
     ];
 }
