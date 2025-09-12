@@ -485,8 +485,8 @@ class TrainerProfileController extends Controller
                 TrainingExperience::create([
                     'user_id'   => $TrainersId,
                     'user_type'   => 'trainer',
-                    'skills'         => $request->skills,
-                    'interest'       => $request->interest,
+                    'training_skills'         => $request->skills,
+                    'area_of_interest'       => $request->interest,
                     'job_category'   => $request->job_category,
                     'website_link'   => $request->website_link,
                     'portfolio_link' => $request->portfolio_link
@@ -496,8 +496,8 @@ class TrainerProfileController extends Controller
                 $TrainingMaterialsDocument->update([
                     'user_id'   => $TrainersId,
                     'user_type'   => 'trainer',
-                    'skills'         => $request->skills,
-                    'interest'       => $request->interest,
+                    'training_skills'         => $request->skills,
+                    'area_of_interest'       => $request->interest,
                     'job_category'   => $request->job_category,
                     'website_link'   => $request->website_link,
                     'portfolio_link' => $request->portfolio_link

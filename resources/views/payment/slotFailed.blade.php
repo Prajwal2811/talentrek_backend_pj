@@ -107,11 +107,18 @@
         </div>
         
         <!-- Call to action button -->
-        <button
+         <a 
+            href="/backToDashboard"
+            class="w-full block text-center bg-brand-orange text-white font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 ease-in-out hover:bg-orange-500 focus:outline-none focus:ring-4 focus:ring-orange-300/50 transform hover:-translate-y-1 shadow-lg hover:shadow-orange-500/40"
+          >
+            Return to Dashboard
+          </a>
+
+        <!-- <button
           class="w-full bg-brand-orange text-white font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 ease-in-out hover:bg-orange-500 focus:outline-none focus:ring-4 focus:ring-orange-300/50 transform hover:-translate-y-1 shadow-lg hover:shadow-orange-500/40"
         >
           Return to Dashboard
-        </button>
+        </button> -->
       </div>
     </main>
 

@@ -10,6 +10,8 @@ return [
     'callback_url'  => env('APP_URL').env('NEOLEAP_SUCCESS_URL '),
     'return_url'    => env('APP_URL').env('NEOLEAP_SUCCESS_URL'),
     'success_booking_session_url'    => env('APP_URL').env('NEOLEAP_BOOKING_SESSION_SUCCESS_URL'),
+    'success_subscription_mobile_url'    => env('APP_URL').env('NEOLEAP_SUBSCRIPTION_MOBILE_SUCCESS_URL'),
+    'success_material_purchase_url'    => env('APP_URL').env('NEOLEAP_MATERIAL_PURCHASE_SUCCESS_URL'),
 
     // Subscription-specific
     'subscription_success_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_SUCCESS_URL'),

@@ -35,7 +35,7 @@ class MyLearningController extends Controller
 
     public function myLearningTrainingListing($jobseekerId)
     {
-        try {   
+        //try {   
             // Fetch training materials with relationships and average ratings
             $today = Carbon::today();
 
@@ -51,7 +51,7 @@ class MyLearningController extends Controller
                     }
                 ])                
                 ->get()
-                ->map(function ($purchase) use ($today) {
+                ->map(function ($purchase) use ($today,$jobseekerId) {
                     $batch = $purchase->batch;
 
                     // Assign batch_status
@@ -61,14 +61,17 @@ class MyLearningController extends Controller
 
                         $endDateTime = Carbon::parse($batch->end_date . ' ' . $batch->end_timing);
                         if ($today->lt($start)) {
+                            //echo "if";
                             $purchase->batch_status = 'upcoming';
                         } elseif (Carbon::now()->gte($endDateTime)) {
-                            $hasSubmitted = AssessmentJobseekerDataStatus::where('material_id', $purchase->material->material_id)
-                            ->where('jobseeker_id', $purchase->material->jobseeker_id)
+                            //echo "iffff";
+                            $hasSubmitted = AssessmentJobseekerDataStatus::where('material_id', $purchase->material_id)
+                            ->where('jobseeker_id', $jobseekerId)
                             ->where('submitted', 1)
                             ->exists();
                             $purchase->batch_status = $hasSubmitted ? 'completed' : 'ongoing';
                         } elseif ($today->between($start, $end, false)) {
+                            //echo "elseif";
                             $purchase->batch_status = 'ongoing';
                         }
                     }
@@ -111,10 +114,10 @@ class MyLearningController extends Controller
                 ]
             ]);
 
-        } catch (\Exception $e) {
-            // Log error if needed: Log::error($e);
-            return $this->errorResponse('An error occurred while fetching training courses.', 500,[]);
-        }
+        // } catch (\Exception $e) {
+        //     // Log error if needed: Log::error($e);
+        //     return $this->errorResponse('An error occurred while fetching training courses.', 500,[]);
+        // }
     }
 
     public function myLearningMentorListing($jobseekerId)

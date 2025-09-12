@@ -9,6 +9,9 @@ use App\Models\Api\TrainingMaterial;
 use App\Models\Api\TrainingPrograms;
 use App\Models\Api\Trainers;
 use App\Models\Api\JobseekerTrainingMaterialPurchase;
+use App\Models\Payment\JobseekerTrainingMaterialPurchasePaymentRequest;
+use App\Services\PaymentHelper;
+
 use App\Models\Api\JobseekerCartItem;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -515,4 +518,227 @@ class CartManagementController extends Controller
        
         return 1 ;
     }
+    public function checkoutTrainingMaterials(Request $request)
+    {
+        $data = $request->all();
+        $rules = [
+           'jobseekerId'    => 'required|integer',
+            'buy_type'  => 'required|in:buyNow,buyForCorporates,cart'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        
+        // ✅ Apply validation only if buyTtpe != cart
+        $validator->sometimes('material_id', 'required', function ($input) {
+            return in_array($input->training_type, ['buyNow', 'buyForCorporates']);
+        });
+
+         $validator->sometimes('trainer_id', 'required', function ($input) {
+            return in_array($input->training_type, ['buyNow', 'buyForCorporates']);
+        });
+
+        $validator->sometimes('training_type', 'required', function ($input) {
+            return in_array($input->training_type, ['buyNow', 'buyForCorporates']);
+        });
+
+        // ✅ Apply batch validation only if training_type = online
+        $validator->sometimes('batch', 'required|exists:training_batches,id', function ($input) {
+            return in_array($input->training_type, ['online', 'classroom']);
+        });
+        $validator->sometimes('session_type', 'required', function ($input) {
+            return in_array($input->training_type, ['online', 'classroom']);
+        });
+        $validator->sometimes('corporatesEmailId', 'required', function ($input) {
+            return in_array($input->buy_type, ['buyForCorporates']);
+        });
+
+        if ($validator->fails()) {
+            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 200);
+        }
+
+        //try {
+            
+            //$id = $request->training_material_id;
+            $jobseekerId = $request->jobseekerId;            
+            $buyType     = $request->buy_type;
+            if($buyType == 'buyNow'){
+                $exists = JobseekerTrainingMaterialPurchase::where('material_id', $request->material_id)
+                    ->where('jobseeker_id', $request->jobseekerId)
+                    ->where('trainer_id', $request->trainer_id)                
+                    ->exists();
+    
+                if ($exists) {
+                    return response()->json(['status' => false, 'message' => 'This material already purchased.'], 200);
+                }
+            }           
+
+
+            $material = null;
+            if ($buyType !== 'cart') {
+                $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
+            }
+           
+            // Calculate prices
+            if ($buyType === 'cart') {
+                $cartItems = JobseekerCartItem::with('material')
+                    ->where('jobseeker_id', $jobseekerId)
+                    ->where('status', 'pending')
+                    ->get();
+
+                $actualPrice = $cartItems->sum(fn($item) => $item->material->training_price ?? 0);
+                $offerPrice  = $cartItems->sum(fn($item) => $item->material->training_offer_price ?? 0);
+            } else {
+                $actualPrice = $material->training_price;
+                $offerPrice  = $material->training_offer_price;
+            }
+
+            $savedAmount = $actualPrice - $offerPrice;
+            $tax         = round($offerPrice * 0.10, 2);
+            $total       = $offerPrice + $tax;
+
+            $payload = '' ;
+            $booking = JobseekerTrainingMaterialPurchasePaymentRequest::create([
+                'jobseeker_id'     => $jobseekerId,
+                'trainer_id'       => $request->trainer_id ?? 0,
+                'material_id'      => $request->material_id ?? 0,
+                'request_payload'  => !empty($payload) ? json_encode($payload) : null,
+                'track_id'         => 'Trk-'.time(), // custom helper
+                'training_type'    => $request->training_type ?? 'recorded', // e.g. online/offline/self-paced
+                'batch_id'         => $request->batch ?? 0, //new
+                'type'             => $request->buy_type, // buyNow | buyForCorporate | cart
+                'transaction_id'   => null,
+                'payment_status'   => 'initiated',
+                'tax'              => $tax ?? 0.00,
+                'amount'           => $offerPrice ?? 0.00,
+                'amount_paid'      => $total ?? 0.00,
+                'currency'         => 'SAR',
+                'payment_gateway'  => 'Al Rajhi',
+                'created_at'       => Carbon::now(),
+                'updated_at'       => Carbon::now(),
+            ]);
+            $trackId =  self::generateTrackId($jobseekerId, $request->trainer_id, $request->material_id, $request->batch , $request->buy_type) ;
+            $referenceNo =  "TRK-" .  $trackId ;
+            if($buyType == 'buyForCorporates'){
+                $CorporatesEmailIds = CorporatesEmailIds::create([
+                    'corporatesEmailIds' => $request->corporatesEmailId,
+                    'paymentRequestId'  =>  $booking->id,
+                    'track_id'  =>  $referenceNo,
+                ]);
+            }
+            $booking->update(['track_id' => $referenceNo]);
+
+            $config = config('neoleap');
+            $transactionDetails = [
+                "id"          => $config['tranportal_id'], // Your Merchant ID from Al Rajhi
+                "amt"         => number_format($total, 2, '.', ''),          // Transaction amount
+                "action"      => "1",               // 1 = Purchase, 4 = Authorization
+                "password"    => "T4#2H#ma5yHv\$G7",
+                "currencyCode"=> "682",             // ISO numeric code (682 = SAR)
+                "trackId"     => "TRK-" .  $trackId ,          // Unique tracking ID
+                "udf1"        => $jobseekerId,     // Jobseeker Id
+                "udf2"        => $request->buy_type,        // Material Purchase type buyNw,butForCorporates,Cart
+                "udf3"        => $request->batch ?? 0,          // Batch ID
+                "udf4"        => $request->training_type ?? 'recorded',         // TrainingType online ,classroom ,recoded 
+                "udf5"        => $request->trainingMode,    // Online/Classroom
+                "udf6"        => $request->material_id,              // Material Id
+                "udf7"        => $tax ?? 0.00,              // Mentor Session Tax
+                "udf8"        => $offerPrice,              // Mentor session Slot Price
+                "udf9"        => $CorporatesEmailIds->id ?? '',              // Mentor session Slot Price
+                "udf10"       => $request->trainer_id,              // Mentor session Slot Price
+                "langid"      => "en",                      // change to ar when goes live for arabic default
+                "responseURL" => $config['success_material_purchase_url'],
+                "errorURL"    => $config['success_material_purchase_url']
+            ];
+            $payload = [$transactionDetails];
+
+            $jsonTrandata = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        
+            $trandata = PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']);
+            $trandatas = strtoupper($trandata) ;
+            $booking->update(['request_payload' => $jsonTrandata]);
+            $payload = [[
+                "id"          => $config['tranportal_id'],
+                "trandata"    => $trandatas, // ✅ variable here
+                "responseURL" => $config['success_material_purchase_url'],
+                "errorURL"    => $config['success_material_purchase_url']
+            ]];
+            $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES) ;
+
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $payloads,
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+            //echo $response;exit;
+            // Decode JSON
+            $data = json_decode($response, true);
+
+            // Get the "result" value
+            $result = $data[0]['result'];
+            if (!$result || !str_contains($result, ':')) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Payment gateway error.',
+                ], 500);
+            }
+            // Split by colon
+            list($paymentId, $paymentUrl) = explode(":", $result, 2);
+
+            
+            // Final redirect URL
+            $redirectUrl = $paymentUrl . "?PaymentID=" . $paymentId;
+           
+            // Return success with data
+            return response()->json([
+                'success' => true,
+                'redirectUrl' => $redirectUrl,
+                'message' => ucwords($request->buy_type).'  material purchase checkout successfully.'
+            ]);
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Something went wrong.',
+        //         'error' => $e->getMessage()
+        //     ], 500);
+        // }
+    }
+
+    function generateTrackId($jobseekerId, $trainerId = 0 , $materialId = 0 , $batchId = 0 , $type = 'buyNow')
+    {
+        // Short code for type
+        $typeCode = match($type) {
+            'buyNow'         => 'BN',
+            'buyForCorporates'=> 'BC',
+            'cart'           => 'CT',
+            default          => 'OT', // Other
+        };
+
+        // Generate unique timestamp (to avoid duplicates)
+        $timestamp = Carbon::now()->format('YmdHisv'); // v = milliseconds
+
+        return sprintf(
+            "%s-%s-%s-%s-%s-%s",
+            $jobseekerId,
+            $typeCode,
+            $trainerId ?? 0,
+            $materialId ?? 0,
+            $batchId ?? 0,
+            $timestamp
+        );
+    }
+    
 }

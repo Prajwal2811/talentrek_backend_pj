@@ -94,8 +94,7 @@ class TrainingController extends Controller
                 $training->training_price = $request->training_price;
                 $training->training_offer_price = $request->training_offer_price;
                 $training->thumbnail_file_path = $thumbnailFilePath;
-                $training->thumbnail_file_name = $thumbnailFileName;
-                $training->training_objective = null;
+                $training->thumbnail_file_name = $thumbnailFileName;                
                 $training->session_type = null;
                 $training->admin_status = 'pending';
                 $training->rejection_reason = null;

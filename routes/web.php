@@ -255,10 +255,18 @@ Route::post('/failure', [PaymentController::class, 'failure']);
 
 
 
+Route::post('/subscriptions/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
+Route::post('/subscriptions/success', [PaymentController::class, 'successSubscription'])->name('subscription.success');
+Route::post('/subscriptions/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.failure');
+
+
 Route::post('/subscription/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
 Route::post('/subscription/payment/success', [PaymentController::class, 'successSubscription'])->name('subscription.payment.success');
 Route::post('/subscription/payment/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.payment.failure');
+
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);
+Route::post('/successSubscriptionMobile', [PaymentController::class, 'successSubscriptionMobile']);
+Route::post('/successMaterialPurchaseMobile', [PaymentController::class, 'successMaterialPurchaseMobile']);
 
 
 // routes/web.php

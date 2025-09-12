@@ -247,6 +247,7 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::get('/viewCartItem/{jobseekerId}', [CartManagementController::class, 'viewCartItemByJobseeker']);
     Route::post('/butNowSlot', [CartManagementController::class, 'butNowSlotForMCA']);
     Route::post('/butNowTrainingMaterial', [CartManagementController::class, 'butNowTrainingMaterials']);
+    Route::post('/checkoutTrainingMaterials', [CartManagementController::class, 'checkoutTrainingMaterials']);
 
     Route::get('/showTrainingMaterialsBatches/{materialId}/{jobseekerId}', [CartManagementController::class, 'showTrainingMaterialsBatches']);
 

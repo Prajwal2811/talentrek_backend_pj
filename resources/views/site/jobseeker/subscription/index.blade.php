@@ -45,6 +45,8 @@
                             <form action="{{ route('subscription.payment') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                <input type="hidden" name="user_id" value="{{ auth()->user('jobseeker')->id }}">
+                                <input type="hidden" name="type" value="jobseeker">
                                 <button type="submit"
                                     class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium">
                                     Buy subscription
