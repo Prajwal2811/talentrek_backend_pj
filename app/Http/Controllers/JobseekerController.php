@@ -46,6 +46,12 @@ use App\Services\PaymentHelper;
 
 use App\Events\NotificationSent;
 
+
+use App\Models\CertificateTemplate;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
+
+
 class JobseekerController extends Controller
 {
     public function showRegistrationForm()
@@ -2041,7 +2047,7 @@ class JobseekerController extends Controller
 
 
 
-   public function courseDetails($id)
+    public function courseDetails($id)
     {
         $jobseeker = auth()->guard('jobseeker')->user();
         $jobseekerId = auth()->guard('jobseeker')->id();
@@ -3326,6 +3332,152 @@ public function submitReview(Request $request)
             'message'  => 'Coupon applied successfully'
         ]);
     }
+
+
+
+
+
+
+
+
+
+
+// public function downloadCertificate($material_id)
+// {
+//     // Load DOMPDF library
+//     require_once base_path('libs/dompdf/autoload.inc.php');
+
+//     $user = auth('jobseeker')->user();
+
+//     // Fetch the certificate template
+//     $template = CertificateTemplate::first();
+//     if (!$template) {
+//         return back()->with('error', 'Certificate template not found.');
+//     }
+
+//     // Fetch course/training details
+//     $course = DB::table('training_materials as t')
+//         ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
+//         ->select(
+//             't.*',
+//             'tr.name as trainer_name'
+//         )
+//         ->where('t.id', $material_id)
+//         ->first();
+
+//     if (!$course) {
+//         return back()->with('error', 'Course not found.');
+//     }
+
+//     // Fetch user's completion info from assessment table
+//     $userAssessment = DB::table('jobseeker_assessment_status')
+//         ->where('jobseeker_id', $user->id)
+//         ->where('material_id', $material_id)
+//         ->first();
+
+//     $completionDate = $userAssessment->created_at ?? now(); // Use created_at as completion date
+//     $assessmentStatus = $userAssessment ? 'Completed' : 'Not Completed';
+//     $certificateId = 'T' . str_pad($material_id, 5, '0', STR_PAD_LEFT);
+
+//     // Map placeholders
+//     $placeholders = [
+//         '{{ $user_name }}' => $user->name,
+//         '{{ $certificate_title }}' => 'CERTIFICATE OF COMPLETION',
+//         '{{ $course_title }}' => $course->training_title,
+//         '{{ $trainer_name }}' => $course->trainer_name ?? 'Trainer',
+//         '{{ $course_duration }}' => $course->total_duration ?? 'N/A',
+//         '{{ $completion_date }}' => \Carbon\Carbon::parse($completionDate)->format('d M, Y'),
+//         '{{ $certificate_id }}' => $certificateId,
+//         '{{ $conducted_by }}' => 'Talentrek',
+//     ];
+
+//     // Replace placeholders in template HTML
+//     $html = str_replace(array_keys($placeholders), array_values($placeholders), $template->template_html);
+
+//     // Generate PDF
+//     $dompdf = new Dompdf();
+//     $dompdf->loadHtml($html);
+//     $dompdf->setPaper('A4', 'landscape');
+//     $dompdf->render();
+
+//     // Return PDF as download
+//     return response($dompdf->output(), 200)
+//         ->header('Content-Type', 'application/pdf')
+//         ->header('Content-Disposition', "attachment; filename=Certificate-{$user->name}.pdf");
+// }
+
+
+
+public function downloadCertificate($material_id)
+{
+    // Load DOMPDF manually
+    require_once base_path('libs/dompdf/autoload.inc.php');
+
+    $user = auth('jobseeker')->user();
+
+    // Fetch the certificate template
+    $template = CertificateTemplate::first();
+    if (!$template) {
+        return back()->with('error', 'Certificate template not found.');
+    }
+
+    // Fetch course/training details
+    $course = DB::table('training_materials as t')
+        ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
+        ->select('t.*', 'tr.name as trainer_name')
+        ->where('t.id', $material_id)
+        ->first();
+
+    if (!$course) {
+        return back()->with('error', 'Course not found.');
+    }
+
+    // Fetch user's completion info from assessment table
+    $userAssessment = DB::table('jobseeker_assessment_status')
+        ->where('jobseeker_id', $user->id)
+        ->where('material_id', $material_id)
+        ->first();
+
+    $completionDate = $userAssessment->created_at ?? now();
+    $assessmentStatus = $userAssessment ? 'Completed' : 'Not Completed';
+    $certificateId = 'T' . str_pad($material_id, 5, '0', STR_PAD_LEFT);
+
+    // Convert background image to Base64
+    $bgPath = base_path('asset/images/Talentrek-Certificate-blank.png');
+    $type = pathinfo($bgPath, PATHINFO_EXTENSION);
+    $data = file_get_contents($bgPath);
+    $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+
+    // Map placeholders including background image
+    $placeholders = [
+        '{{ $user_name }}' => $user->name,
+        '{{ $certificate_title }}' => 'CERTIFICATE OF COMPLETION',
+        '{{ $course_title }}' => $course->training_title,
+        '{{ $trainer_name }}' => $course->trainer_name ?? 'Trainer',
+        '{{ $course_duration }}' => $course->total_duration ?? 'N/A',
+        '{{ $completion_date }}' => \Carbon\Carbon::parse($completionDate)->format('d M, Y'),
+        '{{ $certificate_id }}' => $certificateId,
+        '{{ $conducted_by }}' => 'Talentrek',
+        '{{ $bg_image }}' => $base64, // <- Background image placeholder
+    ];
+
+    // Replace placeholders in template HTML
+    $html = str_replace(array_keys($placeholders), array_values($placeholders), $template->template_html);
+
+    // Generate PDF
+    $dompdf = new Dompdf();
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'landscape');
+    $dompdf->render();
+
+    // Return PDF as download
+    return response($dompdf->output(), 200)
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', "attachment; filename=Certificate-{$user->name}.pdf");
+}
+
+
+
 
 
 

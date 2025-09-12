@@ -93,6 +93,11 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/chat/send', [JobseekerController::class, 'sendMessage'])->name('jobseeker.chat.send');
     	Route::get('/chat/messages', [JobseekerController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 
+
+		Route::get('/download-certificate/{material_id}', [JobseekerController::class, 'downloadCertificate'])
+    	->name('download.certificate');
+
+
 		
 	});
 
