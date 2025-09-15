@@ -46,15 +46,15 @@
             @include('admin.errors')
             <!-- Main -->
             <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
-                <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
+                <h2 class="text-2xl font-semibold mb-6">{{ langLabel('dashboard') }}</h2>
                 <!-- Stat Cards -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
-                        <p class="text-gray-500">Total upcoming sessions</p>
+                        <p class="text-gray-500">{{ langLabel('total_upcoming_sessions') }}</p>
                         <h3 class="text-3xl font-bold mt-2">{{$upcomingCount ?? 0}}</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
-                        <p class="text-gray-500">Today’s sessions</p>
+                        <p class="text-gray-500">{{ langLabel('todays_sessions') }}</p>
                         <h3 class="text-3xl font-bold mt-2">{{$todayCount ?? 0}}</h3>
                     </div>
                 </div>
@@ -63,11 +63,11 @@
                 <div x-data="sessionManager()" class="bg-white p-6 rounded-lg shadow relative">
                     <!-- Tabs -->
                     <div class="flex space-x-6 border-b mb-4 text-sm font-medium text-gray-600">
-                        <button @click="switchTab('upcoming')" :class="tabClass('upcoming')">Upcoming sessions</button>
-                        <button @click="switchTab('cancelled')" :class="tabClass('cancelled')">Cancelled
-                            sessions</button>
-                        <button @click="switchTab('completed')" :class="tabClass('completed')">Completed
-                            sessions</button>
+                        <button @click="switchTab('upcoming')" :class="tabClass('upcoming')">{{ langLabel('upcoming_sessions') }}</button>
+                        <button @click="switchTab('cancelled')" :class="tabClass('cancelled')">{{ langLabel('cancelled') }}
+                            {{ langLabel('sessions') }}</button>
+                        <button @click="switchTab('completed')" :class="tabClass('completed')">{{ langLabel('completed') }}
+                            {{ langLabel('sessions') }}</button>
                     </div>
                     <!-- Session List -->
                     <template x-for="(session, index) in paginatedSessions()" :key="index">
@@ -82,15 +82,15 @@
 
                             <div class="flex flex-1 justify-evenly  ml-10 text-sm text-gray-700">
                                 <div>
-                                    <p class="font-semibold">Session Date</p>
+                                    <p class="font-semibold">{{ langLabel('session') }} {{ langLabel('date') }}</p>
                                     <p x-text="session.date"></p>
                                 </div>
                                 <div>
-                                    <p class="font-semibold">Session Time</p>
+                                    <p class="font-semibold">{{ langLabel('session') }} {{ langLabel('time') }}</p>
                                     <p x-text="session.time"></p>
                                 </div>
                                 <div>
-                                    <p class="font-semibold">Mode</p>
+                                    <p class="font-semibold">{{ langLabel('mode') }}</p>
                                     <p x-text="session.mode"></p>
                                 </div>
                             </div>
@@ -100,24 +100,24 @@
                                     <div class="flex space-x-2">
                                         <button
                                             class="border border-red-500 text-red-500 px-4 py-1.5 rounded hover:bg-red-50 text-sm"
-                                            @click="openCancelModal(session)">Cancel</button>
+                                            @click="openCancelModal(session)">{{ langLabel('cancel') }}</button>
                                         <button
                                             class="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 text-sm"
-                                            @click="joinSession(session)">Join</button>
+                                            @click="joinSession(session)">{{ langLabel('join') }}</button>
                                     </div>
                                 </template>
 
                                 <template x-if="currentTab === 'completed'">
                                     <button
                                         class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm"
-                                        @click="openFeedbackModal(session)">View Feedback</button>
+                                        @click="openFeedbackModal(session)">{{ langLabel('view_feedback') }}</button>
                                 </template>
 
                                 <template x-if="currentTab === 'cancelled'">
                                     <button
                                         class="text-sm text-blue-600 underline hover:text-blue-800"
                                         @click="openCancelReasonModal(session)">
-                                        View Cancel Reason
+                                        {{ langLabel('view_cancel_reason') }}
                                     </button>
                                 </template>
                                 <!-- Cancel Reason Modal -->
@@ -126,12 +126,12 @@
                                     <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
                                         <button @click="closeCancelReasonModal"
                                                 class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-                                        <h3 class="text-center text-lg font-semibold text-gray-800 mb-4">Cancellation Reason</h3>
+                                        <h3 class="text-center text-lg font-semibold text-gray-800 mb-4">{{ langLabel('cancellation_reason') }}</h3>
                                         <div class="text-center text-gray-700 text-sm">
                                             <img :src="selectedCancelReason?.img" class="w-14 h-14 rounded-full object-cover mx-auto mb-2" />
                                             <h4 class="font-semibold" x-text="selectedCancelReason?.name"></h4>
                                             <div class="mt-4 border-t pt-3">
-                                                <p class="text-gray-500">Reason:</p>
+                                                <p class="text-gray-500">{{ langLabel('reason') }}:</p>
                                                 <p class="text-gray-800 font-medium mt-1" x-text="selectedCancelReason?.cancellation_reason || 'No reason provided'"></p>
                                             </div>
                                         </div>
@@ -171,7 +171,7 @@
                         <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
                             <button @click="closeFeedbackModal"
                                 class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-                            <h3 class="text-center text-lg font-semibold text-gray-800 mb-6">Jobseekers feedback</h3>
+                            <h3 class="text-center text-lg font-semibold text-gray-800 mb-6">{{ langLabel('jobseekers_feedback') }}</h3>
                             <div class="flex items-center justify-center flex-col mb-4 text-center">
                                 <img :src="selectedFeedback?.img" class="w-16 h-16 rounded-full object-cover mb-2"
                                     alt="Profile" />
@@ -182,7 +182,7 @@
                                 x-text="selectedFeedback?.feedback"></p>
                             <div class="flex justify-center mt-6">
                                 <button
-                                    class="px-6 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 text-sm">Reply</button>
+                                    class="px-6 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 text-sm">{{ langLabel('reply') }}</button>
                             </div>
                         </div>
                     </div>
@@ -216,7 +216,7 @@
                                 <!-- Header -->
                                 <div class="flex justify-between items-start mb-4">
                                     <h3 class="text-md font-semibold text-gray-800">
-                                        Cancel this session -
+                                        {{ langLabel('cancel_this_session') }} -
                                         <span class="font-normal text-gray-600"
                                             x-text="cancelledSession?.name + ' / Date: ' + cancelledSession?.date + ' / Time: ' + cancelledSession?.time"></span>
                                     </h3>
@@ -226,24 +226,24 @@
 
                                 <!-- Reason -->
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason for cancellation</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('reason_for_cancellation') }}</label>
                                     <textarea x-model="cancelReason"
                                         class="w-full border border-gray-300 rounded-md p-2 text-sm resize-none" rows="3"
-                                        placeholder="Write here..."></textarea>
+                                        placeholder="{{ langLabel('write_here') }}..."></textarea>
                                 </div>
 
                                 <!-- Reschedule Options -->
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Postpone session</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('postpone_session') }}</label>
                                         <select x-model="postponeSession"
                                             class="w-full border border-gray-300 rounded-md p-2 text-sm">
-                                            <option>No</option>
-                                            <option>Yes</option>
+                                            <option>{{ langLabel('no') }}</option>
+                                            <option>{{ langLabel('yes') }}</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Select session date</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('select_session_date') }}</label>
                                         <input type="date" x-model="newDate"
                                             :disabled="postponeSession !== 'Yes'"
                                             class="w-full border border-gray-300 rounded-md p-2 text-sm" />
@@ -257,13 +257,13 @@
                                     @endphp
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Select session time</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('select_session_time') }}</label>
                                         <select x-model="newTime"
                                             :disabled="postponeSession !== 'Yes'"
                                             class="w-full border border-gray-300 rounded-md p-2 text-sm">
-                                            <option value="">Select time</option>
+                                            <option value="">{{ langLabel('select_time') }}</option>
                                             @if($slots->isEmpty())
-                                                <option disabled>No slots available</option>
+                                                <option disabled>{{ langLabel('no_slots_available') }}</option>
                                             @else
                                                 @foreach ($slots as $slot)
                                                     <option value="{{ $slot->start_time.'-'.$slot->end_time }}">
@@ -290,7 +290,7 @@
                                             }
                                         "
                                         class="px-6 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Cancel Session
+                                        {{ langLabel('cancel_session') }}
                                     </button>
 
                                     <!-- Reschedule -->
@@ -303,7 +303,7 @@
                                             }
                                         "
                                         class="px-6 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Reschedule
+                                        {{ langLabel('reschedule') }}
                                     </button>
                                 </div>
                             </div>

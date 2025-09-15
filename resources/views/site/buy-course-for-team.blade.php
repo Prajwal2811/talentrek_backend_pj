@@ -24,7 +24,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Training</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('training') }}</h2>
                     </div>
                 </div>
             </div>
@@ -141,10 +141,10 @@
 
                             @if($material->training_type === "online" || $material->training_type === "classroom")
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
                                     <input type="hidden" name="session_type" value="{{ $material->training_type }}">
                                     <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" disabled>
-                                        <option value="" disabled>Select Training Mode</option>
+                                        <option value="" disabled>{{ langLabel('select_training_mode') }}</option>
                                         <option value="online" @if($material->training_type === 'online') selected @endif>Online</option>
                                         <option value="classroom" @if($material->training_type === 'classroom') selected @endif>Classroom</option>
                                     </select>
@@ -154,18 +154,18 @@
                                 @enderror
 
                                 <div>
-                                    <h3 class="text-sm font-medium mb-2">Select batch</h3>
+                                    <h3 class="text-sm font-medium mb-2">{{ langLabel('select_batch') }}</h3>
                                     <div class="overflow-x-auto">
                                         <table class="w-full table-auto border border-gray-200 rounded text-sm text-center">
                                             <thead class="bg-gray-100 text-gray-700">
                                                 <tr>
-                                                    <th class="px-4 py-2">Select</th>
-                                                    <th class="px-4 py-2">Batch No</th>
-                                                    <th class="px-4 py-2">Start Date</th>
-                                                    <th class="px-4 py-2">Timings</th>
-                                                    <th class="px-4 py-2">Duration</th>
-                                                    <th class="px-4 py-2">Strength</th>
-                                                    <th class="px-4 py-2">Days</th>
+                                                    <th class="px-4 py-2">{{ langLabel('select') }}</th>
+                                                    <th class="px-4 py-2">{{ langLabel('batch_no') }}</th>
+                                                    <th class="px-4 py-2">{{ langLabel('start_date') }}</th>
+                                                    <th class="px-4 py-2">{{ langLabel('timings') }}</th>
+                                                    <th class="px-4 py-2">{{ langLabel('duration') }}</th>
+                                                    <th class="px-4 py-2">{{ langLabel('strength') }}</th>
+                                                    <th class="px-4 py-2">{{ langLabel('days') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -199,11 +199,11 @@
                                                         <td class="px-4 py-2">
                                                             {{ $start->format('d M Y') }}
                                                             @if($started)
-                                                                <div class="text-xs text-orange-600 mt-1 font-semibold">Batch has started</div>
+                                                                <div class="text-xs text-orange-600 mt-1 font-semibold">{{ langLabel('batch_hs_started') }}</div>
                                                             @elseif($ended)
-                                                                <div class="text-xs text-red-600 mt-1 font-semibold">Batch ended</div>
+                                                                <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_ended') }}</div>
                                                             @elseif($isFull)
-                                                                <div class="text-xs text-red-600 mt-1 font-semibold">Batch full</div>
+                                                                <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_full') }}</div>
                                                             @endif
                                                         </td>
                                                         <td class="px-4 py-2">{{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}</td>
@@ -215,7 +215,7 @@
                                                         <td class="px-4 py-2">{{ $days }}</td>
                                                     </tr>
                                                 @empty
-                                                    <tr><td colspan="7" class="px-4 py-2 text-gray-500">No batches available.</td></tr>
+                                                    <tr><td colspan="7" class="px-4 py-2 text-gray-500">{{ langLabel('no_batches_available') }}</td></tr>
                                                 @endforelse
                                             </tbody>
                                         </table>
@@ -253,7 +253,7 @@
                                 <div class="flex-1">
                                     <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
                                     <div class="flex items-center space-x-2 mt-2">
-                                        <span class="text-sm font-medium text-gray-700">Number of members</span>
+                                        <span class="text-sm font-medium text-gray-700">{{ langLabel('number_of_menbers') }}</span>
                                         <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
                                             <button type="button" onclick="changeCount(-1)" class="text-gray-600 text-lg">◀</button>
                                             <span id="memberCount" class="text-base font-semibold text-gray-800">2</span>
@@ -333,25 +333,25 @@
                             @endphp
 
                             <div class="border rounded p-4 space-y-2">
-                                <h3 class="text-sm font-medium border-b pb-2">Billing Information</h3>
+                                <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('billing_information') }}</h3>
                                 <div class="flex justify-between text-sm">
-                                    <span>Course total</span>
+                                    <span>{{ langLabel('course_total') }}</span>
                                     <span>SAR {{ number_format($offerPrice, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
-                                    <span>Saved amount</span>
+                                    <span>{{ langLabel('saved_amount') }}</span>
                                     <span>SAR {{ number_format($savedPrice, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
-                                    <span>Tax ({{ $taxation->rate }}%)</span>
+                                    <span>{{ langLabel('tax') }} ({{ $taxation->rate }}%)</span>
                                     <span>SAR {{ number_format($tax, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between text-base font-semibold pt-2 border-t">
-                                    <span>Total</span>
+                                    <span>{{ langLabel('total') }}</span>
                                     <span>SAR {{ number_format($total, 2) }}</span>
                                 </div>
                                 <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                    Proceed to Checkout
+                                    {{ langLabel('proceed_checkout') }}
                                 </button>
                             </div>
                         </div>

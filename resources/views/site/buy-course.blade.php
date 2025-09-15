@@ -25,7 +25,7 @@
             <div class="absolute inset-0 bg-white bg-opacity-10"></div>
             <div class="relative z-10 container mx-auto px-4">
                 <div class="space-y-2">
-                    <h2 class="text-5xl font-bold text-white ml-[10%]">Training</h2>
+                    <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('training') }}</h2>
                 </div>
             </div>
         </div>
@@ -88,10 +88,10 @@
                         <div class="lg:col-span-2 space-y-6">
                             @if($material->training_type  === "online" || $material->training_type  === "classroom")
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
                                     <input type="hidden" name="session_type" value="{{ $material->training_type }}">
                                     <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" >
-                                        <option value="" disabled>Select Training Mode</option>
+                                        <option value="" disabled>{{ langLabel('select_training_mode') }}</option>
                                         <option value="online" @if($material->training_type === 'online') selected @endif disabled>Online</option>
                                         <option value="classroom" @if($material->training_type === 'classroom') selected @endif disabled>Classroom</option>
                                     </select>
@@ -100,17 +100,17 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                                 <div>
-                                    <h3 class="text-sm font-medium mb-2">Select batch</h3>
+                                    <h3 class="text-sm font-medium mb-2">{{ langLabel('select_batch') }}</h3>
                                     <table class="w-full table-auto border border-gray-200 rounded text-sm text-center">
                                         <thead class="bg-gray-100 text-gray-700">
                                             <tr>
-                                                <th class="px-4 py-2">Select</th>
-                                                <th class="px-4 py-2">Batch No</th>
-                                                <th class="px-4 py-2">Start Date</th>
-                                                <th class="px-4 py-2">Timings</th>
-                                                <th class="px-4 py-2">Duration</th>
-                                                <th class="px-4 py-2">Strength</th>
-                                                <th class="px-4 py-2">Days</th>
+                                                <th class="px-4 py-2">{{ langLabel('select') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('batch_no') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('start_date') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('timings') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('duration') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('strength') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('days') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -148,11 +148,11 @@
                                                     <td class="px-4 py-2">
                                                         {{ $start->format('d M Y') }}
                                                         @if($started)
-                                                            <div class="text-xs text-orange-600 mt-1 font-semibold">Batch has started</div>
+                                                            <div class="text-xs text-orange-600 mt-1 font-semibold">{{ langLabel('batch_has_started') }}</div>
                                                         @elseif($ended)
-                                                            <div class="text-xs text-red-600 mt-1 font-semibold">Batch ended</div>
+                                                            <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_ended') }}</div>
                                                         @elseif($isFull)
-                                                            <div class="text-xs text-red-600 mt-1 font-semibold">Batch full</div>
+                                                            <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_full') }}</div>
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-2">{{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}</td>
@@ -164,7 +164,7 @@
                                                     <td class="px-4 py-2">{{ $days }}</td>
                                                 </tr>
                                             @empty
-                                                <tr><td colspan="7" class="px-4 py-2 text-gray-500">No batches available.</td></tr>
+                                                <tr><td colspan="7" class="px-4 py-2 text-gray-500">{{ langLabel('no_batched_available') }}</td></tr>
                                             @endforelse
 
                                         </tbody>
@@ -207,7 +207,7 @@
                                                 @endif
                                             @endfor
                                             <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                            <span class="ml-1 text-gray-500 text-xs">Rati{{ langLabel('rating') }}ng</span>
                                         </div>
 
 
@@ -218,7 +218,7 @@
                                                 {{ $material->training_offer_price  }}</span>
                                         </div>
 
-                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 {{ langLabel('remove') }}</button> --}}
                                     </div>
                                 </div>
                             @elseif($material->training_type  === "recorded")
@@ -248,7 +248,7 @@
                                                 @endif
                                             @endfor
                                             <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                            <span class="ml-1 text-gray-500 text-xs">{{ langLabel('rating') }}</span>
                                         </div>
 
 
@@ -259,7 +259,7 @@
                                                 {{ $material->training_offer_price  }}</span>
                                         </div>
 
-                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 {{ langLabel('remove') }}</button> --}}
                                     </div>
                                 </div>
                             @endif
@@ -275,11 +275,11 @@
                                 $taxation = App\Models\Taxation::where('user_type', 'trainer')->where('is_active', 1)->first();
                             @endphp
                             <div>
-                                <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
+                                <h3 class="text-sm font-medium mb-2">{{ langLabel('apply_promocode') }}:</h3>
                                 <div class="flex space-x-2">
                                     <input type="text" placeholder="Enter promocode for discount"
                                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                    <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                    <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
                                 </div>
                             </div>
 
@@ -296,31 +296,31 @@
 
                             <!-- Billing Information -->
                             <div class="border rounded p-4 space-y-2">
-                                <h3 class="text-sm font-medium border-b pb-2">Billing Information</h3>
+                                <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('billing_information') }}</h3>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Course total</span>
+                                    <span>{{ langLabel('course_total') }}</span>
                                     <span>SAR {{ number_format($offerPrice, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Saved amount</span>
+                                    <span>{{ langLabel('saved_amount') }}</span>
                                     <span>SAR {{ number_format($savedPrice, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Tax ({{ $taxation->rate }}%)</span>
+                                    <span>{{ langLabel('tax') }} ({{ $taxation->rate }}%)</span>
                                     <span>SAR {{ number_format($tax, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-base font-semibold pt-2 border-t">
-                                    <span>Total</span>
+                                    <span>{{ langLabel('total') }}</span>
                                     <span>SAR {{ number_format($total, 2) }}</span>
                                 </div>
 
                                 <button type="submit"
                                     class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                    Proceed to Checkout
+                                    {{ langLabel('proceed_checkout') }}
                                 </button>
                             </div>
                         </div>

@@ -257,8 +257,19 @@ Route::post('/failure', [PaymentController::class, 'failure']);
 
 
 
+// Route::post('/subscription/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
+// Route::post('/subscription/payment/success', [PaymentController::class, 'successSubscription'])->name('subscription.payment.success');
+// Route::post('/subscription/payment/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.payment.failure');
+
+
+
+Route::post('/subscriptions/payment', [SubscriptionController::class, 'processSubscriptionPayment'])->name('subscription.payment');
+// Route::any('/subscriptions/success', [SubscriptionController::class, 'successSubscription'])->name('subscription.success');
+Route::any('/subscriptions/failure', [SubscriptionController::class, 'failureSubscription'])->name('subscription.failure');
+
 
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);
+Route::post('/subscriptionSuccessURL', [PaymentController::class, 'successSubscription']);
 
 
 Route::get('lang/home', [LangController::class, 'index']);

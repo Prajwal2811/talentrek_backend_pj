@@ -35,7 +35,7 @@ $unreadCount = DB::table('admin_group_chats')
            @click="active = 'assessor.dashboard'"
            :title="!sidebarOpen ? 'Dashboard' : ''">
             <i data-feather="grid" class="mr-3"></i>
-            <span x-show="sidebarOpen" x-transition>Dashboard</span>
+            <span x-show="sidebarOpen" x-transition>{{ langLabel('dashboard') }}</span>
         </a>
 
 
@@ -46,7 +46,7 @@ $unreadCount = DB::table('admin_group_chats')
                 :class="sidebarOpen ? '' : 'justify-center'"
                 :title="!sidebarOpen ? 'Booking Slots' : ''">
                 <i data-feather="book-open" class="mr-3"></i>
-                <span x-show="sidebarOpen">Booking Slots</span>
+                <span x-show="sidebarOpen">{{ langLabel('booking_slots') }}</span>
                 <svg x-show="sidebarOpen" :class="{ 'rotate-90': open }" class="ml-auto w-4 h-4 transition-transform duration-200"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -56,11 +56,11 @@ $unreadCount = DB::table('admin_group_chats')
             <div x-show="open && sidebarOpen" x-transition class="flex flex-col ml-8 mt-1 space-y-1">
                 <a href="{{ route('assessor.manage-bookings') }}"
                    class="px-4 py-2 rounded-md {{ request()->routeIs('assessor.manage-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                    Booking Slots
+                    {{ langLabel('booking_slots') }}
                 </a>
                 <a href="{{ route('assessor.create-bookings') }}"
                    class="px-4 py-2 rounded-md {{ request()->routeIs('assessor.create-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                    Create Slots
+                    {{ langLabel('create') }} {{ langLabel('slots') }}
                 </a>
             </div>
         </div>
@@ -100,7 +100,7 @@ $unreadCount = DB::table('admin_group_chats')
             class="flex items-center px-4 py-2 rounded-md hover:bg-white hover:text-blue-900 transition duration-200"
             :title="!sidebarOpen ? 'Logout' : ''">
                 <i data-feather="log-out" class="mr-3"></i>
-                <span x-show="sidebarOpen" x-transition>Logout</span>
+                <span x-show="sidebarOpen" x-transition>{{ langLabel('logout') }}</span>
         </a>
 
         <form id="logout-form" action="{{ route('assessor.logout') }}" method="POST" class="hidden">

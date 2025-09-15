@@ -50,7 +50,7 @@ use Illuminate\Support\Facades\DB;
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Coaching</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('coaching') }}</h2>
                     </div>
                 </div>
             </div>
@@ -107,11 +107,11 @@ use Illuminate\Support\Facades\DB;
                 <aside class="w-1/4 pr-6" 
                     x-data="{ selectedCategories: [] }" 
                     @change="$dispatch('filter-change', selectedCategories)">
-                    <button class="block text-gray-700 font-semibold mb-6">☰ Filter</button>
+                    <button class="block text-gray-700 font-semibold mb-6">☰ {{ langLabel('filter') }}</button>
 
                     <!-- Category Filter -->
                     <div class="mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-2">Categories</h3>
+                        <h3 class="font-semibold text-gray-900 mb-2">{{ langLabel('categories') }}</h3>
                         <div class="space-y-2">
                             @foreach($categories as $cat)
                                 <label class="block">
@@ -146,15 +146,15 @@ use Illuminate\Support\Facades\DB;
 
                     <!-- Header -->
                     <div class="flex justify-between items-center mb-4">
-                        <h1 class="text-xl font-semibold">Assessment</h1>
+                        <h1 class="text-xl font-semibold">{{ langLabel('coaching') }}</h1>
                         <span class="text-sm text-gray-500">
-                            Showing <span x-text="filteredcoaches.length"></span> total results
+                            {{ langLabel('showing') }} <span x-text="filteredcoaches.length"></span> {{ langLabel('total_results') }}
                         </span>
                     </div>
 
                     <!-- Search -->
                     <div class="mb-6 relative">
-                        <input type="text" placeholder="Search here..." x-model="search"
+                        <input type="text" placeholder="{{ langLabel('search_here') }}..." x-model="search"
                             class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12" />
                         <button type="button"
                                 class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -168,7 +168,7 @@ use Illuminate\Support\Facades\DB;
                         <div class="border-b pb-4">
                             <button @click="open === 1 ? open = null : open = 1"
                                     class="w-full flex justify-between items-center text-left text-lg font-semibold focus:outline-none">
-                                <span>Assessment overview</span>
+                                <span>{{ langLabel('coaching_overview') }}</span>
                                 <svg :class="{'rotate-180': open === 1}"
                                     class="w-5 h-5 transform transition-transform duration-300"
                                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@ use Illuminate\Support\Facades\DB;
                         <div class="border-b pb-4">
                             <button @click="open === 2 ? open = null : open = 2"
                                     class="w-full flex justify-between items-center text-left text-lg font-semibold focus:outline-none">
-                                <span>Benefits of Assessment</span>
+                                <span>{{ langLabel('benefits_coaching') }}</span>
                                 <svg :class="{'rotate-180': open === 2}"
                                     class="w-5 h-5 transform transition-transform duration-300"
                                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@ use Illuminate\Support\Facades\DB;
                                     <div class="flex items-center justify-center text-sm text-gray-700 space-x-1">
                                         <span class="text-orange-500">★</span>
                                         <span x-text="(coach.avgRating ?? 0).toFixed(1) + '/5'"></span>
-                                        <span>(<span x-text="coach.reviewCount ?? 0"></span> reviews)</span>
+                                        <span>(<span x-text="coach.reviewCount ?? 0"></span> {{ langLabel('reviews') }})</span>
                                     </div>
                                     <p class="text-xs text-gray-500" x-text="coach.areaOfInterest"></p>
                                 </div>
@@ -224,7 +224,7 @@ use Illuminate\Support\Facades\DB;
                         <!-- Pagination -->
                         <div class="flex justify-start items-center mt-8 space-x-2">
                             <button @click="prevPage" :disabled="page === 1"
-                                    class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">Prev</button>
+                                    class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">{{ langLabel('previous') }}</button>
 
                             <template x-for="n in totalPages" :key="n">
                                 <button @click="page = n" :class="{'bg-gray-200 font-semibold': page === n}"
@@ -232,7 +232,7 @@ use Illuminate\Support\Facades\DB;
                             </template>
 
                             <button @click="nextPage" :disabled="page === totalPages"
-                                    class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">Next</button>
+                                    class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">{{ langLabel('next') }}</button>
                         </div>
                     </div>
                 </main>
