@@ -24,7 +24,7 @@
                 @include('site.trainer.componants.navbar')
 
             <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
-                <h2 class="text-2xl font-semibold mb-6">Add Training</h2>
+                <h2 class="text-2xl font-semibold mb-6">{{ langLabel('add_training') }}</h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl">
                     <!-- Online / Classroom Training -->
@@ -32,7 +32,7 @@
                     <svg class="w-8 h-8 mb-4" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M4 5h16v10H4V5zm0 12h6v2H4v-2zm10 0h6v2h-6v-2z" />
                     </svg>
-                    <span class="text-center">Online / Classroom Training</span>
+                    <span class="text-center">{{ langLabel('online') }} / {{ langLabel('classroom') }} {{ langLabel('training') }}</span>
                     </a>
 
                     <!-- Recorded Courses -->
@@ -40,7 +40,7 @@
                     <svg class="w-8 h-8 mb-4" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                     </svg>
-                    <span class="text-center">Recorded Courses</span>
+                    <span class="text-center">{{ langLabel('recorded_courses') }}</span>
                     </a>
                 </div>
             </main>

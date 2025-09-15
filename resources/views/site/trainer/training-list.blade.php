@@ -23,31 +23,31 @@
                 @include('site.trainer.componants.navbar')
 
                 <main class="p-6 bg-gray-100 min-h-screen">
-                    <h2 class="text-2xl font-semibold mb-6">Training Programs List</h2>
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('training_programs') }} {{ langLabel('list') }}</h2>
                      @include('admin.errors')
                     <!-- Tab Buttons -->
                     <div class="mb-6 border-b border-gray-200">
                         <div class="flex space-x-6 text-sm font-medium">
-                            <button onclick="switchTab('recorded')" class="tab-btn text-gray-600 pb-2" id="btn-recorded">Recorded Lecture</button>
-                            <button onclick="switchTab('online')" class="tab-btn text-gray-600 pb-2" id="btn-online">Online Training</button>
-                            <button onclick="switchTab('offline')" class="tab-btn text-gray-600 pb-2" id="btn-offline">Offline Training</button>
+                            <button onclick="switchTab('recorded')" class="tab-btn text-gray-600 pb-2" id="btn-recorded">{{ langLabel('recorded_lecture') }}</button>
+                            <button onclick="switchTab('online')" class="tab-btn text-gray-600 pb-2" id="btn-online">{{ langLabel('online_training') }}</button>
+                            <button onclick="switchTab('offline')" class="tab-btn text-gray-600 pb-2" id="btn-offline">{{ langLabel('offline_training') }}</button>
                         </div>
                     </div>
 
                     <!-- Tab Contents -->
                     <div id="tab-recorded" class="tab-content hidden">
-                        <h3 class="text-xl font-semibold mb-4">Recorded Trainings</h3>
+                        <h3 class="text-xl font-semibold mb-4">{{ langLabel('recorded_trainings') }}</h3>
 
                         @if ($recordedTrainings->count())
                             <div class="overflow-x-auto">
                                 <table class="min-w-full bg-white rounded-lg shadow-md text-sm">
                                     <thead class="bg-gray-100 text-gray-700 uppercase text-xs leading-normal">
                                         <tr>
-                                            <th class="px-6 py-3 text-left">Sr. No.</th>
-                                            <th class="px-6 py-3 text-left">Title</th>
-                                            <th class="px-6 py-3 text-left">Price</th>
-                                            <th class="px-6 py-3 text-left">Offer Price</th>
-                                            <th class="px-6 py-3 text-left">Action</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('sr_no') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('title') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('price') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('offer_price') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('action') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-600">
@@ -60,7 +60,7 @@
                                                 <td class="px-6 py-3">
                                                     <a href="{{ route('trainer.training.recorded.edit', $training->id) }}"
                                                     class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
-                                                    Edit
+                                                    {{ langLabel('edit') }}
                                                     </a>
 
                                                 </td>
@@ -70,25 +70,25 @@
                                 </table>
                             </div>
                         @else
-                            <p class="text-gray-500">No recorded trainings found.</p>
+                            <p class="text-gray-500">{{ langLabel('no_recorded_trainings_found') }}</p>
                         @endif
                     </div>
 
 
 
                     <div id="tab-online" class="tab-content hidden">
-                        <h3 class="text-xl font-semibold mb-4">Online Trainings</h3>
+                        <h3 class="text-xl font-semibold mb-4">{{ langLabel('online_trainings') }}</h3>
 
                         @if ($onlineTrainings->count())
                             <div class="overflow-x-auto">
                                 <table class="min-w-full bg-white rounded-lg shadow-md text-sm">
                                     <thead class="bg-gray-100 text-gray-700 uppercase text-xs leading-normal">
                                         <tr>
-                                            <th class="px-6 py-3 text-left">Sr. No.</th>
-                                            <th class="px-6 py-3 text-left">Title</th>
-                                            <th class="px-6 py-3 text-left">Price</th>
-                                            <th class="px-6 py-3 text-left">Offer Price</th>
-                                            <th class="px-6 py-3 text-left">Action</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('sr_no') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('title') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('price') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('offer_price') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('action') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-600">
@@ -101,7 +101,7 @@
                                                 <td class="px-6 py-3">
                                                     <a href="{{ route('trainer.training.online.edit', $training->id) }}"
                                                     class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
-                                                    Edit
+                                                    {{ langLabel('edit') }}
                                                     </a>
 
                                                 </td>
@@ -111,24 +111,24 @@
                                 </table>
                             </div>
                         @else
-                            <p class="text-gray-500">No online trainings found.</p>
+                            <p class="text-gray-500">{{ langLabel('no_online_trainings_found') }}</p>
                         @endif
                     </div>
 
 
                     <div id="tab-offline" class="tab-content hidden">
-                        <h3 class="text-xl font-semibold mb-4">Offline Trainings</h3>
+                        <h3 class="text-xl font-semibold mb-4">{{ langLabel('offline_trainings') }}</h3>
 
                         @if ($offlineTrainings->count())
                             <div class="overflow-x-auto">
                                 <table class="min-w-full bg-white rounded-lg shadow-md text-sm">
                                     <thead class="bg-gray-100 text-gray-700 uppercase text-xs leading-normal">
                                         <tr>
-                                            <th class="px-6 py-3 text-left">Sr. No.</th>
-                                            <th class="px-6 py-3 text-left">Title</th>
-                                            <th class="px-6 py-3 text-left">Price</th>
-                                            <th class="px-6 py-3 text-left">Offer Price</th>
-                                            <th class="px-6 py-3 text-left">Action</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('sr_no') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('title') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('price') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('offer_price') }}</th>
+                                            <th class="px-6 py-3 text-left">{{ langLabel('action') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-600">
@@ -141,7 +141,7 @@
                                                 <td class="px-6 py-3">
                                                     <a href="{{ route('trainer.training.online.edit', $training->id) }}"
                                                     class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
-                                                    Edit
+                                                    {{ langLabel('edit') }}
                                                     </a>
 
                                                 </td>
@@ -151,7 +151,7 @@
                                 </table>
                             </div>
                         @else
-                            <p class="text-gray-500">No offline trainings found.</p>
+                            <p class="text-gray-500">{{ langLabel('no_offline_trainings_found') }}</p>
                         @endif
                     </div>
 

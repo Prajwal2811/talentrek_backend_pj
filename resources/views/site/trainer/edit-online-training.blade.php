@@ -24,15 +24,15 @@
                 @include('site.trainer.componants.navbar')
 
                 <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"> 
-                    <h2 class="text-xl font-semibold mb-6">Online/Offline course</h2>
+                    <h2 class="text-xl font-semibold mb-6">{{ langLabel9('online') }}/{{ langLabel('offline') }} {{ langLabel('course') }}</h2>
                 <form action="{{ route('trainer.training.online.update.data', $training->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                             <!-- Course Title -->
                             <div class="mb-4">
-                                <label class="block font-medium mb-1">Course Title</label>
+                                <label class="block font-medium mb-1">{{ langLabel('course_title') }}</label>
                                 <input type="text" name="training_title"
                                 value="{{ old('training_title', $training->training_title ?? '') }}"
-                                placeholder="Enter the Course Title" class="w-full border rounded-md p-2" />
+                                placeholder="{{ langLabel('enter_course_title') }}" class="w-full border rounded-md p-2" />
                                 @error('training_title')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -40,10 +40,10 @@
 
                             <!-- Course Sub Title -->
                             <div class="mb-4">
-                                <label class="block font-medium mb-1">Course Sub Title</label>
+                                <label class="block font-medium mb-1">{{ langLabel('course_sub_title') }}</label>
                                 <input type="text" name="training_sub_title"
                                 value="{{ old('training_sub_title', $training->training_sub_title ?? '') }}"
-                                placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" />
+                                placeholder="{{ langLabel('enter_course_sub_title') }}" class="w-full border rounded-md p-2" />
                                 @error('training_sub_title')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -51,13 +51,13 @@
 
                             <!-- Description -->
                             <div class="mb-4">
-                                <label class="block font-medium mb-1">Training Objective</label>
+                                <label class="block font-medium mb-1">{{ langLabel('training_objective') }}</label>
                                 <textarea name="training_objective"
                                     class="w-full border rounded-md p-2 h-24">{{ old('training_objective', $training->training_objective ?? '') }}</textarea>
                             </div>
 
                             <div class="mb-4">
-                                <label class="block font-medium mb-1">Course Content</label>
+                                <label class="block font-medium mb-1">{{ langLabel('course_content') }}</label>
                                 <textarea name="training_descriptions"
                                 class="w-full border rounded-md p-2 h-24">{{ old('training_descriptions', $training->training_descriptions ?? '') }}</textarea>
                             </div>
@@ -65,12 +65,12 @@
                             <!-- Training Level -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                 <div>
-                                    <label class="block font-medium mb-1">Training Level</label>
+                                    <label class="block font-medium mb-1">{{ langLabel('training_level') }}</label>
                                     <select name="training_level" class="w-full border rounded-md p-2">
-                                        <option value="">Select Training Level</option>
-                                        <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
-                                        <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
-                                        <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                        <option value="">{{ langLabel('select_training_level') }}</option>
+                                        <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>{{ langLabel('beginner') }}</option>
+                                        <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>{{ langLabel('intermediate') }}</option>
+                                        <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>{{ langLabel('advanced') }}</option>
                                     </select>
                                     @error('training_level')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -81,16 +81,16 @@
 
                             <!-- Category -->
                             <div class="mb-4">
-                                <label class="block font-medium mb-2">Session Type</label>
+                                <label class="block font-medium mb-2">{{ langLabel('session_type') }}</label>
                                 <div class="flex flex-wrap gap-4">
                                     <label>
                                         <input type="radio" name="training_category" value="online"
                                         {{ old('training_category', $training->session_type ?? '') == 'online' ? 'checked' : '' }} /> 
-                                            Online
+                                            {{ langLabel('online') }}
                                     </label>
                                     <label>
                                         <input type="radio" name="training_category" value="classroom"
-                                        {{ old('training_category', $training->session_type ?? '') == 'classroom' ? 'checked' : '' }} /> Classroom
+                                        {{ old('training_category', $training->session_type ?? '') == 'classroom' ? 'checked' : '' }} /> {{ langLabel('classroom') }}
 
                                     </label>
                                 </div>
@@ -100,7 +100,7 @@
 
                             <!-- Upload Thumbnail -->
                             <div class="mb-4">
-                                <label class="block font-medium mb-1">Upload Thumbnail</label>
+                                <label class="block font-medium mb-1">{{ langLabel('upload_thumbnail') }}</label>
                                 <div class="flex gap-4 items-center">
                                 <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
                                 </div>
@@ -117,7 +117,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                 <!-- Course Price -->
                                 <div>
-                                    <label class="block font-medium mb-1">Course Price</label>
+                                    <label class="block font-medium mb-1">{{ langLabel('course_price') }}</label>
                                     <input type="text" name="training_price" placeholder="Enter Course Price"
                                     value="{{ old('training_price', $training->training_price) }}"
                                     class="w-full border rounded-md p-2" />
@@ -128,7 +128,7 @@
 
                                 <!-- Course Offer Price -->
                                 <div>
-                                    <label class="block font-medium mb-1">Course Offer Price</label>
+                                    <label class="block font-medium mb-1">{{ langLabel('offer_price') }}</label>
                                     <input type="text" name="training_offer_price" placeholder="Enter Offer Price"
                                     value="{{ old('training_offer_price', $training->training_offer_price) }}"
                                     class="w-full border rounded-md p-2" />
@@ -144,41 +144,41 @@
                         <div x-data="batchManager()" x-init='initializeBatches(@json($batches))' class="mt-6">
                             <!-- Batch Input Fields -->
                             <div class="mb-8">
-                                <h2 class="text-xl font-semibold mb-4">Batch details</h2>
+                                <h2 class="text-xl font-semibold mb-4">{{ langLabel('batch_details') }}</h2>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block mb-1 font-medium">Batch No</label>
-                                        <input type="text" x-model="batchNo" @input="clearError('batchNo')" placeholder="Enter batch no" class="border p-2 rounded w-full" />
+                                        <label class="block mb-1 font-medium">{{ langLabel('batch_no') }}</label>
+                                        <input type="text" x-model="batchNo" @input="clearError('batchNo')" placeholder="{{ langLabel('enter_batch_no') }}" class="border p-2 rounded w-full" />
                                         <span x-show="batchNoError" class="text-red-600 text-sm mt-1" x-text="batchNoError"></span>
                                     </div>
                                     <div>
-                                        <label class="block mb-1 font-medium">Start Date</label>
+                                        <label class="block mb-1 font-medium">{{ langLabel('start_date') }}</label>
                                         <input type="date" x-model="batchDate" @input="clearError('batchDate')" class="border p-2 rounded w-full" />
                                         <span x-show="batchDateError" class="text-red-600 text-sm mt-1" x-text="batchDateError"></span>
                                     </div>
                                     <div>
-                                        <label class="block mb-1 font-medium">Start Timing</label>
+                                        <label class="block mb-1 font-medium">{{ langLabel('start_timing') }}</label>
                                         <input type="time" x-model="startTime" @input="clearError('startTime')" class="border p-2 rounded w-full" />
                                         <span x-show="startTimeError" class="text-red-600 text-sm mt-1" x-text="startTimeError"></span>
                                     </div>
                                     <div>
-                                        <label class="block mb-1 font-medium">End Timing</label>
+                                        <label class="block mb-1 font-medium">{{ langLabel('end_timing') }}</label>
                                         <input type="time" x-model="endTime" @input="clearError('endTime')" class="border p-2 rounded w-full" />
                                         <span x-show="endTimeError" class="text-red-600 text-sm mt-1" x-text="endTimeError"></span>
                                     </div>
                                     <div>
-                                        <label class="block font-medium mb-1">Duration Type</label>
+                                        <label class="block font-medium mb-1">{{ langLabel('duration_type') }}</label>
                                         <select x-model="durationType" @input="clearError('duration')" class="border p-2 rounded w-full">
-                                            <option value="day">Days</option>
-                                            <option value="month">Months</option>
-                                            <option value="year">Years</option>
+                                            <option value="day">{{ langLabel('days') }}</option>
+                                            <option value="month">{{ langLabel('months') }}</option>
+                                            <option value="year">{{ langLabel('years') }}</option>
                                         </select>
                                         <span class="text-red-600 text-sm mt-1" ></span>
                                     </div>
                                     <div>
-                                        <label class="block font-medium mb-1">Duration</label>
+                                        <label class="block font-medium mb-1">{{ langLabel('duration') }}</label>
                                         <select x-model="duration" @input="clearError('duration')" class="border p-2 rounded w-full">
-                                            <option value="">Select Duration</option>
+                                            <option value="">{{ langLabel('select_duration') }}</option>
                                             <template x-for="option in getOptions()" :key="option">
                                                 <option :value="option" x-text="option"></option>
                                             </template>
@@ -186,7 +186,7 @@
                                         <span x-show="durationError" class="text-red-600 text-sm mt-1" x-text="durationError"></span>
                                     </div>
                                     <div>
-                                        <label class="block font-medium mb-1">Candidate Strength</label>
+                                        <label class="block font-medium mb-1">{{ langLabel('candidate') }} {{ langLabel('strength') }}</label>
                                         <input type="number" min="1" x-model="strength" @input="clearError('strength')" class="border p-2 rounded w-full" placeholder="Strength" />
                                         <span x-show="strengthError" class="text-red-600 text-sm mt-1" x-text="strengthError"></span>
                                     </div>
@@ -194,7 +194,7 @@
 
                                 <!-- Select Days -->
                                 <div class="mt-4">
-                                    <label class="block font-medium mb-1">Select Days</label>
+                                    <label class="block font-medium mb-1">{{ langLabel('select_days') }}</label>
                                     <div class="flex flex-wrap gap-4">
                                         <template x-for="(day, index) in weekDays" :key="index">
                                             <label class="flex items-center space-x-2">
@@ -214,10 +214,10 @@
                                 <!-- Action Buttons -->
                                 <div class="mt-4">
                                     <button type="button" x-show="!isEditing" @click="addBatch" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                        + Add Batch
+                                        + {{ langLabel('add_batch') }}
                                     </button>
                                     <button type="button" x-show="isEditing" @click="updateBatch" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-                                        ✓ Update Batch
+                                        ✓ {{ langLabel('update_batch') }}
                                     </button>
                                 </div>
                             </div>
@@ -241,19 +241,19 @@
 
                             <!-- Batch Table -->
                             <div class="overflow-x-auto mt-6">
-                                <h2 class="text-xl font-semibold mb-4">Batch List</h2>
+                                <h2 class="text-xl font-semibold mb-4">{{ langLabel('batch_list') }}</h2>
                                 <table class="min-w-full bg-white border">
                                     <thead class="bg-gray-100 text-sm font-medium text-gray-700">
                                         <tr>
-                                            <th class="py-2 px-4 border-b">Sr. No.</th>
-                                            <th class="py-2 px-4 border-b">Batch No</th>
-                                            <th class="py-2 px-4 border-b">Date</th>
-                                            <th class="py-2 px-4 border-b">Time</th>
-                                            <th class="py-2 px-4 border-b">Duration</th>
-                                            <th class="py-2 px-4 border-b">Days</th>
-                                            <th class="py-2 px-4 border-b">Strength</th>
-                                            <th class="py-2 px-4 border-b">Edit</th>
-                                            <th class="py-2 px-4 border-b">Delete</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('sr_no') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('batch_no') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('date') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('time') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('duration') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('days') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('strength') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('edit') }}</th>
+                                            <th class="py-2 px-4 border-b">{{ langLabel('delete') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -267,7 +267,7 @@
                                                 <td class="py-2 px-4 border-b" x-text="batch.selectedDays.join(', ')"></td>
                                                 <td class="py-2 px-4 border-b" x-text="batch.strength"></td>
                                                 <td class="py-2 px-4 border-b">
-                                                    <button type="button" @click="editBatch(index)" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded">Edit</button>
+                                                    <button type="button" @click="editBatch(index)" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded">{{ langLabel('edit') }}</button>
                                                 </td>
                                                 <td class="py-2 px-4 border-b">
                                                     <button type="button" @click="removeBatch(index)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full">
@@ -286,7 +286,7 @@
                         <!-- Submit Button -->
                         <div class="text-right mt-5">
                             <button type="submit" class="bg-blue-800 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-md font-semibold">
-                            Submit
+                            {{ langLabel('submit') }}
                             </button>
                         </div>
                     </form>

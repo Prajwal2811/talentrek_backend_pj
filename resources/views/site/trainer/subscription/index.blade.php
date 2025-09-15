@@ -20,7 +20,7 @@
         <div id="subscriptionModal"
             class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative">
-                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+                <h3 class="text-xl font-semibold mb-6">{{ langLabel('available_subscription_plans') }}</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                     @foreach($subscriptions as $plan)
                         <div class="border rounded-lg p-4 shadow-sm text-center">
@@ -40,7 +40,7 @@
                             <button type="button"
                                 class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
                                 data-plan-id="{{ $plan->id }}">
-                                Buy subscription
+                                 {{ langLabel('buy') }} {{ langLabel('subscription') }}
                             </button>
                         </div>
                     @endforeach
@@ -51,34 +51,34 @@
         <!-- Payment Modal -->
             <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
                 <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                    <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                    <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+                    <h3 class="text-xl font-semibold mb-4 text-center">{{ langLabel('payment') }}</h3>
+                    <p class="mb-6 text-gray-600 text-center">{{ langLabel('enter_card_details') }}</p>
 
                     <form id="paymentForm">
                         @csrf
                         <input type="hidden" name="plan_id" id="selectedPlanId">
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('card_number') }}</label>
                             <input type="text" name="card_number" value="4242424242424242"
                                 class="w-full border border-gray-300 rounded-md px-4 py-2">
                         </div>
 
                         <div class="mb-4 flex space-x-2">
                             <div class="w-1/2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('expiry') }}</label>
                                 <input type="text" name="expiry" value="12/30"
                                     class="w-full border border-gray-300 rounded-md px-4 py-2">
                             </div>
                             <div class="w-1/2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('cvv') }}</label>
                                 <input type="text" name="cvv" value="123"
                                     class="w-full border border-gray-300 rounded-md px-4 py-2">
                             </div>
                         </div>
                         <button type="submit"
                             class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                            Pay Now
+                            {{ langLabel('pay_now') }}
                         </button>
                     </form>
                     <div id="paymentMessage" class="mt-3 text-center text-sm"></div>

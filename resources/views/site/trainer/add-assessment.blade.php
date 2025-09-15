@@ -23,7 +23,7 @@
                 
                 <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     @include('admin.errors')
-                    <h2 class="text-xl font-semibold mb-4">Assessment</h2>
+                    <h2 class="text-xl font-semibold mb-4">{{ langLabel('assessment') }}</h2>
 
                     <form action="{{ route('trainer.assessment.store') }}" method="POST" onsubmit="return prepareSubmission()">
                             @csrf
@@ -32,12 +32,12 @@
                             <div class="bg-white rounded-lg shadow p-6 space-y-6">
                                 <!-- Create assessment section -->
                                 <div>
-                                    <h3 class="text-md font-semibold mb-4">Create assessment</h3>
+                                    <h3 class="text-md font-semibold mb-4">{{ langLabel('create') }} {{ langLabel('assessment') }}</h3>
 
                                     <!-- Assessment Title -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium mb-1">Assessment title</label>
-                                        <input type="text" name="title" value="{{ old('title') }}" placeholder="Enter assessment title"
+                                        <label class="block text-sm font-medium mb-1">{{ langLabel('assessment_title') }}</label>
+                                        <input type="text" name="title" value="{{ old('title') }}" placeholder="{{ langLabel('enter_assessment_title') }}"
                                             class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"  />
                                         @error('title')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -46,9 +46,9 @@
 
                                     <!-- Assessment Description -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium mb-1">Assessment description</label>
+                                        <label class="block text-sm font-medium mb-1">{{ langLabel('assessment_description') }}</label>
                                         <textarea name="description" class="w-full p-3 text-sm border rounded focus:outline-none" rows="4"
-                                            placeholder="Enter description...">{{ old('description') }}</textarea>
+                                            placeholder="{{ langLabel('enter_description') }}...">{{ old('description') }}</textarea>
                                         @error('description')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -56,12 +56,12 @@
 
                                     <!-- Assessment Level -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium mb-1">Assessment level</label>
+                                        <label class="block text-sm font-medium mb-1">{{ langLabel('assessment_level') }}</label>
                                         <select name="level" class="w-full border rounded px-3 py-2">
-                                            <option value="">Select assessment level</option>
-                                            <option value="Beginner" {{ old('level') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
-                                            <option value="Intermediate" {{ old('level') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
-                                            <option value="Advanced" {{ old('level') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                            <option value="">{{ langLabel('select_assessment_level') }}</option>
+                                            <option value="Beginner" {{ old('level') == 'Beginner' ? 'selected' : '' }}>{{ langLabel('beginner') }}</option>
+                                            <option value="Intermediate" {{ old('level') == 'Intermediate' ? 'selected' : '' }}>{{ langLabel('intermediate') }}</option>
+                                            <option value="Advanced" {{ old('level') == 'Advanced' ? 'selected' : '' }}>{{ langLabel('advanced') }}</option>
                                         </select>
                                         @error('level')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -73,10 +73,10 @@
 
                                 <!-- Create questionnaire -->
                                 <div>
-                                    <h3 class="text-md font-semibold mb-4">Create questionnaire</h3>
+                                    <h3 class="text-md font-semibold mb-4">{{ langLabel('create_questionnaire') }}</h3>
 
                                     <div class="container bg-white p-4 rounded shadow-sm border" id="questionnaire">
-                                        <h5 class="mb-3 fw-semibold">Create Questionnaire</h5>
+                                        <h5 class="mb-3 fw-semibold">{{ langLabel('create_questionnaire') }}</h5>
 
                                         <!-- Hidden input for questions JSON -->
                                         
@@ -88,7 +88,7 @@
 
                                         <!-- Question Input -->
                                         <div class="d-flex mb-3 gap-2">
-                                            <input type="text" id="questionText" class="form-control" placeholder="Write your question here ...">
+                                            <input type="text" id="questionText" class="form-control" placeholder="{{ langLabel('write_question_here') }} ...">
                                         </div>
 
                                         <!-- Error Message -->
@@ -99,12 +99,12 @@
 
                                         <!-- Add Option -->
                                         <div class="mb-2">
-                                            <button type="button" id="addOptionBtn" class="btn btn-default">+ Add option</button>
+                                            <button type="button" id="addOptionBtn" class="btn btn-default">+ {{ langLabel('add_option') }}</button>
                                         </div>
 
                                         <!-- Submit -->
                                         <div>
-                                            <button type="button" id="submitBtn" class="btn btn-primary">+ Add question</button>
+                                            <button type="button" id="submitBtn" class="btn btn-primary">+ {{ langLabel('add_question') }}</button>
                                         </div>
 
 
@@ -117,15 +117,15 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                         <!-- Total Questions -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Total questions</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('total_question') }}</label>
                                             <input type="text"
                                                 id="total_questions"
                                                 name="total_questions"
                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); calculatePercentage();"
                                                 value="{{ old('total_questions') }}"
-                                                placeholder="Enter total questions"
+                                                placeholder="{{ langLabel('enter_total_question') }}"
                                                 class="w-full border rounded px-3 py-2" />
-                                            <p id="totalQuestionError" class="text-red-600 text-sm mt-1 hidden">Mismatch with added questions.</p>
+                                            <p id="totalQuestionError" class="text-red-600 text-sm mt-1 hidden">{{ langLabel('mismatch_added_question') }}</p>
                                             @error('total_questions')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -134,23 +134,23 @@
 
                                         <!-- Passing Questions -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Passing questions</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('passing_question') }}</label>
                                             <input type="text"
                                                 id="passing_questions"
                                                 name="passing_questions"
                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); calculatePercentage();"
                                                 value="{{ old('passing_questions') }}"
-                                                placeholder="Enter passing questions"
+                                                placeholder="{{ langLabel('enter_passing_question') }}"
                                                 class="w-full border rounded px-3 py-2" />
                                             @error('passing_questions')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
-                                            <p id="questionError" class="text-red-600 text-sm mt-1 hidden">Passing questions cannot exceed total questions.</p>
+                                            <p id="questionError" class="text-red-600 text-sm mt-1 hidden">{{ langLabel('cannot_exceed') }}</p>
                                         </div>
 
                                         <!-- Passing Percentage -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Passing percentage</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('passing_percentage') }}</label>
                                             <input type="text"
                                                 id="passing_percentage"
                                                 name="passing_percentage"
@@ -188,7 +188,7 @@
                                 <!-- Final Create Button -->
                                 <div>
                                     <button type="submit" class="bg-blue-700 text-white font-semibold px-4 py-2 rounded hover:bg-blue-800">
-                                        Create assessment
+                                        {{ langLabel('create_assessment') }}
                                     </button>
                                 </div>
                             </div>

@@ -27,17 +27,17 @@
             @endphp
 
             <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
-                <h2 class="text-2xl font-semibold mb-6">Assessment List</h2>
+                <h2 class="text-2xl font-semibold mb-6">{{ langLabel('assessment') }} {{ langLabel('list') }}</h2>
                 <div class="overflow-x-auto bg-white rounded-lg shadow relative">
                     <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100 text-gray-700">
                             <tr>
-                                <th class="px-6 py-3">Sr. No.</th>
-                                <th class="px-6 py-3">Assessment Title</th>
-                                <th class="px-6 py-3">Questions</th>
-                                <th class="px-6 py-3">Passing Percentage</th>
-                                <th class="px-6 py-3">Level</th>
-                                <th class="px-6 py-3">Assign Course</th>
+                                <th class="px-6 py-3">{{ langLabel('sr_no') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('assessment') }} {{ langLabel('title') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('questions') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('passing_percentage') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('level') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('assign_course') }}</th>
                             </tr>
                         </thead>
                         <tbody id="assessmentTableBody">
@@ -56,7 +56,7 @@
                                                 data-assessment-id="{{ $assessment->id }}">
                                             <option disabled class="text-xs text-dark bg-white"
                                                 {{ is_null($assessment->material_id) ? 'selected' : '' }}>
-                                                Assign Course
+                                                {{ langLabel('assign_course') }}
                                             </option>
                                             @foreach ($courses as $course)
                                                 @php
@@ -83,9 +83,9 @@
                     <div class="flex justify-end items-center px-6 py-4 space-x-4">
                         <button id="prevBtn" class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Previous</button>
                         <span class="text-sm text-gray-600">
-                            Page <span id="currentPageText">1</span> of <span id="totalPagesText">1</span>
+                            {{ langLabel('page') }} <span id="currentPageText">1</span> {{ langLabel('of') }} <span id="totalPagesText">1</span>
                         </span>
-                        <button id="nextBtn" class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">Next</button>
+                        <button id="nextBtn" class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">{{ langLabel('next') }}</button>
                     </div>
                 </div>
             </main>

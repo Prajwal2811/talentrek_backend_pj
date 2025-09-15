@@ -24,7 +24,7 @@
                @click="active = 'trainer.dashboard'"
                :title="!sidebarOpen ? 'Dashboard' : ''">
                 <i data-feather="grid" class="mr-3"></i>
-                <span x-show="sidebarOpen" x-transition>Dashboard</span>
+                <span x-show="sidebarOpen" x-transition>{{ langLabel('dashboard') }}</span>
             </a>
 
             <!-- My Training -->
@@ -35,7 +35,7 @@
                     :class="sidebarOpen ? '' : 'justify-center' "
                     :title="!sidebarOpen ? 'My Training' : '' ">
                     <i data-feather="book-open" class="mr-3"></i>
-                    <span x-show="sidebarOpen">My Training</span>
+                    <span x-show="sidebarOpen">{{ langLabel('my_training') }}</span>
                     <svg x-show="sidebarOpen" :class="{ 'rotate-90': open }" class="ml-auto w-4 h-4 transition-transform duration-200"
                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -45,11 +45,11 @@
                 <div x-show="open && sidebarOpen" x-transition class="flex flex-col ml-8 mt-1 space-y-1">
                     <a href="{{ route('training.list') }}"
                        class="px-4 py-2 rounded-md {{ request()->routeIs('training.list') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                        Training List
+                        {{ langLabel('training') }} {{ langLabel('list') }}
                     </a>
                     <a href="{{ route('training.add') }}"
                        class="px-4 py-2 rounded-md {{ request()->routeIs('training.add') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                        Add Training
+                        {{ langLabel('add') }} {{ langLabel('training') }}
                     </a>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                     :class="sidebarOpen ? '' : 'justify-center'"
                     :title="!sidebarOpen ? 'Assessment' : ''">
                     <i data-feather="file-text" class="mr-3"></i>
-                    <span x-show="sidebarOpen">Assessment</span>
+                    <span x-show="sidebarOpen">{{ langLabel('assessment') }}</span>
                     <svg x-show="sidebarOpen" :class="{ 'rotate-90': open }" class="ml-auto w-4 h-4 transition-transform duration-200"
                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -72,11 +72,11 @@
                 <div x-show="open && sidebarOpen" x-transition class="flex flex-col ml-8 mt-1 space-y-1">
                     <a href="{{ route('assessment.list') }}"
                        class="px-4 py-2 rounded-md {{ request()->routeIs('assessment.list') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                        Assessment List
+                        {{ langLabel('assessment') }} {{ langLabel('list') }}
                     </a>
                     <a href="{{ route('assessment.add') }}"
                        class="px-4 py-2 rounded-md {{ request()->routeIs('assessment.add') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                        Add Assessment
+                        {{ langLabel('add') }} {{ langLabel('assessment') }}
                     </a>
                 </div>
             </div>
@@ -114,7 +114,7 @@
                ]"
                :title="!sidebarOpen ? 'Logout' : ''">
                 <i data-feather="log-out" class="mr-3"></i>
-                <span x-show="sidebarOpen" x-transition>Logout</span>
+                <span x-show="sidebarOpen" x-transition>{{ langLabel('logout') }}</span>
             </a>
             <form id="logout-form" action="{{ route('trainer.logout') }}" method="POST" class="hidden">
                 @csrf
