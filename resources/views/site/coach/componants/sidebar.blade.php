@@ -36,7 +36,7 @@ $unreadCount = DB::table('admin_group_chats')
            @click="active = 'coach.dashboard'"
            :title="!sidebarOpen ? 'Dashboard' : ''">
             <i data-feather="grid" class="mr-3"></i>
-            <span x-show="sidebarOpen" x-transition>Dashboard</span>
+            <span x-show="sidebarOpen" x-transition>{{ langLabel('dashboard') }}</span>
         </a>
 
 
@@ -57,11 +57,11 @@ $unreadCount = DB::table('admin_group_chats')
             <div x-show="open && sidebarOpen" x-transition class="flex flex-col ml-8 mt-1 space-y-1">
                 <a href="{{ route('coach.manage-bookings') }}"
                    class="px-4 py-2 rounded-md {{ request()->routeIs('coach.manage-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                    Booking Slots
+                    {{ langLabel('booking_slots') }}
                 </a>
                 <a href="{{ route('coach.create-bookings') }}"
                    class="px-4 py-2 rounded-md {{ request()->routeIs('coach.create-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
-                    Create Slots
+                    {{ langLabel('create_slots') }}
                 </a>
             </div>
         </div>
@@ -101,7 +101,7 @@ $unreadCount = DB::table('admin_group_chats')
             class="flex items-center px-4 py-2 rounded-md hover:bg-white hover:text-blue-900 transition duration-200"
             :title="!sidebarOpen ? 'Logout' : ''">
                 <i data-feather="log-out" class="mr-3"></i>
-                <span x-show="sidebarOpen" x-transition>Logout</span>
+                <span x-show="sidebarOpen" x-transition>{{ langLabel('logout') }}</span>
         </a>
 
         <form id="logout-form" action="{{ route('coach.logout') }}" method="POST" class="hidden">
