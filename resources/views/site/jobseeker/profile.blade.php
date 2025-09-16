@@ -496,47 +496,56 @@ $skills = $user->skills->first();
 
                                                     <!-- Highest Qualification -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                            <option value="">Select highest qualification</option>
-                                                            @foreach(['high_school'=>'High School','diploma'=>'Diploma','bachelor'=>"Bachelor's Degree",'master'=>"Master's Degree",'phd'=>'Ph.D.'] as $val => $label)
-                                                                <option value="{{ $val }}" {{ old("high_education.$i", $data->high_education ?? '') == $val ? 'selected' : '' }}>{{ $label }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Highest qualification <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="text" name="high_education[]" 
+                                                            value="{{ old("high_education.$i", $data->high_education ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="e.g., Bachelor's Degree" />
                                                     </div>
 
                                                     <!-- Field of Study -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Field of study <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                            <option value="">Select field of study</option>
-                                                            @foreach(['engineering','science','commerce','arts','medicine','law','education','management','other'] as $val)
-                                                                <option value="{{ $val }}" {{ old("field_of_study.$i", $data->field_of_study ?? '') == $val ? 'selected' : '' }}>{{ ucfirst($val) }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Field of study <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="text" name="field_of_study[]" 
+                                                            value="{{ old("field_of_study.$i", $data->field_of_study ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="e.g., Computer Science" />
                                                     </div>
 
                                                     <!-- Institution -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Institution name <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i", $data->institution ?? '') }}" placeholder="Enter institution name" />
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Institution name <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="text" name="institution[]" 
+                                                            value="{{ old("institution.$i", $data->institution ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="Enter institution name" />
                                                     </div>
 
                                                     <!-- Graduation Year -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Graduation year <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                            <option value="">Select year of passing</option>
-                                                            @foreach(range(date('Y'), 2010) as $year)
-                                                                <option value="{{ $year }}" {{ old("graduate_year.$i", $data->graduate_year ?? '') == $year ? 'selected' : '' }}>{{ $year }}</option>
-                                                            @endforeach
-                                                            <option value="2010-2014" {{ old("graduate_year.$i", $data->graduate_year ?? '') == '2010-2014' ? 'selected' : '' }}>2010-2014</option>
-                                                            <option value="before_2010" {{ old("graduate_year.$i", $data->graduate_year ?? '') == 'before_2010' ? 'selected' : '' }}>Before 2010</option>
-                                                        </select>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Graduation year <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="number" name="graduate_year[]" 
+                                                            value="{{ old("graduate_year.$i", $data->graduate_year ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="e.g., 2023"
+                                                            min="1900" max="{{ date('Y') + 5 }}" 
+                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                                     </div>
 
                                                     <!-- Remove Button -->
-                                                    <button type="button" class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg" style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                    <button type="button" 
+                                                            class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg" 
+                                                            style="{{ $i == 0 ? 'display:none;' : '' }}">
+                                                        &times;
+                                                    </button>
                                                 </div>
                                             @endfor
                                         </div>
@@ -548,11 +557,16 @@ $skills = $user->skills->first();
 
                                         <!-- Submit Buttons -->
                                         <div class="md:col-span-2 flex justify-end gap-4 mt-4">
-                                            <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="nextTab" x-show="profileTab !== 'additional'">Next</button>
-                                            <button type="button" id="save-education-info" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
+                                            <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                                                    @click="nextTab" x-show="profileTab !== 'additional'">Next</button>
+                                            <button type="button" id="save-education-info" 
+                                                    class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">
+                                                Save
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
+
 
                                 <!-- JavaScript -->
                                 <script>
@@ -699,41 +713,41 @@ $skills = $user->skills->first();
 
                                                     <!-- End To & Checkbox -->
                                                    @php
-    $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-        (isset($data->end_to) && $data->end_to === 'work here');
-    $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
-@endphp
+                                                        $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
+                                                            (isset($data->end_to) && $data->end_to === 'work here');
+                                                        $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
+                                                    @endphp
 
-<div x-data="{ 
-        working: {{ $isWorking ? 'true' : 'false' }}, 
-        endDate: '{{ $defaultDate }}', 
-        defaultDate: '{{ $defaultDate }}'
-    }"
->
-    <label class="block text-sm font-medium mb-1">
-        To <span style="color: red; font-size: 17px;">*</span>
-    </label>
+                                                    <div x-data="{ 
+                                                            working: {{ $isWorking ? 'true' : 'false' }}, 
+                                                            endDate: '{{ $defaultDate }}', 
+                                                            defaultDate: '{{ $defaultDate }}'
+                                                        }"
+                                                    >
+                                                        <label class="block text-sm font-medium mb-1">
+                                                            To <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
 
-    <input 
-        type="date" 
-        name="end_to[]" 
-        class="datepicker-end w-full border rounded px-3 py-2"
-        x-bind:disabled="working"
-        x-model="endDate"
-        max="{{ date('Y-m-d') }}"
-    />
+                                                        <input 
+                                                            type="date" 
+                                                            name="end_to[]" 
+                                                            class="datepicker-end w-full border rounded px-3 py-2"
+                                                            x-bind:disabled="working"
+                                                            x-model="endDate"
+                                                            max="{{ date('Y-m-d') }}"
+                                                        />
 
-    <label class="inline-flex items-center space-x-2 mt-2">
-        <input 
-            type="checkbox" 
-            name="currently_working[]" 
-            value="{{ $i }}"
-            x-model="working"
-            x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
-        />
-        <span>I currently work here</span>
-    </label>
-</div>
+                                                        <label class="inline-flex items-center space-x-2 mt-2">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                name="currently_working[]" 
+                                                                value="{{ $i }}"
+                                                                x-model="working"
+                                                                x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
+                                                            />
+                                                            <span>I currently work here</span>
+                                                        </label>
+                                                    </div>
 
 
 

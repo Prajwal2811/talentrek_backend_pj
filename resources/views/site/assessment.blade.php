@@ -209,7 +209,8 @@ use Illuminate\Support\Facades\DB;
                                     <img :src="assessor.profilePicture ? '/storage/' + assessor.profilePicture : '{{ asset('default.jpg') }}'"
                                         alt="Assessor Image"
                                         class="w-full h-48 object-cover rounded-lg">
-                                    <a :href="'/assessor-details/' + assessor.id">
+                                    <a :href="'jobseeker/assessor-details/' + assessor.id">
+                                        
                                         <h3 class="text-lg font-semibold text-gray-900"
                                             x-text="assessor.name"></h3>
                                     </a>

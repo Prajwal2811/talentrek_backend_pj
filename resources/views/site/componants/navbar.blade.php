@@ -46,10 +46,6 @@
                     class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
                     {{ langLabel('coaching') }}
                 </a>
-                <a href="#"
-                    class="{{ request()->routeIs('coaching', 'coach-details', 'coach-book-session', 'coach-booking-success') ? 'text-blue-600' : 'hover:text-blue-600' }}">
-                    Expact
-                </a>
             </nav>
 
 
