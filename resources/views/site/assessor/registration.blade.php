@@ -192,33 +192,21 @@
 
                                         <div id="education-container" class="col-span-2 grid grid-cols-2 gap-4">
                                             @foreach($educationData as $i => $value)
-                                            <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"">
+                                            <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('highest_qualification') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                        <option value="">{{ langLabel('select_highest_qualification') }}</option>
-                                                        @foreach(['high_school', 'diploma', 'bachelor', 'master', 'phd'] as $option)
-                                                        <option value="{{ $option }}" {{ old("high_education.$i") == $option ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $option)) }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                    <input type="text" name="high_education[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("high_education.$i") }}" placeholder="Enter qualification">
                                                     @error("high_education.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
-
-                                                <div>
+                                               <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('field_of_study') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                        <option value="">{{ langLabel('select_field_of_study') }}</option>
-                                                        @foreach(['engineering', 'science', 'commerce', 'arts', 'medicine', 'law', 'education', 'management', 'other'] as $field)
-                                                        <option value="{{ $field }}" {{ old("field_of_study.$i") == $field ? 'selected' : '' }}>{{ ucfirst($field) }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                    <input type="text" name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("field_of_study.$i") }}" placeholder="Enter field of study">
                                                     @error("field_of_study.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
-
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('institution_name') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i") }}" placeholder="{{ langLabel('enter_institution_name') }}">
@@ -226,21 +214,13 @@
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
-
-                                                <div>
+                                               <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('graduation_year') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                        <option value="">{{ langLabel('select_year_of_passing') }}</option>
-                                                        @for($year = now()->year; $year >= 2000; $year--)
-                                                        <option value="{{ $year }}" {{ old("graduate_year.$i") == $year ? 'selected' : '' }}>{{ $year }}</option>
-                                                        @endfor
-                                                        <option value="before_2000" {{ old("graduate_year.$i") == 'before_2000' ? 'selected' : '' }}>Before 2000</option>
-                                                    </select>
+                                                    <input type="number" name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("graduate_year.$i") }}" placeholder="Enter graduation year (e.g. 2022 / Before 2000)">
                                                     @error("graduate_year.$i")
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
-
                                                 <button type="button" class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg" style="{{ $i == 0 ? 'display:none;' : 'display:block;' }}">×</button>
                                             </div>
                                             @endforeach
@@ -255,6 +235,7 @@
                                             <button type="button" onclick="showStep(3)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
                                         </div>
                                     </div>
+
 
                                     <!-- Step 3: Work Experience -->
                                     <div id="step-3" class="step hidden">

@@ -24,10 +24,11 @@
             @include('site.trainer.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                @include('site.trainer.componants.navbar')
-
-           <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
+              @include('site.trainer.componants.navbar')
+              <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
                 <h2 class="text-2xl font-semibold mb-6">{{ langLabel('dashboard') }}</h2>
+                @include('admin.errors')
+
 
                 <!-- Stat Cards -->
                 <div class="grid grid-cols-12 gap-4 mb-6">

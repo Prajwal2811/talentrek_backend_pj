@@ -14,18 +14,38 @@
 
 
         @php
-            // Get mentor standard subscription plans
-            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'recruiter')->get();
-            $recruiterId = auth()->user('recruiter')->id;
-            $isExpired = App\Models\PurchasedSubscription::where('user_id', $recruiterId)
-                            ->where('user_type', 'recruiter')->where('end_date', '<', now())
-                            ->exists();
+            use App\Models\SubscriptionPlan;
+            use App\Models\PurchasedSubscription;
+            use App\Models\Recruiters;
 
-         
+            // Get recruiter subscription plans
+            $subscriptions = SubscriptionPlan::where('user_type', 'recruiter')->get();
+            $recruiter     = auth()->guard('recruiter')->user();
+            $recruiterId   = $recruiter->id;
+            $role          = $recruiter->role;
+
+            if ($role === "main") {
+                // Check subscription for main recruiter
+                $isExpired = PurchasedSubscription::where('user_id', $recruiterId)
+                                ->where('user_type', 'recruiter')
+                                ->where('end_date', '<', now())
+                                ->exists();
+            } else {
+                // Find parent recruiter (the "main recruiter" of this sub_main)
+                $recruiterData = Recruiters::where('id', $recruiter->recruiter_of)->first();
+
+                $isExpired = $recruiterData 
+                    ? PurchasedSubscription::where('user_id', $recruiterData->id)
+                                ->where('user_type', 'recruiter')
+                                ->where('end_date', '<', now())
+                                ->exists()
+                    : true; // fallback -> treat as expired if no parent found
+            }
         @endphp
 
-    @if(auth()->user('recruiter')->role === 'main')
-        <!-- Subscription Modal -->
+
+    {{-- Case 1: Main recruiter (always show modal) --}}
+    @if($role === 'main')
         <div id="subscriptionModal"
             class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
@@ -33,7 +53,7 @@
                     <h3 class="text-xl font-semibold mb-6 text-red-600">
                         Your subscription has expired.
                     </h3>
-                @else 
+                @else
                     <h3 class="text-xl font-semibold mb-6">
                         Available Subscription Plans
                     </h3>
@@ -46,7 +66,6 @@
                                 <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mb-2">
                                     <i class="fas fa-crown text-orange-500 text-xl"></i>
                                 </div>
-
                                 <h4 class="font-semibold">{{ $plan->title }}</h4>
                                 <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                             </div>
@@ -56,135 +75,26 @@
                                     <li>{{ trim($feature) }}</li>
                                 @endforeach
                             </ul>
-                            <button type="button"
-                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
-                                data-plan-id="{{ $plan->id }}">
-                                Buy subscription
-                            </button>
+                            <form action="{{ route('subscription.payment') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                <input type="hidden" name="user_id" value="{{ $recruiterId }}">
+                                <input type="hidden" name="type" value="recruiter">
+                                <button type="submit"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium">
+                                    Buy subscription
+                                </button>
+                            </form>
                         </div>
                     @endforeach
                 </div>
             </div>
         </div>
 
-
-        <!-- Payment Modal -->
-        <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
-            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
-                <form id="paymentForm">
-                    @csrf
-                    <input type="hidden" name="plan_id" id="selectedPlanId">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                        <input type="text" name="card_number" value="4242424242424242"
-                            class="w-full border border-gray-300 rounded-md px-4 py-2">
-                    </div>
-                    <div class="mb-4 flex space-x-2">
-                        <div class="w-1/2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                            <input type="text" name="expiry" value="12/30"
-                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                        </div>
-                        <div class="w-1/2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                            <input type="text" name="cvv" value="123"
-                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                        </div>
-                    </div>
-                    <button type="submit"
-                        class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                        Pay Now
-                    </button>
-                </form>
-                <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
-                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
-                    ×
-                </button>
-            </div>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-        <script>
-        function openPaymentModal(planId) {
-            document.getElementById('selectedPlanId').value = planId;
-            document.getElementById('paymentModal').classList.remove('hidden');
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.add('hidden');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Open payment modal on Buy Subscription click
-            document.querySelectorAll('.buy-subscription-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    openPaymentModal(this.getAttribute('data-plan-id'));
-                });
-            });
-
-            // Close modal on Escape
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') closePaymentModal();
-            });
-
-            // Handle AJAX payment
-            document.getElementById('paymentForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                let formData = new FormData(this);
-                let messageBox = document.getElementById('paymentMessage');
-                messageBox.textContent = "";
-
-                fetch("{{ route('recruiter.subscription.payment') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: formData
-                })
-                .then(async response => {
-                    let data = await response.json();
-                    if (!response.ok) throw data;
-                    return data;
-                })
-                .then(data => {
-                    closePaymentModal();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        html: `<b>${data.message}</b>`,
-                        confirmButtonColor: '#3085d6',
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        location.reload();
-                    });
-                })
-                .catch(error => {
-                    let errorMsg = error.message || "Something went wrong!";
-                    if (error.errors) {
-                        errorMsg = Object.values(error.errors).flat().join('<br>');
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        html: `<b>${errorMsg}</b>`,
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Close'
-                    });
-                });
-            });
-        });
-        </script>
-
-    @else
+    {{-- Case 2: Sub_main recruiter with expired subscription --}}
+    @elseif($role === 'sub_recruiter' && $isExpired)
         <div class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl relative transform transition-all duration-300 scale-95 hover:scale-100">
-                
-                <!-- Warning Icon -->
                 <div class="flex justify-center mb-4">
                     <div class="bg-yellow-100 text-yellow-600 w-16 h-16 flex items-center justify-center rounded-full shadow-md">
                         <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2"
@@ -194,11 +104,7 @@
                         </svg>
                     </div>
                 </div>
-
-                <!-- Title -->
                 <h3 class="text-2xl font-bold text-center text-blue-600">⚠ Subscription Expired</h3>
-
-                <!-- Message -->
                 <div class="mt-4 text-center">
                     <p class="text-gray-700 text-lg">
                         Your subscription has <span class="font-semibold text-red-500">expired</span>.<br>
@@ -208,5 +114,5 @@
                 <div class="my-6 border-t border-gray-200"></div>
             </div>
         </div>
-
     @endif
+

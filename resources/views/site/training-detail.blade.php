@@ -699,11 +699,12 @@
                             @endif
                         @else
                             {{-- Start First Assessment --}}
-                            <a href="#">
+                            <a href="{{ route('assessment.view', $material->id) }}">
                                 <button class="bg-red-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
                                     {{ langLabel('start_assessment') }}
                                 </button>
                             </a>
+
                         @endif
                     @else
                         {{-- Normal Join / Visit --}}

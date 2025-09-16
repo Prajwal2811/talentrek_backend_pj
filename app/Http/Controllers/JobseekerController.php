@@ -46,6 +46,16 @@ use App\Services\PaymentHelper;
 
 use App\Events\NotificationSent;
 
+
+
+use App\Models\CertificateTemplate;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
+
+use App\Models\JobseekerTrainingAssessmentTime;
+
+
+
 class JobseekerController extends Controller
 {
     public function showRegistrationForm()
@@ -71,79 +81,79 @@ class JobseekerController extends Controller
         ]);
 
         // Send welcome email
-            // Mail::html('
-            //     <!DOCTYPE html>
-            //     <html lang="en">
-            //     <head>
-            //         <meta charset="UTF-8">
-            //         <title>Welcome to Talentrek</title>
-            //         <style>
-            //             body {
-            //                 font-family: Arial, sans-serif;
-            //                 background-color: #f6f8fa;
-            //                 margin: 0;
-            //                 padding: 20px;
-            //                 color: #333;
-            //             }
-            //             .container {
-            //                 background-color: #ffffff;
-            //                 padding: 30px;
-            //                 border-radius: 8px;
-            //                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            //                 max-width: 600px;
-            //                 margin: auto;
-            //             }
-            //             .header {
-            //                 text-align: center;
-            //                 margin-bottom: 20px;
-            //             }
-            //             .footer {
-            //                 font-size: 12px;
-            //                 text-align: center;
-            //                 color: #999;
-            //                 margin-top: 30px;
-            //             }
-            //             .btn {
-            //                 display: inline-block;
-            //                 margin-top: 20px;
-            //                 padding: 10px 20px;
-            //                 background-color: #007bff;
-            //                 color: #fff !important;
-            //                 text-decoration: none;
-            //                 border-radius: 4px;
-            //             }
-            //         </style>
-            //     </head>
-            //     <body>
-            //         <div class="container">
-            //             <div class="header">
-            //                 <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
-            //             </div>
-            //             <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Welcome to Talentrek</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f6f8fa;
+                            margin: 0;
+                            padding: 20px;
+                            color: #333;
+                        }
+                        .container {
+                            background-color: #ffffff;
+                            padding: 30px;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            max-width: 600px;
+                            margin: auto;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            text-align: center;
+                            color: #999;
+                            margin-top: 30px;
+                        }
+                        .btn {
+                            display: inline-block;
+                            margin-top: 20px;
+                            padding: 10px 20px;
+                            background-color: #007bff;
+                            color: #fff !important;
+                            text-decoration: none;
+                            border-radius: 4px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                        </div>
+                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
 
-            //             <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+                        <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-            //             <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+                        <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
 
-            //             <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                        <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
-            //             <p>
-            //                 <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
-            //             </p>
+                        <p>
+                            <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                        </p>
 
-            //             <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
-            //         </div>
+                        <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                    </div>
 
-            //         <div class="footer">
-            //             © ' . date('Y') . ' Talentrek. All rights reserved.
-            //         </div>
-            //     </body>
-            //     </html>
-            // ', function ($message) use ($jobseeker) {
-            //     $message->to($jobseeker->email)
-            //         ->subject('Welcome to Talentrek – Registration Successful');
-            // });
-        //   
+                    <div class="footer">
+                        © ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+                </body>
+                </html>
+            ', function ($message) use ($jobseeker) {
+                $message->to($jobseeker->email)
+                    ->subject('Welcome to Talentrek – Registration Successful');
+            });
+         
 
         // Set session
         session([
@@ -443,78 +453,78 @@ class JobseekerController extends Controller
         }
 
 
-        // Mail::html(' 
-        //     <!DOCTYPE html>
-        //     <html lang="en">
-        //     <head>
-        //         <meta charset="UTF-8">
-        //         <title>Welcome to Talentrek</title>
-        //         <style>
-        //             body {
-        //                 font-family: Arial, sans-serif;
-        //                 background-color: #f6f8fa;
-        //                 margin: 0;
-        //                 padding: 20px;
-        //                 color: #333;
-        //             }
-        //             .container {
-        //                 background-color: #ffffff;
-        //                 padding: 30px;
-        //                 border-radius: 8px;
-        //                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        //                 max-width: 600px;
-        //                 margin: auto;
-        //             }
-        //             .header {
-        //                 text-align: center;
-        //                 margin-bottom: 20px;
-        //             }
-        //             .footer {
-        //                 font-size: 12px;
-        //                 text-align: center;
-        //                 color: #999;
-        //                 margin-top: 30px;
-        //             }
-        //             .btn {
-        //                 display: inline-block;
-        //                 margin-top: 20px;
-        //                 padding: 10px 20px;
-        //                 background-color: #007bff;
-        //                 color: #fff !important;
-        //                 text-decoration: none;
-        //                 border-radius: 4px;
-        //             }
-        //         </style>
-        //     </head>
-        //     <body>
-        //         <div class="container">
-        //             <div class="header">
-        //                 <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
-        //             </div>
-        //             <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+        Mail::html(' 
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Welcome to Talentrek</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f6f8fa;
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                    }
+                    .container {
+                        background-color: #ffffff;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        max-width: 600px;
+                        margin: auto;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }
+                    .footer {
+                        font-size: 12px;
+                        text-align: center;
+                        color: #999;
+                        margin-top: 30px;
+                    }
+                    .btn {
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background-color: #007bff;
+                        color: #fff !important;
+                        text-decoration: none;
+                        border-radius: 4px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                    </div>
+                    <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
 
-        //             <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+                    <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-        //             <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+                    <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
 
-        //             <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+                    <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
-        //             <p>
-        //                 <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
-        //             </p>
+                    <p>
+                        <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                    </p>
 
-        //             <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
-        //         </div>
+                    <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                </div>
 
-        //         <div class="footer">
-        //             © ' . date('Y') . ' Talentrek. All rights reserved.
-        //         </div>
-        //     </body>
-        //     </html>
-        // ', function ($message) use ($jobseeker) {
-        //     $message->to($jobseeker->email)
-        //         ->subject('Welcome to Talentrek – Registration Successful');
-        // });
+                <div class="footer">
+                    © ' . date('Y') . ' Talentrek. All rights reserved.
+                </div>
+            </body>
+            </html>
+        ', function ($message) use ($jobseeker) {
+            $message->to($jobseeker->email)
+                ->subject('Welcome to Talentrek – Registration Successful');
+        });
 
         $data = [
             'sender_id' => $jobseeker->id,
@@ -1239,12 +1249,72 @@ class JobseekerController extends Controller
             'updated_at' => now()
         ]);
 
-        // === OTP sending is disabled for now ===
-        if ($contactMethod === 'email') {
-            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
-            //     $message->to($contact)->subject('Your OTP has been resent – Talentrek');
-            // });
+        // === OTP sending ===
+        if ($isEmail) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Password Reset OTP</title>
+                    <style>
+                        body {
+                            background-color: #f6f8fa;
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            margin: 0;
+                            color: #333;
+                        }
+                        .container {
+                            background-color: #ffffff;
+                            padding: 30px;
+                            max-width: 500px;
+                            margin: 20px auto;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .otp-box {
+                            font-size: 24px;
+                            font-weight: bold;
+                            background-color: #f0f4ff;
+                            padding: 15px;
+                            text-align: center;
+                            border: 1px dashed #007bff;
+                            border-radius: 6px;
+                            margin: 20px 0;
+                            color: #007bff;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            text-align: center;
+                            margin-top: 30px;
+                            color: #888;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Password Reset Request</h2>
+                        <p>Hello,</p>
+                        <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+
+                        <div class="otp-box">' . $otp . '</div>
+
+                        <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+
+                        <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+
+                    <div class="footer">
+                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+                </body>
+                </html>
+            ', function ($message) use ($contact) {
+                $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+            });
         } else {
+            // Simulate SMS sending (replace with Msg91 / Twilio integration)
             // SmsService::send($contact, "Your OTP is: $otp");
         }
 
@@ -2640,6 +2710,81 @@ public function submitReview(Request $request)
 
 
 
+    // public function viewAssessment($id)
+    // {
+    //     $assessment = TrainerAssessment::where('material_id', $id)
+    //         ->with(['questions.options'])
+    //         ->firstOrFail();
+
+    //     $jobseekerId = Auth::guard('jobseeker')->id();
+
+    //     $answeredData = JobseekerAssessmentData::where([
+    //         ['assessment_id', '=', $assessment->id],
+    //         ['jobseeker_id', '=', $jobseekerId],
+    //     ])->get();
+
+    //     $answeredAnswers = $answeredData->mapWithKeys(function ($answer) {
+    //         return [$answer->question_id => $answer->selected_answer];
+    //     });
+
+    //     $answeredIds = $answeredData->pluck('question_id')->toArray();
+
+    //     $sessionKey = 'quiz_start_time_' . $assessment->id . '_' . $jobseekerId;
+
+    //     if (!session()->has($sessionKey)) {
+    //         session([$sessionKey => now()]);
+    //     }
+
+    //     $startTime = session($sessionKey);
+    //     $duration = 3600;
+    //     $elapsed = now()->diffInSeconds($startTime);
+    //     $remainingTime = max($duration - $elapsed, 0);
+
+    //     $quizQuestions = $assessment->questions->map(function ($q) use ($assessment, $answeredAnswers) {
+    //         $options = $q->options->pluck('options')->toArray();
+    //         $selectedAnswer = $answeredAnswers[$q->id] ?? null;
+    //         $selectedIndex = is_null($selectedAnswer) ? null : array_search($selectedAnswer, $options);
+
+    //         return [
+    //             'id' => $q->id,
+    //             'question' => $q->questions_title,
+    //             'options' => $options,
+    //             'correct_option' => $q->options->firstWhere('correct_option', 1)?->options,
+    //             'trainer_id' => $assessment->trainer_id,
+    //             'material_id' => $assessment->material_id,
+    //             'assessment_id' => $assessment->id,
+    //             'totalQuestions' => $assessment->total_questions,
+    //             'passingQuestions' => $assessment->passing_questions,
+    //             'selected_index' => $selectedIndex,
+    //         ];
+    //     });
+
+    //     $lastIndex = $answeredData->count();
+
+    //     $alreadySubmitted = JobseekerAssessmentStatus::where([
+    //         ['assessment_id', '=', $assessment->id],
+    //         ['jobseeker_id', '=', $jobseekerId],
+    //         ['submitted', '=', true],
+    //     ])->exists();
+
+
+    //     $resultStatus = JobseekerAssessmentStatus::where([
+    //                         ['assessment_id', '=', $assessment->id],
+    //                         ['jobseeker_id', '=', $jobseekerId],
+    //                         ['submitted', '=', true],
+    //                     ])->first();
+
+    //     return view('site.jobseeker.assessment', compact(
+    //         'assessment',
+    //         'quizQuestions',
+    //         'answeredIds',
+    //         'remainingTime',
+    //         'lastIndex',
+    //         'alreadySubmitted',
+    //         'resultStatus'
+    //     ));
+
+    // }
     public function viewAssessment($id)
     {
         $assessment = TrainerAssessment::where('material_id', $id)
@@ -2648,28 +2793,38 @@ public function submitReview(Request $request)
 
         $jobseekerId = Auth::guard('jobseeker')->id();
 
+        // Answered data
         $answeredData = JobseekerAssessmentData::where([
             ['assessment_id', '=', $assessment->id],
             ['jobseeker_id', '=', $jobseekerId],
         ])->get();
 
-        $answeredAnswers = $answeredData->mapWithKeys(function ($answer) {
-            return [$answer->question_id => $answer->selected_answer];
-        });
-
+        $answeredAnswers = $answeredData->mapWithKeys(fn($a) => [$a->question_id => $a->selected_answer]);
         $answeredIds = $answeredData->pluck('question_id')->toArray();
 
-        $sessionKey = 'quiz_start_time_' . $assessment->id . '_' . $jobseekerId;
+        // Assessment time
+        $duration = 3600; // 60 min
+        $assessmentTime = JobseekerTrainingAssessmentTime::firstOrCreate(
+            [
+                'jobseeker_id' => $jobseekerId,
+                'trainer_id'   => $assessment->trainer_id,
+                'material_id'  => $assessment->material_id,
+            ],
+            [
+                'start_time'     => now(),
+                'end_time'       => now()->copy()->addSeconds($duration),
+                'total_duration' => $duration,
+                'remaining_time' => $duration,
+                'status'         => 0,
+            ]
+        );
 
-        if (!session()->has($sessionKey)) {
-            session([$sessionKey => now()]);
+        $remainingTime = ($assessmentTime->status == 1) ? 0 : $assessmentTime->remaining_time;
+        if ($remainingTime <= 0) {
+            $assessmentTime->update(['status' => 2]);
         }
 
-        $startTime = session($sessionKey);
-        $duration = 3600;
-        $elapsed = now()->diffInSeconds($startTime);
-        $remainingTime = max($duration - $elapsed, 0);
-
+        // Questions
         $quizQuestions = $assessment->questions->map(function ($q) use ($assessment, $answeredAnswers) {
             $options = $q->options->pluck('options')->toArray();
             $selectedAnswer = $answeredAnswers[$q->id] ?? null;
@@ -2690,19 +2845,17 @@ public function submitReview(Request $request)
         });
 
         $lastIndex = $answeredData->count();
-
         $alreadySubmitted = JobseekerAssessmentStatus::where([
             ['assessment_id', '=', $assessment->id],
             ['jobseeker_id', '=', $jobseekerId],
             ['submitted', '=', true],
         ])->exists();
 
-
         $resultStatus = JobseekerAssessmentStatus::where([
-                            ['assessment_id', '=', $assessment->id],
-                            ['jobseeker_id', '=', $jobseekerId],
-                            ['submitted', '=', true],
-                        ])->first();
+            ['assessment_id', '=', $assessment->id],
+            ['jobseeker_id', '=', $jobseekerId],
+            ['submitted', '=', true],
+        ])->first();
 
         return view('site.jobseeker.assessment', compact(
             'assessment',
@@ -2713,8 +2866,34 @@ public function submitReview(Request $request)
             'alreadySubmitted',
             'resultStatus'
         ));
-
     }
+
+    public function updateRemainingTime(Request $request)
+    {
+        $jobseekerId = Auth::guard('jobseeker')->id();
+
+        $request->validate([
+            'material_id' => 'required|integer',
+            'remaining_time' => 'required|integer|min:0',
+        ]);
+
+        $record = JobseekerTrainingAssessmentTime::where([
+            'jobseeker_id' => $jobseekerId,
+            'material_id'  => $request->material_id,
+        ])->first();
+
+        if ($record) {
+            $record->update([
+                'remaining_time' => $request->remaining_time,
+                'status' => $request->remaining_time > 0 ? 0 : 2,
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+
+
 
 
     public function saveJobseekerAnswer(Request $request)
