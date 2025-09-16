@@ -100,7 +100,7 @@
                             <!-- Step 2 -->
                             <div class="flex flex-col items-center cursor-pointer" onclick="showStep(2)">
                                 <div id="step-2-circle" class="w-8 h-8 rounded-full border-2 flex items-center justify-center">2</div>
-                                <span class="text-xs mt-1 text-center">Additional<br />Information</span>
+                                <span class="text-xs mt-1 text-center">{{ langLabel('additional') }}<br />Information</span>
                             </div>
                             </div>
                             <form class="space-y-6" id="multiStepForm"  action="{{ route('recruitment.registration.store') }}" enctype="multipart/form-data" method="POST">
@@ -110,8 +110,8 @@
                                 <!-- Step 1: Company Information -->
                                 <div id="step-1" class="step">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Company name <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="company_name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter company name" value="{{old('company_name')}}"/>
+                                            <label class="block mb-1 text-sm font-medium">{{ langLabel('company_name') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="company_name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_company_name') }}" value="{{old('company_name')}}"/>
                                             @error('company_name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -119,15 +119,15 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Company website <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="url" name="company_website" class="w-full border rounded-md p-2 mt-1" placeholder="Paste website link" value="{{old('company_website')}}"/>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_website') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="url" name="company_website" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_company_website') }}" value="{{old('company_website')}}"/>
                                                 @error('company_website')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Company location <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="text" name="company_city" class="w-full border rounded-md p-2 mt-1" placeholder="Enter location" value="{{old('company_city')}}"/>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_location') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="text" name="company_city" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_company_location') }}" value="{{old('company_city')}}"/>
                                                 @error('company_city')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -135,8 +135,8 @@
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Company address <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="company_address" class="w-full border rounded-md p-2 mt-1" placeholder="Enter the address" value="{{old('company_address')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_address') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="company_address" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_company_address') }}" value="{{old('company_address')}}"/>
                                             @error('company_address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -144,14 +144,14 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Business email <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter email id" value="{{old('company_address')}}"/>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('business_email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_email_id') }}" value="{{old('company_address')}}"/>
                                                 @error('business_email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Company phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
                                                     <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code" required>
                                                         <option value="+966">(+966) 🇸🇦 Saudi Arabia</option>
@@ -170,7 +170,7 @@
                                                         <option value="+7">(+7) 🇷🇺 Russia</option>
                                                     </select>
 
-                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="Enter phone number"  value="{{ old('company_phone_number') }}"/>
+                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="{{ langLabel('enter_phone_number') }}"  value="{{ old('company_phone_number') }}"/>
                                                     @error('company_phone_number')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -180,16 +180,16 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Number of employees <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="number" name="no_of_employee" class="w-full border rounded-md p-2 mt-1" placeholder="Enter number of employees" value="{{old('no_of_employee')}}"/>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('number_of_employees') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="number" name="no_of_employee" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_number_of_employees') }}" value="{{old('no_of_employee')}}"/>
                                                 @error('no_of_employee')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Industry type <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('industry_type') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <select class="w-full border rounded-md p-2 mt-1" name="industry_type">
-                                                    <option value="">Select type</option>
+                                                    <option value="">{{ langLabel('select_type') }}</option>
                                                     <option value="it" {{ old('industry_type') == 'it' ? 'selected' : '' }}>Information Technology</option>
                                                     <option value="healthcare" {{ old('industry_type') == 'healthcare' ? 'selected' : '' }}>Healthcare</option>
                                                     <option value="finance" {{ old('industry_type') == 'finance' ? 'selected' : '' }}>Finance</option>
@@ -214,7 +214,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">CR number (Company registration number) <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('cr_number') }} ({{ langLabel('company_registration_number') }}) <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="registration_number"  class="w-full border rounded-md p-2 mt-1" placeholder="Enter CR number" value="{{old('registration_number')}}"/>
                                             @error('registration_number')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -223,7 +223,7 @@
 
                                         <div class="flex justify-end">
                                             <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
-                                                Next
+                                                {{ langLabel('next') }}
                                             </button>
                                         </div>
                                 
@@ -232,18 +232,18 @@
                                 <!-- Step 2: Additional Information -->
                                 <div id="step-2" class="step hidden">
                                         <div>
-                                            <h2 class="font-semibold mb-2">Recruiter details:</h2>
+                                            <h2 class="font-semibold mb-2">{{ langLabel('recruiter_details') }}:</h2>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's name <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's name" value="{{old('name')}}"/>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_name') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_name') }}" value="{{old('name')}}"/>
                                                     @error('name')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's email <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="email" name="email" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's email"  value="{{ old('email', $email) }}" readonly/>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="email" name="email" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters') }}"  value="{{ old('email', $email) }}" readonly/>
                                                     @error('email')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -251,14 +251,14 @@
                                             </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Recruiter's phone number <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="phone_number" class="w-full border rounded-md p-2 mt-1" placeholder="Enter recruiter's phone_number"  value="{{ old('phone_number') }}" />
+                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="phone_number" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_phone_number') }}"  value="{{ old('phone_number') }}" />
                                                     @error('phone_number')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <span class="text-xs text-blue-600">
                                                         National ID should start with 1 for male and 2 for female.
                                                     </span>
@@ -280,11 +280,11 @@
                                         </div>
 
                                         <div>
-                                            <h2 class="font-semibold mb-2 mt-3">Documents:</h2>
+                                            <h2 class="font-semibold mb-2 mt-3">{{ langLabel('documents') }}:</h2>
                                             <div class="flex flex-col gap-4">
                                                 <!-- Company Profile Upload -->
                                                 <div class="flex flex-col gap-2">
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Company Profile Picuture <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_profile_picture') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
 
                                                         <input type="file" name="company_profile" accept=".png,.jpg,.jpeg" class="w-full border rounded-md p-2" />
@@ -297,7 +297,7 @@
 
                                                 <!-- Registration Documents Upload -->
                                                 <div class="flex flex-col gap-2">
-                                                    <label class="block mb-1 text-sm font-medium mt-3">Company Registration Documents <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_registration_documents') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
                                                         <input type="file" name="registration_documents" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple />
                                                     </div>
@@ -312,10 +312,10 @@
                                         </div>
 
                                         <div class="flex justify-between pt-4">
-                                            <button type="button" onclick="showStep(1)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">Back</button>
+                                            <button type="button" onclick="showStep(1)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">{{ langLabel('back') }}</button>
                                             
                                             <button type="submit" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
-                                                Register
+                                                {{ langLabel('register') }}
                                             </button>
                                         </div>
                                 </div>

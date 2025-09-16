@@ -17,7 +17,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-3xl font-bold text-white ml-[10%]">Profile</h2>
+                        <h2 class="text-3xl font-bold text-white ml-[10%]">{{ langLabel('profile') }}</h2>
                     </div>
                 </div>
             </div>
@@ -39,15 +39,15 @@
                                 <!-- Questions Panel -->
                                 <div class="lg:col-span-2 space-y-6">
                                     <div>
-                                        <h2 class="text-xl font-semibold text-gray-800">Assessment Results</h2>
-                                        <p class="text-gray-600 text-sm mt-2">Review your answers below. Correct answers are shown in green.</p>
+                                        <h2 class="text-xl font-semibold text-gray-800">{{ langLabel('assessment_results') }}</h2>
+                                        <p class="text-gray-600 text-sm mt-2">{{ langLabel('review_your_answers') }}</p>
                                     </div>
 
                                     <!-- Questions -->
                                     <template x-for="(q, index) in questions" :key="index">
                                         <div x-show="current === index" class="bg-white rounded border p-6 shadow-sm">
                                             <h3 class="text-md font-semibold text-gray-800 mb-2" x-text="q.question"></h3>
-                                            <p class="text-sm text-gray-500 mb-4">Your selected answer is highlighted below.</p>
+                                            <p class="text-sm text-gray-500 mb-4">{{ langLabel('selected_answers_highlited') }}</p>
 
                                             <div class="space-y-3">
                                                 <template x-for="(opt, i) in q.options" :key="i">
@@ -80,7 +80,7 @@
                                             @click="current < questions.length - 1 ? current++ : current = 0"
                                             class="text-sm font-medium px-5 py-2 rounded bg-blue-700 text-white hover:bg-blue-800 transition"
                                         >
-                                            Next Question &gt;
+                                            {{ langLabel('next_question') }} &gt;
                                         </button>
                                     </div>
                                 </div>
@@ -101,7 +101,7 @@
                                     @endphp
 
                                     <div class="mt-4">
-                                        <h4 class="text-sm font-medium text-gray-700 mb-1">Performance</h4>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-1">{{ langLabel('performance') }}</h4>
                                         <div class="w-full bg-gray-200 rounded-full h-3 mb-1">
                                             <div class="{{ $progressColor }} h-3 rounded-full transition-all duration-300" style="width: {{ $percentage }}%"></div>
                                         </div>
@@ -110,7 +110,7 @@
 
                                     <!-- Jump to Question -->
                                     <div>
-                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Jump to Question</h4>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2">{{ langLabel('jump_to_question') }}</h4>
                                         <div class="grid grid-cols-5 gap-2">
                                             <template x-for="(q, index) in questions" :key="index">
                                                 <button
@@ -130,7 +130,7 @@
                                     @if ($percentage < $actualPercentage)
                                         <div class="mt-4">
                                             <a class="w-full px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700 transition" href="#" data-bs-toggle="modal" data-bs-target="#assessmentModal">
-                                               Re-assessment
+                                               {{ langLabel('re_assessment') }}
                                             </a>
                                         </div>
                                          <!-- Assessment Modal -->
@@ -138,7 +138,7 @@
                                                 <div class="modal-dialog modal-dialog-centered">
                                                     <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="assessmentModalLabel">Assessment Instructions</h5>
+                                                        <h5 class="modal-title" id="assessmentModalLabel">{{ langLabel('assessment_instructions') }}</h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
@@ -150,8 +150,8 @@
                                                         </ul>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <a href="{{ route('assessment.view', $assessment->id) }}" class="btn btn-primary">Start Assessment</a>
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <a href="{{ route('assessment.view', $assessment->id) }}" class="btn btn-primary">{{ langLabel('start_assessment') }}</a>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ langLabel('cancel') }}</button>
                                                     </div>
                                                     </div>
                                                 </div>

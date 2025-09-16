@@ -24,40 +24,40 @@
 
     <!-- Page Content Here -->
     <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
-       <h2 class="text-2xl font-semibold mb-6">About mentor</h2>
+       <h2 class="text-2xl font-semibold mb-6">{{ langLabel('about_mentor') }}</h2>
 
                 <div class="bg-white shadow rounded-lg p-6 space-y-6">
                     <!-- mentor Information -->
-                    <h3 class="text-lg font-medium text-gray-800">mentor information</h3>
+                    <h3 class="text-lg font-medium text-gray-800">{{ langLabel('mentor_information') }}</h3>
 
                     <!-- mentor Overview -->
                     <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">mentor overview / About mentor</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('mentor_overview') }} / {{ langLabel('about_mentor') }}</label>
                     <div class="border border-gray-300 rounded-md overflow-hidden">
                         <!-- Replace this div with your WYSIWYG component -->
-                        <textarea class="w-full p-3 text-sm h-28 resize-none focus:outline-none" placeholder="Write about mentor..."></textarea>
+                        <textarea class="w-full p-3 text-sm h-28 resize-none focus:outline-none" placeholder="{{ langLabel('write_about_mentor') }}..."></textarea>
                     </div>
                     </div>
 
                     <!-- Assessment Benefits -->
                     <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Assessment benefits</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('assessment_benefits') }}</label>
                     <div class="border border-gray-300 rounded-md overflow-hidden">
                         <!-- Replace this div with your WYSIWYG component -->
-                        <textarea class="w-full p-3 text-sm h-28 resize-none focus:outline-none" placeholder="Write assessment benefits..."></textarea>
+                        <textarea class="w-full p-3 text-sm h-28 resize-none focus:outline-none" placeholder="{{ langLabel('write_assessment_benefits') }}..."></textarea>
                     </div>
                     </div>
 
                     <!-- Work Experience -->
                     <div>
-                    <h4 class="text-md font-semibold text-gray-800 mb-3">Work experience:</h4>
+                    <h4 class="text-md font-semibold text-gray-800 mb-3">{{ langLabel('work_experience') }}:</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Your profession</label>
-                        <input type="text" placeholder="Enter your profession" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('your_prefession') }}</label>
+                        <input type="text" placeholder="{{ langLabel('enter_your_prefession') }}" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
                         </div>
                         <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Years of experience</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('years_of_experience') }}</label>
                         <input type="text" placeholder="Ex: 2 years" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
                         </div>
                     </div>
@@ -65,12 +65,12 @@
 
                     <!-- Qualification -->
                     <div>
-                    <h4 class="text-md font-semibold text-gray-800 mb-3">Qualification:</h4>
+                    <h4 class="text-md font-semibold text-gray-800 mb-3">{{ langLabel('qualification') }}:</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Highest qualification</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('highest_qualification') }}</label>
                         <select class="w-full border border-gray-300 rounded-md p-2 text-sm">
-                            <option>Select highest qualification</option>
+                            <option>{{ langLabel('select_highest_qualification') }}</option>
                             <option>Bachelor's</option>
                             <option>Master's</option>
                             <option>Ph.D</option>
@@ -78,7 +78,7 @@
                         </select>
                         </div>
                         <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Field of study</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('field_of_study') }}</label>
                         <input type="text" placeholder="Ex: Design, Science..." class="w-full border border-gray-300 rounded-md p-2 text-sm" />
                         </div>
                     </div>
@@ -86,19 +86,19 @@
 
                     <!-- Institution Name -->
                     <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution name</label>
-                    <input type="text" placeholder="Enter institution name" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('institution_name') }}</label>
+                    <input type="text" placeholder="{{ langLabel('enter_institution_name') }}" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
                     </div>
 
                     <!-- Price per Session -->
                     <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Price per session</label>
-                    <input type="text" placeholder="Enter price per session" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('price_per_session') }}</label>
+                    <input type="text" placeholder="{{ langLabel('enter_price_per_session') }}" class="w-full border border-gray-300 rounded-md p-2 text-sm" />
                     </div>
 
                     <!-- Save Button -->
                     <div class="flex justify-end">
-                    <button class="bg-blue-600 text-white px-6 py-2 rounded-md text-sm hover:bg-blue-700">Save details</button>
+                    <button class="bg-blue-600 text-white px-6 py-2 rounded-md text-sm hover:bg-blue-700">{{ langLabel('save_details') }}</button>
                     </div>
                 </div>
     </main>

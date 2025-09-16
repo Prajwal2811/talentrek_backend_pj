@@ -27,7 +27,7 @@
                         @click="active = 'dashboard'"
                     >
                         <i data-feather="grid" class="mr-3"></i>
-                        <span x-show="sidebarOpen" x-transition>Dashboard</span>
+                        <span x-show="sidebarOpen" x-transition>{{ langLabel('dashboard') }}</span>
                     </a>
 
                     <!-- Jobseekers -->
@@ -43,7 +43,7 @@
                         @click="active = 'jobseeker'"
                     >
                         <i data-feather="user" class="mr-3"></i>
-                        <span x-show="sidebarOpen" x-transition>Jobseekers</span>
+                        <span x-show="sidebarOpen" x-transition>{{ langLabel('jobseeker') }}</span>
                     </a>
 
                     <!-- Admin Support -->
@@ -59,7 +59,7 @@
                         @click="active = 'admin-support'; markMessagesAsReadRecruiter();"
                     >
                         <i data-feather="headphones" class="mr-3"></i>
-                        <span x-show="sidebarOpen" x-transition>Admin support</span>
+                        <span x-show="sidebarOpen" x-transition>{{ langLabel('admin_support') }}</span>
 
                         <!-- 🔴 Badge -->
                         <span id="admin-support-badge-recruiter"
@@ -84,7 +84,7 @@
                         @click="active = 'settings'"
                     >
                         <i data-feather="settings" class="mr-3"></i>
-                        <span x-show="sidebarOpen" x-transition>Settings</span>
+                        <span x-show="sidebarOpen" x-transition>{{ langLabel('settings') }}</span>
                     </a>
 
 
@@ -101,7 +101,7 @@
                         :title="!sidebarOpen ? 'Logout' : ''"
                     >
                         <i data-feather="log-out" class="mr-3"></i>
-                        <span x-show="sidebarOpen" x-transition>Logout</span>
+                        <span x-show="sidebarOpen" x-transition>{{ langLabel('logout') }}</span>
                     </a>
 
                     <form id="logout-form" action="{{ route('recruiter.logout') }}" method="POST" class="hidden">

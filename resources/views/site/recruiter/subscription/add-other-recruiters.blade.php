@@ -30,7 +30,7 @@
     <!-- Subscription Modal -->
     <div id="subscriptionModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
         <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
-            <h3 class="text-xl font-semibold mb-6">Add Other Recruiters</h3>
+            <h3 class="text-xl font-semibold mb-6">{{ langLabel('add_other_recruiters') }}</h3>
 
             <form id="addRecruitersForm" method="POST" action="{{ route('recruiter.add.others') }}">
                 @csrf
@@ -55,30 +55,30 @@
                             @endif
 
                             <div class="w-1/3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('name') }}</label>
                                 <input type="text" name="recruiters[{{ $i }}][name]"
                                     value="{{ old('recruiters.' . $i . '.name', $r->name ?? '') }}"
-                                    placeholder="Enter Name"
+                                    placeholder="{{ langLabel('enter_name') }}"
                                     class="w-full border border-gray-300 rounded-md px-3 py-2">
                                 <span class="error text-red-500 text-sm" data-error="recruiters.{{ $i }}.name"></span>
                             </div>
 
                             <div class="w-1/3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('email') }}</label>
                                 <input type="email" name="recruiters[{{ $i }}][email]"
                                     value="{{ old('recruiters.' . $i . '.email', $r->email ?? '') }}"
-                                    placeholder="Enter Email"
+                                    placeholder="{{ langLabel('enter_email') }}"
                                     class="w-full border border-gray-300 rounded-md px-3 py-2">
                                 <span class="error text-red-500 text-sm" data-error="recruiters.{{ $i }}.email"></span>
                             </div>
 
                             <div class="w-1/3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">National ID</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('national_id') }}</label>
                                 <input type="text" name="recruiters[{{ $i }}][national_id]"
                                     value="{{ old('recruiters.' . $i . '.national_id', $r->national_id ?? '') }}"
                                     maxlength="15"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);"
-                                    placeholder="Enter National ID"
+                                    placeholder="{{ langLabel('enter_national_id') }}"
                                     class="w-full border border-gray-300 rounded-md px-3 py-2">
                                 <span class="error text-red-500 text-sm" data-error="recruiters.{{ $i }}.national_id"></span>
                             </div>
@@ -92,7 +92,7 @@
 
                 <button type="submit"
                     class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition text-sm">
-                    Save Recruiters
+                    {{ langLabel('save_recruiters') }}
                 </button>
             </form>
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

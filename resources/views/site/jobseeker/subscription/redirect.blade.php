@@ -10,7 +10,7 @@
         <input type="hidden" name="responseURL" value="{{ route('payment.callback') }}">
         <input type="hidden" name="errorURL" value="{{ route('payment.error') }}">
         <noscript>
-            <button type="submit">Click here if not redirected</button>
+            <button type="submit">{{ langLabel('click_here_not_redirected') }}</button>
         </noscript>
     </form>
 </body>

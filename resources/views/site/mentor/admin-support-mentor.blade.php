@@ -22,7 +22,7 @@
                 @include('site.mentor.componants.navbar')
 
                     <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
-                        <h2 class="text-2xl font-semibold mb-6">Admin support</h2>
+                        <h2 class="text-2xl font-semibold mb-6">{{ langLabel('admin_support') }}</h2>
 
                         <!-- Chat Card -->
                         <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[600px]">
@@ -31,8 +31,8 @@
                             <div class="flex items-center space-x-4 border-b pb-4 mb-4">
                                 <img src="https://i.pravatar.cc/100?img=3" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
                                 <div>
-                                    <h3 class="text-md font-semibold">Talentrek admin support</h3>
-                                    <p class="text-gray-500 text-sm">Ask anything about recruitment</p>
+                                    <h3 class="text-md font-semibold">Talentrek {{ langLabel('admin_support') }}</h3>
+                                    <p class="text-gray-500 text-sm">{{ langLabel('ask_about_recruitment') }}</p>
                                 </div>
                             </div>
 
@@ -47,7 +47,7 @@
                                 <input
                                     type="text"
                                     id="chatInput"
-                                    placeholder="Write your message here..."
+                                    placeholder="{{ langLabel('write_message_here') }}..."
                                     class="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
                                 />
 

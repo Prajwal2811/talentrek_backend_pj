@@ -26,9 +26,9 @@
                 @include('site.mentor.componants.navbar')
 
            <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="reviewsDashboard()">
-            <h2 class="text-2xl font-semibold mb-6">Reviews</h2>
+            <h2 class="text-2xl font-semibold mb-6">{{ langLabel('reviews') }}</h2>
             <div class="bg-white p-4">
-                <h3 class="text-md font-semibold mb-4">Jobseeker reviews</h3>
+                <h3 class="text-md font-semibold mb-4">{{ langLabel('jobseeker') }} {{ langLabel('reviews') }}</h3>
                 @if(session('success'))
                     <span id="successMessage" class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -53,13 +53,13 @@
                         <table class="min-w-full text-sm text-left border-collapse">
                             <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3">Sr. No.</th>
+                                    <th class="px-4 py-3">{{ langLabel('sr_no') }}</th>
                                     <!-- <th class="px-4 py-3">Course</th> -->
-                                    <th class="px-4 py-3">Jobseeker Name</th>
-                                    <th class="px-4 py-3">Review</th>
-                                    <th class="px-4 py-3">Rating</th>
-                                    <th class="px-4 py-3">Date</th>
-                                    <th class="px-4 py-3">Delete</th>
+                                    <th class="px-4 py-3">{{ langLabel('jobseeker') }} {{ langLabel('name') }}</th>
+                                    <th class="px-4 py-3">{{ langLabel('review') }}</th>
+                                    <th class="px-4 py-3">{{ langLabel('rating') }}</th>
+                                    <th class="px-4 py-3">{{ langLabel('date') }}</th>
+                                    <th class="px-4 py-3">{{ langLabel('delete') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-700">

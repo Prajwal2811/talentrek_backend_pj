@@ -52,7 +52,7 @@
                                     <div id="step-2-circle"
                                         class="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center">
                                         2</div>
-                                    <span class="text-xs mt-1 text-center">Educational<br />details</span>
+                                    <span class="text-xs mt-1 text-center">{{ langLabel('educational') }}<br />details</span>
                                 </div>
                                 <div class="flex-1 h-px bg-gray-300 mx-2"></div>
 
@@ -61,7 +61,7 @@
                                     <div id="step-3-circle"
                                         class="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center">
                                         3</div>
-                                    <span class="text-xs mt-1 text-center">Work<br />experience</span>
+                                    <span class="text-xs mt-1 text-center">{{ langLabel('work') }}<br />experience</span>
                                 </div>
                                 <div class="flex-1 h-px bg-gray-300 mx-2"></div>
 
@@ -70,7 +70,7 @@
                                     <div id="step-4-circle"
                                         class="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center">
                                         4</div>
-                                    <span class="text-xs mt-1 text-center">Skills &<br />training</span>
+                                    <span class="text-xs mt-1 text-center">{{ langLabel('skills') }} &<br />{{ langLabel('training') }}</span>
                                 </div>
                                 <div class="flex-1 h-px bg-gray-300 mx-2"></div>
 
@@ -79,7 +79,7 @@
                                     <div id="step-5-circle"
                                         class="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center">
                                         5</div>
-                                    <span class="text-xs mt-1 text-center">Additional<br />information</span>
+                                    <span class="text-xs mt-1 text-center">{{ langLabel('additional') }}<br />information</span>
                                 </div>
                             </div>
 
@@ -90,17 +90,17 @@
                                 <div id="step-1" class="step">
 
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
+                                        <label class="block mb-1 text-sm font-medium">{{ langLabel('full_name') }} <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="name" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="Enter full name" value="{{ old('name') }}" />
+                                            placeholder="{{ langLabel('enter_full_name') }}" value="{{ old('name') }}" />
                                         @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Email <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input placeholder="Enter email" name="email" type="email"
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input placeholder="{{ langLabel('enter_email') }}" name="email" type="email"
                                                 class="w-full border rounded-md p-2 mt-1" value="{{ old('email', $email) }}"
                                                 readonly />
                                             @error('email')
@@ -108,13 +108,13 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Gender <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('gender') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
-                                                <option value="">Select gender</option>
-                                                <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male
+                                                <option value="">{{ langLabel('select_gender') }}</option>
+                                                <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>{{ langLabel('male') }}
                                                 </option>
                                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>
-                                                    Female</option>
+                                                    {{ langLabel('female') }}</option>
                                             </select>
                                         @error('gender')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -124,7 +124,7 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex">
                                                 <select name="phone_code" class="w-1/3 border rounded-l-md p-2 mt-1">
                                                     <option value="+966">+966</option>
@@ -140,7 +140,7 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('dob') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="date" name="dob" id="dob" class="w-full border rounded-md p-2 mt-1"
                                                 value="{{ old('dob') }}" max="{{ date('Y-m-d') }}"/>
                                             @error('dob')
@@ -150,7 +150,7 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6 mt-3">
                                         <div class="col-span-2">
-                                            <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <span class="text-xs text-blue-600">
                                                 National ID should start with 1 for male and 2 for female.
                                             </span>
@@ -172,7 +172,7 @@
 
                                     <div>
                                         <label class="block mb-1 text-sm font-medium mt-3">
-                                            Address <span style="color: red; font-size: 17px;">*</span>
+                                            {{ langLabel('address') }} <span style="color: red; font-size: 17px;">*</span>
                                         </label>
                                         <textarea name="address" rows="3"
                                             class="w-full border rounded-md p-2 mt-1"
@@ -185,9 +185,9 @@
 
                                     <!-- Country Dropdown -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red;">*</span></label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('country') }} <span style="color: red;">*</span></label>
                                         <select id="country" name="country" class="w-full border rounded-md p-2" onchange="loadStates()">
-                                            <option value="">Select Country</option>
+                                            <option value="">{{ langLabel('select_country') }}</option>
                                             <option value="saudi">Saudi Arabia</option>
                                             <option value="india">India</option>
                                             <option value="usa">USA</option>
@@ -203,17 +203,17 @@
 
                                     <!-- State Dropdown -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">State <span style="color: red;">*</span></label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('state') }} <span style="color: red;">*</span></label>
                                         <select id="state" name="state" class="w-full border rounded-md p-2" onchange="loadCities()">
-                                            <option value="">Select State</option>
+                                            <option value="">{{ langLabel('select_state') }}</option>
                                         </select>
                                     </div>
 
                                     <!-- City Dropdown -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red;">*</span></label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('city') }} <span style="color: red;">*</span></label>
                                         <select id="city" name="city" class="w-full border rounded-md p-2">
-                                            <option value="">Select City</option>
+                                            <option value="">{{ langLabel('select_city') }}</option>
                                         </select>
                                     </div>
 
