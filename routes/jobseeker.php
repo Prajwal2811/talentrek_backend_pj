@@ -123,6 +123,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
 		Route::get('/take-assessment/{id}', [JobseekerController::class, 'viewAssessment'])->name('assessment.view');
+		Route::post('/jobseeker/update-remaining-time', [App\Http\Controllers\JobseekerController::class, 'updateRemainingTime'])
+    	->name('jobseeker.updateRemainingTime');
+
 
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 		Route::get('/buy-course-for-team/{id}', [JobseekerController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');

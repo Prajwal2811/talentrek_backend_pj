@@ -118,6 +118,80 @@ class RecruiterController extends Controller
                'pass' => $request->password,
           ]);
 
+          // Send welcome email
+          Mail::html('
+               <!DOCTYPE html>
+               <html lang="en">
+               <head>
+                    <meta charset="UTF-8">
+                    <title>Welcome to Talentrek</title>
+                    <style>
+                         body {
+                         font-family: Arial, sans-serif;
+                         background-color: #f6f8fa;
+                         margin: 0;
+                         padding: 20px;
+                         color: #333;
+                         }
+                         .container {
+                         background-color: #ffffff;
+                         padding: 30px;
+                         border-radius: 8px;
+                         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                         max-width: 600px;
+                         margin: auto;
+                         }
+                         .header {
+                         text-align: center;
+                         margin-bottom: 20px;
+                         }
+                         .footer {
+                         font-size: 12px;
+                         text-align: center;
+                         color: #999;
+                         margin-top: 30px;
+                         }
+                         .btn {
+                         display: inline-block;
+                         margin-top: 20px;
+                         padding: 10px 20px;
+                         background-color: #007bff;
+                         color: #fff !important;
+                         text-decoration: none;
+                         border-radius: 4px;
+                         }
+                    </style>
+               </head>
+               <body>
+                    <div class="container">
+                         <div class="header">
+                         <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                         </div>
+                         <p>Hi <strong>' . e($recruiters->name ?? $recruiters->email) . '</strong>,</p>
+
+                         <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+
+                         <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+
+                         <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
+                         <p>
+                         <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                         </p>
+
+                         <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+
+                    <div class="footer">
+                         © ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+               </body>
+               </html>
+          ', function ($message) use ($recruiters) {
+               $message->to($recruiters->email)
+                    ->subject('Welcome to Talentrek – Registration Successful');
+          });
+
           session([
                'recruiter_id' => $recruiters->id,
                'email' => $request->email,
@@ -313,94 +387,169 @@ class RecruiterController extends Controller
           try {
                // Step 1: Save Company
                // Step 1: Save Company
-          $company = RecruiterCompany::create([
-               'company_name' => $validated['company_name'],
-               'company_website' => $validated['company_website'],
-               'company_city' => $validated['company_city'],
-               'company_address' => $validated['company_address'],
-               'business_email' => $validated['business_email'],
-               'phone_code' => $validated['phone_code'],
-               'company_phone_number' => $validated['company_phone_number'],
-               'no_of_employee' => $validated['no_of_employee'],
-               'industry_type' => $validated['industry_type'],
-               'registration_number' => $validated['registration_number'],
-               'is_registered' => 1,
-          ]);
-
-          $recruiter = Recruiters::find($request->recruiter_id);
-
-          if (!$recruiter) {
-          return back()->withErrors(['error' => 'Recruiter not found.']);
-          }
-
-          $email = $recruiter->email;
-
-
-          $recruiter->update([
-               'name'        => $validated['name'],
-               'email'        => $email,
-               'national_id' => $validated['national_id'],
-               'company_id'  => $company->id,
-               'role'        => 'main',
-               'status'      => 'active',
-          ]);
-
-          // Step 3: Update company with recruiter_id
-          $company->update([
-               'recruiter_id' => $recruiter->id,
-          ]);
-
-
-          // Step 4: Upload company profile
-          if ($request->hasFile('company_profile')) {
-               $originalName = $request->file('company_profile')->getClientOriginalName();
-               $storedName = 'company_profile_' . time() . '.' . $request->file('company_profile')->getClientOriginalExtension();
-               $request->file('company_profile')->move('uploads/', $storedName);
-
-               AdditionalInfo::create([
-                    'user_id'       => $recruiter->id,
-                    'user_type'     => 'recruiter',
-                    'doc_type'      => 'company_profile',
-                    'document_name' => $originalName,
-                    'document_path' => asset('uploads/' . $storedName),
+               $company = RecruiterCompany::create([
+                    'company_name' => $validated['company_name'],
+                    'company_website' => $validated['company_website'],
+                    'company_city' => $validated['company_city'],
+                    'company_address' => $validated['company_address'],
+                    'business_email' => $validated['business_email'],
+                    'phone_code' => $validated['phone_code'],
+                    'company_phone_number' => $validated['company_phone_number'],
+                    'no_of_employee' => $validated['no_of_employee'],
+                    'industry_type' => $validated['industry_type'],
+                    'registration_number' => $validated['registration_number'],
+                    'is_registered' => 1,
                ]);
-          }
 
-          // Step 5: Upload registration documents
-          if ($request->hasFile('registration_documents')) {
-               foreach ($request->file('registration_documents') as $file) {
-                    $originalName = $file->getClientOriginalName();
-                    $storedName = 'registration_documents_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move('uploads/', $storedName);
+               $recruiter = Recruiters::find($request->recruiter_id);
+
+               if (!$recruiter) {
+               return back()->withErrors(['error' => 'Recruiter not found.']);
+               }
+
+               $email = $recruiter->email;
+
+
+               $recruiter->update([
+                    'name'        => $validated['name'],
+                    'email'        => $email,
+                    'national_id' => $validated['national_id'],
+                    'company_id'  => $company->id,
+                    'role'        => 'main',
+                    'status'      => 'active',
+               ]);
+
+               // Step 3: Update company with recruiter_id
+               $company->update([
+                    'recruiter_id' => $recruiter->id,
+               ]);
+
+
+               // Step 4: Upload company profile
+               if ($request->hasFile('company_profile')) {
+                    $originalName = $request->file('company_profile')->getClientOriginalName();
+                    $storedName = 'company_profile_' . time() . '.' . $request->file('company_profile')->getClientOriginalExtension();
+                    $request->file('company_profile')->move('uploads/', $storedName);
 
                     AdditionalInfo::create([
                          'user_id'       => $recruiter->id,
                          'user_type'     => 'recruiter',
-                         'doc_type'      => 'registration_documents',
+                         'doc_type'      => 'company_profile',
                          'document_name' => $originalName,
                          'document_path' => asset('uploads/' . $storedName),
                     ]);
                }
+
+               // Step 5: Upload registration documents
+               if ($request->hasFile('registration_documents')) {
+                    foreach ($request->file('registration_documents') as $file) {
+                         $originalName = $file->getClientOriginalName();
+                         $storedName = 'registration_documents_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                         $file->move('uploads/', $storedName);
+
+                         AdditionalInfo::create([
+                              'user_id'       => $recruiter->id,
+                              'user_type'     => 'recruiter',
+                              'doc_type'      => 'registration_documents',
+                              'document_name' => $originalName,
+                              'document_path' => asset('uploads/' . $storedName),
+                         ]);
+                    }
+               }
+
+               DB::commit();
+
+               Mail::html(' 
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                         <meta charset="UTF-8">
+                         <title>Welcome to Talentrek</title>
+                         <style>
+                              body {
+                              font-family: Arial, sans-serif;
+                              background-color: #f6f8fa;
+                              margin: 0;
+                              padding: 20px;
+                              color: #333;
+                              }
+                              .container {
+                              background-color: #ffffff;
+                              padding: 30px;
+                              border-radius: 8px;
+                              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                              max-width: 600px;
+                              margin: auto;
+                              }
+                              .header {
+                              text-align: center;
+                              margin-bottom: 20px;
+                              }
+                              .footer {
+                              font-size: 12px;
+                              text-align: center;
+                              color: #999;
+                              margin-top: 30px;
+                              }
+                              .btn {
+                              display: inline-block;
+                              margin-top: 20px;
+                              padding: 10px 20px;
+                              background-color: #007bff;
+                              color: #fff !important;
+                              text-decoration: none;
+                              border-radius: 4px;
+                              }
+                         </style>
+                    </head>
+                    <body>
+                         <div class="container">
+                              <div class="header">
+                              <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                              </div>
+                              <p>Hi <strong>' . e($recruiter->name ?? $recruiter->email) . '</strong>,</p>
+
+                              <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+
+                              <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+
+                              <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
+                              <p>
+                              <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                              </p>
+
+                              <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                         </div>
+
+                         <div class="footer">
+                              © ' . date('Y') . ' Talentrek. All rights reserved.
+                         </div>
+                    </body>
+                    </html>
+                    ', function ($message) use ($recruiter) {
+                         $message->to($recruiter->email)
+                              ->subject('Welcome to Talentrek – Registration Successful');
+               });
+
+               $data = [
+                    'sender_id' => $recruiter->id,
+                    'sender_type' => 'Registration by Company and Recruiter.',
+                    'receiver_id' => '1',
+                    'message' => 'Welcome to Talentrek – Registration Successful by '.$recruiter->name,
+                    'is_read' => 0,
+                    'is_read_admin' => 0,
+                    'user_type' => 'recruiter'
+               ];
+
+               Notification::insert($data);
+               return redirect()->route('recruiter.login')->with('success', 'Company and Recruiter information saved successfully.');
+
+          } 
+          catch (\Exception $e) {
+               DB::rollBack();
+               return back()->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
           }
-
-          DB::commit();
-          $data = [
-               'sender_id' => $recruiter->id,
-               'sender_type' => 'Registration by Company and Recruiter.',
-               'receiver_id' => '1',
-               'message' => 'Welcome to Talentrek – Registration Successful by '.$recruiter->name,
-               'is_read' => 0,
-               'is_read_admin' => 0,
-               'user_type' => 'recruiter'
-          ];
-
-          Notification::insert($data);
-          return redirect()->route('recruiter.login')->with('success', 'Company and Recruiter information saved successfully.');
-
-     } catch (\Exception $e) {
-          DB::rollBack();
-          return back()->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
-     }
      }
 
 
@@ -483,12 +632,72 @@ class RecruiterController extends Controller
                'updated_at' => now()
           ]);
 
-          // === OTP sending is disabled for now ===
+          // === OTP sending ===
           if ($isEmail) {
-               // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
-               //     $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
-               // });
+               Mail::html('
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                         <meta charset="UTF-8">
+                         <title>Password Reset OTP</title>
+                         <style>
+                         body {
+                              background-color: #f6f8fa;
+                              font-family: Arial, sans-serif;
+                              padding: 20px;
+                              margin: 0;
+                              color: #333;
+                         }
+                         .container {
+                              background-color: #ffffff;
+                              padding: 30px;
+                              max-width: 500px;
+                              margin: 20px auto;
+                              border-radius: 8px;
+                              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                         }
+                         .otp-box {
+                              font-size: 24px;
+                              font-weight: bold;
+                              background-color: #f0f4ff;
+                              padding: 15px;
+                              text-align: center;
+                              border: 1px dashed #007bff;
+                              border-radius: 6px;
+                              margin: 20px 0;
+                              color: #007bff;
+                         }
+                         .footer {
+                              font-size: 12px;
+                              text-align: center;
+                              margin-top: 30px;
+                              color: #888;
+                         }
+                         </style>
+                    </head>
+                    <body>
+                         <div class="container">
+                         <h2>Password Reset Request</h2>
+                         <p>Hello,</p>
+                         <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+
+                         <div class="otp-box">' . $otp . '</div>
+
+                         <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+
+                         <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                         </div>
+
+                         <div class="footer">
+                         &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                         </div>
+                    </body>
+                    </html>
+               ', function ($message) use ($contact) {
+                    $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+               });
           } else {
+               // Simulate SMS sending (replace with Msg91 / Twilio integration)
                // SmsService::send($contact, "Your OTP is: $otp");
           }
 
@@ -521,14 +730,74 @@ class RecruiterController extends Controller
             'updated_at' => now()
         ]);
 
-        // === OTP sending is disabled for now ===
-        if ($contactMethod === 'email') {
-            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
-            //     $message->to($contact)->subject('Your OTP has been resent – Talentrek');
-            // });
-        } else {
-            // SmsService::send($contact, "Your OTP is: $otp");
-        }
+          // === OTP sending ===
+          if ($isEmail) {
+               Mail::html('
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                         <meta charset="UTF-8">
+                         <title>Password Reset OTP</title>
+                         <style>
+                         body {
+                              background-color: #f6f8fa;
+                              font-family: Arial, sans-serif;
+                              padding: 20px;
+                              margin: 0;
+                              color: #333;
+                         }
+                         .container {
+                              background-color: #ffffff;
+                              padding: 30px;
+                              max-width: 500px;
+                              margin: 20px auto;
+                              border-radius: 8px;
+                              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                         }
+                         .otp-box {
+                              font-size: 24px;
+                              font-weight: bold;
+                              background-color: #f0f4ff;
+                              padding: 15px;
+                              text-align: center;
+                              border: 1px dashed #007bff;
+                              border-radius: 6px;
+                              margin: 20px 0;
+                              color: #007bff;
+                         }
+                         .footer {
+                              font-size: 12px;
+                              text-align: center;
+                              margin-top: 30px;
+                              color: #888;
+                         }
+                         </style>
+                    </head>
+                    <body>
+                         <div class="container">
+                         <h2>Password Reset Request</h2>
+                         <p>Hello,</p>
+                         <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+
+                         <div class="otp-box">' . $otp . '</div>
+
+                         <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+
+                         <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                         </div>
+
+                         <div class="footer">
+                         &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                         </div>
+                    </body>
+                    </html>
+               ', function ($message) use ($contact) {
+                    $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+               });
+          } else {
+               // Simulate SMS sending (replace with Msg91 / Twilio integration)
+               // SmsService::send($contact, "Your OTP is: $otp");
+          }
 
         return response()->json(['message' => 'OTP resent successfully.']);
     }

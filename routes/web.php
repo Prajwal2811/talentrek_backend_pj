@@ -225,6 +225,19 @@ Route::group(['middleware' => 'assessor.auth'], function() {
 
 });
 
+Route::group(['middleware' => 'recruiter.auth'], function() {
+
+    Route::post('/recruiter/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('recruiter.group.chat.send');
+	Route::get('/recruiter/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('recruiter.group.chat.fetch');
+
+   
+    Route::get('/recruiter/unread-count', [\App\Http\Controllers\RecruiterController::class, 'getUnreadCount'])->name('recruiter.getUnreadCount');
+    Route::post('/recruiter/mark-messages-read', [\App\Http\Controllers\RecruiterController::class, 'markMessagesAsRead'])->name('recruiter.markMessagesRead');
+    Route::post('recruiter/mark-seen', [\App\Http\Controllers\RecruiterController::class, 'markMessagesSeen'])->name('recruiter.markMessagesSeen');
+
+
+});
+
 
 Route::group(['middleware' => 'recruiter.auth'], function() {
 
