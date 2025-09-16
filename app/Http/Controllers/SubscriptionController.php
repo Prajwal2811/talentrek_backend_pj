@@ -7,7 +7,9 @@ use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
 use App\Services\PaymentHelper;
 use App\Models\PurchasedSubscriptionPaymentRequest;
+use App\Models\PaymentHistory;
 use App\Models\Jobseekers;
+use App\Models\RecruiterCompany;
 use App\Models\Mentors;
 use App\Models\Assessors;
 use App\Models\Recruiters;
@@ -149,14 +151,41 @@ class SubscriptionController extends Controller
         }
 
         $data = $data[0];
-        $user = Jobseekers::findOrFail($data['udf1']);
-       
-        //die;
-        // Generate reference
-        if ($user) {
-            // 🔹 Re-login user manually
-            Auth::guard('jobseeker')->login($user);
+
+         // Map user type to model
+        $modelMap = [
+            'jobseeker' => Jobseekers::class,
+            'mentor'    => Mentors::class,
+            'assessor'  => Assessors::class,
+            'coach'     => Coach::class,
+            'trainer'   => Trainers::class,
+            'recruiter' => Recruiters::class,
+        ];
+
+        // Map user type to guard
+        $guardMap = [
+            'jobseeker' => 'jobseeker',
+            'mentor'    => 'mentor',
+            'assessor'  => 'assessor',
+            'coach'     => 'coach',
+            'trainer'   => 'trainer',
+            'recruiter' => 'recruiter',
+        ];
+
+        $type = $data['udf2'] ?? null;
+
+        if (!$type || !isset($modelMap[$type])) {
+            abort(400, 'Invalid user type');
         }
+
+        $model = $modelMap[$type];
+        $user  = $model::findOrFail($data['udf1']);
+
+        if ($user) {
+            $guard = $guardMap[$type];
+            Auth::guard($guard)->login($user); // ✅ correct guard & type from Neoleap payload
+        }
+
         $booking = PurchasedSubscriptionPaymentRequest::where('track_id', $data['trackId'])->first();
         if (!$booking) {
             return redirect()->back()->with('error', 'Payment request not found.');
@@ -188,22 +217,40 @@ class SubscriptionController extends Controller
             // Calculate end date
             $endDate = $startDate->copy()->addDays($data['udf6']);
 
-            PurchasedSubscription::create([
-                'user_id'           => $data['udf1'],
-                'user_type'         => $data['udf2'],
+            $subscription = PurchasedSubscription::create([
+                'user_id'              => $data['udf1'],
+                'user_type'            => $data['udf2'],
                 'subscription_plan_id' => $data['udf4'],
-                'amount_paid'       => $data['amt'],
-                'tax'               => $data['udf7'],
-                'amount'            => $data['udf8'],
-                'track_id'          => $data['trackId'] ?? null,
-                'currency'          => 'SAR',   
-                'transaction_id'    => $data['transId'] ?? null,
-                'payment_status'    => 'paid',
-                'response_payload'  => json_encode($data),
-                'start_date'        => $startDate,
-                'end_date'          => $endDate,
+                'amount_paid'          => $data['amt'],
+                'tax'                  => $data['udf7'],
+                'amount'               => $data['udf8'],
+                'track_id'             => $data['trackId'] ?? null,
+                'currency'             => 'SAR',
+                'transaction_id'       => $data['transId'] ?? null,
+                'payment_status'       => 'paid',
+                'response_payload'     => json_encode($data),
+                'start_date'           => $startDate,
+                'end_date'             => $endDate,
+            ]);
+
+            // 🔹 Add entry in payments_history
+            PaymentHistory::create([
+                'user_type'     => $data['udf2'],       // payer type
+                'user_id'       => $data['udf1'],       // payer id
+                'receiver_type' => 'talentrek',         // always platform
+                'receiver_id'   => null,                // or 1 if you want fixed id
+                'payment_for'   => 'subscription',
+                'amount_paid'   => $data['amt'],
+                'payment_status'=> 'completed',
+                'transaction_id'=> $data['transId'] ?? null,
+                'track_id'      => $data['trackId'] ?? null,
+                'order_id'      => 'ORD-' . $data['udf1'] . '-' . $data['udf4'] . '-' . now()->format('YmdHis'),
+                'currency'      => 'SAR',
+                'payment_method'=> 'Al Rajhi',
+                'paid_at'       => now(),
             ]);
         }
+
 
         // 🔹 Update user's subscription flag
         $userModelMap = [
@@ -212,31 +259,38 @@ class SubscriptionController extends Controller
             'assessor'  => Assessors::class,
             'coach'     => Coach::class,
             'trainer'   => Trainers::class,
-            'recruiter' => Recruiters::class,
+            // 'recruiter' => Recruiters::class, // ❌ handled separately below
         ];
 
-        if (isset($userModelMap[$data['udf2']])) {
+        if ($data['udf2'] === 'recruiter') {
+            // Recruiter case → update companies table instead
+            RecruiterCompany::where('recruiter_id', $data['udf1'])
+                ->update(['isSubscribtionBuy' => 'yes']);
+        } elseif (isset($userModelMap[$data['udf2']])) {
+            // Other user types
             $userModel = $userModelMap[$data['udf2']];
             $userModel::where('id', $data['udf1'])->update([
                 'isSubscribtionBuy' => 'yes'
             ]);
         }
 
+
         // Redirect based on type
         $redirectRoutes = [
-            'jobseeker' => 'jobseeker.dashboard',
+            'jobseeker' => 'jobseeker.profile',
             'mentor'    => 'mentor.dashboard',
             'assessor'  => 'assessor.dashboard',
             'coach'     => 'coach.dashboard',
             'trainer'   => 'trainer.dashboard',
             'recruiter' => 'recruiter.dashboard',
         ];
-        $type = $data['udf2'];
+
+        $type = $data['udf2'] ?? null;
+
         $route = $redirectRoutes[$type];
 
+        return redirect()->route($route)->with('success', 'Subscription purchased successfully!');
 
-        
-        return redirect()->route('jobseeker.profile')->with('success', 'Subscription purchased successfully!');
     }
 
     /**

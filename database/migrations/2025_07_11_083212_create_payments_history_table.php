@@ -13,18 +13,39 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('payments_history', function (Blueprint $table) {
+       Schema::create('payments_history', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jobseeker_id')->constrained('jobseekers')->onDelete('cascade');
-            $table->foreignId('material_id')->constrained('training_materials')->onDelete('cascade');
-            $table->string('payment_reference')->unique();
-            $table->string('transaction_id')->unique();
+
+            // Who paid
+            $table->enum('user_type', ['jobseeker', 'trainer', 'mentor', 'coach', 'assessor', 'recruiter', 'expat']);
+            $table->unsignedBigInteger('user_id');
+
+            // Who received payment
+            $table->enum('receiver_type', [
+                'trainer', 'mentor', 'coach', 'assessor', 'recruiter', 'expat', 'talentrek'
+            ])->nullable();
+            $table->unsignedBigInteger('receiver_id')->nullable();
+
+            // Purpose
+            $table->enum('payment_for', ['training', 'booking_slot', 'subscription']);
+
+            // Payment details
             $table->decimal('amount_paid', 10, 2)->nullable();
+            $table->decimal('tax', 10, 2)->default(0.00); // tax amount
+            $table->string('applied_coupon')->nullable(); // coupon code if applied
             $table->enum('payment_status', ['pending', 'completed', 'failed', 'refunded']);
-            $table->string('payment_method')->nullable(); // e.g., UPI, Card
+            $table->string('transaction_id')->nullable();
+            $table->string('track_id')->nullable();
+            $table->string('order_id')->nullable();
+            $table->string('currency', 10)->default('INR');
+            $table->string('payment_method')->nullable();
             $table->dateTime('paid_at')->nullable();
+
             $table->timestamps();
         });
+
+
+
     }
 
     /**

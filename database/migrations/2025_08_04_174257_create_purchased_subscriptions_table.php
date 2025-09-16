@@ -49,6 +49,7 @@ return new class extends Migration
             $table->string('order_id')->nullable();       // our udf4
             $table->string('currency', 10)->nullable();   // SAR, USD etc.
             $table->string('result')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->longText('response_payload')->nullable(); // store full gateway JSON
             $table->longText('raw_response')->nullable(); // store full gateway JSON
 
             $table->timestamps();

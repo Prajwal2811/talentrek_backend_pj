@@ -10,7 +10,7 @@ Route::fallback(function () {
 
 Route::post('/subscriptions/payment', [SubscriptionController::class, 'processSubscriptionPayment'])->name('subscription.payment');
 Route::post('/subscription/payment/success', [SubscriptionController::class, 'successSubscription']);
-Route::any('/subscriptions/failure', [SubscriptionController::class, 'failureSubscription'])->name('subscription.failure');
+Route::any('/subscriptions/payment/failure', [SubscriptionController::class, 'failureSubscription']);
 
 
 

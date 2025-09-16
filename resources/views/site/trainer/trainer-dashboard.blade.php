@@ -25,8 +25,8 @@
 
             <div class="flex-1 flex flex-col">
                 @include('site.trainer.componants.navbar')
-
-           <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
+                @include('admin.errors')
+            <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
                 <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
 
                 <!-- Stat Cards -->

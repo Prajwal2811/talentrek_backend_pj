@@ -181,7 +181,7 @@
                     </div>
 
                     <!-- Feedback Modal -->
-                    <div x-show="showFeedbackModal" x-transition
+                    {{-- <div x-show="showFeedbackModal" x-transition
                         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
                             <button @click="closeFeedbackModal"
@@ -200,10 +200,10 @@
                                     class="px-6 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 text-sm">Reply</button>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <!-- Cancel Modal -->
-                    <div x-show="showCancelModal" x-transition 
+                    {{-- <div x-show="showCancelModal" x-transition 
                         x-data="{
                             cancelReason: '',
                             postponeSession: 'No',
@@ -323,7 +323,7 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
+                    </div> --}}
 
 
                 </div>
