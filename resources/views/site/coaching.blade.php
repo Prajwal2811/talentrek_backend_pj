@@ -207,7 +207,7 @@ use Illuminate\Support\Facades\DB;
                                     <img :src="coach.profilePicture ? '/storage/' + coach.profilePicture : '{{ asset('default.jpg') }}'"
                                         alt="coach Image"
                                         class="w-full h-48 object-cover rounded-lg">
-                                    <a :href="'/coach-details/' + coach.id">
+                                    <a :href="'jobseeker/coach-details/' + coach.id">
                                         <h3 class="text-lg font-semibold text-gray-900"
                                             x-text="coach.name"></h3>
                                     </a>

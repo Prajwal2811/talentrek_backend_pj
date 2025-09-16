@@ -10,21 +10,34 @@
         </div>
     </div>
     @php
-        $subscriptionType = App\Models\RecruiterCompany::where('recruiter_id', auth()->user('recruiter')->id)->first();
-        $RecruiterSubscription = $subscriptionType->active_subscription_plan_slug;
+        $recruiter = auth()->user('recruiter');
+        $subscriptionType = App\Models\RecruiterCompany::where('recruiter_id', $recruiter->id)->first();
 
-        if ($RecruiterSubscription == 'corporate_3_recruiters') {
-            $totalRecruiters = 3; // including current recruiter
+        if ($subscriptionType) {
+            $RecruiterSubscription = $subscriptionType->active_subscription_plan_slug;
+
+            if ($RecruiterSubscription == 'corporate_3_recruiters') {
+                $totalRecruiters = 3; // including current recruiter
+            } else {
+                $totalRecruiters = 6; // including current recruiter
+            }
+
+            // One recruiter is current user, so subtract 1 for the extra inputs
+            $extraRecruiters = $totalRecruiters - 1;
+            $companyId = $subscriptionType->id;
+            $slug = $subscriptionType->active_subscription_plan_slug;
+            $subscriptionPlan = App\Models\SubscriptionPlan::where('slug', $slug)->first();
+            $subscriptionID = $subscriptionPlan ? $subscriptionPlan->id : null;
+
+            $otherRecruiters = App\Models\Recruiters::where('recruiter_of', $recruiter->id)->get();
         } else {
-            $totalRecruiters = 6; // including current recruiter
+            // fallback values if recruiter has no company/subscription yet
+            $totalRecruiters = 1;
+            $extraRecruiters = 0;
+            $companyId = null;
+            $subscriptionID = null;
+            $otherRecruiters = collect(); // empty collection
         }
-        // One recruiter is current user, so subtract 1 for the extra inputs
-        $extraRecruiters = $totalRecruiters - 1;
-        $companyId = App\Models\RecruiterCompany::where('recruiter_id', auth()->user('recruiter')->id)->first()->id;
-        $slug = $subscriptionType->active_subscription_plan_slug;
-        $subscriptionID = App\Models\SubscriptionPlan::where('slug', $slug)->first()->id;
-
-        $otherRecruiters = App\Models\Recruiters::where('recruiter_of', auth()->user('recruiter')->id)->get();
     @endphp
 
     <!-- Subscription Modal -->

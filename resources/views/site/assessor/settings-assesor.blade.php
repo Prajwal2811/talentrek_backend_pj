@@ -838,13 +838,19 @@ $assessor = Auth()->user();
                                                             <!-- Qualification -->
                                                             <div>
                                                                 <label class="block mb-1 font-medium">Highest Qualification</label>
-                                                                <input type="text" name="high_education[]" value="{{ ucfirst(str_replace('_', ' ', $education->high_education)) }}" class="w-full border rounded px-3 py-2" placeholder="e.g., Bachelor's Degree" />
+                                                                <input type="text" name="high_education[]" 
+                                                                    value="{{ ucfirst(str_replace('_', ' ', $education->high_education)) }}" 
+                                                                    class="w-full border rounded px-3 py-2" 
+                                                                    placeholder="e.g., Bachelor's Degree" />
                                                             </div>
 
                                                             <!-- Field -->
                                                             <div>
                                                                 <label class="block mb-1 font-medium">Field of Study</label>
-                                                                <input type="text" name="field_of_study[]" value="{{ ucfirst($education->field_of_study) }}" class="w-full border rounded px-3 py-2" placeholder="e.g., Computer Science" />
+                                                                <input type="text" name="field_of_study[]" 
+                                                                    value="{{ ucfirst($education->field_of_study) }}" 
+                                                                    class="w-full border rounded px-3 py-2" 
+                                                                    placeholder="e.g., Computer Science" />
                                                             </div>
                                                         </div>
 
@@ -852,13 +858,21 @@ $assessor = Auth()->user();
                                                             <!-- Institution -->
                                                             <div>
                                                                 <label class="block mb-1 font-medium">Institution Name</label>
-                                                                <input type="text" name="institution[]" value="{{ $education->institution }}" class="w-full border rounded px-3 py-2" placeholder="e.g., ABC University" />
+                                                                <input type="text" name="institution[]" 
+                                                                    value="{{ $education->institution }}" 
+                                                                    class="w-full border rounded px-3 py-2" 
+                                                                    placeholder="e.g., ABC University" />
                                                             </div>
 
                                                             <!-- Year -->
                                                             <div>
                                                                 <label class="block mb-1 font-medium">Graduation Year</label>
-                                                                <input type="text" name="graduate_year[]" value="{{ $education->graduate_year }}" class="w-full border rounded px-3 py-2" placeholder="e.g., 2023" />
+                                                                <input type="number" name="graduate_year[]" 
+                                                                    value="{{ $education->graduate_year }}" 
+                                                                    class="w-full border rounded px-3 py-2" 
+                                                                    placeholder="e.g., 2023" 
+                                                                    min="1900" max="2099" 
+                                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                                             </div>
                                                         </div>
 
@@ -880,6 +894,7 @@ $assessor = Auth()->user();
                                                 <button type="button" id="save-education-info" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Save</button>
                                             </div>
                                         </div>
+
                                         <!-- AJAX & Dynamic Handling -->
                                         <!-- JavaScript for AJAX and Dynamic Entries -->
                                         <script>

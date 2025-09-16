@@ -496,47 +496,57 @@ $skills = $user->skills->first();
 
                                                     <!-- Highest Qualification -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('highest_qualification') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <select name="high_education[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                            <option value="">{{ langLabel('select_highest_qualification') }}</option>
-                                                            @foreach(['high_school'=>'High School','diploma'=>'Diploma','bachelor'=>"Bachelor's Degree",'master'=>"Master's Degree",'phd'=>'Ph.D.'] as $val => $label)
-                                                                <option value="{{ $val }}" {{ old("high_education.$i", $data->high_education ?? '') == $val ? 'selected' : '' }}>{{ $label }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Highest qualification <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="text" name="high_education[]" 
+                                                            value="{{ old("high_education.$i", $data->high_education ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="e.g., Bachelor's Degree" />
                                                     </div>
 
                                                     <!-- Field of Study -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('field_of_study') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <select name="field_of_study[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                            <option value="">{{ langLabel('select_field_of_study') }}</option>
-                                                            @foreach(['engineering','science','commerce','arts','medicine','law','education','management','other'] as $val)
-                                                                <option value="{{ $val }}" {{ old("field_of_study.$i", $data->field_of_study ?? '') == $val ? 'selected' : '' }}>{{ ucfirst($val) }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Field of study <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="text" name="field_of_study[]" 
+                                                            value="{{ old("field_of_study.$i", $data->field_of_study ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="e.g., Computer Science" />
                                                     </div>
 
                                                     <!-- Institution -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('institution_name') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="text" name="institution[]" class="w-full border border-gray-300 rounded-md p-2" value="{{ old("institution.$i", $data->institution ?? '') }}" placeholder="Enter institution name" />
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Institution name <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="text" name="institution[]" 
+                                                            value="{{ old("institution.$i", $data->institution ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="Enter institution name" />
                                                     </div>
 
                                                     <!-- Graduation Year -->
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('graduation_year') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <select name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2">
-                                                            <option value="">{{ langLabel('select_year_of_passing') }}</option>
-                                                            @foreach(range(date('Y'), 2010) as $year)
-                                                                <option value="{{ $year }}" {{ old("graduate_year.$i", $data->graduate_year ?? '') == $year ? 'selected' : '' }}>{{ $year }}</option>
-                                                            @endforeach
-                                                            <option value="2010-2014" {{ old("graduate_year.$i", $data->graduate_year ?? '') == '2010-2014' ? 'selected' : '' }}>2010-2014</option>
-                                                            <option value="before_2010" {{ old("graduate_year.$i", $data->graduate_year ?? '') == 'before_2010' ? 'selected' : '' }}>Before 2010</option>
-                                                        </select>
+
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            Graduation year <span class="text-red-600">*</span>
+                                                        </label>
+                                                        <input type="number" name="graduate_year[]" 
+                                                            value="{{ old("graduate_year.$i", $data->graduate_year ?? '') }}" 
+                                                            class="w-full border border-gray-300 rounded-md p-2" 
+                                                            placeholder="e.g., 2023"
+                                                            min="1900" max="{{ date('Y') + 5 }}" 
+                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                                     </div>
 
                                                     <!-- Remove Button -->
-                                                    <button type="button" class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg" style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                    <button type="button" 
+                                                            class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg" 
+                                                            style="{{ $i == 0 ? 'display:none;' : '' }}">
+                                                        &times;
+                                                    </button>
                                                 </div>
                                             @endfor
                                         </div>
@@ -548,11 +558,17 @@ $skills = $user->skills->first();
 
                                         <!-- Submit Buttons -->
                                         <div class="md:col-span-2 flex justify-end gap-4 mt-4">
-                                            <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="nextTab" x-show="profileTab !== 'additional'">{{ langLabel('next') }}</button>
-                                            <button type="button" id="save-education-info" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">{{ langLabel('save') }}</button>
+                                            <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                                                    @click="nextTab" x-show="profileTab !== 'additional'">Next</button>
+                                            <button type="button" id="save-education-info" 
+                                                    class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">
+                                                Save
+                                            </button>
+
                                         </div>
                                     </div>
                                 </form>
+
 
                                 <!-- JavaScript -->
                                 <script>
@@ -699,41 +715,41 @@ $skills = $user->skills->first();
 
                                                     <!-- End To & Checkbox -->
                                                    @php
-    $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
-        (isset($data->end_to) && $data->end_to === 'work here');
-    $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
-@endphp
+                                                        $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
+                                                            (isset($data->end_to) && $data->end_to === 'work here');
+                                                        $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
+                                                    @endphp
 
-<div x-data="{ 
-        working: {{ $isWorking ? 'true' : 'false' }}, 
-        endDate: '{{ $defaultDate }}', 
-        defaultDate: '{{ $defaultDate }}'
-    }"
->
-    <label class="block text-sm font-medium mb-1">
-        {{ langLabel('to') }} <span style="color: red; font-size: 17px;">*</span>
-    </label>
+                                                    <div x-data="{ 
+                                                            working: {{ $isWorking ? 'true' : 'false' }}, 
+                                                            endDate: '{{ $defaultDate }}', 
+                                                            defaultDate: '{{ $defaultDate }}'
+                                                        }"
+                                                    >
+                                                        <label class="block text-sm font-medium mb-1">
+                                                            To <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
 
-    <input 
-        type="date" 
-        name="end_to[]" 
-        class="datepicker-end w-full border rounded px-3 py-2"
-        x-bind:disabled="working"
-        x-model="endDate"
-        max="{{ date('Y-m-d') }}"
-    />
+                                                        <input 
+                                                            type="date" 
+                                                            name="end_to[]" 
+                                                            class="datepicker-end w-full border rounded px-3 py-2"
+                                                            x-bind:disabled="working"
+                                                            x-model="endDate"
+                                                            max="{{ date('Y-m-d') }}"
+                                                        />
 
-    <label class="inline-flex items-center space-x-2 mt-2">
-        <input 
-            type="checkbox" 
-            name="currently_working[]" 
-            value="{{ $i }}"
-            x-model="working"
-            x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
-        />
-        <span>{{ langLabel('currently_work_here') }}</span>
-    </label>
-</div>
+                                                        <label class="inline-flex items-center space-x-2 mt-2">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                name="currently_working[]" 
+                                                                value="{{ $i }}"
+                                                                x-model="working"
+                                                                x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
+                                                            />
+                                                            <span>I currently work here</span>
+                                                        </label>
+                                                    </div>
 
 
 
@@ -1826,28 +1842,20 @@ $skills = $user->skills->first();
                     <!-- Subscription Tab -->
                     <div x-show="tab === 'subscription'" x-cloak>
                         <h2 class="text-xl font-semibold mb-4">Subscription</h2>
-
                         @php
-                            
-
                             $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
-
                             $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
                                         ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
                                         ->where('subscription_plans.user_type', 'jobseeker')
                                         ->where('purchased_subscriptions.user_id', $userId)
                                         ->orderBy('purchased_subscriptions.created_at', 'desc')
                                         ->get();
-
                             $showPlansModal = false;
-
                             if ($purchasedSubscriptions->count() > 0) {
                                 // latest subscription based on created_at
                                 $latest = $purchasedSubscriptions->first();
                                 $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
-
                                 echo "Days left: " . $daysLeft;
-
                                 if ($daysLeft > 0 && $daysLeft <= 30) {
                                     $showPlansModal = true;
                                 }
@@ -1885,75 +1893,41 @@ $skills = $user->skills->first();
 
                                 <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @foreach($subscriptions as $plan)
                                         <div class="border rounded-lg p-4 shadow-sm text-center">
                                             <div class="flex flex-col items-center">
-                                                <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mb-2">
+                                                    <i class="fas fa-crown text-blue-500 text-xl"></i>
+                                                </div>
+
                                                 <h4 class="font-semibold">{{ $plan->title }}</h4>
                                                 <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                                             </div>
                                             <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
-                                            @php
-                                                $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
-                                            @endphp
-
                                             <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
-                                                @foreach($features as $feature)
+                                                @foreach(is_array($plan->features) ? $plan->features : explode(',', $plan->features) as $feature)
                                                     <li>{{ trim($feature) }}</li>
                                                 @endforeach
                                             </ul>
 
-                                            <button type="button"
-                                                class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
-                                                data-plan-id="{{ $plan->id }}">
-                                                Buy subscription
-                                            </button>
+                                            <!-- Direct form submit instead of JS -->
+                                            <form action="{{ route('subscription.payment') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                                <input type="hidden" name="user_id" value="{{ auth()->user('jobseeker')->id }}">
+                                                <input type="hidden" name="type" value="jobseeker">
+                                                <button type="submit"
+                                                    class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium">
+                                                    Renew subscription
+                                                </button>
+                                            </form>
                                         </div>
                                     @endforeach
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Payment Modal -->
-                        <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
-                            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                                <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                                <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
-
-                                <form id="paymentForm">
-                                    @csrf
-                                    <input type="hidden" name="plan_id" id="selectedPlanId">
-
-                                    <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                        <input type="text" name="card_number" value="4242424242424242"
-                                            class="w-full border border-gray-300 rounded-md px-4 py-2">
-                                    </div>
-
-                                    <div class="mb-4 flex space-x-2">
-                                        <div class="w-1/2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
-                                            <input type="text" name="expiry" value="12/30"
-                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                                        </div>
-                                        <div class="w-1/2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                            <input type="text" name="cvv" value="123"
-                                                class="w-full border border-gray-300 rounded-md px-4 py-2">
-                                        </div>
-                                    </div>
-                                    <button type="submit"
-                                        class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                                        Pay Now
-                                    </button>
-                                </form>
-                                <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
-                                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
-                                    ×
-                                </button>
-                            </div>
-                        </div>
 
                         <!-- Subscription History Table -->
                         <h3 class="text-md font-semibold mb-2">Subscription History</h3>
@@ -1986,68 +1960,18 @@ $skills = $user->skills->first();
                     </div>
 
                     <script>
-                        function openPaymentModal(planId) {
-                            document.getElementById('selectedPlanId').value = planId;
-                            document.getElementById('paymentModal').classList.remove('hidden');
-                        }
-
-                        function closePaymentModal() {
-                            document.getElementById('paymentModal').classList.add('hidden');
-                        }
-
-                        document.addEventListener('DOMContentLoaded', () => {
-                            document.querySelectorAll('.buy-subscription-btn').forEach(button => {
-                                button.addEventListener('click', function () {
-                                    openPaymentModal(this.getAttribute('data-plan-id'));
-                                });
-                            });
-
-                            document.addEventListener('keydown', function (e) {
-                                if (e.key === 'Escape') closePaymentModal();
-                            });
-
-                            document.getElementById('paymentForm').addEventListener('submit', function (e) {
-                                e.preventDefault();
-                                let formData = new FormData(this);
-                                let messageBox = document.getElementById('paymentMessage');
-                                messageBox.textContent = "";
-
-                                fetch("{{ route('subscription.payment') }}", {
-                                    method: "POST",
-                                    headers: {
-                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                    },
-                                    body: formData
-                                })
-                                .then(async response => {
-                                    let data = await response.json();
-                                    if (!response.ok) throw data;
-                                    return data;
-                                })
-                                .then(data => {
-                                    messageBox.classList.remove('text-red-500');
-                                    messageBox.classList.add('text-green-500');
-                                    messageBox.textContent = data.message;
-                                    setTimeout(() => {
-                                        closePaymentModal();
-                                        location.reload();
-                                    }, 1500);
-                                })
-                                .catch(error => {
-                                    messageBox.classList.remove('text-green-500');
-                                    messageBox.classList.add('text-red-500');
-                                    if (error.errors) {
-                                        messageBox.textContent = Object.values(error.errors).flat().join(', ');
-                                    } else {
-                                        messageBox.textContent = error.message || "Something went wrong!";
-                                    }
-                                });
-                            });
-
+                        document.addEventListener('DOMContentLoaded', function () {
                             // Auto-open plans modal if subscription is expiring soon
                             @if($showPlansModal)
                                 document.getElementById('plansModal').classList.remove('hidden');
                             @endif
+
+                            // Allow closing modal with Escape key
+                            document.addEventListener('keydown', function (e) {
+                                if (e.key === 'Escape') {
+                                    document.getElementById('plansModal').classList.add('hidden');
+                                }
+                            });
                         });
                     </script>
 

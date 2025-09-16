@@ -19,11 +19,11 @@
                 ->get();
         @endphp
 
-        <!-- Subscription Modal -->
-        <div id="subscriptionModal"
-            class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
-            <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative">
-                <h3 class="text-xl font-semibold mb-6">{{ langLabel('available_subscription_plans') }}</h3>
+          <!-- Subscription Modal -->
+        <div id="subscriptionModal"  class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
+             <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative">
+                @include('admin.errors')
+                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                     @foreach($subscriptions as $plan)
                         <div class="border rounded-lg p-4 shadow-sm text-center">
@@ -46,6 +46,18 @@
                                 data-plan-id="{{ $plan->id }}">
                                 {{ langLabel('buy') }} {{ langLabel('subscription') }}
                             </button>
+
+                            <!-- Direct form submit instead of JS -->
+                            <form action="{{ route('subscription.payment') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                <input type="hidden" name="user_id" value="{{ auth()->user('mentor')->id }}">
+                                <input type="hidden" name="type" value="mentor">
+                                <button type="submit"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium">
+                                    Buy subscription
+                                </button>
+                            </form>
                         </div>
                     @endforeach
                 </div>
@@ -166,3 +178,5 @@
             });
         });
         </script>
+=======
+>>>>>>> 575db3cf9e17946fdeb063fa22054885a91d2dbb
