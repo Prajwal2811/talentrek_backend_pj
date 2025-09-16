@@ -124,20 +124,25 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">Phone number</label>
                                             <div class="flex">
                                                 <select name="phone_code" class="w-1/3 border rounded-l-md p-2 mt-1">
                                                     <option value="+966">+966</option>
                                                     <option value="+971">+971</option>
                                                     <!-- Add more country codes if needed -->
                                                 </select>
-                                                <input name="phone_number" placeholder="Enter Phone number" type="tel"
+                                                <input name="phone_number"
+                                                    placeholder="Enter Phone number"
+                                                    type="tel"
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
-                                                    value="{{ old('phone_number') }}"  />
+                                                    value="{{ old('phone_number') }}"
+                                                    maxlength="9"
+                                                    pattern="[0-9]{9}"
+                                                    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)"
+                                                     />
+
                                             </div>
-                                            @error('phone_number')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+                                          
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
@@ -188,16 +193,16 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red;">*</span></label>
                                         <select id="country" name="country" class="w-full border rounded-md p-2" onchange="loadStates()">
                                             <option value="">Select Country</option>
-                                            <option value="saudi">Saudi Arabia</option>
-                                            <option value="india">India</option>
-                                            <option value="usa">USA</option>
-                                            <option value="canada">Canada</option>
-                                            <option value="australia">Australia</option>
-                                            <option value="uk">UK</option>
-                                            <option value="germany">Germany</option>
-                                            <option value="france">France</option>
-                                            <option value="uae">UAE</option>
-                                            <option value="japan">Japan</option>
+                                            <option value="saudi" {{ old('country')=='saudi' ? 'selected' : '' }}>Saudi Arabia</option>
+                                            <option value="india" {{ old('country')=='india' ? 'selected' : '' }}>India</option>
+                                            <option value="usa" {{ old('country')=='usa' ? 'selected' : '' }}>USA</option>
+                                            <option value="canada" {{ old('country')=='canada' ? 'selected' : '' }}>Canada</option>
+                                            <option value="australia" {{ old('country')=='australia' ? 'selected' : '' }}>Australia</option>
+                                            <option value="uk" {{ old('country')=='uk' ? 'selected' : '' }}>UK</option>
+                                            <option value="germany" {{ old('country')=='germany' ? 'selected' : '' }}>Germany</option>
+                                            <option value="france" {{ old('country')=='france' ? 'selected' : '' }}>France</option>
+                                            <option value="uae" {{ old('country')=='uae' ? 'selected' : '' }}>UAE</option>
+                                            <option value="japan" {{ old('country')=='japan' ? 'selected' : '' }}>Japan</option>
                                         </select>
                                     </div>
 
@@ -538,40 +543,63 @@
 
                                     };
 
-                                    function loadStates() {
-                                        const country = document.getElementById('country').value;
-                                        const stateSelect = document.getElementById('state');
-                                        const citySelect = document.getElementById('city');
+                                           // Old values from Laravel
+                                            const oldCountry = @json(old('country'));
+                                            const oldState   = @json(old('state'));
+                                            const oldCity    = @json(old('city'));
 
-                                        stateSelect.innerHTML = '<option value="">Select State</option>';
-                                        citySelect.innerHTML = '<option value="">Select City</option>';
+                                            function loadStates() {
+                                                const country = document.getElementById('country').value;
+                                                const stateSelect = document.getElementById('state');
+                                                const citySelect = document.getElementById('city');
 
-                                        if (data[country]) {
-                                            Object.keys(data[country]).forEach(state => {
-                                                const option = document.createElement('option');
-                                                option.value = state;
-                                                option.textContent = state;
-                                                stateSelect.appendChild(option);
+                                                stateSelect.innerHTML = '<option value="">Select State</option>';
+                                                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                                                if (data[country]) {
+                                                    Object.keys(data[country]).forEach(state => {
+                                                        const option = document.createElement('option');
+                                                        option.value = state;
+                                                        option.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+                                                        stateSelect.appendChild(option);
+                                                    });
+
+                                                    if (oldState) {
+                                                        stateSelect.value = oldState;
+                                                        loadCities();
+                                                    }
+                                                }
+                                            }
+
+                                            function loadCities() {
+                                                const country = document.getElementById('country').value;
+                                                const state = document.getElementById('state').value;
+                                                const citySelect = document.getElementById('city');
+
+                                                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                                                if (data[country] && data[country][state]) {
+                                                    data[country][state].forEach(city => {
+                                                        const option = document.createElement('option');
+                                                        option.value = city;
+                                                        option.textContent = city;
+                                                        citySelect.appendChild(option);
+                                                    });
+
+                                                    if (oldCity) {
+                                                        citySelect.value = oldCity;
+                                                    }
+                                                }
+                                            }
+
+                                            // Page load: set old values
+                                            document.addEventListener("DOMContentLoaded", function() {
+                                                if (oldCountry) {
+                                                    document.getElementById('country').value = oldCountry;
+                                                    loadStates();
+                                                }
                                             });
-                                        }
-                                    }
 
-                                    function loadCities() {
-                                        const country = document.getElementById('country').value;
-                                        const state = document.getElementById('state').value;
-                                        const citySelect = document.getElementById('city');
-
-                                        citySelect.innerHTML = '<option value="">Select City</option>';
-
-                                        if (data[country] && data[country][state]) {
-                                            data[country][state].forEach(city => {
-                                                const option = document.createElement('option');
-                                                option.value = city;
-                                                option.textContent = city;
-                                                citySelect.appendChild(option);
-                                            });
-                                        }
-                                    }
                                     </script>
 
 
@@ -930,18 +958,13 @@
                                             Upload resume <span style="color: red;">*</span>
                                         </label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt"
+                                            <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx,.txt"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
 
-                                        {{-- Show old selected file name here --}}
-                                        @if(session('old_resume_name'))
-                                            <p class="text-green-600 text-sm mt-1">
-                                                Previously selected: {{ session('old_resume_name') }}
-                                            </p>
-                                        @endif
+                                        <!-- Resume filename display -->
+                                        <p id="resumeFilename" class="text-green-600 text-sm mt-1"></p>
 
-                                        {{-- Show validation error --}}
                                         @error('resume')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -950,7 +973,6 @@
                                         const resumeInput = document.getElementById('resumeFile');
                                         const resumeFilenameDisplay = document.getElementById('resumeFilename');
 
-                                        // Show filename when user selects a file
                                         resumeInput.addEventListener('change', function () {
                                             if (this.files.length > 0) {
                                                 const fileName = this.files[0].name;
@@ -959,27 +981,30 @@
                                             }
                                         });
 
-                                        // On page load, restore filename if available
                                         document.addEventListener('DOMContentLoaded', function () {
                                             const savedFileName = sessionStorage.getItem('resumeFileName');
                                             if (savedFileName) {
                                                 resumeFilenameDisplay.textContent = "Previously selected: " + savedFileName;
                                             }
                                         });
+
                                     </script>
 
 
 
                                     <!-- Upload Profile Picture -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">
+                                            Upload profile picture <span style="color: red;">*</span>
+                                        </label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="profile_picture" accept="image/png, image/jpeg"
+                                            <input type="file" id="profilePicture" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-                                            @error('profile_picture')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+
+                                        @error('profile_picture')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <div class="text-sm">
@@ -1467,11 +1492,17 @@
                
             },
 
-            errorElement: 'p',
             errorPlacement: function (error, element) {
                 error.addClass('text-red-600 text-sm mt-1');
-                error.insertAfter(element);
+
+                // Special handling for file inputs
+                if (element.attr("type") === "file") {
+                    error.insertAfter(element.closest('div'));
+                } else {
+                    error.insertAfter(element);
+                }
             }
+
         });
 
         // Step navigation with validation check
