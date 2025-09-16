@@ -56,6 +56,15 @@ Route::group(['prefix' => 'admin'], function() {
 			Route::post('/jobseekers/changeStatus', [AdminController::class, 'jobseekerChangeStatus'])->name('admin.jobseeker.changeStatus');
 			Route::post('/jobseekers/assignAdmin', [AdminController::class, 'assignAdmin'])->name('admin.jobseeker.assignAdmin');
 			Route::post('/jobseeker/update-status', [AdminController::class, 'updateStatus'])->name('admin.jobseeker.updateStatus');
+
+			Route::get('/jobseeker/{id}/resume/download', [AdminController::class, 'downloadResume'])
+     		->name('admin.jobseeker.resume.download');
+			// Admin side certificate view
+			Route::get('admin/jobseeker/{jobseeker_id}/certificate/{material_id}', 
+				[AdminController::class, 'viewCertificate'])->name('admin.viewCertificate');
+
+
+
 		});
         // Trainers Module
 		Route::middleware('admin.module:Trainers')->group(function () {
@@ -73,7 +82,7 @@ Route::group(['prefix' => 'admin'], function() {
 		});
         // Expats Module
         Route::middleware('admin.module:Expats')->group(function () {
-			Route::get('/expat', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expat');
+			Route::get('/expats', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expats');
 		});
         // Assessors Module
         Route::middleware('admin.module:Assessors')->group(function () {
@@ -181,6 +190,9 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::middleware('admin.module:Resume Format')->group(function () {
 			Route::get('/resume-format', [AdminController::class, 'resume'])->name('admin.resume');
 			Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
+			Route::get('/admin/resume/download-option/{id}', [AdminController::class, 'downloadOption'])
+    ->name('admin.resume.download.option');
+
 			
 		});
 

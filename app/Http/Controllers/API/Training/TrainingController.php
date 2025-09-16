@@ -73,13 +73,15 @@ class TrainingController extends Controller
                 $training->training_type = 'recorded';
                 $training->training_title = $request->training_title;
                 $training->training_sub_title = $request->training_sub_title;
-                $training->training_objective = $request->training_descriptions;
+                $training->training_descriptions = $request->training_descriptions;
                 $training->training_category = $request->training_category;
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
                 $training->training_offer_price = $request->training_offer_price;
-                $training->thumbnail_file_path = $thumbnailFilePath;
-                $training->thumbnail_file_name = $thumbnailFileName;
+                if ($request->hasFile('thumbnail')) {                    
+                    $training->thumbnail_file_path = $thumbnailFilePath;
+                    $training->thumbnail_file_name = $thumbnailFileName;
+                }
                 $training->admin_status = 'pending';
             } else {
                 // Create new training
@@ -88,13 +90,14 @@ class TrainingController extends Controller
                 $training->training_type = 'recorded';
                 $training->training_title = $request->training_title;
                 $training->training_sub_title = $request->training_sub_title;
-                $training->training_objective = $request->training_descriptions;
+                $training->training_descriptions = $request->training_descriptions;
                 $training->training_category = $request->training_category;
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
                 $training->training_offer_price = $request->training_offer_price;
                 $training->thumbnail_file_path = $thumbnailFilePath;
-                $training->thumbnail_file_name = $thumbnailFileName;                
+                $training->thumbnail_file_name = $thumbnailFileName; 
+                              
                 $training->session_type = null;
                 $training->admin_status = 'pending';
                 $training->rejection_reason = null;
@@ -306,8 +309,10 @@ class TrainingController extends Controller
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
                 $training->training_offer_price = $request->training_offer_price;
-                $training->thumbnail_file_path = $thumbnailFilePath;
-                $training->thumbnail_file_name = $thumbnailFileName;
+                if ($request->hasFile('thumbnail')) {
+                    $training->thumbnail_file_path = $thumbnailFilePath;
+                    $training->thumbnail_file_name = $thumbnailFileName;
+                }
                 //$training->strength = $request->strength;
             } else {
                 // Create new training
@@ -321,8 +326,10 @@ class TrainingController extends Controller
                 $training->training_level = $request->training_level;
                 $training->training_price = $request->training_price;
                 $training->training_offer_price = $request->training_offer_price;
+              
                 $training->thumbnail_file_path = $thumbnailFilePath;
                 $training->thumbnail_file_name = $thumbnailFileName;
+                
                 $training->training_objective = null;
                 $training->session_type = null;
                 $training->admin_status = 'pending';

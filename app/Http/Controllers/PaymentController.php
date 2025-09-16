@@ -10,6 +10,10 @@ use App\Models\Payment\JobseekerSessionBookingPaymentRequest;
 use App\Models\Payment\PurchasedSubscriptionPaymentRequest;
 use App\Models\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
+use App\Models\Api\Coupon;
+use App\Models\Payment\JobseekerTrainingMaterialPurchasePaymentRequest ;
+use App\Models\JobseekerTrainingMaterialPurchase ;
+use App\Models\Api\CorporatesEmailIds;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Jobseekers;
@@ -161,7 +165,7 @@ class PaymentController extends Controller
         
         $data = json_decode($decrypted, true);
         $data =$data[0];
-
+ 
         if ($data && $data['result'] === 'CAPTURED') {
             //echo "<pre>";print_r($data);
             // 🔎 Find the booking using trackId (reference_no in your DB)
@@ -174,6 +178,28 @@ class PaymentController extends Controller
                     'response_payload'=> json_encode($request->all()),
                 ]);
             }
+
+            // Step 1: Get coupon details by couponCode (if applied)
+            $coupon = null;
+            $discountAmount = 0;
+
+            if (!empty($data['udf9'])) {
+                $coupon = Coupon::where('code', $data['udf9'])->first();
+                
+                if ($coupon) {
+                    if ($coupon->discount_type === 'percentage') {
+                        $discountAmount = ($data['udf8'] * $coupon->discount_value) / 100;
+                    } elseif ($coupon->discount_type === 'fixed') {
+                        $discountAmount = $coupon->discount_value;
+                    }
+
+                    // prevent discount exceeding amount
+                    if ($discountAmount > $data['udf8']) {
+                        $discountAmount = $data['udf8'];
+                    }
+                }
+            }
+            $orderId = 'ORD-' . (!empty($data['ref']) ? $data['ref'] : time());
 
             // ✅ Payment success
             // update order as paid
@@ -195,9 +221,16 @@ class PaymentController extends Controller
                                         : null,
 
                 //Amout update
-                'amount'       => $data['udf7'] ?? null,   // Payment request amount
-                'tax'       => $data['udf8'] ?? null,   // Payment request tax
+                'amount'       => $data['udf8'] ?? null,   // Payment request amount
+                'tax'       => $data['udf7'] ?? null,   // Payment request tax
+                'tax_amount'       => $data['udf10'] ?? null,   // Payment request tax
                 'total_amount'       => $data['amt'] ?? null,   // Payment request track id
+                'order_id'       => $orderId ?? null,   // Payment request track id
+
+                //Coupon update
+                'coupon_code'       => $data['udf9'] ?? null,   // Payment request amount
+                'coupon_type'       => $coupon->discount_type ?? null,   // Payment request amount
+                'coupon_amount'       => $discountAmount ?? 0,   // Payment request amount
             ]);
             
             return view('payment.slotSuccess', [
@@ -691,5 +724,132 @@ class PaymentController extends Controller
 
         return redirect()->back()->with('error', 'Payment failed or cancelled. Please try again.');
     }
+
+    public function successMaterialPurchaseMobile(Request $request)
+    {
+        $config          = config('neoleap');
+        $responseTrandata = $request->input('trandata');
+       
+        //try {
+            // 🔐 Decrypt payment response
+            $decrypted = urldecode(PaymentHelper::decryptAES($responseTrandata, $config['secret_key']));
+            $data      = json_decode($decrypted, true)[0] ?? null;
+print_r($data);exit;
+            if (!$data) {
+                echo "hiiiiii";exit;
+                return view('payment.slotFailed', [
+                    'description'     => 'Invalid payment response received.',
+                    'transaction_id'  => null,
+                    'track_id'        => null,
+                    'amount'          => 0,
+                    'date'            => now()->format('d M Y h:i A'),
+                ]);
+            }
+
+            // 🔎 Find booking by track_id
+            $booking = JobseekerTrainingMaterialPurchasePaymentRequest::where('track_id', $data['trackId'])->first();
+
+            // ✅ SUCCESS CASE
+            if ($data['result'] === 'CAPTURED') {
+                if ($booking) {
+                    $booking->update([
+                        'transaction_id'   => $data['transId'] ?? null,
+                        'payment_status'   => 'success',
+                        'response_payload' => json_encode($request->all()),
+                    ]);
+                }
+//print_r($data);exit;
+                // Save material purchase
+                $purchase = JobseekerTrainingMaterialPurchase::create([
+                    'jobseeker_id'     => $data['udf1'] ?? null,
+                    'trainer_id'       => $data['udf10'] ?? null,
+                    'material_id'      => $data['udf6'] ?? null,
+                    'training_type'    => $data['udf4'] ?? 'recorded',
+                    'session_type'     => $data['udf4'] ?? null,
+                    'batch_id'         => $data['udf3'] ?? 0,
+                    'purchase_for'     => ($data['udf2'] ?? '') === 'buyForCorporates' ? 'team' : 'individual',
+                    'payment_id'       => $booking->id ?? null,
+                    'batchStatus'      => '',
+                    'transaction_id'   => $data['transId'] ?? null,
+                    'payment_status'   => 'success',
+                    'response_payload' => json_encode($data),
+                    'amount'           => $data['udf8'] ?? 0.00,
+                    'tax'              => $data['udf7'] ?? 0.00,
+                    'total_amount'     => $data['amt'] ?? 0.00,
+                    'track_id'         => $data['trackId'],
+                ]);
+
+                // Handle corporate purchases
+                if($data['udf2'] == 'buyForCorporates'){ 
+                    
+                    $CorporatesEmailIds = CorporatesEmailIds::where('track_id', $data['trackId'])->first(); 
+                    $SavedCorporatesEmailIds = ["junaidforu@gmail.com","junaidforu1@gmail.com","junaid@yopmail.com"]; //json_decode($CorporatesEmailIds->corporatesEmailIds, true); 
+                    $CorporatesEmailIds->update(['successPaymentId' => $purchase->id]); 
+                    foreach($SavedCorporatesEmailIds as $SavedCorporatesEmailId){ 
+                        //echo $SavedCorporatesEmailId; 
+                        $Jobseekers = Jobseekers::where('email', $SavedCorporatesEmailId)->first(); 
+                        //send mail for purchase
+                        if (!$Jobseekers) { 
+                            Jobseekers::create([ 'email' => $SavedCorporatesEmailId, 'password' => 1111, 'pass' => 1111, 'roles' => 'jobseeker', ]); 
+                        } else { 
+                            // Update the jobseeker basic info 
+                            $jobSeekerIds = $Jobseekers->id ;
+                                //send mail for purchase
+                        } 
+                    } 
+                }
+
+                // Handle cart purchases
+                if (($data['udf2'] ?? '') === 'cart') {
+                    JobseekerCartItem::where('jobseeker_id', $data['udf1'])
+                        ->where('status', 'pending')
+                        ->update([
+                            'status'     => 'completed',
+                            'updated_at' => now(),
+                        ]);
+                }
+
+                return view('payment.slotSuccess', [
+                    'transaction_id' => $data['transId'] ?? null,
+                    'amount'         => $data['amt'] ?? 0.00,
+                    'date'           => !empty($data['paymentTimestamp'])
+                        ? date('d M Y h:i A', strtotime($data['paymentTimestamp']))
+                        : now()->format('d M Y h:i A'),
+                    'description'    => "Material purchase payment for " . ($data['udf5'] ?? 'training') . ".",
+                ]);
+            }
+
+            // ❌ FAILURE CASE
+            if ($booking) {
+                $status = 'failed';
+                $booking->update([
+                    'transaction_id'   => $data['transId'] ?? null,
+                    'payment_status'   => $status,
+                    'response_payload' => json_encode($request->all()),
+                ]);
+            }
+
+            return view('payment.slotSuccess', [
+                'description'    => $data['ErrorText'] ?? 'Payment failed. Please try again.',
+                'transaction_id' => $data['transId'] ?? null,
+                'track_id'       => $data['trackId'] ?? null,
+                'amount'         => $data['amt'] ?? 0.00,
+                'date'           => !empty($data['paymentTimestamp'])
+                    ? date('d M Y h:i A', strtotime($data['paymentTimestamp']))
+                    : now()->format('d M Y h:i A'),
+            ]);
+        // } catch (\Exception $e) {
+        //     echo "lklklklklk";exit;
+        //     return view('payment.slotFailed', [
+        //         'description'    => 'Unexpected error: ' . $e->getMessage(),
+        //         'transaction_id' => null,
+        //         'track_id'       => null,
+        //         'amount'         => 0,
+        //         'date'           => now()->format('d M Y h:i A'),
+        //     ]);
+        // }
+    }
+
+    
 
 }

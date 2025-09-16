@@ -58,7 +58,7 @@
                         <a href="#" role="button"
                             class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
                         <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
+                            <span> {{ langLabel('profile') }}</span>
                         </a>
                     </div>
                     </div>
@@ -71,13 +71,13 @@
                     <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100 text-gray-700">
                             <tr>
-                                <th class="px-6 py-3">Sr. No.</th>
-                                <th class="px-6 py-3">Session Type</th>
-                                <th class="px-6 py-3">Batch Name</th>
-                                <th class="px-6 py-3">Course Name</th>
-                                <th class="px-6 py-3">Enrolled Students</th>
-                                <th class="px-6 py-3">Date</th>
-                                <th class="px-6 py-3">Time</th>
+                                <th class="px-6 py-3">{{ langLabel('sr_no') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('session_type') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('batch_name') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('course_name') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('enrolled_students') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('date') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('time') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -96,7 +96,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-4 text-center">No batches found.</td>
+                                    <td colspan="8" class="px-6 py-4 text-center">{{ langLabel('no_batch_found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -181,7 +181,7 @@
                         createPagination();
                         showPage(1);
                     } else {
-                        $('#batchPagination').html('<p class="text-center text-gray-500">No batches found.</p>');
+                        $('#batchPagination').html('<p class="text-center text-gray-500">{{ langLabel("no_batch_found") }}</p>');
                     }
                 });
                 </script>

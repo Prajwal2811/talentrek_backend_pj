@@ -133,7 +133,7 @@
                                                 </select>
                                                 <input name="phone_number" placeholder="Enter Phone number" type="tel"
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
-                                                    value="{{ old('phone_number', $phone) }}" readonly />
+                                                    value="{{ old('phone_number') }}"  />
                                             </div>
                                             @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -615,18 +615,13 @@
 
                                                 {{-- Highest Qualification --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Highest
-                                                        qualification <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select name="high_education[]"
-                                                        class="w-full border border-gray-300 rounded-md p-2">
-                                                        <option value="">Select highest qualification</option>
-                                                        <option value="high_school" {{ old("high_education.$i") == 'high_school' ? 'selected' : '' }}>
-                                                            High School</option>
-                                                        <option value="diploma" {{ old("high_education.$i") == 'diploma' ? 'selected' : '' }}>Diploma</option>
-                                                        <option value="bachelor" {{ old("high_education.$i") == 'bachelor' ? 'selected' : '' }}>Bachelor's Degree</option>
-                                                        <option value="master" {{ old("high_education.$i") == 'master' ? 'selected' : '' }}>Master's Degree</option>
-                                                        <option value="phd" {{ old("high_education.$i") == 'phd' ? 'selected' : '' }}>Ph.D.</option>
-                                                    </select>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Highest qualification <span style="color: red; font-size: 17px;">*</span>
+                                                    </label>
+                                                    <input type="text" name="high_education[]" 
+                                                        class="w-full border border-gray-300 rounded-md p-2"
+                                                        value="{{ old("high_education.$i") }}"
+                                                        placeholder="Enter your highest qualification">
                                                     @error("high_education.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -634,22 +629,13 @@
 
                                                 {{-- Field of Study --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of
-                                                        study <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select name="field_of_study[]"
-                                                        class="w-full border border-gray-300 rounded-md p-2">
-                                                        <option value="">Select field of study</option>
-                                                        <option value="engineering" {{ old("field_of_study.$i") == 'engineering' ? 'selected' : '' }}>
-                                                            Engineering</option>
-                                                        <option value="science" {{ old("field_of_study.$i") == 'science' ? 'selected' : '' }}>Science</option>
-                                                        <option value="commerce" {{ old("field_of_study.$i") == 'commerce' ? 'selected' : '' }}>Commerce</option>
-                                                        <option value="arts" {{ old("field_of_study.$i") == 'arts' ? 'selected' : '' }}>Arts</option>
-                                                        <option value="medicine" {{ old("field_of_study.$i") == 'medicine' ? 'selected' : '' }}>Medicine</option>
-                                                        <option value="law" {{ old("field_of_study.$i") == 'law' ? 'selected' : '' }}>Law</option>
-                                                        <option value="education" {{ old("field_of_study.$i") == 'education' ? 'selected' : '' }}>Education</option>
-                                                        <option value="management" {{ old("field_of_study.$i") == 'management' ? 'selected' : '' }}>Management</option>
-                                                        <option value="other" {{ old("field_of_study.$i") == 'other' ? 'selected' : '' }}>Other</option>
-                                                    </select>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Field of study <span style="color: red; font-size: 17px;">*</span>
+                                                    </label>
+                                                    <input type="text" name="field_of_study[]" 
+                                                        class="w-full border border-gray-300 rounded-md p-2"
+                                                        value="{{ old("field_of_study.$i") }}"
+                                                        placeholder="Enter your field of study">
                                                     @error("field_of_study.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -657,8 +643,9 @@
 
                                                 {{-- Institution Name --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution
-                                                        name <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Institution name <span style="color: red; font-size: 17px;">*</span>
+                                                    </label>
                                                     <input name="institution[]" type="text"
                                                         class="w-full border border-gray-300 rounded-md p-2"
                                                         value="{{ old("institution.$i") }}"
@@ -670,45 +657,34 @@
 
                                                 {{-- Graduation Year --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation
-                                                        year <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <select name="graduate_year[]"
-                                                        class="w-full border border-gray-300 rounded-md p-2">
-                                                        <option value="">Select year of passing</option>
-                                                        @foreach(range(date('Y'), 2010) as $year)
-                                                            <option value="{{ $year }}" {{ old("graduate_year.$i") == $year ? 'selected' : '' }}>{{ $year }}</option>
-                                                        @endforeach
-                                                        <option value="2010-2014" {{ old("graduate_year.$i") == '2010-2014' ? 'selected' : '' }}>2010-2014</option>
-                                                        <option value="2010" {{ old("graduate_year.$i") == '    2010' ? 'selected' : '' }}>
-                                                            Before 2010</option>
-                                                    </select>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Graduation year <span style="color: red; font-size: 17px;">*</span>
+                                                    </label>
+                                                    <input type="number" name="graduate_year[]" class="w-full border border-gray-300 rounded-md p-2"
+                                                        value="{{ old("graduate_year.$i") }}" placeholder="Enter graduation year (e.g. 2022 / Before 2000)">
                                                     @error("graduate_year.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
-
                                                 <button type="button"
                                                     class="remove-education absolute top-2 right-2 text-red-600 font-bold text-lg"
                                                     style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
                                             </div>
                                         @endfor
-
                                     </div>
 
                                     <div class="col-span-2">
-                                        <button type="button" id="add-education" class="text-green-600 text-sm mt-2 mb-2">Add
-                                            education +</button>
+                                        <button type="button" id="add-education" class="text-green-600 text-sm mt-2 mb-2">
+                                            Add education +
+                                        </button>
                                     </div>
 
                                     <div class="col-span-2 flex justify-between">
-                                        <button type="button" onclick="showStep(1)"
-                                            class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="button" onclick="showStep(3)"
-                                            class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                        <button type="button" onclick="showStep(1)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(3)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                     </div>
-
-
                                 </div>
+
 
                                 <!-- Step 3: Work Experience -->
                                 <div id="step-3" class="step hidden">

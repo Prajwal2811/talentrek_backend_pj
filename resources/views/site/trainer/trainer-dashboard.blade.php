@@ -24,21 +24,22 @@
             @include('site.trainer.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                @include('site.trainer.componants.navbar')
+              @include('site.trainer.componants.navbar')
+              <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
+                <h2 class="text-2xl font-semibold mb-6">{{ langLabel('dashboard') }}</h2>
+                @include('admin.errors')
 
-           <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
-                <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
 
                 <!-- Stat Cards -->
                 <div class="grid grid-cols-12 gap-4 mb-6">
                     <!-- First two cards side by side in col-span-6 -->
                     <div class="col-span-6 grid grid-cols-2 gap-4">
                         <div class="bg-white p-4 rounded-lg shadow text-sm">
-                            <p class="text-gray-700">Total courses</p>
+                            <p class="text-gray-700">{{ langLabel('total_courses') }}</p>
                             <h3 class="text-3xl font-semibold mt-1">24</h3>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow text-sm">
-                            <p class="text-gray-700">Enrolled jobseekers</p>
+                            <p class="text-gray-700">{{ langLabel('enrolled_jobseekers') }}</p>
                             <h3 class="text-3xl font-semibold mt-1">310</h3>
                         </div>
                     </div>
@@ -47,12 +48,12 @@
                     <div class="col-span-6">
                         <div class="bg-white p-4 rounded-lg shadow text-sm flex justify-between items-start">
                             <div>
-                                <p class="text-gray-700">Total upcoming batches</p>
+                                <p class="text-gray-700">{{ langLabel('total_upcoming_batches') }}</p>
                                 <h3 class="text-3xl font-semibold mt-1">5</h3>
                             </div>
                             <div class="mt-6 space-x-4 text-sm mt-5">
-                                <span class="text-green-600 font-medium">Completed: <span class="font-bold">2</span></span>
-                                <span class="text-red-500 font-medium">Pending: <span class="font-bold">3</span></span>
+                                <span class="text-green-600 font-medium">{{ langLabel('completed') }}: <span class="font-bold">2</span></span>
+                                <span class="text-red-500 font-medium">{{ langLabel('pending') }}: <span class="font-bold">3</span></span>
                             </div>
                         </div>
                     </div>
@@ -66,7 +67,7 @@
                 <div x-data="dashboard()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Enrolled Jobseekers -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="text-base font-semibold mb-3">Enrolled jobseekers</h3>
+                        <h3 class="text-base font-semibold mb-3">{{ langLabel('enrolled_jobseekers') }}</h3>
                         <div class="divide-y">
                             <template x-for="jobseeker in visibleJobseekers" :key="jobseeker.id">
                                 <div class="flex justify-between items-center py-3">
@@ -90,23 +91,23 @@
 
                     <!-- Today's Sessions -->
                      <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="text-base font-semibold mb-3">Today's batches</h3>
+                        <h3 class="text-base font-semibold mb-3">{{ langLabel('todays_batches') }}</h3>
                         <div class="divide-y">
                             <template x-for="session in visibleSessions" :key="session.id">
                                 <div class="flex justify-between items-center py-3">
                                     <div>
                                         <h4 class="text-sm font-medium" x-text="session.title + ' - ' + session.training_level"></h4>
                                         <p class="text-xs text-gray-500">
-                                            Time: <span x-text="session.time"></span> &nbsp;&nbsp;
-                                            Batch: <span x-text="session.batch"></span>
+                                            {{ langLabel('time') }}: <span x-text="session.time"></span> &nbsp;&nbsp;
+                                            {{ langLabel('batch') }}: <span x-text="session.batch"></span>
                                         </p>
                                     </div>
-                                    <button class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Join</button>
+                                    <button class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">{{ langLabel('join') }}</button>
                                 </div>
                             </template>
                         </div>
                         <div class="pt-4 text-sm text-blue-600 text-right">
-                            <button x-show="visibleSessions.length < sessions.length" @click="loadMoreSessions()" class="hover:underline">See all</button>
+                            <button x-show="visibleSessions.length < sessions.length" @click="loadMoreSessions()" class="hover:underline">{{ langLabel('see_all') }}</button>
                         </div>
                     </div>
 

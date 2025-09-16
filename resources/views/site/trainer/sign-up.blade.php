@@ -27,21 +27,21 @@
                             <div class="col-xl-6 col-lg-6 col-md-6">
                             <div class="container d-flex justify-content-center align-items-center min-vh-100">
                                 <div class="w-full max-w-md px-6">
-                                    <h2 class="text-2xl font-semibold mb-1">Sign up</h2>
-                                    <p class="text-gray-600 mb-6">Please enter your details to continue</p>
+                                    <h2 class="text-2xl font-semibold mb-1">{{ langLabel('sign_up') }}</h2>
+                                    <p class="text-gray-600 mb-6">{{ langLabel('enter_details') }}</p>
                                     <form class="space-y-4" action="{{ route('trainer.register.post') }}" method="POST">
                                         @csrf 
                                         <div>
-                                            <label class="block text-sm mb-1">Email</label>
-                                            <input type="email" name="email" placeholder="Email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('email') }}">
+                                            <label class="block text-sm mb-1">{{ langLabel('email') }}</label>
+                                            <input type="email" name="email" placeholder="{{ langLabel('email') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('email') }}">
                                             @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm mb-1">Mobile Number</label>
-                                            <input type="text" name="phone_number" placeholder="Mobile Number" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('phone_number') }}">
+                                            <label class="block text-sm mb-1">{{ langLabel('mobile_no') }}</label>
+                                            <input type="text" name="phone_number" placeholder="{{ langLabel('mobile_no') }}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('phone_number') }}">
                                             @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -49,9 +49,9 @@
 
                                         <!-- Password Field -->
                                         <div class="mb-3">
-                                            <label for="password" class="block text-sm font-medium mb-1">Password</label>
+                                            <label for="password" class="block text-sm font-medium mb-1">{{ langLabel('password') }}</label>
                                             <div class="relative w-full">
-                                                <input type="password" name="password" id="password" placeholder="Password"
+                                                <input type="password" name="password" id="password" placeholder="{{ langLabel('password') }}"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"/>
 
                                                 <!-- Eye Toggle Button -->
@@ -67,9 +67,9 @@
 
                                         <!-- Confirm Password Field -->
                                         <div class="mb-3">
-                                            <label for="confirm_password" class="block text-sm font-medium mb-1">Confirm Password</label>
+                                            <label for="confirm_password" class="block text-sm font-medium mb-1">{{ langLabel('confirm_password') }}</label>
                                             <div class="relative w-full">
-                                                <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password"
+                                                <input type="password" name="confirm_password" id="confirm_password" placeholder="{{ langLabel('confirm_password') }}"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"/>
 
                                                 <!-- Eye Toggle Button -->
@@ -86,26 +86,27 @@
                                         <div class="flex items-start">
                                             <input type="checkbox" class="mt-1 mr-2" id="terms">
                                             <label for="terms" class="text-sm text-gray-600">
-                                            I have read and agreed to
-                                            <a href="#" class="text-blue-600 hover:underline">terms and conditions</a>
+                                           {{ langLabel('agree_terms') }}
+                                            <a href="#" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
                                             </label>
                                         </div>
 
                                         <button id="registerBtn" type="submit" class="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition">
-                                            Register
+                                            {{ langLabel('register') }}
                                         </button>
 
 
-                                        <button type="button" class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md hover:bg-gray-100">
-                                            <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5">
-                                            <span>Sign in with Google</span>
-                                        </button>
+                                        <a href="{{ route('trainer.google.redirect') }}" 
+                                        class="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 mb-3">
+                                            <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5 mr-2">
+                                            {{ langLabel('signin_google') }}
+                                        </a>
 
-                                        <div class="text-center text-gray-500 text-sm mt-4">- or -</div>
+                                        <div class="text-center text-gray-500 text-sm mt-4">- {{ langLabel('or') }} -</div>
 
                                         <div class="text-center text-sm mt-2">
-                                            I have an account?
-                                            <a href="{{ route('trainer.login')}}" class="text-blue-600 hover:underline">Sign in</a>
+                                            {{ langLabel('have_account') }}
+                                            <a href="{{ route('trainer.login')}}" class="text-blue-600 hover:underline">{{ langLabel('sign_in') }}</a>
                                         </div>
                                     </form>
                                         <script>

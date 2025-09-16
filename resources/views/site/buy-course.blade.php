@@ -25,7 +25,7 @@
             <div class="absolute inset-0 bg-white bg-opacity-10"></div>
             <div class="relative z-10 container mx-auto px-4">
                 <div class="space-y-2">
-                    <h2 class="text-5xl font-bold text-white ml-[10%]">Training</h2>
+                    <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('training') }}</h2>
                 </div>
             </div>
         </div>
@@ -88,10 +88,10 @@
                         <div class="lg:col-span-2 space-y-6">
                             @if($material->training_type  === "online" || $material->training_type  === "classroom")
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Training mode</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
                                     <input type="hidden" name="session_type" value="{{ $material->training_type }}">
                                     <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" >
-                                        <option value="" disabled>Select Training Mode</option>
+                                        <option value="" disabled>{{ langLabel('select_training_mode') }}</option>
                                         <option value="online" @if($material->training_type === 'online') selected @endif disabled>Online</option>
                                         <option value="classroom" @if($material->training_type === 'classroom') selected @endif disabled>Classroom</option>
                                     </select>
@@ -100,149 +100,74 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                                 <div>
-                                    <h3 class="text-sm font-medium mb-2">Select batch</h3>
-                                    <table class="w-full border border-gray-200 rounded">
-                                        <thead class="bg-gray-100 text-gray-700 text-left text-sm">
+                                    <h3 class="text-sm font-medium mb-2">{{ langLabel('select_batch') }}</h3>
+                                    <table class="w-full table-auto border border-gray-200 rounded text-sm text-center">
+                                        <thead class="bg-gray-100 text-gray-700">
                                             <tr>
-                                                <th class="px-4 py-2">Select</th>
-                                                <th class="px-4 py-2">Batch No</th>
-                                                <th class="px-4 py-2">Start Date</th>
-                                                <th class="px-4 py-2">Timings</th>
-                                                <th class="px-4 py-2">Duration</th>
+                                                <th class="px-4 py-2">{{ langLabel('select') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('batch_no') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('start_date') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('timings') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('duration') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('strength') }}</th>
+                                                <th class="px-4 py-2">{{ langLabel('days') }}</th>
                                             </tr>
                                         </thead>
-                                        <!-- <tbody>
-                                            @if($material->batches->isNotEmpty())
-                                                @foreach ($material->batches as $batch)
-                                                    @php
-                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
-                                                        $now = \Carbon\Carbon::now();
-
-                                                        // Parse duration
-                                                        $duration = strtolower($batch->duration);
-                                                        preg_match('/\d+/', $duration, $matches);
-                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
-
-                                                        // Calculate end date
-                                                        if (str_contains($duration, 'day')) {
-                                                            $endDate = $startDate->copy()->addDays($durationValue);
-                                                        } elseif (str_contains($duration, 'month')) {
-                                                            $endDate = $startDate->copy()->addMonths($durationValue);
-                                                        } elseif (str_contains($duration, 'year')) {
-                                                            $endDate = $startDate->copy()->addYears($durationValue);
-                                                        } else {
-                                                            $endDate = $startDate;
-                                                        }
-
-                                                        $isStarted = $startDate->isPast();
-                                                        $isEnded = $endDate->isPast();
-                                                    @endphp
-
-                                                    <tr class="border-t {{ $isEnded ? 'bg-gray-200 text-gray-500' : 'cursor-pointer' }}" 
-                                                        onclick="{{ $isEnded ? '' : 'selectRadio(' . $batch->id . ')' }}">
-                                                        
-                                                        <td class="px-4 py-3">
-                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
-                                                                id="batch-radio-{{ $batch->id }}" {{ $isEnded ? 'disabled' : '' }}>
-                                                        </td>
-
-                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
-
-                                                        <td class="px-4 py-3">
-                                                            {{ $startDate->format('d M Y') }}
-                                                            @if ($isStarted && !$isEnded)
-                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
-                                                            @elseif ($isEnded)
-                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
-                                                            @endif
-                                                        </td>
-
-                                                        <td class="px-4 py-3">
-                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                                        </td>
-
-                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
-                                                </tr>
-                                            @endif
-
-
-
-                                        </tbody> -->
                                         <tbody>
-                                            @if($material->batches->isNotEmpty())
-                                                @foreach ($material->batches as $batch)
+                                            @forelse($material->batches as $batch)
+                                                @php
+                                                    $start = \Carbon\Carbon::parse($batch->start_date);
+                                                    $now = \Carbon\Carbon::now();
+
+                                                    preg_match('/\d+/', strtolower($batch->duration), $m);
+                                                    $end = match (true) {
+                                                        str_contains(strtolower($batch->duration),'day') => $start->copy()->addDays($m[0] ?? 0),
+                                                        str_contains(strtolower($batch->duration),'month') => $start->copy()->addMonths($m[0] ?? 0),
+                                                        str_contains(strtolower($batch->duration),'year') => $start->copy()->addYears($m[0] ?? 0),
+                                                        default => $start
+                                                    };
+
+                                                    $ended = $end->isPast();
+                                                    $started = $start->isPast() && !$ended;
+
+                                                    $strength = $batch->strength;
+                                                    $enrolled = App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                                                                            ->where('material_id', $material->id)
+                                                                            ->count();
+                                                    $availableStrength = $strength - $enrolled;
+
+                                                    $isFull = $availableStrength <= 0;
+                                                @endphp
+                                                <tr class="border-t {{ $ended || $isFull ? 'bg-gray-200 text-gray-500' : 'cursor-pointer hover:bg-gray-50' }}"
+                                                    onclick="{{ ($ended || $isFull) ? '' : 'selectRadio(' . $batch->id . ')' }}">
+                                                    <td class="px-4 py-2">
+                                                        <input type="radio" name="batch" value="{{ $batch->id }}" class="form-radio" id="batch-radio-{{ $batch->id }}"
+                                                            {{ ($ended || $isFull) ? 'disabled' : '' }}>
+                                                    </td>
+                                                    <td class="px-4 py-2">{{ $batch->batch_no }}</td>
+                                                    <td class="px-4 py-2">
+                                                        {{ $start->format('d M Y') }}
+                                                        @if($started)
+                                                            <div class="text-xs text-orange-600 mt-1 font-semibold">{{ langLabel('batch_has_started') }}</div>
+                                                        @elseif($ended)
+                                                            <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_ended') }}</div>
+                                                        @elseif($isFull)
+                                                            <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_full') }}</div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-2">{{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}</td>
+                                                    <td class="px-4 py-2">{{ $batch->duration }}</td>
+                                                    <td class="px-4 py-2">{{ $batch->strength }}</td>
                                                     @php
-                                                        $startDate = \Carbon\Carbon::parse($batch->start_date);
-                                                        $now = \Carbon\Carbon::now();
-
-                                                        // Parse duration
-                                                        $duration = strtolower($batch->duration);
-                                                        preg_match('/\d+/', $duration, $matches);
-                                                        $durationValue = isset($matches[0]) ? (int)$matches[0] : 0;
-
-                                                        // Calculate end date
-                                                        if (str_contains($duration, 'day')) {
-                                                            $endDate = $startDate->copy()->addDays($durationValue);
-                                                        } elseif (str_contains($duration, 'month')) {
-                                                            $endDate = $startDate->copy()->addMonths($durationValue);
-                                                        } elseif (str_contains($duration, 'year')) {
-                                                            $endDate = $startDate->copy()->addYears($durationValue);
-                                                        } else {
-                                                            $endDate = $startDate;
-                                                        }
-
-                                                        $isStarted = $startDate->isPast();
-                                                        $isEnded = $endDate->isPast();
-
-                                                        // Check batch strength
-                                                        $bookedCount = \DB::table('jobseeker_training_material_purchases')
-                                                                        ->where('batch_id', $batch->id)
-                                                                        ->count();
-                                                        $isFull = $bookedCount >= $batch->strength;
+                                                        $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days 
                                                     @endphp
-
-                                                    <tr class="border-t {{ $isEnded || $isFull ? 'bg-gray-200 text-red-500' : 'cursor-pointer' }}" 
-                                                        onclick="{{ ($isEnded || $isFull) ? '' : 'selectRadio(' . $batch->id . ')' }}">
-                                                        
-                                                        <td class="px-4 py-3">
-                                                            <input type="radio" class="form-radio" name="batch" value="{{ $batch->id }}"
-                                                                id="batch-radio-{{ $batch->id }}" {{ ($isEnded || $isFull) ? 'disabled' : '' }}>
-                                                        </td>
-
-                                                        <td class="px-4 py-3">{{ $batch->batch_no }}</td>
-
-                                                        <td class="px-4 py-3">
-                                                            {{ $startDate->format('d M Y') }}
-                                                            @if ($isFull)
-                                                                <div class="text-sm font-semibold text-red-600">Batch Full</div>
-                                                            @elseif ($isStarted && !$isEnded)
-                                                                <div class="text-sm text-orange-600 font-semibold">Batch has already started</div>
-                                                            @elseif ($isEnded)
-                                                                <div class="text-sm text-red-600 font-semibold">Batch has already ended</div>
-                                                            @endif
-                                                        </td>
-
-                                                        <td class="px-4 py-3">
-                                                            {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                            {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                                        </td>
-
-                                                        <td class="px-4 py-3">{{ $batch->duration }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="5" class="text-center text-gray-500 py-4">No batches available.</td>
+                                                    <td class="px-4 py-2">{{ $days }}</td>
                                                 </tr>
-                                            @endif
-                                        </tbody>
+                                            @empty
+                                                <tr><td colspan="7" class="px-4 py-2 text-gray-500">{{ langLabel('no_batched_available') }}</td></tr>
+                                            @endforelse
 
+                                        </tbody>
                                     </table>
                                     @error('batch')
                                         <small class="text-danger">{{ $message }}</small>
@@ -282,7 +207,7 @@
                                                 @endif
                                             @endfor
                                             <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                            <span class="ml-1 text-gray-500 text-xs">Rati{{ langLabel('rating') }}ng</span>
                                         </div>
 
 
@@ -293,7 +218,7 @@
                                                 {{ $material->training_offer_price  }}</span>
                                         </div>
 
-                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 {{ langLabel('remove') }}</button> --}}
                                     </div>
                                 </div>
                             @elseif($material->training_type  === "recorded")
@@ -323,7 +248,7 @@
                                                 @endif
                                             @endfor
                                             <span class="ml-1 text-gray-500 text-xs">({{ $average }}/5)</span>
-                                            <span class="ml-1 text-gray-500 text-xs">Rating</span>
+                                            <span class="ml-1 text-gray-500 text-xs">{{ langLabel('rating') }}</span>
                                         </div>
 
 
@@ -334,7 +259,7 @@
                                                 {{ $material->training_offer_price  }}</span>
                                         </div>
 
-                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 Remove</button> --}}
+                                        {{-- <button class="text-red-500 text-sm mt-2 hover:underline">🗑 {{ langLabel('remove') }}</button> --}}
                                     </div>
                                 </div>
                             @endif
@@ -343,164 +268,60 @@
                         <!-- Include Alpine.js -->
                         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-                        <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
-
-                            <!-- Select Payment Method -->
+                      <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
+                            <!-- Apply Promocode Section -->
+                            @php
+                                $coupnCode = App\Models\Coupon::where('is_active', 1)->first();
+                                $taxation = App\Models\Taxation::where('user_type', 'trainer')->where('is_active', 1)->first();
+                            @endphp
                             <div>
-                                <h3 class="text-sm font-medium mb-2">Select Payment Method:</h3>
-                                <div class="space-y-2">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="payment_method" value="card" x-model="paymentMethod"
-                                            class="form-radio text-blue-600">
-                                        <span class="text-sm">Credit / Debit Card</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="payment_method" value="upi" x-model="paymentMethod"
-                                            class="form-radio text-blue-600">
-                                        <span class="text-sm">UPI / Online Payment</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Card Payment Section -->
-                            <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter Card Details:</h4>
-                                <input type="text" placeholder="Cardholder Name"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Card Number" maxlength="19"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                <h3 class="text-sm font-medium mb-2">{{ langLabel('apply_promocode') }}:</h3>
                                 <div class="flex space-x-2">
-                                    <input type="text" placeholder="MM/YY"
-                                        class="w-1/2 border border-gray-300 rounded px-3 py-2 text-sm">
-                                    <input type="text" placeholder="CVV" maxlength="4"
-                                        class="w-1/2 border border-gray-300 rounded px-3 py-2 text-sm">
-                                </div>
-                            </div>
-
-                            <!-- UPI Section -->
-                            <div x-show="paymentMethod === 'upi'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter UPI ID:</h4>
-                                <input type="text" placeholder="yourname@upi"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            </div>
-
-                            <!-- Bank Transfer Section -->
-                            <div x-show="paymentMethod === 'bank'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter Bank Transfer Details:</h4>
-                                <input type="text" placeholder="Account Holder Name"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Bank Name"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Transaction Reference Number"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                            </div>
-
-                            <div>
-                                <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
-                                <div class="flex space-x-2">
-                                    <input type="text" id="promocode" placeholder="Enter promocode for discount"
+                                    <input type="text" placeholder="Enter promocode for discount"
                                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                    <button type="button" id="applyCouponBtn"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                    <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
                                 </div>
-                                <p id="couponMessage" class="text-sm mt-2"></p>
                             </div>
+
 
                             @php
-                                $actualPrice = $material->training_price;
-                                $offerPrice = $material->training_offer_price;
+                                $actualPrice = floatval($material->training_price);
+                                $offerPrice = floatval($material->training_offer_price ?? $actualPrice); // fallback
                                 $savedPrice = $actualPrice - $offerPrice;
-                                $tax = round($offerPrice * 0.10, 2);
-                                $total = $offerPrice + $tax;
+
+                                $taxRate = floatval($taxation->rate);
+                                $tax = round($offerPrice * ($taxRate / 100), 2);
+                                $total = round($offerPrice + $tax, 2);
                             @endphp
 
-                            <div class="border rounded p-4 space-y-2" id="billingSection">
-                                <h3 class="text-sm font-medium border-b pb-2">Billing Information</h3>
+                            <!-- Billing Information -->
+                            <div class="border rounded p-4 space-y-2">
+                                <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('billing_information') }}</h3>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Course total</span>
-                                    <span id="courseTotal">SAR {{ number_format($offerPrice, 2) }}</span>
-                                </div>
-
-                                <div class="flex justify-between text-sm" id="discountRow" style="display:none;">
-                                    <span>Coupon Discount</span>
-                                    <span id="discountAmount">SAR 0.00</span>
+                                    <span>{{ langLabel('course_total') }}</span>
+                                    <span>SAR {{ number_format($offerPrice, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Saved amount</span>
-                                    <span id="savedAmount">SAR {{ number_format($savedPrice, 2) }}</span>
+                                    <span>{{ langLabel('saved_amount') }}</span>
+                                    <span>SAR {{ number_format($savedPrice, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Tax (10%)</span>
-                                    <span id="taxAmount">SAR {{ number_format($tax, 2) }}</span>
+                                    <span>{{ langLabel('tax') }} ({{ $taxation->rate }}%)</span>
+                                    <span>SAR {{ number_format($tax, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-base font-semibold pt-2 border-t">
-                                    <span>Total</span>
-                                    <span id="totalAmount">SAR {{ number_format($total, 2) }}</span>
+                                    <span>{{ langLabel('total') }}</span>
+                                    <span>SAR {{ number_format($total, 2) }}</span>
                                 </div>
-                            </div>
-
-                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                           <script>
-$('#applyCouponBtn').click(function () {
-    let code = $('#promocode').val().trim();
-    // Pass numeric literals to JS safely
-    let price = parseFloat("{{ number_format($offerPrice, 2, '.', '') }}");
-    let actualPrice = parseFloat("{{ number_format($actualPrice, 2, '.', '') }}");
-
-    if (!code) {
-        $('#couponMessage').text('Please enter a coupon code').css('color', 'red');
-        return;
-    }
-
-    $.ajax({
-        url: "{{ route('jobseeker.apply-coupon') }}",
-        method: "POST",
-        data: {
-            _token: "{{ csrf_token() }}",
-            code: code,
-            price: price
-        },
-        success: function (response) {
-            if (response.success) {
-                $('#discountRow').show();
-                $('#discountAmount').text("- SAR " + Number(response.discount).toFixed(2));
-
-                // Update course total to the discounted price (before tax)
-                $('#courseTotal').text("SAR " + Number(response.newPrice).toFixed(2));
-
-                // Tax & total
-                $('#taxAmount').text("SAR " + Number(response.tax).toFixed(2));
-                $('#totalAmount').text("SAR " + Number(response.total).toFixed(2));
-
-                // Saved amount = difference between original full price and final price after coupon
-                let newSaved = actualPrice - Number(response.newPrice);
-                $('#savedAmount').text("SAR " + Number(newSaved).toFixed(2));
-
-                $('#couponMessage').text(response.message).css("color", "green");
-            } else {
-                $('#discountRow').hide();
-                $('#couponMessage').text(response.message).css("color", "red");
-            }
-        },
-        error: function () {
-            $('#couponMessage').text("Something went wrong!").css("color", "red");
-        }
-    });
-});
-</script>
-
-
-
 
                                 <button type="submit"
                                     class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                    Proceed to Checkout
+                                    {{ langLabel('proceed_checkout') }}
                                 </button>
-
                             </div>
                         </div>
 

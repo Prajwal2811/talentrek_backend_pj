@@ -15,23 +15,25 @@ class CheckCoachSubscription
             return redirect()->route('site.coach.login');
         }
 
-        $activePlanId = $user->active_subscription_plan_id;
-
-        $subscription = \App\Models\PurchasedSubscription::where('id', $activePlanId)
-            ->where('user_id', $user->id)
+        // Get latest paid subscription for this coach
+        $subscription = \App\Models\PurchasedSubscription::where('user_id', $user->id)
             ->where('user_type', 'coach')
+            ->where('payment_status', 'paid')
+            ->orderBy('end_date', 'desc')
             ->first();
 
+            
         $isExpired = true;
 
         if ($subscription) {
             $endDate = \Carbon\Carbon::parse($subscription->end_date);
-            $isExpired = $endDate->isPast(); // true if expired
+            $isExpired = $endDate->isPast(); // expired if past
         }
 
-        // Share to all views → user either didn’t buy OR subscription expired
-        view()->share('coachNeedsSubscription', $user->isSubscribtionBuy === 'no' && $isExpired);
+        // Share with all views
+        // Needs subscription if (no subscription at all OR expired)
+        view()->share('coachNeedsSubscription', !$subscription || $isExpired);
 
-        return $next($request);
+    return $next($request);
     }
 }

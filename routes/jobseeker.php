@@ -7,8 +7,8 @@ use App\Http\Controllers\JobseekerController;
 // Joobseeker Routes
 Route::group(['prefix' => 'jobseeker'], function() {
 	Route::group(['middleware' => 'jobseeker.guest'], function(){
-		Route::view('/sign-in','site.jobseeker.sign-in')->name('jobseeker.sign-in');
-		Route::view('/sign-up','site.jobseeker.sign-up')->name('jobseeker.sign-up');
+		// Route::view('/sign-in','site.jobseeker.sign-in')->name('jobseeker.sign-in');
+		// Route::view('/sign-up','site.jobseeker.sign-up')->name('jobseeker.sign-up');
 		Route::view('/forget-password','site.jobseeker.forget-password')->name('jobseeker.forget-password');
 		Route::view('/verify-otp','site.jobseeker.verify-otp')->name('jobseeker.verify-otp');
 		Route::view('/reset-password','site.jobseeker.reset-password')->name('jobseeker.reset-password');
@@ -36,8 +36,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		Route::post('/check-promocode', [JobseekerController::class, 'check'])->name('jobseeker.check-promocode');
-		Route::get('auth/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('google.redirect');
-		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('google.callback');
+		Route::get('auth/google/redirect', [JobseekerController::class, 'redirectToGoogle'])->name('jobseeker.google.redirect');
+		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('jobseeker.google.callback');
 
 		
 
@@ -118,6 +118,9 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::get('/course-details/{id}', [JobseekerController::class, 'courseDetails'])->name('course.details');
 		Route::get('/take-assessment/{id}', [JobseekerController::class, 'viewAssessment'])->name('assessment.view');
+		Route::post('/jobseeker/update-remaining-time', [App\Http\Controllers\JobseekerController::class, 'updateRemainingTime'])
+    	->name('jobseeker.updateRemainingTime');
+
 
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 		Route::get('/buy-course-for-team/{id}', [JobseekerController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');

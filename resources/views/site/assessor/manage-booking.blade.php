@@ -29,11 +29,11 @@
                     x-transition
                 ></div>
 
-                <h2 class="text-2xl font-semibold mb-4">Booking slots</h2>
+                <h2 class="text-2xl font-semibold mb-4">{{ langLabel('booking+_slots') }}</h2>
                 <div class="flex gap-6">
                     <!-- ✅ Left: Calendar -->
                     <div class="bg-white p-4 rounded-lg shadow w-1/3">
-                        <h3 class="text-lg font-semibold mb-3">Date</h3>
+                        <h3 class="text-lg font-semibold mb-3">{{ langLabel('date') }}</h3>
                         <div class="border p-2 rounded">
                             <!-- Month and Year Navigation -->
                             <div class="flex justify-between items-center mb-2 gap-2">
@@ -85,44 +85,44 @@
 
                             <button class="mt-3 w-full py-2 bg-red-100 text-red-600 rounded border border-red-300 hover:bg-red-200"
                                 @click="markUnavailable">
-                                Mark unavailable
+                                {{ langLabel('mark_unavailable') }}
                             </button>
                         </div>
                         <p class="text-xs text-gray-500 mt-2">
-                            Note: To mark the date unavailable, select the date and click on "Mark unavailable".
+                            {{ langLabel('note') }}
                         </p>
                     </div>
 
                     <!-- ✅ Right: Time Slots -->
                     <div class="bg-white p-4 rounded-lg shadow w-2/3">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">Time slots</h3>
+                            <h3 class="text-lg font-semibold">{{ langLabel('time_slots') }}</h3>
                             <div>
                                 <button 
                                     @click="activeMode = 'online'"
                                     :class="activeMode === 'online' ? 'text-blue-600 font-medium mr-2 border-b-2 border-blue-600' : 'text-gray-400 font-medium mr-2'">
-                                    Online mode
+                                    {{ langLabel('online_mode') }}
                                 </button>
                                 <button 
                                     @click="activeMode = 'offline'"
                                     :class="activeMode === 'offline' ? 'text-blue-600 font-medium border-b-2 border-blue-600' : 'text-gray-400 font-medium'">
-                                    Offline mode
+                                    {{ langLabel('offline_mode') }}
                                 </button>
                             </div>
                         </div>
 
                         <div class="text-sm text-gray-700 mb-2">
-                            Date: <span class="font-medium" x-text="selectedDateFormatted()"></span>
+                            {{ langLabel('date') }}: <span class="font-medium" x-text="selectedDateFormatted()"></span>
                         </div>
 
                         <table class="w-full table-auto border text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-4 py-2 text-left">Sr. No.</th>
-                                    <th class="px-4 py-2 text-left">Time</th>
-                                    <th class="px-4 py-2 text-left">Availability</th>
-                                    <th class="px-4 py-2 text-left">Edit</th>
-                                    <th class="px-4 py-2 text-left">Delete</th>
+                                    <th class="px-4 py-2 text-left">{{ langLabel('sr_no') }}</th>
+                                    <th class="px-4 py-2 text-left">{{ langLabel('time') }}</th>
+                                    <th class="px-4 py-2 text-left">{{ langLabel('availability') }}</th>
+                                    <th class="px-4 py-2 text-left">{{ langLabel('edit') }}</th>
+                                    <th class="px-4 py-2 text-left">{{ langLabel('delete') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -217,11 +217,11 @@
                                         <div class="bg-red-100 text-red-700 px-3 py-2 rounded mb-4" x-text="editSlot.error"></div>
                                     </template>
 
-                                        <h2 class="text-lg font-semibold mb-4">Edit Slot Time</h2>
+                                        <h2 class="text-lg font-semibold mb-4">{{ langLabel('edit_slot_time') }}</h2>
                                         <form @submit.prevent="updateSlotTime">
                                             <!-- Start Time -->
                                             <div class="mb-4">
-                                                <label class="block text-sm mb-1">Start Time</label>
+                                                <label class="block text-sm mb-1">{{ langLabel('start_timing') }}</label>
                                                 <select x-model="editSlot.start_time" class="w-full border rounded px-3 py-2" required>
                                                     <template x-for="time in timeOptions" :key="'start-' + time">
                                                         <option :value="time" x-text="time"></option>
@@ -231,7 +231,7 @@
 
                                             <!-- End Time -->
                                             <div class="mb-4">
-                                                <label class="block text-sm mb-1">End Time</label>
+                                                <label class="block text-sm mb-1">{{ langLabel('end_timing') }}</label>
                                                 <select x-model="editSlot.end_time" class="w-full border rounded px-3 py-2" required>
                                                     <template x-for="time in timeOptions" :key="'end-' + time">
                                                         <option :value="time" x-text="time"></option>
@@ -241,8 +241,8 @@
 
                                             <!-- Buttons -->
                                             <div class="flex justify-end gap-2">
-                                                <button type="button" class="bg-gray-300 px-4 py-2 rounded" @click="showEditModal = false">Cancel</button>
-                                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Update</button>
+                                                <button type="button" class="bg-gray-300 px-4 py-2 rounded" @click="showEditModal = false">{{ langLabel('cancel') }}</button>
+                                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">{{ langLabel('update') }}</button>
                                             </div>
                                         </form>
                                     </div>
@@ -256,11 +256,11 @@
                                     style="display: none;"
                                 >
                                     <div class="bg-white rounded-lg p-6 w-full max-w-md" @click.outside="showDeleteModal = false">
-                                        <h2 class="text-lg font-semibold mb-4 text-red-700">Confirm Deletion</h2>
-                                        <p class="text-sm text-gray-700 mb-6">Are you sure you want to delete this slot? This action cannot be undone.</p>
+                                        <h2 class="text-lg font-semibold mb-4 text-red-700">{{ langLabel('confirm_deletion') }}</h2>
+                                        <p class="text-sm text-gray-700 mb-6">{{ langLabel('are_you_sure_delete_slot') }}</p>
                                         <div class="flex justify-end gap-3">
-                                            <button class="bg-gray-300 px-4 py-2 rounded" @click="showDeleteModal = false">Cancel</button>
-                                            <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" @click="confirmDelete">Delete</button>
+                                            <button class="bg-gray-300 px-4 py-2 rounded" @click="showDeleteModal = false">{{ langLabel('cancel') }}</button>
+                                            <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" @click="confirmDelete">{{ langLabel('delete') }}</button>
                                         </div>
                                     </div>
                                 </div>

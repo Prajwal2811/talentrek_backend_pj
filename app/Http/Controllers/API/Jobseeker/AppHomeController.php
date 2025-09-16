@@ -61,7 +61,8 @@ class AppHomeController extends Controller
                 'training_price',
                 'training_offer_price',
                 'thumbnail_file_path as image',
-                'training_category'
+                'training_category',
+                'training_type'
             )
             ->where('admin_status', 'superadmin_approved')
             ->with(['trainer:id,name','latestWorkExperience']) // only fetch trainer id & name

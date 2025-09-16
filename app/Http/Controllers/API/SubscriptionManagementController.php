@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Models\SubscriptionPlan;
 use App\Models\Api\PurchasedSubscription;
+use App\Models\Api\JobseekerTrainingMaterialPurchase;
+use App\Models\Api\BookingSession;
 use App\Models\Payment\PurchasedSubscriptionPaymentRequest;
 use App\Services\PaymentHelper;
 
@@ -20,17 +22,50 @@ use DB;
 use Carbon\Carbon;
 class SubscriptionManagementController extends Controller
 {
-    public function subscriptionPlanListForMCAJT($type='mentor')
+    public function subscriptionPlanListForMCAJT($type='mentor',$userId)
     {
-    //    try {
+        try {
+            // ✅ Validate input
+            $validTypes = ['mentor', 'assessor', 'trainer', 'coach', 'jobseeker'];
+            if (!in_array($type, $validTypes)) {
+                return $this->errorResponse('Invalid user type provided.', 400, []);
+            }
+
+            if (empty($userId) || !is_numeric($userId)) {
+                return $this->errorResponse('Invalid user ID provided.', 400, []);
+            }
+            
             $SubscriptionPlan = SubscriptionPlan::select('*')->where('user_type',$type)->where('is_active',1)->get();
             if ($SubscriptionPlan->isEmpty()) {
                 return $this->errorResponse('No Subscription list found for '.$type.' .', 200,[]);
             }
-            return $this->successResponse($SubscriptionPlan, 'Subscription list for '.$type.' fetched successfully.');
-        // } catch (\Exception $e) {
-        //     return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
-        // }
+            
+            // ✅ Check if user has an active subscription
+           $activeSubscriptions = PurchasedSubscription::where('user_id', $userId)
+                ->where('user_type', $type)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->where('payment_status', 'paid')
+                ->get();
+
+            if ($activeSubscriptions->isNotEmpty()) {
+                // user has one or more running subscriptions
+                $isRunning = true;
+            } else {
+                $isRunning = false;
+            }
+
+            return response()->json([
+                'success' => true,
+                'isSubscription' => $isRunning,
+                'data' => $SubscriptionPlan,
+                'message' => 'Subscription list for '.$type.' fetched successfully.'
+            ]);        
+            
+            
+        } catch (\Exception $e) {
+            return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
+        }
     }
 
     public function processSubscriptionPaymentForMCAJT(Request $request)
@@ -42,6 +77,7 @@ class SubscriptionManagementController extends Controller
             'user_id'     => 'required',
             'type'        => 'required|in:jobseeker,mentor,assessor,coach,trainer',
             'cvv'         => 'required|string|min:3|max:4',
+            //'couponCode'  => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -108,7 +144,7 @@ class SubscriptionManagementController extends Controller
                 "udf5"        => $request->type,    // Online/Classroom
                 "udf6"        => $plan->duration_days,              // Subscription Plan days
                 "udf7"        => '0.00',              // Mentor Session Tax
-                "udf8"        => number_format($plan->price, 2, '.', ''),              // Mentor session Slot Price
+                "udf8"        => number_format($plan->price, 2, '.', ''),
                 "langid"      => "en",                      // change to ar when goes live for arabic default
                 "responseURL" => $config['success_subscription_mobile_url'],
                 "errorURL"    => $config['success_subscription_mobile_url']
@@ -207,5 +243,55 @@ class SubscriptionManagementController extends Controller
         //         'message' => 'Something went wrong while purchasing the subscription.'
         //     ], 500);
         // }
+    }
+
+    public function paymentHistoryForUser($userId,$userType)
+    {
+        if($userType == 'jobseeker'){
+            // From subscriptions
+            $subscriptions = PurchasedSubscription::with('plan:id,title,duration_days')
+                ->where('user_id', $userId)->where('user_type', $userType)->where('payment_status', 'paid')
+                ->select('id','subscription_plan_id','user_id','user_type','company_id','start_date','end_date','amount_paid','payment_status','transaction_id','track_id','updated_at as date', DB::raw("'Subscription' as type"))
+                ->get()->toBase();
+
+            // From courses
+            $courses = JobseekerTrainingMaterialPurchase::with([
+                'material:id,training_title,training_price,training_offer_price',
+                'batch:id,batch_no,start_date,end_date'
+            ])
+            ->where('jobseeker_id', $userId)
+            ->select('id','jobseeker_id','trainer_id','material_id','training_type','session_type','batch_id','purchase_for','payment_id','transaction_id','amount','tax','updated_at as date', DB::raw("'Material' as type"))
+            ->get()->toBase();
+
+            // From slots
+            $slots = BookingSession::with('bookingSlot')->where('jobseeker_id', $userId)
+                ->select('id','jobseeker_id','user_type','user_id','booking_slot_id','slot_mode','slot_date','slot_time','status','updated_at as date', DB::raw("'Slot' as type"))
+                ->get()->toBase();
+
+            // Merge all
+            $history = $subscriptions->merge($courses)->merge($slots);
+
+            // Sort by date (latest first)
+            $history = $history->sortByDesc('date')->values();
+        }else{
+            // From subscriptions
+            $subscriptions = PurchasedSubscription::with('plan:id,title,duration_days')
+                ->where('user_id', $userId)->where('user_type', $userType)->where('payment_status', 'paid')
+                ->select('id','subscription_plan_id','user_id','user_type','company_id','start_date','end_date','amount_paid','payment_status','transaction_id','track_id','updated_at', DB::raw("'Subscription' as type"))
+                ->get();
+
+            // Merge all
+            $history = $subscriptions;
+
+            // Sort by date (latest first)
+            $history = $history->sortByDesc('updated_at')->values();
+
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Payment history fetched successfully.',
+            'data' => $history
+        ]);
     }
 }

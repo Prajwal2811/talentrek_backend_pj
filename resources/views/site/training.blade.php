@@ -80,7 +80,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Training</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('training') }}</h2>
                     </div>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
                 <aside class="w-1/4 pr-6" x-data="courseFilter()">
-                    <button class="block text-gray-700 font-semibold mb-6">☰ Filter</button>
+                    <button class="block text-gray-700 font-semibold mb-6">☰ {{ langLabel('filter') }}</button>
 
                     @php
                         use App\Models\Trainers;
@@ -120,7 +120,7 @@
 
                     <!-- Course Topic -->
                     <div class="mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-2">Course topic</h3>
+                        <h3 class="font-semibold text-gray-900 mb-2">{{ langLabel('course_topic') }}</h3>
                         <div id="topicSection" class="space-y-2">
                             @foreach ($categories as $category)
                             <label class="block">
@@ -137,7 +137,7 @@
 
                     <!-- Course Level -->
                     <div class="mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-2">Course level</h3>
+                        <h3 class="font-semibold text-gray-900 mb-2">{{ langLabel('course_level') }}</h3>
                         <div id="levelSection" class="space-y-2">
                             @foreach(['Beginner','Intermediate','Advanced'] as $level)
                             <label class="block">
@@ -154,7 +154,7 @@
 
                     <!-- Training Type -->
                     <div class="mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-2">Training type</h3>
+                        <h3 class="font-semibold text-gray-900 mb-2">{{ langLabel('training_type') }}</h3>
                         <div id="typeSection" class="space-y-2">
                             @foreach(['online','classroom','recorded'] as $type)
                             <label class="block">
@@ -174,15 +174,15 @@
                 <main class="w-3/4 mx-auto" x-data="courseFilter()">
 
                     <div class="flex justify-between items-center mb-6">
-                        <h1 class="text-xl font-semibold">Courses</h1>
+                        <h1 class="text-xl font-semibold">{{ langLabel('courses') }}</h1>
                         <span class="text-sm text-gray-500">
-                            Showing <span x-text="filteredCourses.length"></span> total results
+                            {{ langLabel('showing') }} <span x-text="filteredCourses.length"></span> {{ langLabel('total_results') }}
                         </span>
                     </div>
 
                     <!-- Search -->
                     <div class="mb-6 relative">
-                        <input type="text" placeholder="Search here..."
+                        <input type="text" placeholder="{{ langLabel('search_here') }}..."
                             x-model="search"
                             @input="filterCourses"
                             class="w-full border border-gray-300 rounded-md px-4 py-2 pr-12" />
@@ -233,7 +233,7 @@
                                         
                                         <!-- Lessons -->
                                         <div x-show="material.training_type === 'recorded'" class="flex items-center space-x-1">
-                                            📘 <span x-text="material.documents?.length ?? 0"></span> lessons
+                                            📘 <span x-text="material.documents?.length ?? 0"></span> {{ langLabel('lessons') }}
                                         </div>
 
                                         <!-- Duration -->
@@ -251,10 +251,10 @@
 
 
                                         <!-- Level -->
-                                        <div>📈 <span x-text="material.training_level ?? 'Beginner'"></span></div>
+                                        <div>📈 <span x-text="material.training_level ?? '{{ langLabel('beginner') }}'"></span></div>
 
                                         <!-- Session -->
-                                        <div>🎥 <span x-text="material.session_type ?? 'Recorded'"></span></div>
+                                        <div>🎥 <span x-text="material.session_type ?? '{{ langLabel('recorded') }}'"></span></div>
                                     </div>
                                 </div>
 
@@ -275,7 +275,7 @@
                         <button @click="prevPage" :disabled="currentPage === 1"
                             class="px-3 py-1 rounded border"
                             :class="{'opacity-50 cursor-not-allowed': currentPage === 1}">
-                            Previous
+                            {{ langLabel('previous') }}
                         </button>
 
                         <template x-for="page in totalPages()" :key="page">
@@ -289,7 +289,7 @@
                         <button @click="nextPage" :disabled="currentPage === totalPages()"
                             class="px-3 py-1 rounded border"
                             :class="{'opacity-50 cursor-not-allowed': currentPage === totalPages()}">
-                            Next
+                            {{ langLabel('next') }}
                         </button>
                     </div>
                 </main>

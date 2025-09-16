@@ -1,7 +1,5 @@
 <?php
 
-
-
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Route;
@@ -62,6 +60,7 @@ use App\Http\Controllers\API\SessionsManagementController;
 
 use App\Http\Controllers\API\ReviewManagementController;
 use App\Http\Controllers\API\SubscriptionManagementController;
+use App\Http\Controllers\API\CmsController;
 
 
 
@@ -249,6 +248,11 @@ Route::prefix('jobseeker')->middleware('throttle:60,1')->group(function () {
     Route::post('/butNowTrainingMaterial', [CartManagementController::class, 'butNowTrainingMaterials']);
     Route::post('/checkoutTrainingMaterials', [CartManagementController::class, 'checkoutTrainingMaterials']);
 
+    Route::post('/applyCouponForBuyNow', [CartManagementController::class, 'applyCouponForBuyNowCourese']);
+    Route::post('/applyCouponForBuyNowCorporates', [CartManagementController::class, 'applyCouponForBuyNowCorporatesCoures']);
+    Route::post('/applyCouponForAddToCart', [CartManagementController::class, 'applyCouponForAddToCartCoures']);
+    Route::post('/applyCouponForSlot', [CartManagementController::class, 'applyCouponForSlotForMCA']);
+    
     Route::get('/showTrainingMaterialsBatches/{materialId}/{jobseekerId}', [CartManagementController::class, 'showTrainingMaterialsBatches']);
 
 });
@@ -458,4 +462,7 @@ Route::post('/processSubscriptionPayment', [SubscriptionManagementController::cl
 
 
 Route::post('/reviewsDetailsById', [ReviewManagementController::class, 'reviewsDetailsByMCAIds']);
+Route::get('/content/{slug}', [CmsController::class, 'content']);
+
+Route::get('/paymentHistory/{userID}/{userType}', [SubscriptionManagementController::class, 'paymentHistoryForUser']);
 

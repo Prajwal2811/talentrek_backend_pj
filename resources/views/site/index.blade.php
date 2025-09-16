@@ -596,7 +596,7 @@
                 </div>
             </div> -->
             <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" 
-                style="background-image: url('{{ asset('asset/images/banner/new_banner.webp') }}');">
+                style="background-image: url('{{ $bannerContent->file_path }}');">
                 
                 {{-- CMS Start form here --}}
                     @php
@@ -621,7 +621,7 @@
                 <?php if($jobseekerId = auth()->guard('jobseeker')->id()){ ?>
                     <!-- Chat Button -->
                     <div class="chat-button" onclick="toggleChatModal()">
-                        <div class="chat-label">Chat</div>
+                        <div class="chat-label">{{ langLabel('chat') }}</div>
                         <div class="chat-icon">
                             <i class="fa-solid fa-comments"></i>
                         </div>
@@ -632,11 +632,11 @@
                 <!-- Chat Modal -->
                 <div id="chatModal" class="chat-modal hidden">
                     <div class="chat-tabs">
-                        <button onclick="showTab('trainer')" class="active">Trainer</button>
-                        <button onclick="showTab('mentor')">Mentor</button>
-                        <button onclick="showTab('coach')">Coach</button>
-                        <button onclick="showTab('assessor')">Assessor</button>
-                        <button onclick="showTab('admin')">Admin</button>
+                        <button onclick="showTab('trainer')" class="active">{{ langLabel('trainer') }}</button>
+                        <button onclick="showTab('mentor')">{{ langLabel('mentor') }}</button>
+                        <button onclick="showTab('coach')">{{ langLabel('coach') }}</button>
+                        <button onclick="showTab('assessor')">{{ langLabel('assessor') }}</button>
+                        <button onclick="showTab('admin')">{{ langLabel('admin') }}</button>
                     </div>
 
                     <!-- Chat Lists -->
@@ -651,7 +651,7 @@
                                         <div class="chat-name">{{ $trainer->trainer_name }}
                                             <span class="unread-count" id="unread-{{ $trainer->trainer_id }}-trainer"></span>
                                         </div>
-                                        <div class="chat-message">Click to start chat</div>
+                                        <div class="chat-message">{{ langLabel('click_start_chat') }}</div>
                                     </div>
                                     <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
@@ -667,7 +667,7 @@
                                         <div class="chat-name">{{ $mentor->mentor_name }}
                                             <span class="unread-count" id="unread-{{ $mentor->user_id }}-mentor"></span>
                                         </div>
-                                        <div class="chat-message">Click to start chat</div>
+                                        <div class="chat-message">{{ langLabel('click_start_chat') }}</div>
                                     </div>
                                     <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
@@ -683,7 +683,7 @@
                                         <div class="chat-name">{{ $coach->coach_name }}
                                             <span class="unread-count" id="unread-{{ $coach->user_id }}-coach"></span>
                                         </div>
-                                        <div class="chat-message">Click to start chat</div>
+                                        <div class="chat-message">{{ langLabel('click_start_chat') }}</div>
                                     </div>
                                     <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
@@ -699,7 +699,7 @@
                                         <div class="chat-name">{{ $assessor->assessor_name }}
                                             <span class="unread-count" id="unread-{{ $assessor->user_id }}-assessor"></span>
                                         </div>
-                                        <div class="chat-message">Click to start chat</div>
+                                        <div class="chat-message">{{ langLabel('click_start_chat') }}</div>
                                     </div>
                                     <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                                 </div>
@@ -715,10 +715,10 @@
                                 <img src="https://static.vecteezy.com/system/resources/previews/021/162/989/non_2x/3d-male-customer-call-service-wearing-cap-png.png" 
                                     alt="Talententrek Contact Support Avatar" />
                                 <div class="chat-text">
-                                    <div class="chat-name">Talententrek Contact Support
+                                    <div class="chat-name">{{ langLabel('contact_support') }}
                                         <span class="unread-count" id="unread-1-admin"></span>
                                     </div>
-                                    <div class="chat-message">Click to start chat</div>
+                                    <div class="chat-message">{{ langLabel('click_start_chat') }}</div>
                                 </div>
                                 <div class="chat-time">{{ \Carbon\Carbon::now()->format('h:i A') }}</div>
                             </div>
@@ -1348,7 +1348,7 @@
                
                     <!-- Section Heading -->
                     <div class="text-center mb-10">
-                        <h2 class="text-3xl font-bold text-black">Training Programs</h2>
+                        <h2 class="text-3xl font-bold text-black">{{ langLabel('training_programs') }}</h2>
                         <p class="text-gray-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
 
@@ -1371,6 +1371,7 @@
 
                         @php
                             $trainingCategory = App\Models\TrainingCategory::withCount('trainings')->get();
+                           
                         @endphp
 
                         <!-- Swiper Carousel -->
@@ -1380,9 +1381,13 @@
                                     <div class="swiper-slide px-1"> <!-- Reduced spacing -->
                                         <div class="bg-blue-50 rounded-lg text-center p-6 h-full min-h-[260px] flex flex-col justify-between">
                                             <div>
-                                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4">
-                                                    <img src="https://img.icons8.com/ios/50/money.png" class="w-6 h-6" />
+                                                <div class="w-16 h-16 bg-white mx-auto rounded-full flex items-center justify-center shadow mb-4 overflow-hidden">
+                                                    <img src="{{ $category->image_path ?? 'https://img.icons8.com/ios/50/money.png' }}" 
+                                                        alt="{{ $category->category }}" 
+                                                        class="w-full h-full object-contain" />
                                                 </div>
+
+
                                                 <h4 class="font-semibold text-lg mb-1 leading-snug">
                                                     @php
                                                         $words = explode(' ', $category->category);
@@ -1392,7 +1397,7 @@
                                                     @endforeach
                                                 </h4>
                                             </div>
-                                            <p class="text-xs text-gray-500 mt-2">{{ $category->trainings_count }}+ Training programs</p>
+                                            <p class="text-xs text-gray-500 mt-2">{{ $category->trainings_count }}+ {{ langLabel('training_programs') }}</p>
                                         </div>
                                     </div>
                                 @endforeach
@@ -1456,7 +1461,7 @@
             <section class="py-16">
                 <div class="max-w-7xl mx-auto px-4">
                     <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold">Trending Courses</h2>
+                    <h2 class="text-3xl font-bold">{{ langLabel('trending_courses') }}</h2>
                     <p class="text-gray-500">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
 
@@ -1493,12 +1498,12 @@
                                     @for ($i = 1; $i <= 5; $i++)
                                         <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
                                     @endfor
-                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) Rating</span>
+                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) {{ langLabel('rating') }}</span>
                                 </p>
                                 </div>
 
                                 <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4 flex-shrink-0">
-                                <li><i class="bi bi-book"></i> {{ count($material->documents) }} lessons</li>
+                                <li><i class="bi bi-book"></i> {{ count($material->documents) }} {{ langLabel('lessons') }}</li>
                                 <li><i class="bi bi-clock"></i>
                                     @php
                                         $totalHours = 0;
@@ -1510,8 +1515,8 @@
                                     @endphp
                                     {{ $totalHours }} hrs
                                 </li>
-                                <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? 'Beginner' }}</li>
-                                <li><i class="bi bi-play-circle"></i> {{ $material->session_type ?? 'Recorded' }}</li>
+                                <li><i class="bi bi-bar-chart"></i> {{ $material->training_level ?? langLabel('beginner') }}</li>
+                                <li><i class="bi bi-play-circle"></i> {{ $material->session_type ?? langLabel('recorded') }}</li>
                                 </ul>
 
                                 <div class="mt-auto flex items-center justify-between flex-shrink-0">
@@ -1535,7 +1540,7 @@
 
                     <div class="mt-6 text-center">
                     <button id="viewAllBtn" class="px-6 py-2 text-black bg-blue-100 hover:bg-blue-700 rounded-md transition">
-                        View All Courses
+                        {{ langLabel('view_all_courses') }}
                     </button>
                     </div>
                 </div>
@@ -1744,7 +1749,7 @@
 
             <section class="py-12 bg-white">
                 <div class="max-w-6xl mx-auto px-4">
-                    <h2 class="text-3xl font-bold text-center mb-10">What people are saying</h2>
+                    <h2 class="text-3xl font-bold text-center mb-10">{{ langLabel('what_people_are_saying') }}</h2>
                     <div class="relative px-10">
                         <div class="swiper mySwiper">
                             <div class="swiper-wrapper">
@@ -1765,7 +1770,7 @@
                                                 </div>
 
                                                 <!-- Title -->
-                                                <h4 class="font-semibold text-lg mb-2">{{ $testimonial->title ?? 'What They Said' }}</h4>
+                                                <h4 class="font-semibold text-lg mb-2">{{ $testimonial->title ?? langLabel('what_they_said') }}</h4>
 
                                                 <!-- Message -->
                                                 <div 
@@ -1782,7 +1787,7 @@
                                                     onclick="toggleScroll({{ $loop->index }})"
                                                     id="btnText-{{ $loop->index }}"
                                                     class="text-blue-600 text-sm font-medium hover:underline">
-                                                    View More
+                                                    {{ langLabel('view_more') }}
                                                 </button>
                                             </div>
                                         </div>

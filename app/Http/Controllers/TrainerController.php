@@ -30,6 +30,9 @@ use Carbon\Carbon;
 use App\Services\ZoomService;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 
 class TrainerController extends Controller
@@ -75,6 +78,79 @@ class TrainerController extends Controller
             'pass' => $request->password,
         ]);
         
+        // Send welcome email
+        Mail::html('
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Welcome to Talentrek</title>
+                <style>
+                        body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f6f8fa;
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                        }
+                        .container {
+                        background-color: #ffffff;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        max-width: 600px;
+                        margin: auto;
+                        }
+                        .header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        }
+                        .footer {
+                        font-size: 12px;
+                        text-align: center;
+                        color: #999;
+                        margin-top: 30px;
+                        }
+                        .btn {
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background-color: #007bff;
+                        color: #fff !important;
+                        text-decoration: none;
+                        border-radius: 4px;
+                        }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                        <div class="header">
+                        <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                        </div>
+                        <p>Hi <strong>' . e($trainers->name ?? $trainers->email) . '</strong>,</p>
+
+                        <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+
+                        <p>You can now start exploring job opportunities, connect with trainers, and grow your career.</p>
+
+                        <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
+                        <p>
+                        <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                        </p>
+
+                        <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                </div>
+
+                <div class="footer">
+                        © ' . date('Y') . ' Talentrek. All rights reserved.
+                </div>
+            </body>
+            </html>
+        ', function ($message) use ($trainers) {
+            $message->to($trainers->email)
+                ->subject('Welcome to Talentrek – Registration Successful');
+        });
       
         session([
             'trainer_id' => $trainers->id,
@@ -111,12 +187,72 @@ class TrainerController extends Controller
             'updated_at' => now()
         ]);
 
-        // === OTP sending is disabled for now ===
+        // === OTP sending ===
         if ($isEmail) {
-            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
-            //     $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
-            // });
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                        <meta charset="UTF-8">
+                        <title>Password Reset OTP</title>
+                        <style>
+                        body {
+                            background-color: #f6f8fa;
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            margin: 0;
+                            color: #333;
+                        }
+                        .container {
+                            background-color: #ffffff;
+                            padding: 30px;
+                            max-width: 500px;
+                            margin: 20px auto;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .otp-box {
+                            font-size: 24px;
+                            font-weight: bold;
+                            background-color: #f0f4ff;
+                            padding: 15px;
+                            text-align: center;
+                            border: 1px dashed #007bff;
+                            border-radius: 6px;
+                            margin: 20px 0;
+                            color: #007bff;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            text-align: center;
+                            margin-top: 30px;
+                            color: #888;
+                        }
+                        </style>
+                </head>
+                <body>
+                        <div class="container">
+                        <h2>Password Reset Request</h2>
+                        <p>Hello,</p>
+                        <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+
+                        <div class="otp-box">' . $otp . '</div>
+
+                        <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+
+                        <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                        </div>
+
+                        <div class="footer">
+                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                        </div>
+                </body>
+                </html>
+            ', function ($message) use ($contact) {
+                $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+            });
         } else {
+            // Simulate SMS sending (replace with Msg91 / Twilio integration)
             // SmsService::send($contact, "Your OTP is: $otp");
         }
 
@@ -147,12 +283,72 @@ class TrainerController extends Controller
             'updated_at' => now()
         ]);
 
-        // === OTP sending is disabled for now ===
-        if ($contactMethod === 'email') {
-            // Mail::html(view('emails.otp', compact('otp'))->render(), function ($message) use ($contact) {
-            //     $message->to($contact)->subject('Your OTP has been resent – Talentrek');
-            // });
+        // === OTP sending ===
+        if ($isEmail) {
+            Mail::html('
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                        <meta charset="UTF-8">
+                        <title>Password Reset OTP</title>
+                        <style>
+                        body {
+                            background-color: #f6f8fa;
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            margin: 0;
+                            color: #333;
+                        }
+                        .container {
+                            background-color: #ffffff;
+                            padding: 30px;
+                            max-width: 500px;
+                            margin: 20px auto;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .otp-box {
+                            font-size: 24px;
+                            font-weight: bold;
+                            background-color: #f0f4ff;
+                            padding: 15px;
+                            text-align: center;
+                            border: 1px dashed #007bff;
+                            border-radius: 6px;
+                            margin: 20px 0;
+                            color: #007bff;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            text-align: center;
+                            margin-top: 30px;
+                            color: #888;
+                        }
+                        </style>
+                </head>
+                <body>
+                        <div class="container">
+                        <h2>Password Reset Request</h2>
+                        <p>Hello,</p>
+                        <p>We received a request to reset your password. Use the OTP below to proceed:</p>
+
+                        <div class="otp-box">' . $otp . '</div>
+
+                        <p>This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.</p>
+
+                        <p>Thanks,<br><strong>The Talentrek Team</strong></p>
+                        </div>
+
+                        <div class="footer">
+                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+                        </div>
+                </body>
+                </html>
+            ', function ($message) use ($contact) {
+                $message->to($contact)->subject('Your Password Reset OTP – Talentrek');
+            });
         } else {
+            // Simulate SMS sending (replace with Msg91 / Twilio integration)
             // SmsService::send($contact, "Your OTP is: $otp");
         }
 
@@ -352,16 +548,29 @@ class TrainerController extends Controller
             }
 
             // Save work experience
+            // foreach ($request->job_role as $index => $role) {
+            //     WorkExperience::create([
+            //         'user_id' => $trainer->id,
+            //         'user_type' => 'trainer',
+            //         'job_role' => $role,
+            //         'organization' => $request->organization[$index],
+            //         'starts_from' => $request->starts_from[$index],
+            //         'end_to' => $request->end_to[$index],
+            //     ]);
+            // }
             foreach ($request->job_role as $index => $role) {
+                $isCurrentlyWorking = isset($request->currently_working[$index]) && $request->currently_working[$index] === 'on';
+
                 WorkExperience::create([
                     'user_id' => $trainer->id,
                     'user_type' => 'trainer',
                     'job_role' => $role,
                     'organization' => $request->organization[$index],
                     'starts_from' => $request->starts_from[$index],
-                    'end_to' => $request->end_to[$index],
+                    'end_to' => $isCurrentlyWorking ? 'work here' : $request->end_to[$index], // ✅ Save "Work Here"
                 ]);
             }
+
 
             // Save training experience
             TrainingExperience::create([
@@ -405,6 +614,79 @@ class TrainerController extends Controller
                     }
                 }
             }
+        });
+
+        Mail::html(' 
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                    <meta charset="UTF-8">
+                    <title>Welcome to Talentrek</title>
+                    <style>
+                        body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f6f8fa;
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                        }
+                        .container {
+                        background-color: #ffffff;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        max-width: 600px;
+                        margin: auto;
+                        }
+                        .header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        }
+                        .footer {
+                        font-size: 12px;
+                        text-align: center;
+                        color: #999;
+                        margin-top: 30px;
+                        }
+                        .btn {
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background-color: #007bff;
+                        color: #fff !important;
+                        text-decoration: none;
+                        border-radius: 4px;
+                        }
+                    </style>
+            </head>
+            <body>
+                    <div class="container">
+                        <div class="header">
+                        <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
+                        </div>
+                        <p>Hi <strong>' . e($trainer->name ?? $trainer->email) . '</strong>,</p>
+
+                        <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
+
+                        <p>You can now start exploring job opportunities, connect with trainers, and grow your career.</p>
+
+                        <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
+                        <p>
+                        <a href="' . url('/') . '" class="btn">Visit Talentrek</a>
+                        </p>
+
+                        <p>Best wishes,<br><strong>The Talentrek Team</strong></p>
+                    </div>
+
+                    <div class="footer">
+                        © ' . date('Y') . ' Talentrek. All rights reserved.
+                    </div>
+            </body>
+            </html>
+            ', function ($message) use ($trainer) {
+                    $message->to($trainer->email)
+                        ->subject('Welcome to Talentrek – Registration Successful');
         });
 
         $data = [
@@ -539,6 +821,17 @@ class TrainerController extends Controller
             }
 
             DB::commit();
+            $data = [
+                'sender_id' => auth()->id(),
+                'sender_type' => 'Trainer add assessment for material/course',
+                'receiver_id' => '1',
+                'message' => $questionData['text'].' assessment add successfully for material/course.',
+                'is_read' => 0,
+                'is_read_admin' => 0,
+                'user_type' => 'coach'
+            ];
+
+            Notification::insert($data);
             return redirect()->route('assessment.list')->with('success', 'Assessment created successfully.');
         } catch (\Exception $e) {
             DB::rollback();
@@ -948,9 +1241,11 @@ class TrainerController extends Controller
                 'thumbnail_file_name'    => $thumbnailFileName,
 
                 'thumbnail_file_path'    => $thumbnailFilePath,
+
                 'admin_status'           => null,
 
                 'rejection_reason'       => null,
+                
                 'created_at'             => now(),
 
                 'updated_at'             => now(),
@@ -2019,6 +2314,17 @@ class TrainerController extends Controller
             'national_id' => $validated['national_id'],
         ]);
 
+        $data = [
+            'sender_id' => $user->id,
+            'sender_type' => 'Trainer updated his profile',
+            'receiver_id' => '1',
+            'message' => $validated['name'].' updated his profile successfully.',
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'trainer'
+        ];
+
+        Notification::insert($data);
         return response()->json([
             'status' => 'success',
             'message' => 'Personal information updated successfully!',
@@ -2480,6 +2786,18 @@ class TrainerController extends Controller
 
             DB::commit();
 
+            $data = [
+                'sender_id' => $trainer->id,
+                'sender_type' => 'Annual subscription for trainer.',
+                'receiver_id' => '1',
+                'message' => 'Trainer Plan Subscription paid in AED '.$plan->price .' active from '.now().' to '.now()->addDays($plan->duration_days) ,
+                'is_read' => 0,
+                'is_read_admin' => 0,
+                'user_type' => 'trainer'
+            ];
+
+            Notification::insert($data);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Subscription purchased successfully!'
@@ -2495,4 +2813,72 @@ class TrainerController extends Controller
         }
     }
 
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            // Check user
+            $trainer = Trainers::where('email', $googleUser->getEmail())->first();
+
+            // Case 1: New Google user (email not exist)
+            if (!$trainer) {
+                $plainPassword = Str::random(16);
+
+                $trainer = Trainers::create([
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
+                    'email_verified_at' => now(),
+                    'is_registered'     => 0, //  not registered yet
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
+                ]);
+
+                // Store ID + email in session
+                session([
+                    'trainer_id'    => $trainer->id,
+                    'email' => $trainer->email,
+                ]);
+
+                //  Send to registration form
+                return redirect()->route('trainer.registration');
+            }
+
+            // Agar inactive account hai
+            if ($trainer->status !== 'active') {
+                session()->flash('error', 'Your account is inactive. Please contact administrator.');
+                return redirect()->route('trainer.login');
+            }
+
+            // Case 2: Existing user with complete registration
+            if ($trainer->is_registered == 1) {
+                // ✅ Direct login and go to profile/dashboard
+                Auth::guard('trainer')->login($trainer);
+                return redirect()->route('trainer.dashboard');
+            }
+
+            // Case 3: Existing but registration incomplete
+            session([
+                'trainer_id'    => $trainer->id,
+                'email' => $trainer->email,
+            ]);
+            return redirect()->route('trainer.registration');
+
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            session()->flash('error', 'Invalid state. Please try again.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Google login failed. Please try again.');
+        }
+
+        return redirect()->route('trainer.login');
+    }
 }

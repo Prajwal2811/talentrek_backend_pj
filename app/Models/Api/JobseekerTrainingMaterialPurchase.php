@@ -17,7 +17,7 @@ class JobseekerTrainingMaterialPurchase extends Model
         'session_type',
         'batch_id',
         'purchase_for',
-        'payment_id',
+        'payment_id',        
     ];
 
     // Relationships

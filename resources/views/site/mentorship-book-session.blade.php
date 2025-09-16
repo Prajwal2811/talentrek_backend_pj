@@ -24,7 +24,7 @@
             <div class="absolute inset-0 bg-white bg-opacity-10"></div>
             <div class="relative z-10 container mx-auto px-4">
                 <div class="space-y-2">
-                    <h2 class="text-5xl font-bold text-white ml-[10%]">Mentorship</h2>
+                    <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('mentorship') }}</h2>
                 </div>
             </div>
         </div>
@@ -128,7 +128,7 @@
                                         @endif
                                     @endfor
                                 </div>
-                                <span class="ml-2 text-gray-600">({{ $avgRating }}/5) <span class="text-xs">Rating</span></span>
+                                <span class="ml-2 text-gray-600">({{ $avgRating }}/5) <span class="text-xs">{{ langLabel('rating') }}</span></span>
                             </div>
                         </div>
                     </div>
@@ -177,23 +177,23 @@
                                     <input type="hidden" name="mentor_id" id="mentorName" value="{{ $mentorDetails->mentor_id }}" />
                                     <input type="hidden" name="jobseeker_id" value="{{ optional(auth('jobseeker')->user())->id }}" />
 
-                                    <label class="block font-semibold mb-2">Mentorship mode</label>
+                                    <label class="block font-semibold mb-2">{{ langLabel('mentorship_mode') }}</label>
                                     <select id="modeSelect" name="mode" class="w-full border rounded px-4 py-2" required>
-                                        <option value="">Online/Offline</option>
-                                        <option value="online">Online</option>
-                                        <option value="offline">Offline</option>
+                                        <option value="">{{ langLabel('online') }}/{{ langLabel('offline') }}</option>
+                                        <option value="online">{{ langLabel('online') }}</option>
+                                        <option value="offline">{{ langLabel('offline') }}</option>
                                     </select>
                                 </div>
 
                                 <div>
-                                    <label class="block font-semibold mb-2">Select the Date</label>
+                                    <label class="block font-semibold mb-2">{{ langLabel('select_date') }}</label>
                                     <input type="date" id="dateInput" name="date" class="w-full border rounded px-4 py-2" required />
                                 </div>
                             </div>
 
                             <!-- Time Slot Section -->
                             <div class="mb-4">
-                                <label class="block font-semibold mb-4">Select the Time</label>
+                                <label class="block font-semibold mb-4">{{ langLabel('select_time') }}</label>
                                 <div id="slotContainer" class="grid grid-cols-4 gap-4 text-center text-sm">
                                     <!-- Slots will be dynamically loaded here -->
                                 </div>
@@ -204,17 +204,17 @@
                         <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
                             <!-- Select Payment Method -->
                             <div>
-                                <h3 class="text-sm font-medium mb-2">Select Payment Method:</h3>
+                                <h3 class="text-sm font-medium mb-2">{{ langLabel('select_payment_method') }}:</h3>
                                 <div class="space-y-2">
                                     <label class="flex items-center space-x-2">
                                         <input type="radio" name="payment_method" value="card" x-model="paymentMethod"
                                             class="form-radio text-blue-600">
-                                        <span class="text-sm">Credit / Debit Card</span>
+                                        <span class="text-sm">{{ langLabel('credit_debit_card') }}</span>
                                     </label>
                                     <label class="flex items-center space-x-2">
                                         <input type="radio" name="payment_method" value="upi" x-model="paymentMethod"
                                             class="form-radio text-blue-600">
-                                        <span class="text-sm">UPI / Online Payment</span>
+                                        <span class="text-sm">{{ langLabel('upi_online_payment') }}</span>
                                     </label>
                                     
                                 </div>
@@ -222,29 +222,29 @@
 
                             <!-- Card Payment Section -->
                             <div x-show="paymentMethod === 'card'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter Card Details:</h4>
-                                <input type="text" placeholder="Cardholder Name" class="w-full border rounded px-3 py-2 text-sm">
-                                <input type="text" placeholder="Card Number" maxlength="19" class="w-full border rounded px-3 py-2 text-sm">
+                                <h4 class="text-sm font-medium mb-1">{{ langLabel('enter_card_details') }}:</h4>
+                                <input type="text" placeholder="{{ langLabel('cardholder_name') }}" class="w-full border rounded px-3 py-2 text-sm">
+                                <input type="text" placeholder="{{ langLabel('card_number') }}" maxlength="19" class="w-full border rounded px-3 py-2 text-sm">
                                 <div class="flex space-x-2">
                                     <input type="text" placeholder="MM/YY" class="w-1/2 border rounded px-3 py-2 text-sm">
-                                    <input type="text" placeholder="CVV" maxlength="4" class="w-1/2 border rounded px-3 py-2 text-sm">
+                                    <input type="text" placeholder="{{ langLabel('cvv') }}" maxlength="4" class="w-1/2 border rounded px-3 py-2 text-sm">
                                 </div>
                             </div>
 
                             <!-- UPI Section -->
                             <div x-show="paymentMethod === 'upi'" class="space-y-2 border p-4 rounded bg-gray-50">
-                                <h4 class="text-sm font-medium mb-1">Enter UPI ID:</h4>
+                                <h4 class="text-sm font-medium mb-1">{{ langLabel('enter_upi_id') }}:</h4>
                                 <input type="text" placeholder="yourname@upi" class="w-full border rounded px-3 py-2 text-sm">
                             </div>
 
                         
                             <!-- Apply Promocode Section -->
                             <div>
-                                <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
+                                <h3 class="text-sm font-medium mb-2">{{ langLabel('apply_promocode') }}:</h3>
                                 <div class="flex space-x-2">
-                                    <input type="text" placeholder="Enter promocode for discount"
+                                    <input type="text" placeholder="{{ langLabel('enter_promocode_discount') }}"
                                         class="w-full border rounded px-3 py-2 text-sm">
-                                    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Apply</button>
+                                    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
                                 </div>
                             </div>
 
@@ -272,22 +272,22 @@
 
                             <!-- Mentor Session Billing Information -->
                             <div class="border rounded p-4 space-y-2 mt-4">
-                                <h3 class="text-sm font-medium border-b pb-2">Mentor Session Billing</h3>
+                                <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('mentor_session_billing') }}</h3>
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Session Fee</span>
+                                    <span>{{ langLabel('session_fee') }}</span>
                                     <span>SAR {{ number_format($sessionFee, 2) }}</span>
                                 </div>
 
                                 @if($discount > 0)
                                 <div class="flex justify-between text-sm">
-                                    <span>Discount</span>
+                                    <span>{{ langLabel('discount') }}</span>
                                     <span>- SAR {{ number_format($discount, 2) }}</span>
                                 </div>
                                 @endif
 
                                 <div class="flex justify-between text-sm">
-                                    <span>Tax 
+                                    <span>{{ langLabel('tax') }} 
                                         @if($taxType === 'percentage')
                                             ({{ $taxRate }}%)
                                         @endif
@@ -296,13 +296,13 @@
                                 </div>
 
                                 <div class="flex justify-between text-base font-semibold pt-2 border-t">
-                                    <span>Total Payable</span>
+                                    <span>{{ langLabel('total_payable') }}</span>
                                     <span>SAR {{ number_format($grandTotal, 2) }}</span>
                                 </div>
 
                                 <button id="bookBtn" type="submit"
                                     class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                    Proceed to Checkout
+                                    {{ langLabel('proceed_checkout') }}
                                 </button>
                             </div>
                         </div>

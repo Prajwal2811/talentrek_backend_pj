@@ -28,10 +28,22 @@
                                         <div class="mr-3">
                                             <img src="../assets/images/user.png" class="rounded" alt="">
                                         </div>
-                                        <div class="details">
+                                        <!-- <div class="details">
                                             <h4 class="mb-0">{{ $jobseeker->name }}</h4>
-                                            <span class="text-light">{{ $jobseeker->city }}</span>
+                                            <span class="text-light">{{ $jobseeker->city }}</span> -->
                                             <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
+                                        <!-- </div> -->
+
+                                         <div class="flex justify-between items-center">
+                                            <div class="details">
+                                                <h4 class="mb-0">{{ $jobseeker->name }}</h4>
+                                                <span class="text-light">{{ $jobseeker->city }}</span>
+                                                <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
+                                            </div>
+                                            <a href="{{ route('admin.jobseeker.resume.download', $jobseeker->id) }}"
+                                            class="ml-4 bg-green-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-green-700">
+                                                Download Resume
+                                            </a>
                                         </div>
                                     </div>
                                     <div>
@@ -936,111 +948,49 @@
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Certification Card 1 -->
-                                                <div class="card p-3 mb-3 shadow-sm">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-1">Full Stack Web Development</h6>
-                                                            <p class="text-muted mb-0"><strong>Issued On:</strong> 15
-                                                                April 2025</p>
+                                                @foreach($certificates as $index => $cert)
+                                                    <div class="card p-3 mb-3 shadow-sm">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="fw-bold mb-1">{{ $cert->course_name }}</h6>
+                                                                <p class="text-muted mb-0">
+                                                                    <strong>Issued On:</strong> {{ \Carbon\Carbon::parse($cert->completion_date)->format('d F Y') }}
+                                                                </p>
+                                                            </div>
+                                                            <button class="btn btn-sm btn-outline-primary"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#certModal{{ $index }}">
+                                                                View
+                                                            </button>
                                                         </div>
-                                                        <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#certModal1">View</button>
                                                     </div>
-                                                </div>
 
-                                                <!-- Certification Card 2 -->
-                                                <div class="card p-3 mb-3 shadow-sm">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-1">UI/UX Design Specialization</h6>
-                                                            <p class="text-muted mb-0"><strong>Issued On:</strong> 01
-                                                                March 2025</p>
+                                                    <!-- Modal for this certificate -->
+                                                    <div class="modal fade" id="certModal{{ $index }}" tabindex="-1" aria-labelledby="certModal{{ $index }}Label" aria-hidden="true">
+                                                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="certModal{{ $index }}Label">{{ $cert->course_name }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <div class="modal-body text-center">
+                                                                    <!-- ✅ Certificate show in iframe -->
+                                                                    <iframe src="{{ route('admin.viewCertificate', [$jobseeker->id, $cert->material_id]) }}" 
+                                                                            frameborder="0" width="100%" height="600px"></iframe>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#certModal2">View</button>
                                                     </div>
-                                                </div>
-
-                                                <!-- Certification Card 3 -->
-                                                <div class="card p-3 mb-3 shadow-sm">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-1">Advanced Data Analytics</h6>
-                                                            <p class="text-muted mb-0"><strong>Issued On:</strong> 10
-                                                                January 2024</p>
-                                                        </div>
-                                                        <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#certModal3">View</button>
-                                                    </div>
-                                                </div>
+                                                @endforeach
+                                                @if($certificates->isEmpty())
+                                                    <p class="text-muted">No certificates available.</p>
+                                                @endif
 
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Modals for Certificates -->
-
-                                <!-- Modal 1 -->
-                                <div class="modal fade" id="certModal1" tabindex="-1" aria-labelledby="certModal1Label"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="certModal1Label">Full Stack Web Development
-                                                </h5>
-                                                <button type="button" class="btn-close"
-                                                    data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="https://udemy-certificate.s3.amazonaws.com/image/UC-c2013095-ec1b-4b2b-b77e-07a330160cb8.jpg?v=1719901769000"
-                                                    alt="Certificate" class="img-fluid">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Modal 2 -->
-                                <div class="modal fade" id="certModal2" tabindex="-1" aria-labelledby="certModal2Label"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="certModal2Label">UI/UX Design Specialization
-                                                </h5>
-                                                <button type="button" class="btn-close"
-                                                    data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="https://udemy-certificate.s3.amazonaws.com/image/UC-c2013095-ec1b-4b2b-b77e-07a330160cb8.jpg?v=1719901769000"
-                                                    alt="Certificate" class="img-fluid">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Modal 3 -->
-                                <div class="modal fade" id="certModal3" tabindex="-1" aria-labelledby="certModal3Label"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="certModal3Label">Advanced Data Analytics
-                                                </h5>
-                                                <button type="button" class="btn-close"
-                                                    data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="https://udemy-certificate.s3.amazonaws.com/image/UC-c2013095-ec1b-4b2b-b77e-07a330160cb8.jpg?v=1719901769000"
-                                                    alt="Certificate" class="img-fluid">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>

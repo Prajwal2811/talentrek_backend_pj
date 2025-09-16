@@ -22,54 +22,54 @@
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
             <div>
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">Explore</h3>
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ langLabel('explore') }}</h3>
                 <ul class="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" class="italic hover:text-blue-600">Home</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Courses</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Mentorship</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Training</a></li>
-                    <li><a href="#" class="hover:text-blue-600">About Us</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Contact Us</a></li>
+                    <li><a href="#" class="italic hover:text-blue-600">{{ langLabel('home') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('courses') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('mentorship') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('training') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('about_us') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('contact_us') }}</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">Top Courses</h3>
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ langLabel('top_courses') }}</h3>
                 <ul class="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" class="hover:text-blue-600">Full Stack Development</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Data Science & AI</a></li>
-                    <li><a href="#" class="hover:text-blue-600">UI/UX Design</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Digital Marketing</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Project Management</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('full_stack_development') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('data_science_ai') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('ui_ux_design') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('digital_marketing') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('project_management') }}</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">Mentorship</h3>
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ langLabel('mentorship') }}</h3>
                 <ul class="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" class="hover:text-blue-600">Business Leaders</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Tech Experts</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Design Mentors</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Startup Mentorship</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('business_leaders') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('tech_experts') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('design_mentors') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('startup') }} {{ langLabel('mentorship') }}</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">Support</h3>
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ langLabel('support') }}</h3>
                 <ul class="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" class="hover:text-blue-600">FAQs</a></li>
-                    <li><a href="#" class="hover:text-blue-600">Help Center</a></li>
-                    <li><a href="{{ route('terms-and-conditions') }}" class="hover:text-blue-600">Terms of Use</a></li>
-                    <li><a href="{{ route('privacy-policy') }}" class="hover:text-blue-600">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('faqs') }}</a></li>
+                    <li><a href="#" class="hover:text-blue-600">{{ langLabel('help_center') }}</a></li>
+                    <li><a href="{{ route('terms-and-conditions') }}" class="hover:text-blue-600">{{ langLabel('terms_of_use') }}</a></li>
+                    <li><a href="{{ route('privacy-policy') }}" class="hover:text-blue-600">{{ langLabel('privacy_policy') }}</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">Get in Touch</h3>
-                <p class="text-xs text-gray-500 mb-2 italic">Subscribe to our newsletter</p>
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ langLabel('get_in_touch') }}</h3>
+                <p class="text-xs text-gray-500 mb-2 italic">{{ langLabel('subscribe_newsletter') }}</p>
                 <form class="flex items-center mb-3">
-                    <input type="email" placeholder="Enter your email" class="w-full px-3 py-2 text-sm border rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-r-md hover:bg-blue-700">Submit</button>
+                    <input type="email" placeholder="{{ langLabel('enter_your_email') }}" class="w-full px-3 py-2 text-sm border rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-r-md hover:bg-blue-700">{{ langLabel('submit') }}</button>
                 </form>
                 <p class="text-sm text-gray-600">
                     📞 <a href="tel:+966558819908" class="hover:text-blue-600">+966 55 881 9908</a><br>
@@ -104,7 +104,15 @@
 <script src="{{ asset('asset/js/swiper-bundle.min.js') }}"></script>
 <script src="{{ asset('asset/js/custom.js') }}"></script>
 <script src="{{ asset('asset/js/switcher.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+    var url = "{{ route('changeLang') }}";
+    $(".changeLang").change(function(){
 
+        window.location.href = url + "?lang="+ $(this).val();
+
+    });
+</script>
 </body>
 </html>
 

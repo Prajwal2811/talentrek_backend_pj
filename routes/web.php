@@ -6,7 +6,8 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\LangController;
+use App\Http\Controllers\SubscriptionController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -22,7 +23,7 @@ Route::fallback(function () {
 
         Route::get('training', function () {
             return view('site.training');
-        })->name('training');
+        })->name('training'); 
 
 
         Route::get('training-detail', function () {
@@ -224,6 +225,32 @@ Route::group(['middleware' => 'assessor.auth'], function() {
 
 });
 
+Route::group(['middleware' => 'recruiter.auth'], function() {
+
+    Route::post('/recruiter/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('recruiter.group.chat.send');
+	Route::get('/recruiter/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('recruiter.group.chat.fetch');
+
+   
+    Route::get('/recruiter/unread-count', [\App\Http\Controllers\RecruiterController::class, 'getUnreadCount'])->name('recruiter.getUnreadCount');
+    Route::post('/recruiter/mark-messages-read', [\App\Http\Controllers\RecruiterController::class, 'markMessagesAsRead'])->name('recruiter.markMessagesRead');
+    Route::post('recruiter/mark-seen', [\App\Http\Controllers\RecruiterController::class, 'markMessagesSeen'])->name('recruiter.markMessagesSeen');
+
+
+});
+
+
+Route::group(['middleware' => 'recruiter.auth'], function() {
+
+    Route::post('/recruiter/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('recruiter.group.chat.send');
+    Route::get('/recruiter/admin/chat/messages', [ChatController::class, 'fetchGroupMessages'])->name('recruiter.group.chat.fetch');
+
+   
+    Route::get('/recruiter/unread-count', [\App\Http\Controllers\RecruiterController::class, 'getUnreadCount'])->name('recruiter.getUnreadCount');
+    Route::post('/recruiter/mark-messages-read', [\App\Http\Controllers\RecruiterController::class, 'markMessagesAsRead'])->name('recruiter.markMessagesRead');
+    Route::post('recruiter/mark-seen', [\App\Http\Controllers\RecruiterController::class, 'markMessagesSeen'])->name('recruiter.markMessagesSeen');
+
+
+});
 
 
 Route::group(['middleware' => 'admin.auth'], function() {
@@ -249,24 +276,36 @@ Route::group(['middleware' => 'admin.auth'], function() {
 });
 
 
+
 Route::get('/pay', [PaymentController::class, 'pay']);
 Route::post('/success', [PaymentController::class, 'success']);
 Route::post('/failure', [PaymentController::class, 'failure']);
 
 
 
-Route::post('/subscriptions/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
-Route::post('/subscriptions/success', [PaymentController::class, 'successSubscription'])->name('subscription.success');
-Route::post('/subscriptions/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.failure');
+// Route::post('/subscription/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
+// Route::post('/subscription/payment/success', [PaymentController::class, 'successSubscription'])->name('subscription.payment.success');
+// Route::post('/subscription/payment/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.payment.failure');
 
 
-Route::post('/subscription/payment', [PaymentController::class, 'processSubscriptionPayment'])->name('subscription.payment');
-Route::post('/subscription/payment/success', [PaymentController::class, 'successSubscription'])->name('subscription.payment.success');
-Route::post('/subscription/payment/failure', [PaymentController::class, 'failureSubscription'])->name('subscription.payment.failure');
+
+Route::post('/subscriptions/payment', [SubscriptionController::class, 'processSubscriptionPayment'])->name('subscription.payment');
+// Route::any('/subscriptions/success', [SubscriptionController::class, 'successSubscription'])->name('subscription.success');
+Route::any('/subscriptions/failure', [SubscriptionController::class, 'failureSubscription'])->name('subscription.failure');
+
 
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);
-Route::post('/successSubscriptionMobile', [PaymentController::class, 'successSubscriptionMobile']);
+Route::post('/subscriptionSuccessURL', [PaymentController::class, 'successSubscription']);
 Route::post('/successMaterialPurchaseMobile', [PaymentController::class, 'successMaterialPurchaseMobile']);
+
+
+
+Route::get('lang/home', [LangController::class, 'index']);
+Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');
+
+//Language Switcher
+Route::get('/form', [LangController::class, 'showForm']);
+Route::post('/change-language', [LangController::class, 'changeLanguage'])->name('change.language');
 
 
 // routes/web.php
@@ -277,6 +316,7 @@ Route::post('/successMaterialPurchaseMobile', [PaymentController::class, 'succes
 Route::get('/', function () {
     return view('site.index');
 })->name('home')->middleware('redirect.role.home');
+
 
 
 

@@ -23,12 +23,12 @@
                 @include('site.trainer.componants.navbar')
 
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="trainingDashboard({{ $jobseekersData->toJson() }})">
-                    <h2 class="text-2xl font-semibold mb-6">Jobseekers list</h2>
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('jobseeker') }} {{ langLabel('list') }}</h2>
 
                     <div class="bg-white rounded-md shadow-md">
                         <!-- Header -->
                         <div class="flex items-center justify-between px-6 py-4 border-b">
-                            <h3 class="font-medium">Jobseekers list</h3>
+                            <h3 class="font-medium">{{ langLabel('jobseeker') }} {{ langLabel('list') }}</h3>
                             <div class="flex space-x-4 text-sm font-medium">
                                 <template x-for="tab in ['Online', 'Offline', 'Recorded']" :key="tab">
                                     <button 
@@ -61,29 +61,29 @@
                                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-700 flex-1 md:ml-10">
                                         <template x-if="user.mode.toLowerCase() !== 'recorded'">
                                             <div>
-                                                <p class="font-semibold">Batch</p>
+                                                <p class="font-semibold">{{ langLabel('batch') }}</p>
                                                 <p x-text="user.batchName ?? '-'"></p>
                                             </div>
                                         </template>
                                         <template x-if="user.mode.toLowerCase() === 'recorded'">
                                             <div>
-                                                <p class="font-semibold">Lessons</p>
+                                                <p class="font-semibold">{{ langLabel('lessons') }}</p>
                                                 <p x-text="user.totalLessons ?? 'N/A'"></p>
                                             </div>
                                         </template>
 
                                         <div>
-                                            <p class="font-semibold">Course</p>
+                                            <p class="font-semibold">{{ langLabel('course') }}</p>
                                             <p x-text="user.courseName"></p>
                                         </div>
 
                                         <div>
-                                            <p class="font-semibold">Enrollment No</p>
+                                            <p class="font-semibold">{{ langLabel('enrollment_no') }}</p>
                                             <p x-text="user.enrollmentNo ?? '-'"></p>
                                         </div>
 
                                         <div>
-                                            <p class="font-semibold">Mode</p>
+                                            <p class="font-semibold">{{ langLabel('mode') }}</p>
                                             <p x-text="user.mode"></p>
                                         </div>
                                     </div>
@@ -91,7 +91,7 @@
                                     <!-- Chat Button -->
                                     <div>
                                         <button class="border border-gray-300 px-4 py-1 rounded-md text-sm hover:bg-gray-100">
-                                            Chat
+                                            {{ langLabel('chat') }}
                                         </button>
                                     </div>
                                 </div>
@@ -102,14 +102,14 @@
                         <div class="flex justify-end items-center px-6 py-4 space-x-4 border-t">
                             <button @click="prevPage" :disabled="currentPage === 1"
                                 class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
-                                Previous
+                                {{ langLabel('previous') }}
                             </button>
                             <span class="text-sm text-gray-600">
-                                Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
+                                {{ langLabel('page') }} <span x-text="currentPage"></span> {{ langLabel('of') }} <span x-text="totalPages"></span>
                             </span>
                             <button @click="nextPage" :disabled="currentPage >= totalPages"
                                 class="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
-                                Next
+                                {{ langLabel('next') }}
                             </button>
                         </div>
                     </div>

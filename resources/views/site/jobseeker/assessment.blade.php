@@ -93,15 +93,14 @@
                                         <p class="text-sm text-gray-800 font-semibold" x-text="`${progress}%`"></p>
                                     </div>
 
-                                    <!-- Timer -->
                                    <!-- Timer -->
-                        <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
-                            <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Total Quiz Time: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
-                            </p>
-                        </div>
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
+                                        <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Total Quiz Time: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
+                                        </p>
+                                    </div>
 
 
                                     <!-- Navigation Buttons -->
@@ -172,24 +171,28 @@
                                     timerInterval: null,
 
                                     init() {
+                                        // Prevent multiple intervals
+                                        if (this.timerInterval) clearInterval(this.timerInterval);
+
                                         this.startTimer();
 
+                                        // Saved answers check
                                         this.questions.forEach((q, i) => {
                                             if (this.selectedAnswers[i] !== null) {
                                                 this.savedAnswers.push(i);
                                             }
                                         });
 
-                                        window.addEventListener('beforeunload', (e) => {
+                                        // Agar tab close/logout ho to last time save ho jaye
+                                        window.addEventListener('beforeunload', () => {
                                             if (!this.quizSubmitted) {
-                                                e.preventDefault();
-                                                e.returnValue = '';
+                                                navigator.sendBeacon("{{ route('jobseeker.updateRemainingTime') }}", new URLSearchParams({
+                                                    _token: '{{ csrf_token() }}',
+                                                    material_id: this.questions[0]?.material_id,
+                                                    remaining_time: this.remainingTime
+                                                }));
                                             }
                                         });
-                                    },
-
-                                    get progress() {
-                                        return Math.round(((this.current + 1) / this.questions.length) * 100);
                                     },
 
                                     get formattedTime() {
@@ -201,59 +204,60 @@
 
                                     startTimer() {
                                         this.timerInterval = setInterval(() => {
-                                            if (this.remainingTime > 0) {
-                                                this.remainingTime--;
-                                            } else {
+                                            // ⏱️ Smooth countdown (1 sec decrement)
+                                            this.remainingTime = Math.max(this.remainingTime - 1, 0);
+
+                                            // API call every (60 sec)
+                                            if (this.remainingTime > 0 && this.remainingTime % 60 === 0) {
+                                                $.post("{{ route('jobseeker.updateRemainingTime') }}", {
+                                                    _token: '{{ csrf_token() }}',
+                                                    material_id: this.questions[0]?.material_id,
+                                                    remaining_time: this.remainingTime
+                                                });
+                                            }
+
+                                            
+                                            if (this.remainingTime <= 0) {
                                                 clearInterval(this.timerInterval);
                                                 this.finalSubmit();
                                             }
-                                        }, 1000);
+                                        }, 1000); 
                                     },
 
                                     selectAnswer(index) {
-                                        if (this.quizSubmitted) return;
-                                        this.selectedAnswers[this.current] = index;
+                                        if (!this.quizSubmitted) {
+                                            this.selectedAnswers[this.current] = index;
+                                        }
                                     },
 
                                     nextQuestion() {
                                         const q = this.questions[this.current];
                                         const selectedIndex = this.selectedAnswers[this.current];
-
                                         if (selectedIndex === null || this.quizSubmitted) return;
 
-                                        $.ajax({
-                                            url: '{{ route("jobseeker.saveAnswer") }}',
-                                            method: 'POST',
-                                            data: {
-                                                _token: '{{ csrf_token() }}',
-                                                trainer_id: q.trainer_id,
-                                                material_id: q.material_id,
-                                                assessment_id: q.assessment_id,
-                                                question_id: q.id,
-                                                selected_answer: q.options[selectedIndex],
-                                                correct_answer: q.correct_option,
-                                            },
-                                            success: () => {
-                                                if (!this.savedAnswers.includes(this.current)) {
-                                                    this.savedAnswers.push(this.current);
-                                                }
-
-                                                if (this.current < this.questions.length - 1) {
-                                                    this.current++;
-                                                } else {
-                                                    this.errorMessage = "Answer saved. You may finish the quiz.";
-                                                    setTimeout(() => this.errorMessage = '', 3000);
-                                                }
-                                            },
-                                            error: () => {
-                                                this.errorMessage = "Error saving your answer. Please try again.";
+                                        $.post("{{ route('jobseeker.saveAnswer') }}", {
+                                            _token: '{{ csrf_token() }}',
+                                            trainer_id: q.trainer_id,
+                                            material_id: q.material_id,
+                                            assessment_id: q.assessment_id,
+                                            question_id: q.id,
+                                            selected_answer: q.options[selectedIndex],
+                                            correct_answer: q.correct_option,
+                                        }, () => {
+                                            if (!this.savedAnswers.includes(this.current)) {
+                                                this.savedAnswers.push(this.current);
+                                            }
+                                            if (this.current < this.questions.length - 1) {
+                                                this.current++;
+                                            } else {
+                                                this.errorMessage = "Answer saved. You may finish the quiz.";
+                                                setTimeout(() => this.errorMessage = '', 3000);
                                             }
                                         });
                                     },
 
                                     finalSubmit() {
                                         this.confirmSubmit = false;
-
                                         const attempted = this.selectedAnswers.filter(a => a !== null).length;
                                         const required = this.questions[0]?.passingQuestions || 0;
 
@@ -271,31 +275,21 @@
                                             correct_answer: q.correct_option
                                         }));
 
-                                        $.ajax({
-                                            url: '{{ route("jobseeker.submitQuiz") }}',
-                                            method: 'POST',
-                                            data: {
-                                                _token: '{{ csrf_token() }}',
-                                                answers: allAnswers
-                                            },
-                                            success: (res) => {
-                                                this.quizSubmitted = true;
-                                                clearInterval(this.timerInterval);
-                                                this.errorMessage = `Quiz Submitted!`;
-
-                                                setTimeout(() => {
-                                                    // ✅ Redirect to profile after successful submission
-                                                    window.location.href = '{{ route("jobseeker.profile") }}';
-                                                }, 2000);
-                                            },
-                                            error: () => {
-                                                this.errorMessage = "Submission failed. Please try again.";
-                                            }
+                                        $.post("{{ route('jobseeker.submitQuiz') }}", {
+                                            _token: '{{ csrf_token() }}',
+                                            answers: allAnswers
+                                        }, () => {
+                                            this.quizSubmitted = true;
+                                            clearInterval(this.timerInterval);
+                                            this.errorMessage = `Quiz Submitted!`;
+                                            setTimeout(() => window.location.href = '{{ route("jobseeker.profile") }}', 2000);
                                         });
                                     }
                                 }
                             }
-                        </script>
+                            </script>
+
+
                     </div>
                 </div>
             </main>

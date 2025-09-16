@@ -77,7 +77,7 @@ class ExplorerController extends Controller
     {
         try {
             // Fetch training materials with relationships and average ratings
-            $trainingMaterials = TrainingMaterial::select('id', 'trainer_id', 'training_title', 'training_price', 'training_offer_price', 'thumbnail_file_path as image')
+            $trainingMaterials = TrainingMaterial::select('id', 'trainer_id', 'training_title', 'training_price', 'training_offer_price', 'thumbnail_file_path as image','training_type')
                 ->with(['trainer:id,name', 'latestWorkExperience'])
                 ->withAvg('trainerReviews', 'ratings')
                 ->where('admin_status', 'superadmin_approved')
@@ -374,6 +374,20 @@ class ExplorerController extends Controller
                         }
                     }
                 }
+
+                // Calculate prices            
+                $actualPrice = $TrainingMaterial->training_price;
+                $finalPrice  = $TrainingMaterial->training_offer_price;            
+                // Default applied price = offerPrice
+                $TrainingMaterial->coursePrice = $finalPrice;                
+                $TrainingMaterial->savedPrice = $actualPrice - $finalPrice  ;
+
+                // Tax (10% as per your code)
+                $TrainingMaterial->taxPercentage   = 10;
+                $TrainingMaterial->tax   = round($finalPrice * ($TrainingMaterial->taxPercentage / 100), 2);
+                $TrainingMaterial->totalPrice = $finalPrice + $TrainingMaterial->tax;
+
+                
                 $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
                 unset($TrainingMaterial->trainer_reviews_avg_ratings,$TrainingMaterial->trainerReviews,$TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->batch);
                 unset($TrainingMaterial->trainingMaterialDocuments);

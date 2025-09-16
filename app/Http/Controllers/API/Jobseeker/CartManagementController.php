@@ -8,11 +8,14 @@ use App\Models\Api\Testimonial;
 use App\Models\Api\TrainingMaterial;
 use App\Models\Api\TrainingPrograms;
 use App\Models\Api\Trainers;
+use App\Models\Api\Coupon;
+
 use App\Models\Api\JobseekerTrainingMaterialPurchase;
 use App\Models\Payment\JobseekerTrainingMaterialPurchasePaymentRequest;
 use App\Services\PaymentHelper;
 
 use App\Models\Api\JobseekerCartItem;
+use App\Models\Api\CorporatesEmailIds;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
@@ -502,22 +505,7 @@ class CartManagementController extends Controller
         
     }
 
-    private function getSlotPercentage($type)
-    {
-        if ($type == 'material') 
-        {
-            $MentorsDetails = Setting::select('trainingMaterialTax')->where('id', 1)->first();
-            return $MentorsDetails->trainingMaterialTax ;
-        } 
-        elseif ($type == 'batch') 
-        {
-            $MentorsDetails = Setting::select('trainingMaterialBatchTax')->where('id', 1)->first();
-            return $MentorsDetails->trainingMaterialBatchTax ;
-        }
-        
-       
-        return 1 ;
-    }
+   
     public function checkoutTrainingMaterials(Request $request)
     {
         $data = $request->all();
@@ -639,9 +627,9 @@ class CartManagementController extends Controller
                 "udf2"        => $request->buy_type,        // Material Purchase type buyNw,butForCorporates,Cart
                 "udf3"        => $request->batch ?? 0,          // Batch ID
                 "udf4"        => $request->training_type ?? 'recorded',         // TrainingType online ,classroom ,recoded 
-                "udf5"        => $request->trainingMode,    // Online/Classroom
+                "udf5"        => $request->couponCode,    // Online/Classroom
                 "udf6"        => $request->material_id,              // Material Id
-                "udf7"        => $tax ?? 0.00,              // Mentor Session Tax
+                "udf7"        => $tax ?? 0.00,              // Training Material Session Tax
                 "udf8"        => $offerPrice,              // Mentor session Slot Price
                 "udf9"        => $CorporatesEmailIds->id ?? '',              // Mentor session Slot Price
                 "udf10"       => $request->trainer_id,              // Mentor session Slot Price
@@ -652,6 +640,10 @@ class CartManagementController extends Controller
             $payload = [$transactionDetails];
 
             $jsonTrandata = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        
+        
+        
+        
         
             $trandata = PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']);
             $trandatas = strtoupper($trandata) ;
@@ -715,6 +707,477 @@ class CartManagementController extends Controller
         //         'error' => $e->getMessage()
         //     ], 500);
         // }
+    }
+
+    public function applyCouponForBuyNowCourese(Request $request)
+    {
+        $data = $request->all();
+        $rules = [
+            'material_id' => 'required|integer|exists:training_materials,id',
+            'couponCode'  => 'required|exists:coupons,code'
+        ];
+
+        $messages = [
+            'material_id.required' => 'Material ID is required.',
+            'material_id.integer'  => 'Material ID must be a valid number.',
+            'material_id.exists'   => 'Training material does not exist.',
+            
+            'couponCode.required'  => 'Coupon code is required.',
+            'couponCode.exists'    => 'Coupon code does not exist.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+        
+        if ($validator->fails()) {
+            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 200);
+        }
+
+        try {
+            
+            //$id = $request->training_material_id;
+            $material_id = $request->material_id;            
+            $couponCode     = $request->couponCode;
+            
+            $material = null;
+          
+            $material = TrainingMaterial::with('batches')->findOrFail($material_id);         
+           
+            // Calculate prices            
+            $actualPrice = $material->training_price;
+            $offerPrice  = $material->training_offer_price;            
+            // Default applied price = offerPrice
+            $finalPrice = $offerPrice;
+            
+            // ========================
+            // Fetch & validate coupon
+            // ========================
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('is_active', 1)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_to', '>=', now())
+                ->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.'innvalid or expired.'
+                ], 200);
+            }
+
+            // ========================
+            // Apply discount
+            // ========================
+            $discountAmount = 0;
+
+            if ($coupon->discount_type === 'percentage') {
+                $discountAmount = ($offerPrice * $coupon->discount_value) / 100;
+            } elseif ($coupon->discount_type === 'fixed') {
+                $discountAmount = $coupon->discount_value;
+            }
+
+            // Prevent discount from exceeding price
+            if ($discountAmount > $offerPrice) {
+                $discountAmount = $offerPrice;
+            }
+
+            $finalPrice = $offerPrice - $discountAmount;
+
+            // Tax (10% as per your code)
+            $tax   = round($finalPrice * 0.10, 2);
+            $total = $finalPrice + $tax;
+
+            // ========================
+            // Return response
+            // ========================
+            return response()->json([
+                'status'         => true,
+                'message'        => $coupon->code.' coupon applied.',
+                'material_id'    => $material->id,
+                'coupon_code'    => $coupon->code,
+                'discount_type'  => $coupon->discount_type,
+                'discount_value' => $coupon->discount_value,
+                'actual_price'   => $actualPrice,
+                'offer_price'    => $offerPrice,
+                'discount_amount'=> $discountAmount,
+                'final_price'    => $finalPrice,
+                'taxPercentage'            => 10.00,
+                'tax'            => $tax,
+                'total'          => $total
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function applyCouponForBuyNowCorporatesCoures(Request $request)
+    {
+        $rules = [
+            'material_id'  => 'required|integer|exists:training_materials,id',
+            'couponCode'   => 'required|exists:coupons,code',
+            'numberOfUser' => 'required|integer|min:1'
+        ];
+
+        $messages = [
+            'material_id.required' => 'Material ID is required.',
+            'material_id.integer'  => 'Material ID must be a valid number.',
+            'material_id.exists'   => 'Training material does not exist.',
+            
+            'couponCode.required'  => 'Coupon code is required.',
+            'couponCode.exists'    => 'Coupon code does not exist.',
+
+            'numberOfUser.required' => 'Number of users is required.',
+            'numberOfUser.integer'  => 'Number of users must be a valid number.',
+            'numberOfUser.min'      => 'Number of users must be at least 1.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()->first()
+            ], 200);
+        }
+
+        try {
+            $material_id   = $request->material_id;            
+            $couponCode    = $request->couponCode;
+            $numberOfUser  = (int) $request->numberOfUser;
+
+            $material = TrainingMaterial::with('batches')->findOrFail($material_id);         
+
+            // Base prices
+            $actualPrice = $material->training_price;
+            $offerPrice  = $material->training_offer_price ?? $actualPrice;
+
+            // Total before discount
+            $totalOfferPrice = $offerPrice * $numberOfUser;
+
+            // ========================
+            // Fetch & validate coupon
+            // ========================
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('is_active', 1)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_to', '>=', now())
+                ->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' is invalid or expired.'
+                ], 200);
+            }
+
+            // ========================
+            // Apply discount
+            // ========================
+            $discountAmount = 0;
+
+            if ($coupon->discount_type === 'percentage') {
+                $discountAmount = ($totalOfferPrice * $coupon->discount_value) / 100;
+            } elseif ($coupon->discount_type === 'fixed') {
+                $discountAmount = $coupon->discount_value;
+            }
+
+            // Prevent discount from exceeding total
+            if ($discountAmount > $totalOfferPrice) {
+                $discountAmount = $totalOfferPrice;
+            }
+
+            $finalPrice = $totalOfferPrice - $discountAmount;
+
+            // Tax (10% of final price)
+            $tax   = round($finalPrice * 0.10, 2);
+            $total = $finalPrice + $tax;
+
+            // ========================
+            // Return response
+            // ========================
+            return response()->json([
+                'status'          => true,
+                'message'         => $coupon->code.' coupon applied.',
+                'material_id'     => $material->id,
+                'coupon_code'     => $coupon->code,
+                'discount_type'   => $coupon->discount_type,
+                'discount_value'  => $coupon->discount_value,
+                'actual_price'    => $actualPrice,
+                'offer_price'     => $offerPrice,
+                'number_of_users' => $numberOfUser,
+                'total_offer_price'=> $totalOfferPrice,
+                'discount_amount' => $discountAmount,
+                'final_price'     => $finalPrice,
+                'taxPercentage'   => 10.00,
+                'tax'             => $tax,
+                'total'           => $total
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function applyCouponForAddToCartCoures(Request $request)
+    {
+        $rules = [
+            'jobseeker_id'  => 'required|integer|exists:jobseekers,id',
+            'couponCode'   => 'required|exists:coupons,code'
+        ];
+
+        $messages = [
+            'jobseeker_id.required' => 'Jobseeker ID is required.',
+            'jobseeker_id.integer'  => 'Jobseeker ID must be a valid number.',
+            'jobseeker_id.exists'   => 'Jobseeker does not exist.',
+            
+            'couponCode.required'  => 'Coupon code is required.',
+            'couponCode.exists'    => 'Coupon code does not exist.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()->first()
+            ], 200);
+        }
+
+        try {
+            $jobseeker_id   = $request->jobseeker_id;            
+            $couponCode    = $request->couponCode;
+
+            $cartItems = JobseekerCartItem::with('material')
+                ->where('jobseeker_id', $jobseeker_id)
+                ->where('status', 'pending')
+                ->get();
+
+            $actualPrice = $cartItems->sum(fn($item) => $item->material->training_price ?? 0);
+            $offerPrice  = $cartItems->sum(fn($item) => $item->material->training_offer_price ?? 0);
+
+            // Total before discount
+            $totalOfferPrice = $offerPrice ;
+
+            // ========================
+            // Fetch & validate coupon
+            // ========================
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('is_active', 1)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_to', '>=', now())
+                ->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' is invalid or expired.'
+                ], 200);
+            }
+
+            // ========================
+            // Apply discount
+            // ========================
+            $discountAmount = 0;
+
+            if ($coupon->discount_type === 'percentage') {
+                $discountAmount = ($totalOfferPrice * $coupon->discount_value) / 100;
+            } elseif ($coupon->discount_type === 'fixed') {
+                $discountAmount = $coupon->discount_value;
+            }
+
+            // Prevent discount from exceeding total
+            if ($discountAmount > $totalOfferPrice) {
+                $discountAmount = $totalOfferPrice;
+            }
+
+            $finalPrice = $totalOfferPrice - $discountAmount;
+
+            // Tax (10% of final price)
+            $tax   = round($finalPrice * 0.10, 2);
+            $total = $finalPrice + $tax;
+
+            // ========================
+            // Return response
+            // ========================
+            return response()->json([
+                'status'          => true,
+                'message'         => $coupon->code.' coupon applied.',
+                'coupon_code'     => $coupon->code,
+                'discount_type'   => $coupon->discount_type,
+                'discount_value'  => $coupon->discount_value,
+                'actual_price'    => $actualPrice,
+                'offer_price'     => $offerPrice,
+                'total_offer_price'=> $totalOfferPrice,
+                'discount_amount' => $discountAmount,
+                'final_price'     => $finalPrice,
+                'taxPercentage'   => 10.00,
+                'tax'             => $tax,
+                'total'           => $total
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function applyCouponForSlotForMCA(Request $request)
+    {
+        $data = $request->all();
+
+        $rules = [
+            'user_type'  => 'required',
+            'user_id'    => 'required|integer',
+            'couponCode' => 'required|exists:coupons,code',
+        ];
+
+        $messages = [
+            'user_type.required' => 'Type is required.',
+
+            'user_id.required' => ($request->user_type ?? 'User').' ID is required.',
+            'user_id.integer'  => ($request->user_type ?? 'User').' ID must be a valid number.',
+
+            'couponCode.required' => 'Coupon code is required.',
+            'couponCode.exists'   => 'Coupon code does not exist.',
+        ];
+
+        $validator = Validator::make($data, $rules, $messages);
+
+        // Return only the first error
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
+
+        try {
+            $userId    = $request->user_id;
+            $userType  = $request->user_type;
+            $couponCode = $request->couponCode;
+
+            // Base slot price & tax %
+            $slotPrice = $this->getUserSlotPrice($userId, $userType);
+            $slotTax   = $this->getSlotPercentage($userType);
+
+            // Initial total before coupon
+            $slotTotalAmount = $slotPrice + ($slotPrice * $slotTax / 100);
+
+            // ========================
+            // Fetch & validate coupon
+            // ========================
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('is_active', 1)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_to', '>=', now())
+                ->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' is invalid or expired.'
+                ], 200);
+            }
+
+            // ========================
+            // Apply discount
+            // ========================
+            $discountAmount = 0;
+
+            if ($coupon->discount_type === 'percentage') {
+                $discountAmount = ($slotPrice * $coupon->discount_value) / 100;
+            } elseif ($coupon->discount_type === 'fixed') {
+                $discountAmount = $coupon->discount_value;
+            }
+
+            if ($discountAmount > $slotPrice) {
+                $discountAmount = $slotPrice;
+            }
+
+            // Final price after discount
+            $finalSlotPrice = $slotPrice - $discountAmount;
+            $finalTotalAmount = $finalSlotPrice + ($finalSlotPrice * $slotTax / 100);
+
+            return response()->json([
+                'status'            => true,
+                'message'           => $coupon->code.' coupon applied.',
+                'perSlotPrice'      => $slotPrice,
+                'discount_amount'   => $discountAmount,
+                'finalSlotPrice'    => $finalSlotPrice,
+                'slotTaxPercentage' => $slotTax,
+                'finalTotalAmount'  => $finalTotalAmount
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    private function getUserSlotPrice($id,$type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Mentors::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Coach::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Assessors::select('per_slot_price')->where('id', $id)->first();
+            return $MentorsDetails->per_slot_price ;
+        }
+       
+        return 1 ;
+    }
+
+    private function getSlotPercentage($type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Setting::select('mentorTax')->where('id', 1)->first();
+            return $MentorsDetails->mentorTax ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Setting::select('coachTax')->where('id', 1)->first();
+            return $MentorsDetails->coachTax ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Setting::select('assessorTax')->where('id', 1)->first();
+            return $MentorsDetails->assessorTax ;
+        }
+        if ($type == 'material') 
+        {
+            $MentorsDetails = Setting::select('trainingMaterialTax')->where('id', 1)->first();
+            return $MentorsDetails->trainingMaterialTax ;
+        } 
+        elseif ($type == 'batch') 
+        {
+            $MentorsDetails = Setting::select('trainingMaterialBatchTax')->where('id', 1)->first();
+            return $MentorsDetails->trainingMaterialBatchTax ;
+        }
+       
+        return 1 ;
     }
 
     function generateTrackId($jobseekerId, $trainerId = 0 , $materialId = 0 , $batchId = 0 , $type = 'buyNow')

@@ -27,10 +27,10 @@
             @include('site.coach.componants.navbar')
             @include('admin.errors')
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto">
-                    <h2 class="text-2xl font-semibold mb-1">Booking slots</h2>
+                    <h2 class="text-2xl font-semibold mb-1">{{ langLabel('booking_slots') }}</h2>
 
                     <div class="bg-white rounded-lg shadow mt-6">
-                        <div class="border-b p-4 font-medium">Create time slots</div>
+                        <div class="border-b p-4 font-medium">{{ langLabel('create_time_slots') }}</div>
 
                         <form id="slot-form" method="POST" action="{{ route('coach.submit-bookings') }}" enctype="multipart/form-data" novalidate>
                             @csrf
@@ -38,23 +38,23 @@
                                 <!-- Select inputs -->
                                 <div class="grid md:grid-cols-3 gap-4">
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">Coaching mode</label>
+                                        <label class="block mb-1 text-sm font-medium text-gray-700">{{ langLabel('coaching_mode') }}</label>
                                         <select id="mode" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-                                            <option value="">Online/offline</option>
-                                            <option value="online">Online</option>
-                                            <option value="offline">Offline</option>
+                                            <option value="">{{ langLabel('online') }}/{{ langLabel('offline') }}</option>
+                                            <option value="online">{{ langLabel('online') }}</option>
+                                            <option value="offline">{{ langLabel('offline') }}</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">Start time</label>
+                                        <label class="block mb-1 text-sm font-medium text-gray-700">{{ langLabel('start_time') }}</label>
                                         <select id="startTime" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-                                            <option value="">Select start time</option>
+                                            <option value="">{{ langLabel('select_start_time') }}</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">End time</label>
+                                        <label class="block mb-1 text-sm font-medium text-gray-700">{{ langLabel('end_time') }}</label>
                                         <select id="endTime" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-                                            <option value="">Select end time</option>
+                                            <option value="">{{ langLabel('select_end_time') }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -63,14 +63,14 @@
                                 <div id="errorMessage" class="text-red-600 font-medium mt-2"></div>
 
                                 <!-- Create button -->
-                                <button type="button" onclick="addSlot()" class="bg-blue-700 text-white px-6 py-2 rounded-md">Create</button>
+                                <button type="button" onclick="addSlot()" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('create') }}</button>
 
                                 <!-- Created slots -->
                                 <div id="slotContainer" class="flex flex-wrap gap-3 mt-4"></div>
 
                                 <!-- Submit button aligned right -->
                                 <div class="text-right mt-4">
-                                    <button type="submit" onclick="prepareForm()" class="bg-blue-700 text-white px-6 py-2 rounded-md">Submit</button>
+                                    <button type="submit" onclick="prepareForm()" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('submit') }}</button>
                                 </div>
                             </div>
                         </form>

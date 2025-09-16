@@ -24,7 +24,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Coaching</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('coaching') }}</h2>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                                         @endif
                                     @endfor
                                 </div>
-                                <span class="ml-2 text-gray-600">({{ $avgRating }}/5) <span class="text-xs">Rating</span></span>
+                                <span class="ml-2 text-gray-600">({{ $avgRating }}/5) <span class="text-xs">{{ langLabel('rating') }}</span></span>
                             </div>
                         </div>
                     </div>
@@ -95,12 +95,12 @@
                             @endphp
                             <a href="{{ route('coach-book-session', ['coach_id' => $coach->id, 'slot_id' => $firstSlot->id]) }}">
                                 <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">
-                                    Book Session
+                                    {{ langLabel('book_session') }}
                                 </button>
                             </a>
                         @else
                             <button class="bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-md font-medium shadow-sm" disabled>
-                                No Slot Available
+                                {{ langLabel('no_slot_available') }}
                             </button>
                         @endif
                     </div>
@@ -108,40 +108,40 @@
 
                 <!-- Tabs -->
                 <div class="flex gap-6 border-b mb-6 text-sm font-medium">
-                    <a href="#about" class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600">About Mentor</a>
-                    <a href="#reviews" class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600">Reviews</a>
+                    <a href="#about" class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600">{{ langLabel('about_coach') }}</a>
+                    <a href="#reviews" class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600">{{ langLabel('reviews') }}</a>
                 </div>
 
                 <!-- About Section -->
                 <section id="about" class="mb-6 mt-6">
-                    <h2 class="text-lg font-semibold mb-2">About Coach</h2>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('about_coach') }}</h2>
                     <p class="text-sm text-gray-700 mb-6">
-                        {!! nl2br(e($coach->about_coach ?? 'Bio not available.')) !!}
+                        {!! nl2br(e($coach->about_coach ?? langLabel('bio_not_available'))) !!}
                     </p>
 
-                    <h2 class="text-lg font-semibold mb-2">Experience</h2>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('experience') }}</h2>
                     <div class="mb-6">
-                        <p class="text-sm font-semibold text-gray-800">Work experience:</p>
+                        <p class="text-sm font-semibold text-gray-800">{{ langLabel('work_experience') }}:</p>
                         <p class="text-sm text-gray-700 mt-0.5">
                             {{ $coach->total_experience ?? '0 years 0 months 0 days' }} of experience
                         </p>
                     </div>
 
-                    <h2 class="text-lg font-semibold mb-2">Qualification</h2>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('qualification') }}</h2>
                     @php
                         $education = $coach->educations->first();
                     @endphp
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
-                            <p class="font-semibold text-gray-800">Highest qualification</p>
+                            <p class="font-semibold text-gray-800">{{ langLabel('highest_qualification') }}</p>
                             <p class="text-gray-700">{{ $education->high_education ?? 'N/A' }}</p>
                         </div>
                         <div>
-                            <p class="font-semibold text-gray-800">Field of study:</p>
+                            <p class="font-semibold text-gray-800">{{ langLabel('field_of_study') }}:</p>
                             <p class="text-gray-700">{{ $education->field_of_study ?? 'N/A' }}</p>
                         </div>
                         <div>
-                            <p class="font-semibold text-gray-800">Institution name:</p>
+                            <p class="font-semibold text-gray-800">{{ langLabel('institution_name') }}:</p>
                             <p class="text-gray-700">{{ $education->institution ?? 'N/A' }}</p>
                         </div>
                     </div>
@@ -159,7 +159,7 @@
                     
                 <!-- Reviews Section -->
                 <section id="reviews">
-                    <h2 class="text-lg font-semibold mb-3">Reviews</h2>
+                    <h2 class="text-lg font-semibold mb-3">{{ langLabel('reviews') }}</h2>
                     <div class="flex items-center mb-4">
                     <div class="text-4xl font-bold mr-4">{{ $avgRating }}</div>
                     <div class="flex-1 space-y-1">
@@ -183,9 +183,9 @@
 
                     <!-- Write Review Box -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-semibold mb-2">Write a review:</h3>
+                        <h3 class="text-lg font-semibold mb-2">{{ langLabel('write_review') }}:</h3>
                         
-                        <textarea id="review-text" rows="4" placeholder="Write here . . ." 
+                        <textarea id="review-text" rows="4" placeholder="{{ langLabel('write_here') }} . . ." 
                             class="w-full border border-gray-300 p-3 rounded mb-2 text-sm"></textarea>
 
                         <div class="flex items-center justify-between">
@@ -197,7 +197,7 @@
 
                             <button id="submit-review" 
                                 class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded text-sm">
-                                Submit Review
+                                {{ langLabel('submit_review') }}
                             </button>
                         </div>
                     </div>
