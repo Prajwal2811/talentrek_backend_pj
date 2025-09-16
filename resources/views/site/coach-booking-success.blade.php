@@ -24,7 +24,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Coaching</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('coaching') }}</h2>
                     </div>
                 </div>
             </div>
@@ -43,8 +43,8 @@
                         </div>
 
                         <!-- Success Message -->
-                        <h2 class="text-xl font-medium mb-1">Your Appointment Booked Successfully</h2>
-                        <p class="text-sm text-gray-600 mb-1">Booking ID: <span class="font-semibold">#2354677</span></p>
+                        <h2 class="text-xl font-medium mb-1">{{ langLabel('appointment_book_successfully') }}</h2>
+                        <p class="text-sm text-gray-600 mb-1">{{ langLabel('booking_id') }}: <span class="font-semibold">#2354677</span></p>
 
                         <!-- Date and Time -->
                         <div class="text-sm text-gray-600 mb-6">
@@ -59,7 +59,7 @@
                             </svg>
                             <input type="text" readonly value="https://zoom.us/j/1234567890" class="flex-1 bg-transparent text-sm outline-none" />
                             <button class="bg-blue-700 text-white text-sm font-medium px-4 py-1 rounded hover:bg-blue-800 ml-2">
-                            Copy
+                            {{ langLabel('copy') }}
                             </button>
                         </div>
                         </section>

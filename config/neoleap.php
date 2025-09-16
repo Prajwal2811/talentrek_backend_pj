@@ -12,6 +12,6 @@ return [
     'success_booking_session_url'    => env('APP_URL').env('NEOLEAP_BOOKING_SESSION_SUCCESS_URL'),
 
     // Subscription-specific
-    'subscription_success_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_SUCCESS_URL'),
-    'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_FAILURE_URL'),
+    'subscription_sub_success_url' => env('APP_URL') . env('NEOLEAP_SUBS_SUCCESS_URL'),
+    'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBS_SUCCESS_URL'),
 ];

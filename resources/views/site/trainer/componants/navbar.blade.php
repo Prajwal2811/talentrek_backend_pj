@@ -26,13 +26,15 @@
                         </button>
                         </div>
                         <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
+                            <form method="POST" action="{{ route('change.language') }}">
+                                @csrf
+                                    <select
+                                        class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600" name="lang" id="lang" onchange="this.form.submit()">
+                                        <option value="english" {{ session('lang', 'english') == 'english' ? 'selected' : '' }}>English</option>
+
+                                        <option value="arabic" {{ session('lang', 'english') == 'arabic' ? 'selected' : '' }}>Arabic</option>
+                                    </select>
+                            </form>
                         <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
                             <i class="feather-globe"></i>
                         </span>

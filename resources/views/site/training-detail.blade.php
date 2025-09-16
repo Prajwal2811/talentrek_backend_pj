@@ -25,7 +25,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-5xl font-bold text-white ml-[10%]">Training</h2>
+                        <h2 class="text-5xl font-bold text-white ml-[10%]">{{ langLabel('training') }}</h2>
                     </div>
                 </div>
             </div>
@@ -96,7 +96,7 @@
                     </div>
                     <span>({{ $average }}/5)</span>
 
-                    <span>Rating</span>
+                    <span>{{ langLabel('rating') }}</span>
                     <span class="mx-2">|</span>
 
                     <!-- Trainer -->
@@ -109,7 +109,7 @@
                     <span class="mx-2">|</span>
                     <!-- Lessons and Hours -->
                     @if(strtolower($material->training_type) === 'recorded' && isset($material->documents) && count($material->documents) > 0)
-                        <span>📘 {{ count($material->documents) }} lessons</span>
+                        <span>📘 {{ count($material->documents) }} {{ langLabel('lessons') }}</span>
 
                         <span>⏱️ 
                             @php
@@ -124,8 +124,8 @@
                         </span>
                     @endif
 
-                    <span>📈 {{ ucfirst($material->training_level ?? 'Beginner') }}</span>
-                    <span>🎥 {{ ucfirst($material->session_type ?? 'recorded') }}</span>
+                    <span>📈 {{ ucfirst($material->training_level ?? langLabel('beginner')) }}</span>
+                    <span>🎥 {{ ucfirst($material->session_type ?? langLabel('recorded')) }}</span>
                 </div>
 
                 <!-- Tabs -->
@@ -133,22 +133,22 @@
                     <!-- <button class="tab-link pb-2 text-blue-600 border-b-2 border-blue-600 active-tab" data-tab="overview">Course overview</button>
                     <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="benefits">Benefits of training</button> -->
                     <?php if($material->training_type !== 'online'){ ?>
-                        <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="content">Training content</button>
+                        <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="content">{{ langLabel('training_content') }}</button>
                     <?php } ?>
-                    <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="reviews">Reviews</button>
+                    <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent" data-tab="reviews">{{ langLabel('reviews') }}</button>
                 </div>
                 <!-- < ?PHP dd($material);exit;?>               -->
                 <!-- Overview -->
                 <section class="mb-6 tab-content" data-tab-content="overview">
-                    <h2 class="text-lg font-semibold mb-2">Course overview</h2>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('course_overview') }}</h2>
                     <p class="text-sm text-gray-700">
-                        {{ $material->training_descriptions ?? 'Overview not available.' }}
+                        {{ $material->training_descriptions ?? langLabel('overview_not_available') }}
                     </p>
                 </section>
 
                 <!-- Benefits -->
                 <section class="mb-6 tab-content hidden" data-tab-content="benefits">
-                    <h2 class="text-lg font-semibold mb-2">Benefits of training</h2>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('benefits_training') }}</h2>
                     <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
                         @php
                             $benefits = explode("\n", $material->training_benefits ?? '');
@@ -163,7 +163,7 @@
 
                 <!-- Training Content -->
                 <section class="mb-6 tab-content hidden" data-tab-content="content">
-                    <h2 class="text-lg font-semibold mb-2">Training content</h2>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('training_content') }}</h2>
                     <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
                         @foreach($material->documents as $index => $doc)
                             <li><strong>Lesson {{ $index + 1 }}:</strong> {{ $doc->description }}</li>
@@ -173,8 +173,8 @@
 
                 <!-- Reviews -->
                 <section class="mb-6 tab-content hidden" data-tab-content="reviews">
-                    <h2 class="text-lg font-semibold mb-2">Reviews</h2>
-                    <p class="text-sm text-gray-600">User reviews will appear here.</p>
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('reviews') }}</h2>
+                    <p class="text-sm text-gray-600">{{ langLabel('user_reviews') }}</p>
                 </section>
 
                 <!-- JS for tab switching (Alpine.js or Vanilla JS) -->
@@ -266,7 +266,7 @@
                 @endphp
 
                 @if($material->training_type !== 'online')
-                    <h2 class="text-lg font-bold mb-4">E learning</h2>
+                    <h2 class="text-lg font-bold mb-4">{{ langLabel('e_learning') }}</h2>
                 @endif
 
                 <div x-data="videoModal(@json($isCourseBuy))" class="relative">
@@ -298,7 +298,7 @@
                                 </div>
 
                                 <div class="p-3 text-center text-sm font-medium">
-                                    {{ $doc->training_title }} - Chapter {{ $key + 1 }}
+                                    {{ $doc->training_title }} - {{ langLabel('chapter') }} {{ $key + 1 }}
                                 </div>
                             </div>
                         @endforeach
@@ -315,7 +315,7 @@
                         class="fixed z-50 w-96 bg-white rounded-lg shadow-lg border border-gray-300"
                     >
                         <div class="flex justify-between items-center bg-gray-100 p-2 cursor-move">
-                            <span class="font-medium">Video Player</span>
+                            <span class="font-medium">{{ langLabel('video_player') }}</span>
                             <button @click="closeVideo" class="text-red-500 font-bold">✕</button>
                         </div>
 
@@ -340,13 +340,13 @@
                     <!-- Purchase Popup -->
                     <div x-show="showPopup" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Purchase Required</h3>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">{{ langLabel('purchase_required') }}</h3>
                             <p class="text-sm text-gray-600 mb-6">
-                                You must purchase this course to view the videos.
+                                {{ langLabel('you_must_purchase') }}
                             </p>
                             <div class="flex justify-center gap-4">
                                 <button @click="showPopup = false"
-                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Close</button>
+                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">{{ langLabel('close') }}</button>
                             </div>
                         </div>
                     </div>
@@ -390,14 +390,14 @@
 
               <!-- Reviews -->
               <section class="tab-content mt-5" data-tab-content="reviews">
-                <h2 class="text-2xl font-bold mb-6">Reviews</h2>
+                <h2 class="text-2xl font-bold mb-6">{{ langLabel('reviews') }}</h2>
 
                 <!-- Rating Summary -->
                 <div class="flex mb-8 space-x-8">
                   <!-- Average Rating Box -->
                   <div class="bg-gray-100 p-6 rounded-md w-48 text-center">
                     <div class="text-5xl font-extrabold text-black-500 leading-tight">{{ $average }}</div>
-                     <div class="text-xl text-black-300 text-gray-600 mt-1">Overall rating</div>
+                     <div class="text-xl text-black-300 text-gray-600 mt-1">{{ langLabel('overall_rating') }}</div>
                   </div>
 
                   <!-- Star Rating Breakdown (no 5/4/3/2/1 text) -->
@@ -415,8 +415,8 @@
 
                 <!-- Write Review Box -->
                 <div class="mb-6">
-                  <h3 class="text-lg font-semibold mb-2">Write a review:</h3>
-                  <textarea id="review-text" rows="4" placeholder="Write here . . ." class="w-full border border-gray-300 p-3 rounded mb-2 text-sm"></textarea>
+                  <h3 class="text-lg font-semibold mb-2">{{ langLabel('write_review') }}:</h3>
+                  <textarea id="review-text" rows="4" placeholder="{{ langLabel('write_here') }} . . ." class="w-full border border-gray-300 p-3 rounded mb-2 text-sm"></textarea>
 
                   <div class="flex items-center justify-between">
                     <div id="star-rating" class="text-orange-500 text-2xl cursor-pointer space-x-1">
@@ -426,7 +426,7 @@
                     </div>
 
                     <button id="submit-review" class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded text-sm">
-                      Submit Review
+                      {{ langLabel('submit_review') }}
                     </button>
                   </div>
                 </div>
@@ -548,7 +548,7 @@
                   <ul class="text-sm text-gray-600 mb-4 space-y-2">
                       <li class="flex items-center space-x-2">
                           @if(strtolower($material->training_type) === 'recorded' && isset($material->documents) && count($material->documents) > 0)
-                              <span>📘 {{ count($material->documents) }} lessons</span>
+                              <span>📘 {{ count($material->documents) }} {{ langLabel('lessons') }}</span>
                           @endif
                       </li>
 
@@ -577,13 +577,13 @@
                           <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                               <path d="M3 3h18v4H3zM3 17h18v4H3zM3 10h18v4H3z"></path>
                           </svg>
-                          <span>{{ ucfirst($material->training_level ?? 'Beginner') }}</span>
+                          <span>{{ ucfirst($material->training_level ?? langLabel('beginner')) }}</span>
                       </li>
                   </ul>
 
                   <!-- Price -->
                   <div class="mb-4 flex items-center justify-between">
-                      <p class="text-sm text-gray-500 font-bold">Price</p>
+                      <p class="text-sm text-gray-500 font-bold">{{ langLabel('price') }}</p>
                       <div class="flex items-center space-x-2">
                           <span class="text-gray-400 line-through">
                               SAR {{ number_format($material->training_price ?? 0, 0) }}
@@ -668,7 +668,7 @@
                 @if(!$existOrNot)
                     <a href="{{ route('buy-course', ['id' => $material->id]) }}">
                         <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                            Buy course
+                            {{ langLabel('buy_course') }}
                         </button>
                     </a>
                 @endif
@@ -681,17 +681,19 @@
                         @if($assessmentStatus)
                             @if($assessmentStatus->submitted == 1)
                                 {{-- Certificate Download --}}
-                                <a href="{{ route('download.certificate', $material->id) }}">
+                                <a href="#">
                                     <button class="flex items-center justify-center gap-2 bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3 hover:bg-green-700 transition">
+                                        <!-- Download Icon -->
                                         <i class="fas fa-download"></i>
-                                        <span>Download Training Certificate</span>
+                                        <span>{{ langLabel('download_training_certificate') }}</span>
                                     </button>
+
                                 </a>
                             @else
                                 {{-- Re-Assessment --}}
                                 <a href="#">
                                     <button class="bg-yellow-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                        Re-Assessment
+                                        {{ langLabel('reassessment') }}
                                     </button>
                                 </a>
                             @endif
@@ -699,7 +701,7 @@
                             {{-- Start First Assessment --}}
                             <a href="{{ route('assessment.view', $material->id) }}">
                                 <button class="bg-red-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                    Start Assessment
+                                    {{ langLabel('start_assessment') }}
                                 </button>
                             </a>
 
@@ -710,24 +712,24 @@
                             @if($enableJoin)
                                 <a href="{{ $batch->zoom_join_url }}">
                                     <button class="bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                        Join
+                                        {{ langLabel('join') }}
                                     </button>
                                 </a>
                             @else
                                 <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
-                                    Join (Not Available Yet)
+                                    {{ langLabel('join') }} ({{ langLabel('not_available_yet') }})
                                 </button>
                             @endif
                         @elseif($material->training_type == 'classroom')
                             @if($enableJoin)
                                 <a href="{{ $batch->location ?: '#' }}">
                                     <button class="bg-purple-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                        Visit
+                                        {{ langLabel('visit') }}
                                     </button>
                                 </a>
                             @else
                                 <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
-                                    Visit (Not Available Yet)
+                                    {{ langLabel('visit') }} ({{ langLabel('not_available_yet') }})
                                 </button>
                             @endif
                         @endif
@@ -738,7 +740,7 @@
                 {{-- Buy for Team --}}
                 <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
                     <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                        Buy for Team
+                        {{ langLabel('buy_team') }}
                     </button>
                 </a>
 
@@ -747,13 +749,13 @@
                     @if(!in_array($material->id, $cartItems))
                         <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
                             data-id="{{ $material->id }}">
-                            Add to Cart
+                            {{ langLabel('add_cart') }}
                         </button>
                     @else
                         <a href="{{ route('jobseeker.profile') }}" 
                         onclick="localStorage.setItem('activeTab','cart')"
                         class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
-                            Go to Cart
+                            {{ langLabel('go_cart') }}
                         </a>
                     @endif
                 @endif

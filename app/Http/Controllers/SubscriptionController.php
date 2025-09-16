@@ -89,8 +89,8 @@ class SubscriptionController extends Controller
             "udf7"         => '0.00',
             "udf8"         => number_format($plan->price, 2, '.', ''),
             "langid"       => "en",
-            "responseURL"  => $config['subscription_success_url'],
-            "errorURL"     => $config['subscription_failure_url'],
+            "responseURL"  => $config['subscription_sub_success_url'],
+            "errorURL"     => $config['subscription_sub_success_url'],
         ];
 
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
@@ -101,8 +101,8 @@ class SubscriptionController extends Controller
         $payload = [[
             "id"          => $config['tranportal_id'],
             "trandata"    => $trandata,
-            "responseURL" => $config['subscription_success_url'],
-            "errorURL"    => $config['subscription_failure_url']
+            "responseURL" => $config['subscription_sub_success_url'],
+            "errorURL"    => $config['subscription_sub_success_url']
         ]];
 
         $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES);
@@ -292,6 +292,7 @@ class SubscriptionController extends Controller
         return redirect()->route($route)->with('success', 'Subscription purchased successfully!');
 
     }
+
 
     /**
      * Failure callback

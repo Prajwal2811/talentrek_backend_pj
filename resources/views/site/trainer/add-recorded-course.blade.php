@@ -24,14 +24,14 @@
                 @include('site.trainer.componants.navbar')
 
                 <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-                    <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
+                    <h2 class="text-xl font-semibold mb-6">{{ langLabel('recorded_course') }}</h2>
                     <form id="trainingForm" action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Course Title -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Course Title</label>
-                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" value="{{old('training_title')}}"/>
+                            <label class="block font-medium mb-1">{{ langLabel('course_title') }}</label>
+                            <input type="text" name="training_title" placeholder="{{ langLabel('enter_course_title') }}" class="w-full border rounded-md p-2" value="{{old('training_title')}}"/>
                             @error('training_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -39,8 +39,8 @@
 
                         <!-- Course Sub Title -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Course Sub Title</label>
-                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" value="{{old('training_sub_title')}}"/>
+                            <label class="block font-medium mb-1">{{ langLabel('course_sub_title') }}</label>
+                            <input type="text" name="training_sub_title" placeholder="{{ langLabel('enter_course_sub_title') }}" class="w-full border rounded-md p-2" value="{{old('training_sub_title')}}"/>
                             @error('training_sub_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -48,8 +48,8 @@
 
                         <!-- Description -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Description</label>
-                            <textarea name="training_descriptions" placeholder="Enter the Description" class="w-full border rounded-md p-2 h-24">{{old('training_descriptions')}}</textarea>
+                            <label class="block font-medium mb-1">{{ langLabel('description') }}</label>
+                            <textarea name="training_descriptions" placeholder="{{ langLabel('enter_description') }}" class="w-full border rounded-md p-2 h-24">{{old('training_descriptions')}}</textarea>
                             @error('training_descriptions')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -60,7 +60,7 @@
                         @endphp
                         <!-- Category (Single selection with radio buttons) -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-2">Category</label>
+                            <label class="block font-medium mb-2">{{ langLabel('category') }}<</label>
                             <div class="flex flex-wrap gap-4">
                                 @foreach ($categories as $category)
                                     <label>
@@ -75,12 +75,12 @@
                         <!-- Training Level -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
-                                <label class="block font-medium mb-1">Training Level</label>
+                                <label class="block font-medium mb-1">{{ langLabel('training_level') }}<</label>
                                 <select name="training_level" class="w-full border rounded-md p-2">
-                                    <option value="">Select Training Level</option>
-                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>Beginner</option>
-                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>Intermediate</option>
-                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
+                                    <option value="">{{ langLabel('select_training_level') }}</option>
+                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>{{ langLabel('beginner') }}</option>
+                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>{{ langLabel('intermediate') }}</option>
+                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>{{ langLabel('advanced') }}</option>
                                 </select>
                                 @error('training_level')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -92,29 +92,29 @@
 
                         <!-- Course Content Structure -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-2">Course Content Structure</label>
+                            <label class="block font-medium mb-2">{{ langLabel('course_content_structure') }}</label>
                             <div class="mb-2">
-                                <input id="sectionTitle" name="content_sections[0][title]" type="text" placeholder="Section title" class="w-full border rounded-md p-2" />
+                                <input id="sectionTitle" name="content_sections[0][title]" type="text" placeholder="{{ langLabel('section_title') }}" class="w-full border rounded-md p-2" />
                             </div>
                             <div class="mb-2">
-                                <textarea id="contentText" name="content_sections[0][description]" placeholder="Contents" class="w-full border rounded-md p-2"></textarea>
+                                <textarea id="contentText" name="content_sections[0][description]" placeholder="{{ langLabel('contents') }}" class="w-full border rounded-md p-2"></textarea>
                             </div>
-                            <button id="addContentBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add Content</button>
+                            <button id="addContentBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">{{ langLabel('add_content') }}</button>
                         </div>
 
                         <!-- Course Video Table (Dynamic row append) -->
                         <div class="bg-white p-4 rounded-md shadow mb-4">
-                            <h3 class="text-md font-semibold mb-2">Course Videos</h3>
+                            <h3 class="text-md font-semibold mb-2">{{ langLabel('course_videos') }}</h3>
                             <div class="overflow-x-auto">
                                 <table id="courseTable" class="w-full text-sm text-left border">
                                     <thead class="bg-gray-100">
                                         <tr class="text-gray-700">
-                                            <th class="p-2 border">Sr. No.</th>
-                                            <th class="p-2 border">Title</th>
-                                            <th class="p-2 border">Description</th>
-                                            <th class="p-2 border">Upload</th>
-                                            <th class="p-2 border">File Duration</th>
-                                            <th class="p-2 border">Delete</th>
+                                            <th class="p-2 border">{{ langLabel('sr_no') }}</th>
+                                            <th class="p-2 border">{{ langLabel('title') }}</th>
+                                            <th class="p-2 border">{{ langLabel('description') }}</th>
+                                            <th class="p-2 border">{{ langLabel('upload') }}</th>
+                                            <th class="p-2 border">{{ langLabel('file_duration') }}</th>
+                                            <th class="p-2 border">{{ langLabel('delete') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -126,7 +126,7 @@
 
                         <!-- Thumbnail Upload -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Upload Thumbnail</label>
+                            <label class="block font-medium mb-1">{{ langLabel('upload_thumbnail') }}</label>
                             <div class="flex gap-4 items-center">
                                 <input type="file" accept="image/*" name="thumbnail" class="border rounded-md p-2 flex-1" />
                             </div>
@@ -136,8 +136,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <!-- Course Price -->
                             <div>
-                                <label class="block font-medium mb-1">Course Price</label>
-                                <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" value="{{old('training_price')}}"/>
+                                <label class="block font-medium mb-1">{{ langLabel('course_price') }}</label>
+                                <input type="text" name="training_price" placeholder="{{ langLabel('enter_course_price') }}" class="w-full border rounded-md p-2" value="{{old('training_price')}}"/>
                                 @error('training_price')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -145,8 +145,8 @@
 
                             <!-- Course Offer Price -->
                             <div>
-                                <label class="block font-medium mb-1">Course Offer Price</label>
-                                <input type="text" name="training_offer_price" placeholder="Enter Offer Price" class="w-full border rounded-md p-2" value="{{old('training_offer_price')}}"/>
+                                <label class="block font-medium mb-1">{{ langLabel('offer_price') }}</label>
+                                <input type="text" name="training_offer_price" placeholder="{{ langLabel('enter_offer_price') }}" class="w-full border rounded-md p-2" value="{{old('training_offer_price')}}"/>
                                 @error('training_offer_price')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -157,7 +157,7 @@
                         <!-- Submit Button -->
                         <div class="text-right">
                             <button type="submit" class="bg-blue-800 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-md font-semibold">
-                                Submit
+                                {{ langLabel('submit') }}
                             </button>
                         </div>
                     </form>
@@ -303,7 +303,7 @@
                                 <input type="hidden" name="content_sections[${index}][description]" value="${content}">
                             </td>
                             <td class="p-2 border text-center">
-                                <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
+                                <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">{{ langLabel('upload_file') }}</button>
                                 <input accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
                             </td>
                             <td class="p-2 border text-center duration-cell">

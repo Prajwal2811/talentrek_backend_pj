@@ -168,16 +168,16 @@
                         <a href="#}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Expat</a>
                         <a href="{{ url('/mentor/sign-in') }}"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Mentor</a>
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('sign_in_as_mentor') }}</a>
                         <a href="{{ url('/trainer/sign-in') }}"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Trainer</a>
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('sign_in_as_trainer') }}</a>
                         <a href="{{ url('/assessor/sign-in') }}"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Assessor</a>
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('sign_in_as_assessor') }}</a>
                         <a href="{{ url('/coach/sign-in') }}"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in as Coach</a>
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('sign_in_as_coach') }}</a>
                         <a href="{{ route('recruiter.login') }}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Sign in as Recruiter
+                            {{ langLabel('sign_in_as_recruiter') }}
                         </a>
 
                     </div>
@@ -205,10 +205,10 @@
         <!-- Mobile Menu -->
         <div id="mobileMenu"
             class="md:hidden hidden bg-white border-t border-gray-200 px-4 py-4 space-y-3 text-base font-semibold">
-            <a href="training.html" class="block text-gray-800 hover:text-blue-600">Training</a>
-            <a href="mentorship.html" class="block text-gray-800 hover:text-blue-600">Mentorship</a>
-            <a href="assessment.html" class="block text-gray-800 hover:text-blue-600">Assessment</a>
-            <a href="coaching.html" class="block text-gray-800 hover:text-blue-600">Coaching</a>
+            <a href="training.html" class="block text-gray-800 hover:text-blue-600">{{ langLabel('training') }}</a>
+            <a href="mentorship.html" class="block text-gray-800 hover:text-blue-600">{{ langLabel('mentorship') }}</a>
+            <a href="assessment.html" class="block text-gray-800 hover:text-blue-600">{{ langLabel('assessment') }}</a>
+            <a href="coaching.html" class="block text-gray-800 hover:text-blue-600">{{ langLabel('coching') }}</a>
         </div>
 </header>
 

@@ -15,94 +15,117 @@ class CertificateTemplateSeeder extends Seeder
             <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <title>Certificate - Sahil Khan</title>
-            <link rel="stylesheet" href="style.css" />
+            <title>Jobseeker Certificate</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
             <style>
-            .certificate-container {
-            position: relative;
-            width: 952px;
-            height: 671px;
-            margin: 40px auto;
-            background-image: url('/asset/images/Talentrek-Certificate-blank.png');
-            background-size: cover;
-            background-position: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            }
-            .text-layer {
-            position: absolute;
-            top: 130px;
-            left: 75px;
-            width: 750px;
-            color: #000;
-            text-align: left;
-            }
-            /* CERTIFICATE OF COMPLETION */
-            #certificate-title {
-            font-size: 22px;
-            font-weight: bold;
-            font-family: 'Georgia', serif;
-            margin-bottom: 30px;
-            }
-            /* "This is to certify that" */
-            #certify-text {
-            font-size: 16px;
-            font-weight: normal;
-            margin: 0 0 10px;
-            }
-            /* Name (blue) */
-            #recipient-name {
-            font-size: 26px;
-            font-weight: bold;
-            color: #0070c0;
-            margin: 0 0 10px;
-            }
-            /* "has successfully..." */
-            #success-text {
-            font-size: 16px;
-            font-weight: normal;
-            margin-bottom: 20px;
-            }
-            /* Course title */
-            #course-title {
-            font-size: 22px;
-            font-weight: bold;
-            font-family: 'Arial Black', sans-serif;
-            margin: 10px 0 5px;
-            }
-            /* "Conducted by..." */
-            #conducted-by {
-            font-size: 16px;
-            font-style: italic;
-            margin-bottom: 30px;
-            }
-            /* Details section */
-            .details p {
-            font-size: 15px;
-            margin: 6px 0;
-            line-height: 1.5;
-            }
-            .details .label {
-            font-weight: bold;
-            }
-            </style>
-            <div class="certificate-container">
-            <div class="text-layer">
-            <h1 id="certificate-title">CERTIFICATE OF COMPLETION</h1>
-            <p id="certify-text">This is to certify that</p>
-            <p id="recipient-name">Sahil Khan</p>
-            <p id="success-text">has successfully completed the training</p>
-            <p id="course-title">Full Stack Development (Advance)</p>
-            <p id="conducted-by">Conducted by Talentrek</p>
-            <div class="details">
-            <p><span class="label">Trainer:</span> John Doe (Full stack developer)</p>
-            <p><span class="label">Course Duration:</span> 3 Months</p>
-            <p><span class="label">Assessment Status:</span> Passed</p>
-            <p><span class="label">Certificate ID:</span> T00254PBP</p>
-            <p><span class="label">Completion Date:</span> 18 June 2025</p>
-            </div>
-            </div>
-            </div>
+                body {
+                background-color: #f0f0f0;
+                font-family: 'Georgia', serif;
+                }
 
+                .certificate {
+                max-width: 900px;
+                margin: 50px auto;
+                padding: 60px;
+                background-color: #fff;
+                border: 8px solid #2c3e50;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+                text-align: center;
+                }
+
+                .certificate h1 {
+                font-size: 2.8rem;
+                color: #2c3e50;
+                margin-bottom: 20px;
+                }
+
+                .certificate h2 {
+                font-size: 1.6rem;
+                margin-bottom: 30px;
+                color: #444;
+                }
+
+                .certificate .jobseeker-name {
+                font-size: 2.2rem;
+                font-weight: bold;
+                color: #000;
+                border-bottom: 2px solid #000;
+                display: inline-block;
+                padding: 5px 30px;
+                margin-bottom: 25px;
+                }
+
+                .certificate .course-title {
+                font-size: 1.4rem;
+                color: #1a1a1a;
+                font-weight: bold;
+                margin-bottom: 5px;
+                }
+
+                .certificate .job-role {
+                font-size: 1.2rem;
+                color: #555;
+                margin-bottom: 20px;
+                }
+
+                .certificate .details {
+                font-size: 1.2rem;
+                color: #333;
+                margin-top: 15px;
+                }
+
+                .certificate .footer {
+                margin-top: 60px;
+                display: flex;
+                justify-content: space-between;
+                padding: 0 50px;
+                }
+
+                .sign {
+                text-align: center;
+                }
+
+                .sign hr {
+                margin: 10px auto;
+                width: 200px;
+                border-top: 2px solid #000;
+                }
+
+                .logo {
+                width: 90px;
+                margin-bottom: 15px;
+                }
+            </style>
+            </head>
+            <body>
+
+            <div class="certificate">
+                <img src="https://pixelvalues.com/wp-content/uploads/2022/03/logo.png.webp" alt="Company Logo" class="logo" />
+                <h1>Certificate of Achievement</h1>
+                <h2>This certificate is proudly presented to</h2>
+
+                <div class="jobseeker-name">Prajwal Ingole</div>
+
+                <div class="course-title">Software Development Program</div>
+                <div class="job-role">(as a Fullstack Deveoplerw)</div>
+
+                <div class="details">
+                Conducted by <strong>Talentrek</strong><br />
+                From <strong>1st May 2025</strong> to <strong>30th June 2025</strong><br />
+                In recognition of outstanding performance, dedication, and learning commitment.
+                </div>
+
+                <div class="footer mt-5">
+                <div class="sign">
+                    <hr />
+                    <p><strong>HR Manager</strong><br />Anjali Sharma</p>
+                </div>
+                <div class="sign">
+                    <hr />
+                    <p><strong>CEO</strong><br />Rahul Verma</p>
+                </div>
+                </div>
+            </div>
 
             </body>
             </html>

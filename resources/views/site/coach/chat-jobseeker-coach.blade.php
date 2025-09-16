@@ -78,7 +78,7 @@
                 @include('site.coach.componants.navbar')
 
                 <main class="p-6 ">
-                    <h2 class="text-2xl font-semibold mb-6">Message</h2>
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('message') }}</h2>
                     @php
                         $jobseekers = $jobseekersList->map(function($j) {
                             return [
@@ -107,7 +107,7 @@
                                     <img :src="jobseeker.avatar" class="w-10 h-10 rounded-full object-cover" alt="User">
                                     <div class="flex-1">
                                         <h4 class="font-semibold text-sm" x-text="jobseeker.jobseeker_name"></h4>
-                                        <p class="text-xs text-gray-500 truncate">Click to start chat...</p>
+                                        <p class="text-xs text-gray-500 truncate">{{ langLabel('click_to_start_chat') }}...</p>
                                     </div>
                                     <div class="text-xs text-gray-400" x-text="new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })"></div>
                                     <span class="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs"
@@ -128,7 +128,7 @@
                                         <img :src="activeContact.avatar" class="w-10 h-10 rounded-full object-cover" alt="User">
                                         <div>
                                             <h4 class="font-semibold text-sm" x-text="activeContact.jobseeker_name"></h4>
-                                            <p class="text-xs text-gray-500">Online</p>
+                                            <p class="text-xs text-gray-500">{{ langLabel('online') }}</p>
                                         </div>
                                     </div>
 
@@ -151,7 +151,7 @@
 
                                     <!-- Input -->
                                     <div class="p-4 border-t flex items-center gap-3 bg-gray-50">
-                                        <input type="text" placeholder="Write your message..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        <input type="text" placeholder="{{ langLabel('write_your_message') }}..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             x-model="newMessage"
                                             @keyup.enter="sendMessage">
                                         <label class="cursor-pointer bg-gray-200 p-2 rounded-full hover:bg-gray-300">

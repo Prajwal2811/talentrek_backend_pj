@@ -32,7 +32,7 @@
                 @include('site.trainer.componants.navbar')
 
            <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
-                    <h2 class="text-2xl font-semibold mb-6">Settings</h2>
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('settings') }}</h2>
 
                     <div class="flex">
                         <!-- Sidebar -->
@@ -43,7 +43,7 @@
                                     href="#"
                                     @click.prevent="activeSection = 'profile'"
                                     :class="activeSection === 'profile' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Profile</a>
+                                >{{ langLabel('profile') }}</a>
                                 </li>
                                 
                                 <li>
@@ -51,28 +51,28 @@
                                     href="#"
                                     @click.prevent="activeSection = 'notifications'"
                                     :class="activeSection === 'notifications' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Notifications</a>
+                                >{{ langLabel('notifications') }}</a>
                                 </li>
                                 <li>
                                 <a
                                     href="#"
                                     @click.prevent="activeSection = 'payment'"
                                     :class="activeSection === 'payment' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Payment History</a>
+                                >{{ langLabel('payment_history') }}</a>
                                 </li>
                                 <li>
                                 <a
                                     href="#"
                                     @click.prevent="activeSection = 'subscription'; activeSubTab = 'subscription'"
                                     :class="activeSection === 'subscription' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Subscription</a>
+                                >{{ langLabel('subscription') }}</a>
                                 </li>
                                 <li>
                                 <a
                                     href="#"
                                     @click.prevent="activeSection = 'privacy'"
                                     :class="activeSection === 'privacy' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Privacy policy</a>
+                                >{{ langLabel('privacy_policy') }}</a>
                                 </li>
                                 <li>
                                 <!-- <a
@@ -86,7 +86,7 @@
                                     href="#"
                                     @click.prevent="activeSection = 'delete'"
                                     :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'"
-                                >Delete account</a>
+                                >{{ langLabel('delete_account') }}</a>
                                 </li>
                             </ul>
                         </aside>
@@ -98,7 +98,7 @@
                             <div class="bg-white rounded-lg shadow p-6">
                                 
                                 <div x-show="activeSection === 'subscription'" x-transition class="bg-white p-6">
-                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Subscription</h3>
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">{{ langLabel('subscription') }}</h3>
 
                                     @php
                                         $userId = auth()->user('trainer')->id;
@@ -136,12 +136,12 @@
                                     <!-- Subscription Card -->
                                     <div class="bg-gray-100 p-6 rounded-md flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                                         <div>
-                                            <h4 class="text-lg font-semibold mb-1">Subscription Plans</h4>
-                                            <p class="text-gray-600 text-sm">Purchase subscription to get access to premium features</p>
+                                            <h4 class="text-lg font-semibold mb-1">{{ langLabel('subscription_plans') }}</h4>
+                                            <p class="text-gray-600 text-sm">{{ langLabel('purchase_subscription') }}</p>
                                         </div>
                                         <button onclick="document.getElementById('plansModal').classList.remove('hidden')"
                                             class="mt-4 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
-                                            View Plans
+                                            {{ langLabel('view_plans') }}
                                         </button>
                                     </div>
 
@@ -151,7 +151,7 @@
                                             <button onclick="document.getElementById('plansModal').classList.add('hidden')"
                                                 class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
 
-                                            <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+                                            <h3 class="text-xl font-semibold mb-6">{{ langLabel('available_subscription_plans') }}</h3>
 
                                             <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4">
                                                 @foreach($subscriptions as $plan)
@@ -173,7 +173,7 @@
                                                         <button type="button"
                                                             class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
                                                             data-plan-id="{{ $plan->id }}">
-                                                            Buy subscription
+                                                            {{ langLabel('buy') }} {{ langLabel('subscription') }}
                                                         </button>
                                                     </div>
                                                 @endforeach
@@ -184,34 +184,34 @@
                                     <!-- Payment Modal -->
                                     <div id="paymentModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 z-50 hidden flex items-center justify-center">
                                         <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-                                            <h3 class="text-xl font-semibold mb-4 text-center">Payment</h3>
-                                            <p class="mb-6 text-gray-600 text-center">Enter your card details to continue</p>
+                                            <h3 class="text-xl font-semibold mb-4 text-center">{{ langLabel('payment') }}</h3>
+                                            <p class="mb-6 text-gray-600 text-center">{{ langLabel('enter_card_details') }}</p>
 
                                             <form id="paymentForm">
                                                 @csrf
                                                 <input type="hidden" name="plan_id" id="selectedPlanId">
 
                                                 <div class="mb-4">
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('card_number') }}</label>
                                                     <input type="text" name="card_number" value="4242424242424242"
                                                         class="w-full border border-gray-300 rounded-md px-4 py-2">
                                                 </div>
 
                                                 <div class="mb-4 flex space-x-2">
                                                     <div class="w-1/2">
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('expiry') }}</label>
                                                         <input type="text" name="expiry" value="12/30"
                                                             class="w-full border border-gray-300 rounded-md px-4 py-2">
                                                     </div>
                                                     <div class="w-1/2">
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('cvv') }}</label>
                                                         <input type="text" name="cvv" value="123"
                                                             class="w-full border border-gray-300 rounded-md px-4 py-2">
                                                     </div>
                                                 </div>
                                                 <button type="submit"
                                                     class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
-                                                    Pay Now
+                                                    {{ langLabel('pay_now') }}
                                                 </button>
                                             </form>
                                             <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
@@ -222,16 +222,16 @@
                                     </div>
 
                                     <!-- Subscription History Table -->
-                                    <h4 class="text-lg font-semibold mb-3">Subscription History</h4>
+                                    <h4 class="text-lg font-semibold mb-3">{{ langLabel('subscription_history') }}</h4>
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full border border-gray-200 text-sm">
                                             <thead class="bg-gray-100 text-left">
                                                 <tr>
-                                                    <th class="px-4 py-2 font-medium text-gray-700">Sr. No.</th>
-                                                    <th class="px-4 py-2 font-medium text-gray-700">Subscription</th>
-                                                    <th class="px-4 py-2 font-medium text-gray-700">Duration</th>
-                                                    <th class="px-4 py-2 font-medium text-gray-700">Purchased on</th>
-                                                    <th class="px-4 py-2 font-medium text-gray-700">Expired on</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">{{ langLabel('sr_no') }}</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">{{ langLabel('subscription') }}</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">{{ langLabel('duration') }}</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">{{ langLabel('purchased_on') }}</th>
+                                                    <th class="px-4 py-2 font-medium text-gray-700">{{ langLabel('expired_on') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
