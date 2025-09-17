@@ -21,8 +21,9 @@ return new class extends Migration
             $table->string('assessment_level')->nullable(); // e.g. beginner, intermediate, expert
             $table->unsignedInteger('total_questions');
             $table->unsignedInteger('passing_questions');
+            $table->string('time_per_question')->nullable(); // e.g. beginner, intermediate, expert
             $table->string('passing_percentage')->nullable(); // e.g. beginner, intermediate, expert
-            $table->unsignedBigInteger('material_id');
+            $table->unsignedBigInteger('material_id')->nullable(); // e.g. beginner, intermediate, expert
             $table->timestamps();
 
             // Optional: Foreign keys if you have related tables

@@ -23,13 +23,17 @@ class Recruiters extends Authenticatable
         'name',
         'email',
         'phone_number',
+        'national_id',
         'password',
         'pass',
         'otp',
+        'role',
         'status',
         'inactive_reason',
         'admin_status',
         'rejection_reason',
+        'recruiter_of',
+        'is_registered'
     ];
 
     /**
@@ -43,7 +47,8 @@ class Recruiters extends Authenticatable
     // One-to-One relationship
     public function company()
     {
-        return $this->hasOne(RecruiterCompany::class, 'recruiter_id');
+        return $this->belongsTo(RecruiterCompany::class, 'company_id');
     }
 
+    
 }

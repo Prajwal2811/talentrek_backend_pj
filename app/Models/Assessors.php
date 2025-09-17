@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; 
 
-class Assessors extends Model
+class Assessors extends Authenticatable
 {
     use HasFactory;
 
@@ -16,19 +17,85 @@ class Assessors extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'company_name',
-        'company_email',
+        'name',
+        'email',
+        'national_id',
         'phone_code',
-        'company_phone_number',
-        'company_instablishment_date',
-        'industry_type',
-        'company_website',
+        'phone_number',
+        'date_of_birth',
+        'address',
+        'city',
+        'state',
+        'country',
+        'pin_code',
+        'password',
+        'pass',
+        'otp',
+        'status',
+        'admin_status',
+        'inactive_reason',
+        'rejection_reason',
+        'shortlist',
+        'admin_recruiter_status',
+        'google_id',
+        'per_slot_price',
+        'avatar',
+        'about_assessor',
+        'isSubscribtionBuy',
+        'is_registered'
     ];
 
     /**
      * The attributes that should be cast to native types.
      */
     protected $casts = [
-        'company_instablishment_date' => 'date',
+        'date_of_birth' => 'date',
     ];
+
+
+    public function educations()
+    {
+        return $this->hasMany(EducationDetails::class, 'user_id')
+                    ->where('user_type', 'assessor');
+    }
+    public function experiences()
+    {
+
+        return $this->hasMany(WorkExperience::class, 'user_id')
+                    ->where('user_type', 'assessor');
+    }
+
+    public function trainingexperience()
+    {
+        // return $this->hasMany(TrainingExperience::class, 'user_id');
+        return $this->hasOne(\App\Models\TrainingExperience::class, 'user_id', 'id')
+                ->where('user_type', 'assessor');
+       
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'user_id')->where('user_type', 'assessor');
+    }
+
+
+    public function additionalInfo()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')->where('user_type', 'assessor');
+    }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+                    ->where('user_type', 'assessor')
+                    ->where('doc_type', 'assessor_profile_picture');
+    }
+
+
+    public function bookingSlots()
+    {
+        return $this->hasMany(BookingSlot::class, 'user_id')->where('user_type', 'assessor');
+    }
+
+    
 }

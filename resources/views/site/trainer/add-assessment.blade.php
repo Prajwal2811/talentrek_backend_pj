@@ -11,58 +11,19 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
     <div class="page-wraper">
-        <div class="flex h-screen">
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
             @include('site.trainer.componants.sidebar')
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
-                        Talent<span class="text-blue-500">rek</span>
-                    </div>
-                    <!-- <div class="relative w-full">
-                        <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.trainer.componants.navbar')
 
                 
-                <main class="p-6 bg-gray-50 min-h-screen">
+                <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                     @include('admin.errors')
-                    <h2 class="text-xl font-semibold mb-4">Assessment</h2>
+                    <h2 class="text-xl font-semibold mb-4">{{ langLabel('assessment') }}</h2>
 
                     <form action="{{ route('trainer.assessment.store') }}" method="POST" onsubmit="return prepareSubmission()">
                             @csrf
@@ -71,12 +32,12 @@
                             <div class="bg-white rounded-lg shadow p-6 space-y-6">
                                 <!-- Create assessment section -->
                                 <div>
-                                    <h3 class="text-md font-semibold mb-4">Create assessment</h3>
+                                    <h3 class="text-md font-semibold mb-4">{{ langLabel('create') }} {{ langLabel('assessment') }}</h3>
 
                                     <!-- Assessment Title -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium mb-1">Assessment title</label>
-                                        <input type="text" name="title" value="{{ old('title') }}" placeholder="Enter assessment title"
+                                        <label class="block text-sm font-medium mb-1">{{ langLabel('assessment_title') }}</label>
+                                        <input type="text" name="title" value="{{ old('title') }}" placeholder="{{ langLabel('enter_assessment_title') }}"
                                             class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"  />
                                         @error('title')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -85,9 +46,9 @@
 
                                     <!-- Assessment Description -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium mb-1">Assessment description</label>
+                                        <label class="block text-sm font-medium mb-1">{{ langLabel('assessment_description') }}</label>
                                         <textarea name="description" class="w-full p-3 text-sm border rounded focus:outline-none" rows="4"
-                                            placeholder="Enter description...">{{ old('description') }}</textarea>
+                                            placeholder="{{ langLabel('enter_description') }}...">{{ old('description') }}</textarea>
                                         @error('description')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -95,27 +56,76 @@
 
                                     <!-- Assessment Level -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium mb-1">Assessment level</label>
-                                        <input type="text" name="level" value="{{ old('level') }}" placeholder="Select assessment level"
-                                            class="w-full border rounded px-3 py-2"  />
+                                        <label class="block text-sm font-medium mb-1">{{ langLabel('assessment_level') }}</label>
+                                        <select name="level" class="w-full border rounded px-3 py-2">
+                                            <option value="">{{ langLabel('select_assessment_level') }}</option>
+                                            <option value="Beginner" {{ old('level') == 'Beginner' ? 'selected' : '' }}>{{ langLabel('beginner') }}</option>
+                                            <option value="Intermediate" {{ old('level') == 'Intermediate' ? 'selected' : '' }}>{{ langLabel('intermediate') }}</option>
+                                            <option value="Advanced" {{ old('level') == 'Advanced' ? 'selected' : '' }}>{{ langLabel('advanced') }}</option>
+                                        </select>
                                         @error('level')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
 
-                                    <!-- Total / Passing Question / Percentage -->
+
+                                </div>
+
+                                <!-- Create questionnaire -->
+                                <div>
+                                    <h3 class="text-md font-semibold mb-4">{{ langLabel('create_questionnaire') }}</h3>
+
+                                    <div class="container bg-white p-4 rounded shadow-sm border" id="questionnaire">
+                                        <h5 class="mb-3 fw-semibold">{{ langLabel('create_questionnaire') }}</h5>
+
+                                        <!-- Hidden input for questions JSON -->
+                                        
+                                        <input type="hidden" name="questions" id="questionsInput" value="{{ old('questions') ? json_encode(old('questions')) : '' }}">
+
+                                        @error('questions')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+
+                                        <!-- Question Input -->
+                                        <div class="d-flex mb-3 gap-2">
+                                            <input type="text" id="questionText" class="form-control" placeholder="{{ langLabel('write_question_here') }} ...">
+                                        </div>
+
+                                        <!-- Error Message -->
+                                        <div id="errorContainer" class="text-danger mb-3" style="display: none;"></div>
+
+                                        <!-- Options List -->
+                                        <div id="optionsContainer" class="mb-3"></div>
+
+                                        <!-- Add Option -->
+                                        <div class="mb-2">
+                                            <button type="button" id="addOptionBtn" class="btn btn-default">+ {{ langLabel('add_option') }}</button>
+                                        </div>
+
+                                        <!-- Submit -->
+                                        <div>
+                                            <button type="button" id="submitBtn" class="btn btn-primary">+ {{ langLabel('add_question') }}</button>
+                                        </div>
+
+
+                                        <!-- Submitted Preview -->
+                                        <div class="mt-4" id="submittedContainer"></div>
+                                    </div>
+                                </div>
+                                    
+                                 <!-- Total / Passing Question / Percentage -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                         <!-- Total Questions -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Total questions</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('total_question') }}</label>
                                             <input type="text"
                                                 id="total_questions"
                                                 name="total_questions"
                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); calculatePercentage();"
                                                 value="{{ old('total_questions') }}"
-                                                placeholder="Enter total questions"
+                                                placeholder="{{ langLabel('enter_total_question') }}"
                                                 class="w-full border rounded px-3 py-2" />
-                                            <p id="totalQuestionError" class="text-red-600 text-sm mt-1 hidden">Mismatch with added questions.</p>
+                                            <p id="totalQuestionError" class="text-red-600 text-sm mt-1 hidden">{{ langLabel('mismatch_added_question') }}</p>
                                             @error('total_questions')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -124,23 +134,23 @@
 
                                         <!-- Passing Questions -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Passing questions</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('passing_question') }}</label>
                                             <input type="text"
                                                 id="passing_questions"
                                                 name="passing_questions"
                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); calculatePercentage();"
                                                 value="{{ old('passing_questions') }}"
-                                                placeholder="Enter passing questions"
+                                                placeholder="{{ langLabel('enter_passing_question') }}"
                                                 class="w-full border rounded px-3 py-2" />
                                             @error('passing_questions')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
-                                            <p id="questionError" class="text-red-600 text-sm mt-1 hidden">Passing questions cannot exceed total questions.</p>
+                                            <p id="questionError" class="text-red-600 text-sm mt-1 hidden">{{ langLabel('cannot_exceed') }}</p>
                                         </div>
 
                                         <!-- Passing Percentage -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Passing percentage</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('passing_percentage') }}</label>
                                             <input type="text"
                                                 id="passing_percentage"
                                                 name="passing_percentage"
@@ -152,7 +162,7 @@
                                             @enderror
                                         </div>
                                     </div>
-
+                                    
                                     <!-- JavaScript -->
                                     <script>
                                         function calculatePercentage() {
@@ -175,53 +185,10 @@
                                             }
                                         }
                                     </script>
-
-                                </div>
-
-                                <!-- Create questionnaire -->
-                                <div>
-                                    <h3 class="text-md font-semibold mb-4">Create questionnaire</h3>
-
-                                    <div class="container bg-white p-4 rounded shadow-sm border" id="questionnaire">
-                                        <h5 class="mb-3 fw-semibold">Create Questionnaire</h5>
-
-                                        <!-- Hidden input for questions JSON -->
-                                        <input type="hidden" name="questions" id="questionsInput" value="{{ old('questions') }}">
-                                        @error('questions')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-
-                                        <!-- Question Input -->
-                                        <div class="d-flex mb-3 gap-2">
-                                            <input type="text" id="questionText" class="form-control" placeholder="Write your question here ...">
-                                        </div>
-
-                                        <!-- Error Message -->
-                                        <div id="errorContainer" class="text-danger mb-3" style="display: none;"></div>
-
-                                        <!-- Options List -->
-                                        <div id="optionsContainer" class="mb-3"></div>
-
-                                        <!-- Add Option -->
-                                        <div class="mb-2">
-                                            <button type="button" id="addOptionBtn" class="btn btn-default">+ Add option</button>
-                                        </div>
-
-                                        <!-- Submit -->
-                                        <div>
-                                            <button type="button" id="submitBtn" class="btn btn-primary">+ Add question</button>
-                                        </div>
-
-
-                                        <!-- Submitted Preview -->
-                                        <div class="mt-4" id="submittedContainer"></div>
-                                    </div>
-                                </div>
-
                                 <!-- Final Create Button -->
                                 <div>
                                     <button type="submit" class="bg-blue-700 text-white font-semibold px-4 py-2 rounded hover:bg-blue-800">
-                                        Create assessment
+                                        {{ langLabel('create_assessment') }}
                                     </button>
                                 </div>
                             </div>
@@ -328,6 +295,10 @@
                         // Render submitted questions in preview box
                         function renderSubmitted() {
                             submittedContainer.innerHTML = '';
+
+                            // ✅ Update total questions count field
+                            document.getElementById('total_questions').value = submittedQuestions.length;
+
                             submittedQuestions.forEach((q, index) => {
                                 const div = document.createElement('div');
                                 div.className = 'border rounded p-3 mb-2 bg-light';
@@ -352,16 +323,23 @@
 
                                 const ul = document.createElement('ul');
                                 ul.className = 'ps-4';
-                                q.options.forEach(opt => {
+
+                                const optionLabels = ['A', 'B', 'C', 'D']; 
+                                q.options.forEach((opt, index) => {
                                     const li = document.createElement('li');
-                                    li.innerHTML = `${opt.text} ${opt.correct ? '<span class="text-success fw-bold">(Correct)</span>' : ''}`;
+                                    const label = optionLabels[index] || String.fromCharCode(65 + index);
+                                    li.innerHTML = `<strong>${label}.</strong> ${opt.text} ${opt.correct ? '<span class="text-success fw-bold">(Correct)</span>' : ''}`;
                                     ul.appendChild(li);
                                 });
 
                                 div.appendChild(ul);
                                 submittedContainer.appendChild(div);
                             });
+
+                            // Optional: recalculate passing percentage if needed
+                            calculatePercentage(); 
                         }
+
 
                         // Add option button click
                         addOptionBtn.addEventListener('click', () => {
@@ -444,4 +422,6 @@
             </div>
         </div>
     </div>
+      
+
 @include('site.trainer.componants.footer')

@@ -1,55 +1,254 @@
 @include('admin.componants.header')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <body data-theme="light">
 
     <div id="body" class="theme-cyan">
-        <!-- Theme setting div -->
-        <div class="themesetting">
-        </div>
-        <!-- Overlay For Sidebars -->
         <div class="overlay"></div>
         <div id="wrapper">
             @include('admin.componants.navbar')
             @include('admin.componants.sidebar')
-            <div id="main-content">
-                <div class="container-fluid">
-                    <div class="block-header text-center py-16">
-                        <h1 class="text-4xl font-bold mb-4">🚧 Coming Soon</h1>
-                        <p class="text-lg mb-6">We're working hard to launch something amazing. Stay tuned!</p>
-                        <div id="countdown" class="text-2xl font-semibold space-x-4">
-                            <span><span id="days">00</span> Days</span>
-                            <span><span id="hours">00</span> Hours</span>
-                            <span><span id="minutes">00</span> Minutes</span>
-                            <span><span id="seconds">00</span> Seconds</span>
+                <div id="main-content" class="">
+                    <div class="container mx-auto">
+                        <h1 class="text-4xl font-bold text-gray-800 mb-4">Talentrek Admin Dashboard</h1>
+                        <p class="text-gray-600 mb-8">Monitor platform-wide user activity and growth.</p>
+
+                        <!-- User Type Cards -->
+                       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                            <a href="{{ route('admin.jobseekers') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Jobseekers</p>
+                                <h2 class="text-3xl font-bold text-blue-600">{{ $jobseekerCount }}</h2>
+                            </a>
+
+                            <a href="{{ route('admin.recruiters') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Recruiters</p>
+                                <h2 class="text-3xl font-bold text-green-600">{{ $recruiterCount }}</h2>
+                            </a>
+
+                            <a href="{{ route('admin.trainers') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Trainers</p>
+                                <h2 class="text-3xl font-bold text-purple-600">{{ $trainerCount }}</h2>
+                            </a>
+
+                            <a href="{{ route('admin.expats') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Expats</p>
+                                {{-- <h2 class="text-3xl font-bold text-blue-500">{{ $expatCount }}</h2> --}}
+                            </a>
+
+                            <a href="{{ route('admin.coach') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Coach</p>
+                                <h2 class="text-3xl font-bold text-red-500">{{ $coachCount }}</h2>
+                            </a>
+
+                            <a href="{{ route('admin.mentors') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Mentors</p>
+                                <h2 class="text-3xl font-bold text-yellow-500">{{ $mentorCount }}</h2>
+                            </a>
+
+                            <a href="{{ route('admin.assessors') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                                <p class="text-gray-500">Assessors</p>
+                                <h2 class="text-3xl font-bold text-red-500">{{ $assessorCount }}</h2>
+                            </a>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Training Material Sales</p> 
+                                <h2 class="text-3xl font-bold text-indigo-600">₹{{ number_format($materialSales) }}</h2> 
+                            </div>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Mentor Sessions Booked</p> 
+                                <h2 class="text-3xl font-bold text-purple-600">{{ $mentorSessionCount }}</h2> 
+                            </div>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Coach Sessions Booked</p> 
+                                {{-- <h2 class="text-3xl font-bold text-blue-600">{{ $coachSessionCount }}</h2> --}} 
+                            </div>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-md"> 
+                                <p class="text-gray-500">Assessor Sessions Booked</p> 
+                                {{-- <h2 class="text-3xl font-bold text-pink-600">{{ $assessorSessionCount }}</h2> --}} 
+                            </div>
+                        </div>
+
+
+
+                        <!-- Charts Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                                <h3 class="text-xl font-semibold mb-4 text-dark">User Role Distribution</h3>
+                                <canvas id="rolePieChart"></canvas>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                                <h3 class="text-xl font-semibold mb-4 text-dark">Monthly Registrations by Role</h3>
+                                <canvas id="registrationBarChart"></canvas>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                                <h3 class="text-xl font-semibold mb-4 text-dark">Session Bookings by Role</h3>
+                                <canvas id="bookingBarChart"></canvas>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-md">
+                                <h3 class="text-xl font-semibold mb-4 text-dark">Training Material Sales</h3>
+                                <canvas id="salesLineChart"></canvas>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-md col-span-1 lg:col-span-2">
+                                <h3 class="text-xl font-semibold mb-4 text-dark">Total Sessions Booking Trend</h3>
+                                <canvas id="sessionLineChart"></canvas>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-md col-span-1 lg:col-span-2">
+                                <h3 class="text-xl font-semibold mb-4 text-dark">Platform Visits Over Time</h3>
+                                <canvas id="visitsLineChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <script>
-                // Set the target launch date (YYYY-MM-DD HH:MM:SS)
-                const launchDate = new Date("2025-09-01T00:00:00").getTime();
-                const countdown = () => {
-                    const now = new Date().getTime();
-                    const distance = launchDate - now;
 
-                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                <!-- Chart.js CDN -->
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-                    document.getElementById("days").innerHTML = String(days).padStart(2, '0');
-                    document.getElementById("hours").innerHTML = String(hours).padStart(2, '0');
-                    document.getElementById("minutes").innerHTML = String(minutes).padStart(2, '0');
-                    document.getElementById("seconds").innerHTML = String(seconds).padStart(2, '0');
+                <script>
+                        // Role Pie Chart
+                        const roleLabels = {!! json_encode(array_keys($roleCounts)) !!};
+                        const roleData = {!! json_encode(array_values($roleCounts)) !!};
 
-                    if (distance < 0) {
-                        clearInterval(timer);
-                        document.getElementById("countdown").innerHTML = "🎉 We're live now!";
-                    }
-                };
-                const timer = setInterval(countdown, 1000);
-            </script>
+                        new Chart(document.getElementById('rolePieChart'), {
+                            type: 'pie',
+                            data: {
+                                labels: roleLabels,
+                                datasets: [{
+                                    data: roleData,
+                                    backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f97316', '#f43f5e', '#facc15', '#14b8a6']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom'
+                                    }
+                                }
+                            }
+                        });
+
+
+                       
+                        // Registration Bar Chart
+                        const monthLabels = [
+                            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                        ];
+
+                        const registrationBarChart = new Chart(document.getElementById('registrationBarChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: monthLabels,
+                                datasets: [
+                                    {
+                                        label: 'Jobseekers',
+                                        data: {!! json_encode($jobseekerData) !!},
+                                        backgroundColor: '#3b82f6'
+                                    },
+                                    {
+                                        label: 'Recruiters',
+                                        data: {!! json_encode($recruiterData) !!},
+                                        backgroundColor: '#10b981'
+                                    },
+                                    {
+                                        label: 'Trainers',
+                                        data: {!! json_encode($trainerData) !!},
+                                        backgroundColor: '#8b5cf6'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { position: 'top' },
+                                    title: {
+                                        display: true,
+                                        text: 'Monthly Registrations by Role ({{ now()->year }})'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Number of Registrations'
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        
+
+                    // Bar Chart: Session Bookings by Role
+                    new Chart(document.getElementById('bookingBarChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Mentor', 'Coach', 'Assessor'],
+                            datasets: [{
+                                label: 'Sessions Booked',
+                                data: [120, 90, 60],
+                                backgroundColor: ['#facc15', '#f97316', '#f43f5e']
+                            }]
+                        }
+                    });
+
+                    // Line Chart: Material Sales Over Time
+                    new Chart(document.getElementById('salesLineChart'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            datasets: [{
+                                label: 'Sales (₹)',
+                                data: [5000, 7000, 6500, 8000, 9000, 10000],
+                                borderColor: '#6366f1',
+                                backgroundColor: '#a5b4fc',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        }
+                    });
+
+                    // Line Chart: Total Sessions Booked Over Time
+                    new Chart(document.getElementById('sessionLineChart'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            datasets: [{
+                                label: 'Sessions Booked',
+                                data: [50, 80, 120, 100, 150, 170],
+                                borderColor: '#0ea5e9',
+                                backgroundColor: '#bae6fd',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        }
+                    });
+
+                    // Line Chart: Platform Visits
+                    new Chart(document.getElementById('visitsLineChart'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [{
+                                label: 'Visits',
+                                data: [500, 650, 800, 720, 950, 1100, 1050],
+                                borderColor: '#3b82f6',
+                                backgroundColor: '#93c5fd',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        }
+                    });
+                </script>
+
+
+
+
         </div>
     </div>
 
-    @include('admin.componants.footer')
+@include('admin.componants.footer')

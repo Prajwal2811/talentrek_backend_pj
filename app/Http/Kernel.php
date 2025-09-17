@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\LanguageManager::class,
         ],
 
         'api' => [
@@ -60,19 +61,19 @@ class Kernel extends HttpKernel
         'jobseeker.guest' => \App\Http\Middleware\JobseekerRedirectIfAuthenticated::class,
 
 
-         'recruiter.auth' => \App\Http\Middleware\RecruiterAuthenticate::class,
+        'recruiter.auth' => \App\Http\Middleware\RecruiterAuthenticate::class,
         'recruiter.guest' => \App\Http\Middleware\RecruiterRedirectIfAuthenticated::class,
 
 
-         'trainer.auth' => \App\Http\Middleware\TrainerAuthenticate::class,
+        'trainer.auth' => \App\Http\Middleware\TrainerAuthenticate::class,
         'trainer.guest' => \App\Http\Middleware\TrainerRedirectIfAuthenticated::class,
 
 
-         'assessor.auth' => \App\Http\Middleware\AssessorAuthenticate::class,
+        'assessor.auth' => \App\Http\Middleware\AssessorAuthenticate::class,
         'assessor.guest' => \App\Http\Middleware\AssessorRedirectIfAuthenticated::class,
 
 
-         'coach.auth' => \App\Http\Middleware\CoachAuthenticate::class,
+        'coach.auth' => \App\Http\Middleware\CoachAuthenticate::class,
         'coach.guest' => \App\Http\Middleware\CoachRedirectIfAuthenticated::class,
 
 
@@ -88,6 +89,15 @@ class Kernel extends HttpKernel
         'admin.module' => \App\Http\Middleware\CheckAdminModulePermission::class,
 
 
+        'check.trainer.subscription' => \App\Http\Middleware\CheckTrainerSubscription::class,
+        'check.mentor.subscription' => \App\Http\Middleware\CheckMentorSubscription::class,
+        'check.assessor.subscription' => \App\Http\Middleware\CheckAssessorSubscription::class,
+        'check.coach.subscription' => \App\Http\Middleware\CheckCoachSubscription::class,
+        'check.jobseeker.subscription' => \App\Http\Middleware\CheckJobseekerSubscription::class,
+        'check.expat.subscription' => \App\Http\Middleware\CheckExpatSubscription::class,
+        'check.recruiter.subscription' => \App\Http\Middleware\CheckRecruiterSubscription::class,
+        'check.recruiter.subscription_for_other' => \App\Http\Middleware\CheckOtherRecruiterSubscription::class,
+
 
         
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
@@ -98,6 +108,8 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        'redirect.role.home' => \App\Http\Middleware\RedirectRoleHome::class,
 
         
     ];

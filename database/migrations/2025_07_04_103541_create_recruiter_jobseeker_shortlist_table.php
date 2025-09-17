@@ -34,9 +34,15 @@ return new class extends Migration
 
 
             $table->string('status')->nullable();
+            $table->string('interview_request')->nullable();
+            $table->string('interview_date')->nullable();
+            $table->string('interview_time')->nullable();
+            $table->string('interview_status')->nullable();
             $table->string('admin_status')->nullable();
             $table->string('rejection_reason')->nullable();
-            $table->string('interview_url')->nullable();
+            $table->string('interview_result')->nullable();
+            $table->text('zoom_start_url')->nullable();
+            $table->text('zoom_join_url')->nullable();
             
             $table->timestamps();
         });

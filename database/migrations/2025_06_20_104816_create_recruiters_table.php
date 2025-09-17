@@ -18,7 +18,19 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
-            $table->string('status')->nullable(); 
+            $table->string('national_id')->unique()->nullable();
+            $table->string('phone_code')->nullable();       // e.g., +91, +1
+            $table->string('phone_number')->nullable();
+            $table->string('status')->default('active');
+            $table->string('password')->nullable();
+            $table->string('pass')->nullable();
+            $table->integer('otp')->nullable();
+            $table->string('role')->nullable();
+            $table->string('recruiter_of')->nullable();
+            $table->string('company_id')->nullable();
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
+            $table->string('is_registered')->default('0');
             $table->string('inactive_reason')->nullable(); 
             $table->string('admin_status')->nullable(); 
             $table->string('rejection_reason')->nullable(); 

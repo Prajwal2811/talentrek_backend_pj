@@ -1,0 +1,79 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+       Schema::create('jobseeker_saved_booking_session', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('jobseeker_id');
+            $table->enum('user_type', ['mentor', 'coach', 'assessor']);
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('booking_slot_id');
+            $table->string('slot_mode')->nullable(); // For storing the mode of the slot (e.g., online, offline)
+            $table->date('slot_date');
+            $table->string('slot_time');
+            $table->string('status')->default('pending'); // example values: pending, confirmed, cancelled
+            $table->string('admin_status')->nullable(); // e.g., approved, rejected, pending
+            $table->boolean('is_postpone')->default(false);
+            $table->date('slot_date_after_postpone')->nullable(); // Date after postponing, if applicable
+            $table->string('slot_time_after_postpone')->nullable();
+            $table->text('cancellation_reason')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('rescheduled_at')->nullable();
+
+            // Zoom integration fields
+            $table->string('zoom_meeting_id')->nullable();
+            $table->text('zoom_join_url')->nullable();
+            $table->text('zoom_start_url')->nullable();
+
+            
+            $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_amount')->nullable();   
+            $table->string('order_id')->nullable();         // CAPTURED, DECLINED, etc.
+
+
+            $table->string('track_id', 50)->comment('Unique booking reference number');
+            $table->unique('track_id', 'booking_track_id_unique');
+            $table->string('transaction_id', 191)->nullable()->comment('from payment provider');
+            $table->enum('payment_status', ['pending', 'success', 'failed', 'refunded'])->default('pending');
+            $table->json('response_payload')->nullable()->comment('full response from gateway');
+
+
+            $table->decimal('slot_amount', 10, 2);
+            $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('taxed_amount')->nullable(); 
+            $table->decimal('amount_paid', 10, 2);
+
+
+            $table->timestamps();
+
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+
+    public function down()
+    {
+        Schema::table('jobseeker_saved_booking_session', function (Blueprint $table) {
+            $table->dropColumn(['zoom_meeting_id', 'zoom_join_url', 'zoom_start_url']);
+        });
+    }
+
+
+    
+};

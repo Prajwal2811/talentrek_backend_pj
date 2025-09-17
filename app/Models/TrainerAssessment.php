@@ -19,6 +19,7 @@ class TrainerAssessment extends Model
         'passing_questions',
         'passing_percentage',
         'course_id',
+        'material_id',
     ];
 
     // Relationships
@@ -29,7 +30,7 @@ class TrainerAssessment extends Model
 
     public function trainer()
     {
-        return $this->belongsTo(Trainers::class, 'trainer_id'); // Assuming trainers are users
+        return $this->belongsTo(Trainers::class, 'trainer_id');
     }
 
     public function course()

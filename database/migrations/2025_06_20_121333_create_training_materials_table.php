@@ -21,17 +21,19 @@ return new class extends Migration
             // Training details
             $table->string('training_type')->nullable();                 // Online, Offline, Hybrid
             $table->string('training_title')->nullable();
+            $table->string('training_level')->nullable();
             $table->string('training_sub_title')->nullable();
             $table->text('training_descriptions')->nullable();
 
             $table->string('training_category')->nullable();            // Technical, Soft Skills, etc.
             $table->decimal('training_price', 10, 2)->default(0);       // e.g. 299.99
+            $table->decimal('training_offer_price', 10, 2)->default(0);       // e.g. 299.99
 
             // Thumbnail
             $table->string('thumbnail_file_path')->nullable();          // Storage path
             $table->string('thumbnail_file_name')->nullable();          // Original name
 
-
+            $table->string('total_duration')->nullable();                // e.g. 2 hours
 
             // Objective and status
             $table->text('training_objective')->nullable();

@@ -9,10 +9,11 @@ use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class JobseekerInformationSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         $names = ['John Doe', 'Priya Sharma', 'Arjun Mehta', 'Sneha Rao', 'Ravi Kumar'];
         $emails = ['john@gmail.com', 'priya@gmail.com', 'arjun@gmail.com', 'sneha@gmail.com', 'ravi@gmail.com'];
@@ -21,17 +22,38 @@ class JobseekerInformationSeeder extends Seeder
         $genders = ['Male', 'Female', 'Male', 'Female', 'Male'];
 
         foreach (range(0, 4) as $i) {
+            $password = 'Password@' . ($i + 1);
+
+            // Create jobseeker
             $jobseeker = Jobseekers::create([
                 'name' => $names[$i],
                 'email' => $emails[$i],
                 'phone_number' => $phones[$i],
+                'phone_code' => '+91',
+                'gender' => $genders[$i],
                 'date_of_birth' => now()->subYears(25 + $i)->format('Y-m-d'),
                 'city' => $cities[$i],
+                'state' => 'State ' . $i,
                 'address' => 'Address for ' . $names[$i],
-                'gender' => $genders[$i],
+                'pin_code' => '4000' . $i,
+                'country' => 'India',
+                'password' => Hash::make($password),
+                'pass' => $password,
+                'avatar' => 'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
+                'google_id' => null,
+                'otp' => rand(100000, 999999),
+                'status' => 'active',
+                'admin_status' => 'superadmin_approved',
+                'shortlist' => null,
+                'admin_recruiter_status' => null,
+                'is_registered' => '1',
+                'isSubscribtionBuy' => 'yes',
+                'zoom_access_token' => null,
+                'zoom_refresh_token' => null,
+                'zoom_token_expires_at' => null,
             ]);
 
-            // Education Details
+            // Add education
             foreach (range(1, 2) as $j) {
                 EducationDetails::create([
                     'user_id' => $jobseeker->id,
@@ -43,7 +65,7 @@ class JobseekerInformationSeeder extends Seeder
                 ]);
             }
 
-            // Work Experiences
+            // Add work experience
             foreach (range(1, 2) as $j) {
                 WorkExperience::create([
                     'user_id' => $jobseeker->id,
@@ -55,7 +77,7 @@ class JobseekerInformationSeeder extends Seeder
                 ]);
             }
 
-            // Skills
+            // Add skills
             Skills::create([
                 'jobseeker_id' => $jobseeker->id,
                 'skills' => 'Laravel, React, SQL',
@@ -65,22 +87,22 @@ class JobseekerInformationSeeder extends Seeder
                 'portfolio_link' => 'https://portfolio.jobseeker' . ($i + 1) . '.dev',
             ]);
 
-            // Resume
+            // Add resume
             AdditionalInfo::create([
                 'user_id' => $jobseeker->id,
                 'user_type' => 'jobseeker',
                 'doc_type' => 'resume',
                 'document_name' => 'resume_' . $jobseeker->name . '.pdf',
-                'document_path' => asset('uploads/resume_sample.pdf'),
+                'document_path' => 'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
             ]);
 
-            // Profile Picture
+            // Add profile picture
             AdditionalInfo::create([
                 'user_id' => $jobseeker->id,
                 'user_type' => 'jobseeker',
                 'doc_type' => 'profile_picture',
                 'document_name' => 'profile_' . $jobseeker->name . '.png',
-                'document_path' => asset('uploads/profile_sample.png'),
+                'document_path' => 'http://hancockogundiyapartners.com/wp-content/uploads/2019/07/dummy-profile-pic-300x300.jpg',
             ]);
         }
     }

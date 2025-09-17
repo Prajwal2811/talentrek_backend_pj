@@ -262,6 +262,23 @@
                                                 <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $trainer->city }}">
                                             </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->state }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->country }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->address }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>PIN Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->pin_code }}">
+                                            </div>
+
                                         </div>
                                     </form>
                                 </div>
@@ -327,10 +344,10 @@
                                                 <!-- Work Experience -->
                                                 <div class="tab-pane fade" id="work">
                                                     <form>
-                                                        @if ($experiences->isEmpty())
+                                                        @if ($workExperiences->isEmpty())
                                                             <p class="text-muted">No work experience found.</p>
                                                         @else
-                                                            @foreach ($experiences as $experience)
+                                                            @foreach ($workExperiences as $experience)
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Job role</label>
@@ -346,7 +363,7 @@
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>To</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
                                                                     </div>
                                                                 </div>
                                                                 @if (!$loop->last)
@@ -360,10 +377,10 @@
                                                 <!-- experience -->
                                                 <div class="tab-pane fade" id="experience">
                                                     <form>
-                                                        @if ($experience->isEmpty())
+                                                        @if ($trainingExperiences->isEmpty())
                                                             <p class="text-muted">No experience or training details found.</p>
                                                         @else
-                                                            @foreach ($experience as $skill)
+                                                            @foreach ($trainingExperiences as $skill)
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>experience</label>
@@ -419,9 +436,72 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                 </div>
                             </div>
+
+
+                            <div class="card">
+                                <div class="header">
+                                    <h2>Trainer Subscriptions</h2>
+                                </div>
+                                <div class="body">
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+
+                                                @if(count($subscriptionPlans) > 0)
+                                                    @foreach ($subscriptionPlans as $index => $plan)
+                                                        <div class="card p-3 mb-4 shadow-sm {{ $index > 0 ? 'd-none extra-subscription' : '' }}">
+                                                            <div class="d-flex flex-column">
+                                                                <h5 class="fw-bold mb-1">{{ $plan->title }}</h5>
+                                                                <p class="text-muted mb-2">{{ $plan->description }}</p>
+                                                                <div class="mb-2">
+                                                                    <strong>Duration:</strong> {{ $plan->duration_days }} Days<br>
+                                                                    <strong>Purchased On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->start_date)->format('d M Y') }}<br>
+                                                                    <strong>Expired On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->end_date)->format('d M Y') }}
+                                                                </div>
+                                                                <span class="badge bg-secondary text-white small align-self-start px-2 py-1">
+                                                                    ₹{{ $plan->price }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+
+                                                    <!-- View More Button (only show if more than 1 subscription exists) -->
+                                                    @if(count($subscriptionPlans) > 1)
+                                                        <div class="text-center mt-4">
+                                                            <button class="btn btn-primary" id="toggleButtonSub"
+                                                                onclick="toggleSubscriptions()">View More</button>
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    <div class="alert alert-info text-center p-3">
+                                                        No subscriptions found.
+                                                    </div>
+                                                @endif
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Toggle Script -->
+                            <script>
+                                function toggleSubscriptions() {
+                                    const extraSubs = document.querySelectorAll('.extra-subscription');
+                                    const button = document.getElementById("toggleButtonSub");
+
+                                    let hidden = [...extraSubs].some(el => el.classList.contains("d-none"));
+
+                                    extraSubs.forEach(el => el.classList.toggle("d-none", !hidden));
+                                    button.textContent = hidden ? "View Less" : "View More";
+                                }
+                            </script>
+
+
 
                             <div class="card">
                                 <div class="header">

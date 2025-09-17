@@ -35,9 +35,9 @@
                                     </div>
                                     <div>
                                         @php
-                                        $status = $course->admin_status;
-                                        $userRole = auth()->user()->role;
-                                    @endphp
+                                            $status = $course->admin_status;
+                                            $userRole = auth()->user()->role;
+                                        @endphp
 
                                     <!-- Status Buttons -->
                                     @if(!$status && $userRole === 'admin')
@@ -231,45 +231,120 @@
                             </ul>
 
                             <div class="tab-content" id="courseTabsContent">
-                                <!-- Overview Tab -->
+                               <!-- Overview Tab -->
                                 <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                                    <h5 class="fw-bold">Course Overview</h5>
-                                    <p><strong>Objective:</strong> {{ $course->training_objective }}</p>
-                                    <p><strong>Description:</strong> {{ $course->training_descriptions }}</p>
-                                    <p><strong>Session Type:</strong> {{ ucfirst($course->session_type) }}</p>
-                                    <p><strong>Price:</strong> ₹{{ number_format($course->training_price) }}</p>
+                                    <div class="border-0 rounded-4 p-4">
+                                        <div class="">
+                                            <h4 class="fw-bold mb-4 text-primary">
+                                                <i class="bi bi-journal-bookmark-fill me-2"></i> Course Overview
+                                            </h4>
+
+                                            <div class="mb-3 d-flex align-items-start">
+                                                <i class="bi bi-bullseye text-success fs-4 me-3"></i>
+                                                <div>
+                                                    <h6 class="fw-semibold mb-1">Objective</h6>
+                                                    <p class="mb-0 text-muted">{{ $course->training_objective }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3 d-flex align-items-start">
+                                                <i class="bi bi-file-earmark-text text-info fs-4 me-3"></i>
+                                                <div>
+                                                    <h6 class="fw-semibold mb-1">Description</h6>
+                                                    <p class="mb-0 text-muted">{{ $course->training_descriptions }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3 d-flex align-items-start">
+                                                <i class="bi bi-people-fill text-warning fs-4 me-3"></i>
+                                                <div>
+                                                    <h6 class="fw-semibold mb-1">Session Type</h6>
+                                                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill shadow-sm">
+                                                        {{ ucfirst($course->session_type) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-currency-rupee text-danger fs-4 me-3"></i>
+                                                <div>
+                                                    <h6 class="fw-semibold mb-1">Price</h6>
+                                                    <p class="h5 fw-bold text-success">₹{{ number_format($course->training_price) }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
 
                                 <!-- Batch List Tab -->
                                 <div class="tab-pane fade" id="batches" role="tabpanel">
                                     <h5 class="fw-bold">Batch List</h5>
-                                    <table class="table table-bordered">
-                                        <thead class="table-light">
+                                    <table class="table table-hover table-striped align-middle shadow-sm">
+                                        <thead class="table-primary">
                                             <tr>
                                                 <th>#</th>
-                                                <th>Batch Title</th>
-                                                <th>Date</th>
-                                                <th>Time</th>
+                                                <th>Batch No</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th>Timing</th>
                                                 <th>Duration</th>
+                                                <th>Strength</th>
+                                                <th>Days</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse($batches as $index => $batch)
                                                 <tr>
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $batch->batch_no }}</td>
+                                                    <td><span class="badge bg-info text-dark">{{ $batch->batch_no }}</span></td>
                                                     <td>{{ \Carbon\Carbon::parse($batch->start_date)->format('d/m/Y') }}</td>
-                                                    <td>{{ $batch->start_timing }} - {{ $batch->end_timing }}</td>
+                                                    <td>{{ \Carbon\Carbon::parse($batch->end_date)->format('d/m/Y') }}</td>
+                                                    <td>
+                                                        {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }}
+                                                        -
+                                                        {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                    </td>
                                                     <td>{{ $batch->duration }}</td>
+                                                    <td>{{ $batch->strength }}</td>
+                                                    <td>
+                                                        @php
+                                                            $days = $batch->days;
+
+                                                            // If value is null or empty, set as an empty array
+                                                            if (empty($days)) {
+                                                                $days = [];
+                                                            }
+                                                            // If value is a JSON string (e.g. '["Mon","Tue"]'), decode it into an array
+                                                            elseif (is_string($days) && ($decoded = json_decode($days, true)) !== null) {
+                                                                $days = $decoded;
+                                                            }
+                                                            // If value is a simple string (e.g. "Monday"), wrap it inside an array
+                                                            elseif (is_string($days)) {
+                                                                $days = [$days];
+                                                            }
+                                                            // If value is already an array, leave it as it is
+                                                            // If it’s any other unexpected type, set it as an empty array
+                                                            elseif (!is_array($days)) {
+                                                                $days = []; // fallback safe case
+                                                            }
+                                                        @endphp
+
+                                                        @foreach((array) $days as $day)
+                                                            <span class="badge bg-light text-dark border">{{ $day }}</span>
+                                                        @endforeach
+                                                    </td>
+
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="5" class="text-center text-muted">No batches available.</td>
+                                                    <td colspan="8" class="text-center text-muted">No batches available.</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
                                     </table>
                                 </div>
+
                             </div>
                         </div>
 

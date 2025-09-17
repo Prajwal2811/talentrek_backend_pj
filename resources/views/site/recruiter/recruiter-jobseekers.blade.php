@@ -1,12 +1,6 @@
 @include('site.componants.header')
 
 <body>
-<?php
-    // echo "<pre>";
-    // print_r($jobseekers);exit;
-    // echo "</pre>";
-
-?>
 
     <div class="loading-area">
         <div class="loading-box"></div>
@@ -17,8 +11,12 @@
         </div>
     </div>
 
-
-	
+@if($recruiterNeedsSubscription)
+        @include('site.recruiter.subscription.index')
+    @endif
+	 @if($otherRecruiterSubscription)
+        @include('site.recruiter.subscription.add-other-recruiters')
+    @endif
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
 
@@ -26,175 +24,80 @@
             @include('site.recruiter.componants.sidebar')	
 
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                        <button 
-                            @click="sidebarOpen = !sidebarOpen" 
-                            class="text-gray-700 hover:text-blue-600 focus:outline-none"
-                            title="Toggle Sidebar"
-                            aria-label="Toggle Sidebar"
-                            type="button"
-                            >
-                            <i data-feather="menu" class="w-6 h-6"></i>
-                        </button>
-                        <!-- <div class="relative w-full">
-                            <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.recruiter.componants.navbar')	
+                
 
-                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="jobseekerDashboard()">
-                    <h2 class="text-2xl font-semibold mb-6">Jobseekers</h2>
+                <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="">
+                    @include('admin.errors')	
+
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('jobseeker') }}</h2>
                     <div class="flex space-x-6">
 
                         <!-- Sidebar Filters -->
                         <div class="bg-white p-4 rounded shadow w-64 space-y-4">
-                            <h2 class="font-semibold mb-2">Filters</h2>
+                            <h2 class="font-semibold mb-2">{{ langLabel('filter') }}</h2>
 
                             <!-- Candidates experience -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Candidates experience</p>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Fresher (0-3 years experience)</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />3+ years experience</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('candidates_experience') }}</p>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="fresher" class="mr-2 filter-checkbox" />{{ langLabel('fresher') }} (0-3 years)</label>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="experienced" class="mr-2 filter-checkbox" />3+ years</label>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="all" class="mr-2 filter-checkbox" />{{ langLabel('all') }}</label>
                             </div>
 
-                            @php
-                                $educations = \App\Models\EducationDetails::all();
-                            @endphp
+                            @php $educations = \App\Models\EducationDetails::all(); @endphp
+
                             <!-- Education -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Education</p>
-                                @foreach ($educations->unique('high_education') as $education )
-                                    <label class="block text-sm"><input type="checkbox" class="mr-2" />{{ $education->high_education }}</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('education') }}</p>
+                                @foreach ($educations->unique('high_education') as $education)
+                                    <label class="block text-sm">
+                                        <input type="checkbox" name="education[]" value="{{ $education->high_education }}" class="mr-2 filter-checkbox" />{{ $education->high_education }}
+                                    </label>
                                 @endforeach
                             </div>
 
                             <!-- Gender -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Gender</p>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Male</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Female</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('gender') }}</p>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="male" class="mr-2 filter-checkbox" />{{ langLabel('male') }}</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="female" class="mr-2 filter-checkbox" />{{ langLabel('female') }}</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="all" class="mr-2 filter-checkbox" />{{ langLabel('all') }}</label>
                             </div>
 
                             <!-- Certificate -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Certificate</p>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Certificate (0-5)</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Certificate 5+</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />Not certified</label>
-                                <label class="block text-sm"><input type="checkbox" class="mr-2" />All</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('certificate') }}</p>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="0-5" class="mr-2 filter-checkbox" />{{ langLabel('certificate') }} (0-5)</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="5+" class="mr-2 filter-checkbox" />{{ langLabel('certificate') }} 5+</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="not-certified" class="mr-2 filter-checkbox" />{{ langLabel('not_certified') }}</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="all" class="mr-2 filter-checkbox" />{{ langLabel('all') }}</label>
                             </div>
                         </div>
 
                         <!-- Main Panel -->
                         <div class="flex-1 bg-white p-4 rounded shadow">
-                        <!-- Tabs -->
-                        <div class="flex justify-between border-b pb-2 mb-4">
-                            <div class="space-x-6 font-medium text-sm">
-                            <button data-tab="jobseekers" class="pb-1 border-b-2">Jobseekers</button>
-                            <button data-tab="shortlisted" class="text-gray-500 pb-1">Shortlisted</button>
-                            <!-- <button data-tab="contacted" class="text-gray-500 pb-1">Contacted</button> -->
-                            </div>
-                            <div class="text-sm font-semibold text-gray-600">
-                            Results: <span>0</span>
-                            </div>
-                        </div>
-
-                        <!-- Jobseekers Tab -->
-                        <div data-tab-content="jobseekers" class="divide-y">
-                            @foreach($jobseekers as $jobseeker)
-                                <div class=" jobseeker-entry flex justify-between items-center py-4">
-                                    <!-- Profile Image & Name -->
-                                    <div class="flex items-center space-x-4 w-1/3">
-                                        <img 
-                                            src="{{ $jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
-                                            class="w-12 h-12 rounded-full object-cover blur-sm" 
-                                            alt="{{ $jobseeker->name }}"
-                                        />
-                                        <div>
-                                            <h4 class="font-semibold text-sm blur-sm">{{ $jobseeker->name }}</h4>
-                                            <p class="text-sm text-gray-500">
-                                                {{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Experience Years -->
-                                    <div class="w-32 text-sm">
-                                        <p class="font-semibold">Experience</p>
-                                        <p>{{ $jobseeker->total_experience }}</p>
-                                    </div>
-
-                                    <!-- Skills -->
-                                    <div class="text-sm flex-1">
-                                        <p class="font-semibold">Skills</p>
-                                        <p>
-                                            @if($jobseeker->skills && $jobseeker->skills->count())
-                                                {{ $jobseeker->skills->pluck('skills')->filter()->join(', ') }}
-                                            @else
-                                                Not provided
-                                            @endif
-                                        </p>
-                                    </div>
-
-                                    <!-- Shortlist Button -->
-                                    <div class="ml-4">
-                                        <form id="shortlist-form-{{ $jobseeker->id }}" action="{{ route('recruiter.shortlist.submit') }}" method="POST" onsubmit="return false;">
-                                            @csrf
-                                            <input type="hidden" name="jobseeker_id" value="{{ $jobseeker->id }}">
-                                            <button type="button" onclick="confirmShortlist({{ $jobseeker->id }})" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
-                                                Shortlist
-                                            </button>
-                                        </form>    
-                                    </div>
+                            <!-- Tabs -->
+                            <!-- Tabs -->
+                            <div class="flex justify-between border-b pb-2 mb-4">
+                                <div class="space-x-6 font-medium text-sm">
+                                    <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">{{ langLabel('jobseeker') }}</button>
+                                    <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">{{ langLabel('shortlisted') }}</button>
+                                    {{-- <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">{{ langLabel('scheduled_interview') }}</button> --}}
 
                                 </div>
-                            @endforeach
-                            <!-- Pagination Controls -->
-                            <div id="pagination" class="mt-6 flex justify-center space-x-2"></div>
-                        </div>
+                            </div>
 
+                           
+                            <!-- Jobseekers Tab -->
+                            <div id="jobseekerList" data-tab-content="jobseekers" class="divide-y">
+                                @include('site.recruiter.partials.jobseeker-list', ['jobseekers' => $jobseekers])
+                                <div id="pagination" class="mt-6 flex justify-center space-x-2"></div>
+                            </div>
                             
-
-
                             <!-- Shortlisted Tab -->
-                            <div data-tab-content="shortlisted" style="display: none;">
-                                <div data-tab-content="shortlisted" class="divide-y">
-                                    @foreach($shortlisted_jobseekers as $shortlisted_jobseeker)
+                            <div id="shortlistedList" data-tab-content="shortlisted" class="divide-y hidden">
+                                    @foreach($shortlisted_jobseekers->unique('jobseeker_id') as $shortlisted_jobseeker)
                                         <div class="jobseeker-shortlisted  flex justify-between items-center py-4">
                                             <!-- Profile Image & Name -->
                                             <div class="flex items-center space-x-4 w-1/3">
@@ -206,67 +109,446 @@
                                                 <div>
                                                     <h4 class="font-semibold text-sm blur-sm">{{ $shortlisted_jobseeker->name }}</h4>
                                                     <p class="text-sm text-gray-500">
-                                                        {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
+                                                        {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             <!-- Experience Years -->
                                             <div class="w-32 text-sm">
-                                                <p class="font-semibold">Experience</p>
+                                                <p class="font-semibold">{{ langLabel('experience') }}</p>
                                                 <p>{{ $shortlisted_jobseeker->total_experience }}</p>
                                             </div>
 
                                             <!-- Skills -->
                                             <div class="text-sm flex-1">
-                                                <p class="font-semibold">Skills</p>
+                                                <p class="font-semibold">{{ langLabel('skills') }}</p>
                                                 <p>
                                                     @if($shortlisted_jobseeker->skills && $shortlisted_jobseeker->skills->count())
                                                         {{ $shortlisted_jobseeker->skills->pluck('skills')->filter()->join(', ') }}
                                                     @else
-                                                        Not provided
+                                                        {{ langLabel('not_provided') }}
                                                     @endif
                                                 </p>
                                             </div>
 
                                             <!-- Shortlist Button -->
                                             <div class="ml-4 flex space-x-2">
-                                                @if($shortlisted_jobseeker->admin_recruiter_status === 'approved')
-                                                    <button class="border border-green-500 text-green-500 text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
-                                                        Approved
-                                                    </button>
-                                                    <a href="{{ route('recruiter.jobseeker.details', ['jobseeker_id' => $shortlisted_jobseeker->id]) }}" 
-                                                        class="bg-blue-500 text-white text-sm px-4 py-1.5 rounded inline-block">
-                                                        View Profile
-                                                    </a>
+                                                @php
+                                                    $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'superadmin_approved';
+                                                    $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? '') === 'yes';
+                                                    $jobseekerId = $shortlisted_jobseeker->id;
+                                                @endphp
 
-                                                    
+                                                <!-- Status Label -->
+                                                <span class="border text-xs px-2 py-1 rounded 
+                                                            {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}">
+                                                    {{ $isApproved ? langLabel('approved') : langLabel('pending') }}
+                                                </span>
+
+
+                                                <!-- View Profile -->
+                                                <a href="{{ $isApproved ? route('recruiter.jobseeker.details', ['jobseeker_id' => $jobseekerId]) : '#' }}"
+                                                class="text-white text-xs px-2 py-1 rounded inline-block
+                                                {{ $isApproved ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 cursor-not-allowed' }}"
+                                                {{ $isApproved ? '' : 'onclick=event.preventDefault()' }}>
+                                                    {{ langLabel('view_profile') }}
+                                                </a>
+
+                                                <!-- Interview Request Button -->
+                                                @if ($interviewRequested || !$isApproved)
+                                                    {{-- Show as badge when disabled --}}
+                                                    <span class="inline-block text-white text-xs px-2 py-1 rounded 
+                                                                {{ $interviewRequested ? 'bg-gray-400' : 'bg-gray-600' }}">
+                                                        {{ $interviewRequested ? langLabel('interview_requested') : langLabel('not_approved') }}
+                                                    </span>
                                                 @else
-                                                    <button class="border border-red-500 text-red-500 text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
-                                                        Pending
+                                                    {{-- Show as clickable button when enabled --}}
+                                                    <button
+                                                        id="interview-btn-{{ $jobseekerId }}"
+                                                        onclick="confirmInterviewRequest({{ $jobseekerId }}, true, false)"
+                                                        class="text-white text-xs px-2 py-1 rounded bg-purple-500 hover:bg-purple-600"
+                                                    >
+                                                        {{ langLabel('interview_request') }}
                                                     </button>
-                                                    <button class="bg-gray-600 text-white text-sm px-4 py-1.5 rounded cursor-not-allowed" disabled>
-                                                        View Profile
-                                                    </button>
-                                                    
                                                 @endif
+
                                             </div>
-
-
                                         </div>
                                     @endforeach
-                                    <!-- Pagination Controls -->
-                                    <div id="shortlistedPagination" class="mt-6 flex justify-center space-x-2"></div>
-                                </div>
+                                {{-- @include('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers]) --}}
+                                <div id="shortlistedPagination" class="mt-6 flex justify-center space-x-2"></div>
                             </div>
 
                             <!-- Contacted Tab -->
-                            <div data-tab-content="contacted" style="display: none;">
-                                <div class="text-center py-6 text-gray-500">No contacted jobseekers.</div>
-                            </div>
+                            {{-- <div id="scheduledList" data-tab-content="scheduled" class="divide-y hidden">
+                                @foreach($scheduled_jobseekers->unique('jobseeker_id') as $scheduled_jobseeker)
+                                    @php
+                                        $isApproved = $scheduled_jobseeker->shortlist_admin_status === 'superadmin_approved';
+                                        $jobseekerId = $scheduled_jobseeker->id;
+
+                                        // Build interview datetime if both exist
+                                        $interviewDateTime = null;
+                                        if ($scheduled_jobseeker->interview_date && $scheduled_jobseeker->interview_time) {
+                                            $interviewDateTime = \Carbon\Carbon::parse(
+                                                $scheduled_jobseeker->interview_date . ' ' . $scheduled_jobseeker->interview_time
+                                            );
+                                        }
+
+                                        // Default status
+                                        $status = strtolower($scheduled_jobseeker->interview_status ?? 'pending');
+                                        $statusLabel = ucfirst($status);
+                                        $statusClass = 'text-yellow-600';
+
+                                        // Disable join button by default
+                                        $joinDisabled = false;
+
+                                        // Check status rules
+                                        if ($status === 'completed') {
+                                            $statusLabel = 'Completed';
+                                            $statusClass = 'text-green-600 font-semibold';
+                                            $joinDisabled = true; // cannot join once completed
+                                        } elseif ($status === 'cancelled') {
+                                            $statusLabel = 'Cancelled';
+                                            $statusClass = 'text-red-600 font-semibold';
+                                            $joinDisabled = true; // cannot join if cancelled
+                                        } elseif ($status === 'scheduled' && $interviewDateTime && now()->greaterThan($interviewDateTime)) {
+                                            // Scheduled but time passed
+                                            $statusLabel = 'Expired';
+                                            $statusClass = 'text-red-600 font-semibold';
+                                            $joinDisabled = true;
+                                        }
+                                    @endphp
+
+                                    <div class="jobseeker-shortlisted flex justify-between items-center py-4">
+                                        
+                                        <!-- Profile Image & Name -->
+                                        <div class="flex items-center space-x-4 w-1/3">
+                                            <img 
+                                                src="{{ $scheduled_jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
+                                                class="w-12 h-12 rounded-full object-cover " 
+                                                alt="{{ $scheduled_jobseeker->name }}"
+                                            />
+                                            <div>
+                                                <h4 class="font-semibold text-sm ">{{ $scheduled_jobseeker->name }}</h4>
+                                                <p class="text-sm text-gray-500">
+                                                    {{ $scheduled_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Interview Info -->
+                                        <div class="w-40 text-sm">
+                                            <p class="font-semibold">{{ langLabel('interview_date_time') }}</p>
+                                            <p>
+                                                @if($interviewDateTime)
+                                                    {{ $interviewDateTime->format('d M Y, h:i A') }}
+                                                @else
+                                                    {{ langLabel('not_scheduled') }}
+                                                @endif
+                                            </p>
+                                        </div>
+
+                                        <!-- Interview Status -->
+                                        <div class="w-32 text-sm">
+                                            <p class="font-semibold">{{ langLabel('interview_status') }}</p>
+                                            <p class="{{ $statusClass }}">
+                                                {{ $statusLabel }}
+                                            </p>
+                                        </div>
+
+                                        <!-- Actions -->
+                                        <div class="ml-4 flex space-x-2 items-center">
+                                            <!-- Dropdown for status change -->
+                                            <!-- Dropdown for status change -->
+                                            <form action="{{ route('recruiter.interview.updateStatus') }}" method="POST" class="flex items-center space-x-2">
+                                                @csrf
+                                                <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
+
+                                                <select name="status" class="border rounded px-2 py-1 text-sm"
+                                                    @if($status === 'cancelled' || ($interviewDateTime && now()->greaterThan($interviewDateTime))) disabled @endif>
+                                                    <option value="" disabled>{{ langLabel('update_status') }}</option>
+
+                                                    @if ($status === 'cancelled')
+                                                        <!-- Locked if cancelled -->
+                                                        <option value="cancelled" selected>{{ langLabel('cancelled') }}</option>
+                                                    @elseif ($interviewDateTime && now()->greaterThan($interviewDateTime))
+                                                        <!-- Locked if interview expired -->
+                                                        <option value="{{ $status }}" selected>{{ ucfirst($status) }}</option>
+                                                    @else
+                                                        <option value="cancelled" @if ($status === 'cancelled') selected @endif>{{ langLabel('cancelled') }}</option>
+                                                        <option value="scheduled" @if ($status === 'scheduled') selected @endif>{{ langLabel('scheduled') }}</option>
+                                                        <option value="completed" 
+                                                            @if ($status === 'completed') selected @endif
+                                                            @if (!$interviewDateTime || now()->lessThan($interviewDateTime)) disabled @endif>
+                                                            Completed
+                                                        </option>
+                                                    @endif
+                                                </select>
+
+                                                @if ($status !== 'cancelled' && !($interviewDateTime && now()->greaterThan($interviewDateTime)))
+                                                    <button type="submit" class="bg-gray-700 text-white text-xs px-2 py-1 rounded">
+                                                        {{ langLabel('save') }}
+                                                    </button>
+                                                @endif
+                                            </form>
+
+
+
+                                            <!-- Join Button -->
+                                            <a href="{{ !$joinDisabled && $isApproved ? $scheduled_jobseeker->zoom_join_url : '#' }}" 
+                                            target="_blank"
+                                            class="text-white text-xs px-2 py-1 rounded inline-block 
+                                                    {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
+                                            {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
+                                                {{ langLabel('join') }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+
+
+                                <div id="scheduledPagination" class="mt-6 flex justify-center space-x-2"></div>
+                            </div> --}}
+
+
+
                         </div>
-                    </div> 
-                </main>
+                    </div>
+
+                    <!-- jQuery for Filters -->
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const tabButtons = document.querySelectorAll('.tab-btn');
+                            const tabContents = document.querySelectorAll('[data-tab-content]');
+
+                            // Show default tab on load
+                            let defaultTab = 'jobseekers';
+                            tabContents.forEach(content => {
+                                if (content.getAttribute('data-tab-content') === defaultTab) {
+                                    content.classList.remove('hidden');
+                                } else {
+                                    content.classList.add('hidden');
+                                }
+                            });
+
+                            tabButtons.forEach(button => {
+                                button.addEventListener('click', () => {
+                                    const tab = button.getAttribute('data-tab');
+
+                                    // Update button styles
+                                    tabButtons.forEach(btn => {
+                                        btn.classList.remove('border-b-2', 'text-black');
+                                        btn.classList.add('text-gray-500');
+                                    });
+                                    button.classList.add('border-b-2', 'text-black');
+                                    button.classList.remove('text-gray-500');
+
+                                    // Show selected tab
+                                    tabContents.forEach(content => {
+                                        if (content.getAttribute('data-tab-content') === tab) {
+                                            content.classList.remove('hidden');
+                                        } else {
+                                            content.classList.add('hidden');
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    </script>
+
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const tabButtons = document.querySelectorAll('[data-tab]');
+                            const tabContents = document.querySelectorAll('[data-tab-content]');
+
+                            tabButtons.forEach(button => {
+                                button.addEventListener('click', () => {
+                                    const tab = button.getAttribute('data-tab');
+
+                                    // Toggle active tab button
+                                    tabButtons.forEach(btn => {
+                                        btn.classList.remove('border-b-2', 'text-black');
+                                        btn.classList.add('text-gray-500');
+                                    });
+                                    button.classList.add('border-b-2', 'text-black');
+                                    button.classList.remove('text-gray-500');
+
+                                    // Show/Hide tab content
+                                    tabContents.forEach(content => {
+                                        if (content.getAttribute('data-tab-content') === tab) {
+                                            content.style.display = 'block';
+                                        } else {
+                                            content.style.display = 'none';
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    </script>
+
+                    <script>
+                        $('.filter-checkbox').on('change', function () {
+                            filterJobseekers();
+                        });
+
+                        function getCheckedValues(name) {
+                            return $("input[name='" + name + "']:checked").map(function () {
+                                return this.value;
+                            }).get();
+                        }
+
+                        function filterJobseekers() {
+                            let filters = {
+                                experience: getCheckedValues('experience[]'),
+                                education: getCheckedValues('education[]'),
+                                gender: getCheckedValues('gender[]'),
+                                certificate: getCheckedValues('certificate[]')
+                            };
+
+                            $('#jobseekerList').html('<p class="p-4 text-gray-500">Loading...</p>');
+
+                            $.ajax({
+                                url: "{{ route('recruiter.filter.jobseekers') }}",
+                                type: "GET",
+                                data: filters,
+                                success: function (response) {
+                                    $('#jobseekerList').html(response.jobseekers_html);
+                                    $('#shortlistedList').html(response.shortlisted_html);
+                                },
+                                error: function () {
+                                    $('#jobseekerList').html('<p class="p-4 text-red-500">Failed to load filtered jobseekers.</p>');
+                                }
+                            });
+                        }
+                    </script>
+
+                </main>  
+                <!-- SweetAlert2 CDN -->
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                <style>
+                    .swal2-popup-sm {
+                        font-size: 15px;
+                        border-radius: 10px;
+                        padding: 1.2em;
+                    }
+
+                    .swal2-title-sm {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                    }
+
+                    .swal2-text-sm {
+                        font-size: 15px;
+                        color: #333;
+                    }
+
+                    .swal2-confirm-sm,
+                    .swal2-cancel-sm {
+                        font-size: 14px !important;
+                        padding: 8px 20px !important;
+                        border-radius: 6px !important;
+                    }
+                </style>
+                <script>
+                    function confirmInterviewRequest(jobseekerId, isApproved, interviewRequested) {
+                        if (!isApproved || interviewRequested) return;
+
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: "Do you want to send interview request?",
+                            icon: 'question',
+                            width: '400px',
+                            padding: '1.2em',
+                            showCancelButton: true,
+                            confirmButtonColor: '#4CAF50',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, send it!',
+                            cancelButtonText: 'Cancel',
+                            customClass: {
+                                popup: 'swal2-popup-sm',
+                                title: 'swal2-title-sm',
+                                htmlContainer: 'swal2-text-sm',
+                                confirmButton: 'swal2-confirm-sm',
+                                cancelButton: 'swal2-cancel-sm'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                sendInterviewRequest(jobseekerId);
+                            }
+                        });
+                    }
+
+                    function sendInterviewRequest(jobseekerId) {
+                        const btn = document.getElementById('interview-btn-' + jobseekerId);
+
+                        // Optimistically disable button
+                        btn.disabled = true;
+                        btn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                        btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        btn.innerText = 'Interview Requested';
+
+                        fetch("{{ route('recruiter.interview.request.submit') }}", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ jobseeker_id: jobseekerId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Interview request sent successfully.',
+                                    icon: 'success',
+                                    width: '400px',
+                                    customClass: {
+                                        popup: 'swal2-popup-sm',
+                                        title: 'swal2-title-sm',
+                                        htmlContainer: 'swal2-text-sm',
+                                        confirmButton: 'swal2-confirm-sm'
+                                    }
+                                });
+                            } else {
+                                handleRequestFailure(btn, data.message || 'Something went wrong.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            handleRequestFailure(btn, 'Failed to send request.');
+                        });
+                    }
+
+                    function handleRequestFailure(btn, errorMessage) {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: errorMessage,
+                            icon: 'error',
+                            width: '400px',
+                            customClass: {
+                                popup: 'swal2-popup-sm',
+                                title: 'swal2-title-sm',
+                                htmlContainer: 'swal2-text-sm',
+                                confirmButton: 'swal2-confirm-sm'
+                            }
+                        });
+
+                        // Re-enable button if request failed
+                        btn.disabled = false;
+                        btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                        btn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+                        btn.innerText = 'Interview Request';
+                    }
+                </script>
+
+
+
                 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
                 <script>
@@ -443,22 +725,22 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-function confirmShortlist(id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "Do you want to shortlist this jobseeker?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#aaa',
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('shortlist-form-' + id).submit();
-        }
-    });
-}
+    function confirmShortlist(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to shortlist this jobseeker?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('shortlist-form-' + id).submit();
+            }
+        });
+    }
 </script>
 
 
@@ -483,42 +765,4 @@ function confirmShortlist(id) {
            
 
 
-
-          
-
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-<script src="https://unpkg.com/feather-icons"></script>
-<script>
-    feather.replace();
-</script>
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+@include('site.recruiter.componants.footer')

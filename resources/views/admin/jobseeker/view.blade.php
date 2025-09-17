@@ -28,10 +28,22 @@
                                         <div class="mr-3">
                                             <img src="../assets/images/user.png" class="rounded" alt="">
                                         </div>
-                                        <div class="details">
+                                        <!-- <div class="details">
                                             <h4 class="mb-0">{{ $jobseeker->name }}</h4>
-                                            <span class="text-light">{{ $jobseeker->city }}</span>
+                                            <span class="text-light">{{ $jobseeker->city }}</span> -->
                                             <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
+                                        <!-- </div> -->
+
+                                         <div class="flex justify-between items-center">
+                                            <div class="details">
+                                                <h4 class="mb-0">{{ $jobseeker->name }}</h4>
+                                                <span class="text-light">{{ $jobseeker->city }}</span>
+                                                <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
+                                            </div>
+                                            <a href="{{ route('admin.jobseeker.resume.download', $jobseeker->id) }}"
+                                            class="ml-4 bg-green-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-green-700">
+                                                Download Resume
+                                            </a>
                                         </div>
                                     </div>
                                     <div>
@@ -225,7 +237,7 @@
                             </div>
                         </div>
                         <div class="col-xl-4 col-lg-4 col-md-5">
-                            <div class="card">
+                            <div class="card" style="position: sticky; top: 100px;">
                                 <div class="header">
                                     <h2>Basic Information</h2>
                                 </div>
@@ -264,14 +276,32 @@
                                                 <label>Phone number</label>
                                                 <input readonly type="text" class="form-control" value="{{ $jobseeker->phone_code ? $jobseeker->phone_code . '-' . $jobseeker->phone_number : $jobseeker->phone_number }}">
                                             </div>
+                                            
                                             <div class="col-md-12 form-group">
-                                                <label>Address</label>
-                                                <textarea readonly type="text" class="form-control">{{ $jobseeker->address }}</textarea>
-                                            </div>
-                                            <div class="col-md-12 form-group">
-                                                <label>Location</label>
+                                                <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $jobseeker->city }}">
                                             </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->state }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Pin Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->pin_code }}">
+                                            </div>
+
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->country }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <textarea readonly class="form-control">{{ $jobseeker->address }}</textarea>
+                                            </div>
+
+
                                         </div>
                                     </form>
                                 </div>
@@ -356,7 +386,7 @@
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>To</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
                                                                     </div>
                                                                 </div>
                                                                 @if (!$loop->last)
@@ -432,429 +462,330 @@
 
                                 </div>
                             </div>
+
+
+                            @php
+                                use App\Models\JobseekerTrainingMaterialPurchase;
+
+                                $courses = JobseekerTrainingMaterialPurchase::with(['material.reviews'])
+                                                                            ->where('jobseeker_id', $jobseeker->id)
+                                                                            ->get();
+
+                                $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
+                                                                        ->where('user_id', $jobseeker->id)
+                                                                        ->first();
+                            @endphp
+
                             <div class="card">
                                 <div class="header">
                                     <h2>Jobseeker Trainings</h2>
                                 </div>
                                 <div class="body">
                                     <div class="col-lg-12">
-                                        <!-- Course Card 1 -->
-                                        <div class="card d-flex flex-row p-3 mb-3">
-                                            <img src="../images/gallery/finished-quiz.png" alt="Graphic Design"
-                                                class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                <div>
-                                                    <h5 class="fw-bold mb-1">Graphic design - Advance level</h5>
-                                                    <p class="text-muted mb-2">Lorem ipsum dolor sit amet, consectetur
-                                                        adipiscing elit.</p>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <span class="text-warning me-1">★ ★ ★ ★ ☆</span>
-                                                        <span class="text-muted">(4/5) Rating</span>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between mt-3">
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                            class="rounded-circle me-2" style="width: 35px;">
-                                                        <span class="fw-semibold">Julia Maccarthy</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center text-muted gap-3">
-                                                        <div><i data-feather="book-open" class="me-1"></i>6 lessons
-                                                        </div>
-                                                        <div><i data-feather="clock" class="me-1"></i>20hrs</div>
-                                                        <div><i data-feather="bar-chart-2" class="me-1"></i>Advance
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        @forelse($courses as $index => $purchase)
+                                            @php
+                                                $material = $purchase->material;
+                                                $reviews = $material->reviews ?? collect();
+                                                $trainerName = App\Models\Trainers::where('id', $material->trainer_id)->value('name');
+                                                $lessons = $material->lesson_count;
+                                                $duration = $material->duration .'hrs';
+                                                $level = $material->level;
+                                                $rating = $material->rating ?? 4;
+                                                $img = $material->thumbnail_file_path;
+                                                $assingBatch = \App\Models\TrainingBatch::where('training_material_id', $material->id)
+                                                                                        ->where('id', $purchase->batch_id)
+                                                                                        ->first();
+                                            @endphp
 
-                                        <!-- Hidden More Courses -->
-                                        <div id="moreCourses" class="d-none">
-
-                                            <!-- Course Card 2 -->
-                                            <div class="card d-flex flex-row p-3 mb-3">
-                                                <img src="../images/gallery/graphic-design.png" alt="Web Design"
+                                            <div class="card d-flex flex-row p-3 mb-3 {{ $index >= 1 ? 'd-none extra-course' : '' }}">
+                                                <img src="{{ asset($img) }}" alt="{{ $material->training_title }}"
                                                     class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">Web Design Essentials</h5>
-                                                        <p class="text-muted mb-2">Learn HTML, CSS, and responsive
-                                                            design techniques.</p>
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <span class="text-warning me-1">★ ★ ★ ★ ★</span>
-                                                            <span class="text-muted">(5/5) Rating</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <span class="fw-semibold">John Smith</span>
-                                                        </div>
-                                                        <div class="d-flex align-items-center text-muted gap-3">
-                                                            <div><i data-feather="book-open" class="me-1"></i>8 lessons
-                                                            </div>
-                                                            <div><i data-feather="clock" class="me-1"></i>25hrs</div>
-                                                            <div><i data-feather="bar-chart-2"
-                                                                    class="me-1"></i>Intermediate</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Course Card 3 -->
-                                            <div class="card d-flex flex-row p-3 mb-3">
-                                                <img src="../images/gallery/ui-ux.png" alt="UI/UX Design"
-                                                    class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">UI/UX Design Fundamentals</h5>
-                                                        <p class="text-muted mb-2">Understand user-centric design
-                                                            principles and wireframing.</p>
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <span class="text-warning me-1">★ ★ ★ ★ ☆</span>
-                                                            <span class="text-muted">(4.5/5) Rating</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <span class="fw-semibold">Sara Lee</span>
-                                                        </div>
-                                                        <div class="d-flex align-items-center text-muted gap-3">
-                                                            <div><i data-feather="book-open" class="me-1"></i>5 lessons
-                                                            </div>
-                                                            <div><i data-feather="clock" class="me-1"></i>15hrs</div>
-                                                            <div><i data-feather="bar-chart-2" class="me-1"></i>Beginner
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                        <!-- View More Button -->
-                                        <div class="text-center mt-4">
-                                            <button class="btn btn-primary" onclick="toggleCourses()">View More</button>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <script>
-                                    function toggleCourses() {
-                                        const moreCourses = document.getElementById('moreCourses');
-                                        const btn = event.target;
-
-                                        if (moreCourses.classList.contains('d-none')) {
-                                            moreCourses.classList.remove('d-none');
-                                            btn.textContent = 'View Less';
-                                        } else {
-                                            moreCourses.classList.add('d-none');
-                                            btn.textContent = 'View More';
-                                        }
-                                    }
-                                </script>
-                                <script>feather.replace()</script>
-                            </div>
-
-
-
-                            <div class="card">
-                                <div class="header">
-                                    <h2>Jobseeker Mentorship</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-lg-12">
-
-                                                <!-- Mentorship Card 1 -->
-                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                    <img src="../images/gallery/finished-quiz.png" alt="Mentor Image"
-                                                        class="img-fluid rounded"
-                                                        style="width: 200px; height: 140px; object-fit: cover;">
-                                                    <div
-                                                        class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                        <h5 class="fw-bold mb-1">Julia Maccarthy</h5>
-                                                        <p class="text-muted mb-2">Career Coach</p>
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                            <span class="text-muted">(4/5 Rating)</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Hidden More Mentors -->
-                                                <div id="moreMentors" class="d-none">
-
-                                                    <!-- Mentorship Card 2 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/graphic-design.png"
-                                                            alt="Mentor Image" class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">John Smith</h5>
-                                                            <p class="text-muted mb-2">Leadership Consultant</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ★</span>
-                                                                <span class="text-muted">(5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Mentorship Card 3 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/ui-ux.png" alt="Mentor Image"
-                                                            class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">Sara Lee</h5>
-                                                            <p class="text-muted mb-2">Startup Advisor</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                                <span class="text-muted">(4.5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButton"
-                                                        onclick="toggleMentors()">View More</button>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <script>
-                                    function toggleMentors() {
-                                        const moreMentors = document.getElementById("moreMentors");
-                                        const button = document.getElementById("toggleButton");
-
-                                        if (moreMentors.classList.contains("d-none")) {
-                                            moreMentors.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            moreMentors.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
-                            </div>
-
-
-                            <div class="card">
-                                <div class="header">
-                                    <h2>Jobseeker Assessments</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="col-lg-12">
-
-                                        <!-- Quiz Card 1 -->
-                                        <div class="card d-flex flex-row p-3 mb-3 shadow-sm">
-                                            <img src="../images/gallery/finished-quiz.png" alt="Quiz Thumbnail"
-                                                class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                <div>
-                                                    <h5 class="fw-bold mb-1">Graphic Design Advanced Quiz</h5>
-                                                    <p class="text-muted mb-2">Test your skills in layout, typography,
-                                                        and color theory.</p>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between mt-3">
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="../images/blog/post-author.jpg" alt="Julia"
-                                                            class="rounded-circle me-2" style="width: 35px;">
+                                                    <div class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
                                                         <div>
-                                                            <div class="fw-semibold">Julia Maccarthy</div>
-                                                            <small class="text-muted">Quiz By</small>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <h5 class="fw-bold mb-1 mb-0">{{ $material->training_title }}</h5>
+                                                            @php
+                                                                $batchStatus = strtolower($purchase->batchStatus); // e.g., 'pending', 'completed', 'in process'
+                                                                $badgeClass = match($batchStatus) {
+                                                                    'completed' => 'bg-success text-white',
+                                                                    'pending' => 'bg-warning text-dark',
+                                                                    'in process' => 'bg-info text-white',
+                                                                    default => 'bg-secondary'
+                                                                };
+                                                            @endphp
+                                                            <span class="badge {{ $badgeClass }} text-capitalize">
+                                                                {{ $batchStatus }}
+                                                            </span>
+                                                        </div>
+                                                            
+                                                        <p class="text-muted mb-2">{{ $material->training_sub_title ?? 'No description available.' }}</p>
+                                                        @php
+                                                            $averageRating = $reviews->avg('ratings');
+                                                            $roundedRating = round($averageRating);
+                                                        @endphp
+
+
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <span class="text-warning me-1">
+                                                                @for ($i = 1; $i <= 5; $i++)
+                                                                    @if ($i <= $roundedRating)
+                                                                        ★
+                                                                    @else
+                                                                        ☆
+                                                                    @endif
+                                                                @endfor
+                                                            </span>
+                                                            <span class="text-muted">
+                                                                ({{ number_format($averageRating, 1) }}/5 from {{ $reviews->count() }} review{{ $reviews->count() === 1 ? '' : 's' }})
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Hidden More Quizzes -->
-                                        <div id="moreAssessments" class="d-none">
-
-                                            <!-- Quiz Card 2 -->
-                                            <div class="card d-flex flex-row p-3 mb-3 shadow-sm">
-                                                <img src="../images/gallery/graphic-design.png" alt="Quiz Thumbnail"
-                                                    class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">Web Design Basics Quiz</h5>
-                                                        <p class="text-muted mb-2">Evaluate your understanding of HTML,
-                                                            CSS, and responsiveness.</p>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="John"
-                                                                class="rounded-circle me-2" style="width: 35px;">
+                                                        <div class="d-flex align-items-center justify-content-between mt-3">
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="{{ $trainerImage->document_path }}" alt="{{ $trainerName }}"
+                                                                    class="rounded-circle me-2" style="width: 35px;">
+                                                                <span class="fw-semibold">{{ $trainerName }}</span>
+                                                            </div>
+                                                            <div class="d-flex align-items-center text-muted gap-3">
                                                             <div>
-                                                                <div class="fw-semibold">John Smith</div>
-                                                                <small class="text-muted">Quiz By</small>
+                                                                    <i data-feather="book-open" class="me-1"></i>
+                                                                   @if(in_array($material->training_type, ['online', 'classroom']))
+                                                                        @if($assingBatch)
+                                                                            {{ $assingBatch->batch_no . ' (' . \Carbon\Carbon::parse($assingBatch->start_date)->format('d M, Y') . ')' }}
+                                                                        @else
+                                                                            <span class="text-danger">No Batch Assigned</span>
+                                                                        @endif
+                                                                    @else
+                                                                        {{ $lessons }} lesson{{ $lessons != 1 ? 's' : '' }}
+                                                                    @endif
+
+                                                                </div>
+
+                                                                <div><i data-feather="clock" class="me-1"></i>{{ $purchase->training_type }}</div>
+                                                                <div><i data-feather="bar-chart-2" class="me-1"></i>{{ $level }}</div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
                                             </div>
+                                        @empty
+                                            <div class="alert alert-warning">No trainings purchased yet.</div>
+                                        @endforelse
 
-                                            <!-- Quiz Card 3 -->
-                                            <div class="card d-flex flex-row p-3 mb-3 shadow-sm">
-                                                <img src="../images/gallery/ui-ux.png" alt="Quiz Thumbnail"
-                                                    class="img-fluid rounded" style="width: 200px; object-fit: cover;">
-                                                <div
-                                                    class="ps-4 d-flex flex-column justify-content-between flex-grow-1">
-                                                    <div>
-                                                        <h5 class="fw-bold mb-1">UI/UX Fundamentals Quiz</h5>
-                                                        <p class="text-muted mb-2">Check your knowledge on user flow,
-                                                            wireframes, and design thinking.</p>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-between mt-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <img src="../images/blog/post-author.jpg" alt="Sara"
-                                                                class="rounded-circle me-2" style="width: 35px;">
-                                                            <div>
-                                                                <div class="fw-semibold">Sara Lee</div>
-                                                                <small class="text-muted">Quiz By</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        @if($courses->count() > 1)
+                                            <div class="text-center mt-4">
+                                                <button class="btn btn-primary" onclick="toggleCourses(this)">View More</button>
                                             </div>
-
-                                        </div>
-
-                                        <!-- View More Button -->
-                                        <div class="text-center mt-4">
-                                            <button class="btn btn-primary" onclick="toggleAssessments()"
-                                                id="toggleButton">View More</button>
-                                        </div>
-
+                                        @endif
                                     </div>
                                 </div>
-                                <!-- Toggle Script -->
-                                <script>
-                                    function toggleAssessments() {
-                                        const moreAssessments = document.getElementById('moreAssessments');
-                                        const btn = document.getElementById('toggleButton');
-
-                                        if (moreAssessments.classList.contains('d-none')) {
-                                            moreAssessments.classList.remove('d-none');
-                                            btn.textContent = 'View Less';
-                                        } else {
-                                            moreAssessments.classList.add('d-none');
-                                            btn.textContent = 'View More';
-                                        }
-                                    }
-                                </script>
                             </div>
 
 
+                            <script>
+                                function toggleCourses(button) {
+                                    const extraCourses = document.querySelectorAll('.extra-course');
+                                    extraCourses.forEach(el => el.classList.toggle('d-none'));
+                                    button.textContent = button.textContent === 'View More' ? 'View Less' : 'View More';
+                                }
+                            </script>
+                            <script>feather.replace();</script>
 
-                            <div class="card">
-                                <div class="header">
-                                    <h2>Jobseeker Coaching</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-lg-12">
 
-                                                <!-- Coach Card 1 -->
-                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                    <img src="../images/gallery/finished-quiz.png" alt="Coach Image"
-                                                        class="img-fluid rounded"
-                                                        style="width: 200px; height: 140px; object-fit: cover;">
-                                                    <div
-                                                        class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                        <h5 class="fw-bold mb-1">Julia Maccarthy</h5>
-                                                        <p class="text-muted mb-2">Career Coach</p>
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                            <span class="text-muted">(4/5 Rating)</span>
-                                                        </div>
-                                                    </div>
+
+                            
+
+                       @php
+                            use Carbon\Carbon;
+
+                            $mentorships = \App\Models\BookingSession::with([
+                                'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
+                            ])->where('jobseeker_id', $jobseeker->id)
+                            ->where('user_type', 'mentor')
+                            ->whereHas('mentor.profilePicture')
+                            ->get();
+
+                            $assessments = \App\Models\BookingSession::with([
+                                'assessor.reviews', 'assessor.profilePicture', 'assessor.experiences'
+                            ])->where('jobseeker_id', $jobseeker->id)
+                            ->where('user_type', 'assessor')
+                            ->get();
+
+                            $coachings = \App\Models\BookingSession::with([
+                                'coach.reviews', 'coach.profilePicture', 'coach.experiences'
+                            ])->where('jobseeker_id', $jobseeker->id)
+                            ->where('user_type', 'coach')
+                            ->get();
+                        @endphp
+
+                        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+                        <script>
+                            function toggleVisibility(section) {
+                                document.querySelectorAll('.' + section + '-item').forEach((el, index) => {
+                                    if (index >= 3) el.classList.toggle('d-none');
+                                });
+
+                                const button = document.getElementById('viewMoreBtn_' + section);
+                                button.innerText = button.innerText === 'View More' ? 'View Less' : 'View More';
+                            }
+                        </script>
+
+                        <!-- MENTORSHIP SECTION -->
+                        <div class="card">
+                            <div class="header"><h2>Jobseeker Mentorship</h2></div>
+                            <div class="body">
+                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
+                                    @forelse ($mentorships as $index => $session)
+                                        @php
+                                            $mentor = $session->mentor;
+                                            $reviews = $mentor?->reviews ?? collect();
+                                            $experiences = $mentor?->experiences ?? collect();
+                                            $averageRating = $reviews->avg('ratings') ?? 0;
+                                            $totalReviews = $reviews->count();
+                                            $filledStars = floor($averageRating);
+                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                            $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                            $designation = $currentExp?->job_role ?? 'No designation available';
+                                            $slotMode = $session->slot_mode;
+                                            $zoomLink = $session->zoom_join_url;
+                                            $image = $mentor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+                                        @endphp
+                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm mentorship-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                            <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                <h5 class="fw-bold mb-1">{{ $mentor->name }}</h5>
+                                                <p class="text-muted mb-1">{{ $designation }}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
+                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
+                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
+                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
                                                 </div>
-
-                                                <!-- Hidden More Coaches -->
-                                                <div id="moreCoaches" class="d-none">
-
-                                                    <!-- Coach Card 2 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/graphic-design.png"
-                                                            alt="Coach Image" class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">John Smith</h5>
-                                                            <p class="text-muted mb-2">Leadership Consultant</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ★</span>
-                                                                <span class="text-muted">(5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Coach Card 3 -->
-                                                    <div
-                                                        class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm">
-                                                        <img src="../images/gallery/ui-ux.png" alt="Coach Image"
-                                                            class="img-fluid rounded"
-                                                            style="width: 200px; height: 140px; object-fit: cover;">
-                                                        <div
-                                                            class="ps-4 d-flex flex-column justify-content-center flex-grow-1">
-                                                            <h5 class="fw-bold mb-1">Sara Lee</h5>
-                                                            <p class="text-muted mb-2">Startup Advisor</p>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="text-warning me-2">★ ★ ★ ★ ☆</span>
-                                                                <span class="text-muted">(4.5/5 Rating)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleCoachButton"
-                                                        onclick="toggleCoaches()">View More</button>
-                                                </div>
-
+                                                @if ($slotMode === 'online' && $zoomLink)
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
+                                                @elseif ($slotMode === 'offline')
+                                                    <p class="text-muted small mt-1">Offline session - check location</p>
+                                                @else
+                                                    <p class="text-danger small mt-1">Link not available</p>
+                                                @endif
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <script>
-                                    function toggleCoaches() {
-                                        const moreCoaches = document.getElementById("moreCoaches");
-                                        const button = document.getElementById("toggleCoachButton");
-
-                                        if (moreCoaches.classList.contains("d-none")) {
-                                            moreCoaches.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            moreCoaches.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
+                                    @empty
+                                        <div class="alert alert-info">No mentorship sessions found.</div>
+                                    @endforelse
+                                    @if ($mentorships->count() > 3)
+                                        <div class="text-center">
+                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_mentorship" onclick="toggleVisibility('mentorship')">View More</button>
+                                        </div>
+                                    @endif
+                                </div></div></div>
                             </div>
+                        </div>
+
+                        <!-- ASSESSMENT SECTION -->
+                        <div class="card mt-4">
+                            <div class="header"><h2>Jobseeker Assessments</h2></div>
+                            <div class="body">
+                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
+                                    @forelse ($assessments as $index => $session)
+                                        @php
+                                            $assessor = $session->assessor;
+                                            $reviews = $assessor?->reviews ?? collect();
+                                            $experiences = $assessor?->experiences ?? collect();
+                                            $averageRating = $reviews->avg('ratings') ?? 0;
+                                            $totalReviews = $reviews->count();
+                                            $filledStars = floor($averageRating);
+                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                            $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
+                                            $slotMode = $session->slot_mode;
+                                            $zoomLink = $session->zoom_join_url;
+                                            $image = $assessor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+                                        @endphp
+                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm assessment-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                            <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                <h5 class="fw-bold mb-1">{{ $assessor->name }}</h5>
+                                                <p class="text-muted mb-1">{{ $designation }}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
+                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
+                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
+                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                </div>
+                                                @if ($slotMode === 'online' && $zoomLink)
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
+                                                @elseif ($slotMode === 'offline')
+                                                    <p class="text-muted small mt-1">Offline session - check location</p>
+                                                @else
+                                                    <p class="text-danger small mt-1">Link not available</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="alert alert-info">No assessment sessions found.</div>
+                                    @endforelse
+                                    @if ($assessments->count() > 3)
+                                        <div class="text-center">
+                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_assessment" onclick="toggleVisibility('assessment')">View More</button>
+                                        </div>
+                                    @endif
+                                </div></div></div>
+                            </div>
+                        </div>
+
+                        <!-- COACHING SECTION -->
+                        <div class="card mt-4">
+                            <div class="header"><h2>Jobseeker Coaching</h2></div>
+                            <div class="body">
+                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
+                                    @forelse ($coachings as $index => $session)
+                                        @php
+                                            $coach = $session->coach;
+                                            $reviews = $coach?->reviews ?? collect();
+                                            $experiences = $coach?->experiences ?? collect();
+                                            $averageRating = $reviews->avg('ratings') ?? 0;
+                                            $totalReviews = $reviews->count();
+                                            $filledStars = floor($averageRating);
+                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                            $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
+                                            $slotMode = $session->slot_mode;
+                                            $zoomLink = $session->zoom_join_url;
+                                            $image = $coach?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+                                        @endphp
+                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm coaching-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                            <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                <h5 class="fw-bold mb-1">{{ $coach->name }}</h5>
+                                                <p class="text-muted mb-1">{{ $designation }}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
+                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
+                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
+                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                                </div>
+                                                @if ($slotMode === 'online' && $zoomLink)
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
+                                                @elseif ($slotMode === 'offline')
+                                                    <p class="text-muted small mt-1">Offline session - check location</p>
+                                                @else
+                                                    <p class="text-danger small mt-1">Link not available</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="alert alert-info">No coaching sessions found.</div>
+                                    @endforelse
+                                    @if ($coachings->count() > 3)
+                                        <div class="text-center">
+                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_coaching" onclick="toggleVisibility('coaching')">View More</button>
+                                        </div>
+                                    @endif
+                                </div></div></div>
+                            </div>
+                        </div>
 
 
 
@@ -867,86 +798,59 @@
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Subscription Card 1 -->
-                                                <div class="card p-3 mb-4 shadow-sm">
-                                                    <div class="d-flex flex-column">
-                                                        <h5 class="fw-bold mb-1">Basic Plan</h5>
-                                                        <p class="text-muted mb-2">Access limited job listings and
-                                                            profile views</p>
-                                                        <div class="mb-2">
-                                                            <strong>Duration:</strong> 1 Month<br>
-                                                            <strong>Purchased On:</strong> 01 June 2025<br>
-                                                            <strong>Expired On:</strong> 30 June 2025
-                                                        </div>
-                                                        <span
-                                                            class="badge bg-secondary text-white small align-self-start px-2 py-1">₹499/month</span>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Hidden More Subscriptions -->
-                                                <div id="moreSubscriptions" class="d-none">
-
-                                                    <!-- Subscription Card 2 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-1">Premium Plan</h5>
-                                                            <p class="text-muted mb-2">Full job access, coaching
-                                                                sessions & resume support</p>
-                                                            <div class="mb-2">
-                                                                <strong>Duration:</strong> 3 Months<br>
-                                                                <strong>Purchased On:</strong> 15 May 2025<br>
-                                                                <strong>Expired On:</strong> 14 August 2025
+                                                @if(count($subscriptionPlans) > 0)
+                                                    @foreach ($subscriptionPlans as $index => $plan)
+                                                        <div class="card p-3 mb-4 shadow-sm {{ $index > 0 ? 'd-none extra-subscription' : '' }}">
+                                                            <div class="d-flex flex-column">
+                                                                <h5 class="fw-bold mb-1">{{ $plan->title }}</h5>
+                                                                <p class="text-muted mb-2">{{ $plan->description }}</p>
+                                                                <div class="mb-2">
+                                                                    <strong>Duration:</strong> {{ $plan->duration_days }} Days<br>
+                                                                    <strong>Purchased On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->start_date)->format('d M Y') }}<br>
+                                                                    <strong>Expired On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->end_date)->format('d M Y') }}
+                                                                </div>
+                                                                <span class="badge bg-secondary text-white small align-self-start px-2 py-1">
+                                                                    ₹{{ $plan->price }}
+                                                                </span>
                                                             </div>
-                                                            <span
-                                                                class="badge bg-success text-white small align-self-start px-2 py-1">₹1,499/month</span>
                                                         </div>
-                                                    </div>
+                                                    @endforeach
 
-                                                    <!-- Subscription Card 3 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-1">Enterprise Plan</h5>
-                                                            <p class="text-muted mb-2">Advanced hiring tools and support
-                                                                for startups</p>
-                                                            <div class="mb-2">
-                                                                <strong>Duration:</strong> 1 Year<br>
-                                                                <strong>Purchased On:</strong> 01 January 2025<br>
-                                                                <strong>Expired On:</strong> 31 December 2025
-                                                            </div>
-                                                            <span
-                                                                class="badge bg-warning text-dark small align-self-start px-2 py-1">₹4,999/month</span>
+                                                    <!-- View More Button (only show if more than 1 subscription exists) -->
+                                                    @if(count($subscriptionPlans) > 1)
+                                                        <div class="text-center mt-4">
+                                                            <button class="btn btn-primary" id="toggleButtonSub"
+                                                                onclick="toggleSubscriptions()">View More</button>
                                                         </div>
+                                                    @endif
+                                                @else
+                                                    <div class="alert alert-info text-center p-3">
+                                                        No subscriptions found.
                                                     </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButtonSub"
-                                                        onclick="toggleSubscriptions()">View More</button>
-                                                </div>
+                                                    
+                                                @endif
 
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- JS Toggle -->
-                                <script>
-                                    function toggleSubscriptions() {
-                                        const moreSubscriptions = document.getElementById("moreSubscriptions");
-                                        const button = document.getElementById("toggleButtonSub");
-
-                                        if (moreSubscriptions.classList.contains("d-none")) {
-                                            moreSubscriptions.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            moreSubscriptions.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
                             </div>
+
+                            <!-- Toggle Script -->
+                            <script>
+                                function toggleSubscriptions() {
+                                    const extraSubs = document.querySelectorAll('.extra-subscription');
+                                    const button = document.getElementById("toggleButtonSub");
+
+                                    let hidden = [...extraSubs].some(el => el.classList.contains("d-none"));
+
+                                    extraSubs.forEach(el => el.classList.toggle("d-none", !hidden));
+                                    button.textContent = hidden ? "View Less" : "View More";
+                                }
+                            </script>
+
 
 
 
@@ -1044,111 +948,49 @@
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Certification Card 1 -->
-                                                <div class="card p-3 mb-3 shadow-sm">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-1">Full Stack Web Development</h6>
-                                                            <p class="text-muted mb-0"><strong>Issued On:</strong> 15
-                                                                April 2025</p>
+                                                @foreach($certificates as $index => $cert)
+                                                    <div class="card p-3 mb-3 shadow-sm">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="fw-bold mb-1">{{ $cert->course_name }}</h6>
+                                                                <p class="text-muted mb-0">
+                                                                    <strong>Issued On:</strong> {{ \Carbon\Carbon::parse($cert->completion_date)->format('d F Y') }}
+                                                                </p>
+                                                            </div>
+                                                            <button class="btn btn-sm btn-outline-primary"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#certModal{{ $index }}">
+                                                                View
+                                                            </button>
                                                         </div>
-                                                        <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#certModal1">View</button>
                                                     </div>
-                                                </div>
 
-                                                <!-- Certification Card 2 -->
-                                                <div class="card p-3 mb-3 shadow-sm">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-1">UI/UX Design Specialization</h6>
-                                                            <p class="text-muted mb-0"><strong>Issued On:</strong> 01
-                                                                March 2025</p>
+                                                    <!-- Modal for this certificate -->
+                                                    <div class="modal fade" id="certModal{{ $index }}" tabindex="-1" aria-labelledby="certModal{{ $index }}Label" aria-hidden="true">
+                                                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="certModal{{ $index }}Label">{{ $cert->course_name }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <div class="modal-body text-center">
+                                                                    <!-- ✅ Certificate show in iframe -->
+                                                                    <iframe src="{{ route('admin.viewCertificate', [$jobseeker->id, $cert->material_id]) }}" 
+                                                                            frameborder="0" width="100%" height="600px"></iframe>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#certModal2">View</button>
                                                     </div>
-                                                </div>
-
-                                                <!-- Certification Card 3 -->
-                                                <div class="card p-3 mb-3 shadow-sm">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-1">Advanced Data Analytics</h6>
-                                                            <p class="text-muted mb-0"><strong>Issued On:</strong> 10
-                                                                January 2024</p>
-                                                        </div>
-                                                        <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#certModal3">View</button>
-                                                    </div>
-                                                </div>
+                                                @endforeach
+                                                @if($certificates->isEmpty())
+                                                    <p class="text-muted">No certificates available.</p>
+                                                @endif
 
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Modals for Certificates -->
-
-                                <!-- Modal 1 -->
-                                <div class="modal fade" id="certModal1" tabindex="-1" aria-labelledby="certModal1Label"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="certModal1Label">Full Stack Web Development
-                                                </h5>
-                                                <button type="button" class="btn-close"
-                                                    data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="https://udemy-certificate.s3.amazonaws.com/image/UC-c2013095-ec1b-4b2b-b77e-07a330160cb8.jpg?v=1719901769000"
-                                                    alt="Certificate" class="img-fluid">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Modal 2 -->
-                                <div class="modal fade" id="certModal2" tabindex="-1" aria-labelledby="certModal2Label"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="certModal2Label">UI/UX Design Specialization
-                                                </h5>
-                                                <button type="button" class="btn-close"
-                                                    data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="https://udemy-certificate.s3.amazonaws.com/image/UC-c2013095-ec1b-4b2b-b77e-07a330160cb8.jpg?v=1719901769000"
-                                                    alt="Certificate" class="img-fluid">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Modal 3 -->
-                                <div class="modal fade" id="certModal3" tabindex="-1" aria-labelledby="certModal3Label"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="certModal3Label">Advanced Data Analytics
-                                                </h5>
-                                                <button type="button" class="btn-close"
-                                                    data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="https://udemy-certificate.s3.amazonaws.com/image/UC-c2013095-ec1b-4b2b-b77e-07a330160cb8.jpg?v=1719901769000"
-                                                    alt="Certificate" class="img-fluid">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>

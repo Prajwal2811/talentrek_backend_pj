@@ -52,70 +52,93 @@
                                             <tbody>
                                                 @foreach($shortlistJobseekers as $shortlistJobseeker)
                                                     @php
-                                                        $adminStatus = $shortlistJobseeker->admin_status_rjs;
-                                                        $superadminStatus = $shortlistJobseeker->admin_status_rjs ?? 'pending';
+                                                        $status = $shortlistJobseeker->admin_status_rjs;
+
+                                                        $adminStatusOnly = in_array($status, ['approved', 'rejected']) ? $status : (Illuminate\Support\Str::startsWith($status, 'superadmin_') ? 'approved' : 'pending');
+                                                        $superadminStatusOnly = Illuminate\Support\Str::startsWith($status, 'superadmin_') ? Illuminate\Support\Str::after($status, 'superadmin_') : 'pending';
+
                                                         $isAdmin = auth()->user()->role === 'admin';
                                                         $isSuperadmin = auth()->user()->role === 'superadmin';
                                                     @endphp
 
-                                                  <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $shortlistJobseeker->name }}</td>
-                                                    <td>{{ $shortlistJobseeker->email }}</td>
-                                                    <td>Admin: {{ $adminStatus }}<br>Superadmin: {{ $superadminStatus }}</td>
-                                                    <td>
-                                                        @if($isAdmin)
-                                                            @if($adminStatus === null || $adminStatus === 'pending')
-                                                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adminModal{{ $shortlistJobseeker->id }}">Change Status</button>
-                                                            @else
-                                                                <span class="text-muted">Already {{ $adminStatus }}</span>
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $shortlistJobseeker->name }}</td>
+                                                        <td>{{ $shortlistJobseeker->email }}</td>
+                                                        <td>
+                                                            Admin: {{ ucfirst($adminStatusOnly) }}<br>
+                                                            Superadmin: {{ ucfirst($superadminStatusOnly) }}
+                                                        </td>
+                                                        <td>
+                                                            @if($isAdmin)
+                                                                @if($adminStatusOnly === 'pending')
+                                                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adminModal{{ $shortlistJobseeker->id }}">
+                                                                        Change Status
+                                                                    </button>
+                                                                @elseif($adminStatusOnly === 'rejected')
+                                                                    <span class="badge bg-secondary">Rejected</span>
+                                                                @elseif($superadminStatusOnly === 'rejected')
+                                                                    <span class="badge bg-danger text-light">Superadmin Rejected</span>
+                                                                @else
+                                                                    <span class="badge bg-info">Already {{ ucfirst($adminStatusOnly) }}</span>
+                                                                @endif
+                                                            @elseif($isSuperadmin)
+                                                                @if($superadminStatusOnly === 'pending' && $adminStatusOnly === 'approved')
+                                                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#superadminModal{{ $shortlistJobseeker->id }}">
+                                                                        Final Decision
+                                                                    </button>
+                                                                @elseif($superadminStatusOnly === 'approved')
+                                                                    <span class="badge bg-success text-light">Superadmin Approved</span>
+                                                                @elseif($superadminStatusOnly === 'rejected')
+                                                                    <span class="badge bg-danger text-light">Superadmin Rejected</span>
+                                                                @elseif($adminStatusOnly === 'rejected')
+                                                                    <span class="badge bg-secondary text-light">Admin Rejected</span>
+                                                                @else
+                                                                    <span class="badge bg-dark">Admin has not yet responded</span>
+                                                                @endif
                                                             @endif
-                                                        @elseif($isSuperadmin)
-                                                            @if($adminStatus === 'approved')
-                                                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#superadminModal{{ $shortlistJobseeker->id }}">Final Decision</button>
-                                                            @else
-                                                                <span class="text-dark">Admin has not yet responded</span>
-                                                            @endif
-                                                        @endif
-                                                    </td>
-                                                </tr>
+                                                        </td>
+
+                                                    </tr>
+
 
                                                 <!-- Admin Modal -->
                                                 @if($isAdmin)
-                                                <div class="modal fade" id="adminModal{{ $shortlistJobseeker->id }}" tabindex="-1">
-                                                    <div class="modal-dialog">
-                                                        <form method="POST" action="{{ route('admin.shortlist.updateStatus') }}">
-                                                            @csrf
-                                                            <input type="hidden" name="jobseeker_id" value="{{ $shortlistJobseeker->id }}">
-                                                            <input type="hidden" name="role" value="admin">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Admin - Change Status</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <label>Status</label>
-                                                                    <select name="status" class="form-select status-select" data-target="#adminReason{{ $shortlistJobseeker->id }}">
-                                                                        <option selected disabled>Select status</option>
-                                                                        <option value="approved">Approve</option>
-                                                                        <option value="rejected">Reject</option>
-                                                                    </select>
-                                                                    <div class="mt-3 d-none reason-field" id="adminReason{{ $shortlistJobseeker->id }}">
-                                                                        <label>Reason for Rejection</label>
-                                                                        <textarea name="reason" class="form-control" placeholder="Enter reason"></textarea>
+                                                    <div class="modal fade" id="adminModal{{ $shortlistJobseeker->id }}" tabindex="-1">
+                                                        <div class="modal-dialog">
+                                                            <form method="POST" action="{{ route('admin.shortlist.updateStatus') }}">
+                                                                @csrf
+                                                                <input type="hidden" name="jobseeker_id" value="{{ $shortlistJobseeker->id }}">
+                                                                <input type="hidden" name="role" value="admin">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">Admin - Change Status</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <label>Status</label>
+                                                                        <select name="status" class="form-select status-select form-control" data-target="#adminReason{{ $shortlistJobseeker->id }}">
+                                                                            <option selected disabled>Select status</option>
+                                                                            <option value="approved">Approve</option>
+                                                                            <option value="rejected">Reject</option>
+                                                                        </select>
+                                                                        <div class="mt-3 d-none reason-field" id="adminReason{{ $shortlistJobseeker->id }}">
+                                                                            <label>Reason for Rejection</label>
+                                                                            <textarea name="reason" class="form-control" placeholder="Enter reason"></textarea>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button class="btn btn-success">Submit</button>
                                                                     </div>
                                                                 </div>
-                                                                <div class="modal-footer">
-                                                                    <button class="btn btn-success">Submit</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
+                                                            </form>
+                                                        </div>
                                                     </div>
-                                                </div>
                                                 @endif
 
+
                                                 <!-- Superadmin Modal -->
-                                                @if($isSuperadmin && $adminStatus === 'approved')
+                                              @if($isSuperadmin && $adminStatusOnly === 'approved')
                                                 <div class="modal fade" id="superadminModal{{ $shortlistJobseeker->id }}" tabindex="-1">
                                                     <div class="modal-dialog">
                                                         <form method="POST" action="{{ route('admin.shortlist.updateStatus') }}">
@@ -129,14 +152,27 @@
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <label>Status</label>
-                                                                    <select name="status" class="form-select status-select" data-target="#superadminReason{{ $shortlistJobseeker->id }}">
+                                                                    <select name="status" class="form-select status-select form-control"
+                                                                            data-reject="#superadminReason{{ $shortlistJobseeker->id }}"
+                                                                            data-approve="#superadminInterview{{ $shortlistJobseeker->id }}">
                                                                         <option selected disabled>Select status</option>
-                                                                        <option value="Final Approved">Final Approve</option>
-                                                                        <option value="Final Rejected">Final Reject</option>
+                                                                        <option value="approved">Final Approve</option>
+                                                                        <option value="rejected">Final Reject</option>
                                                                     </select>
+
+                                                                    <!-- Reject reason -->
                                                                     <div class="mt-3 d-none reason-field" id="superadminReason{{ $shortlistJobseeker->id }}">
                                                                         <label>Reason for Rejection</label>
                                                                         <textarea name="reason" class="form-control" placeholder="Enter reason"></textarea>
+                                                                    </div>
+
+                                                                    <!-- Interview Schedule -->
+                                                                    <div class="mt-3 d-none interview-field" id="superadminInterview{{ $shortlistJobseeker->id }}">
+                                                                        <label>Interview Date</label>
+                                                                        <input type="date" name="interview_date" class="form-control mb-2">
+
+                                                                        <label>Interview Time</label>
+                                                                        <input type="time" name="interview_time" class="form-control">
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer">
@@ -146,24 +182,44 @@
                                                         </form>
                                                     </div>
                                                 </div>
-                                                @endif
-                                                                                            <script>
+                                            @endif
+
+                                            <script>
                                                 document.addEventListener("DOMContentLoaded", function () {
                                                     document.querySelectorAll('.status-select').forEach(function (select) {
                                                         select.addEventListener('change', function () {
-                                                            const target = document.querySelector(this.getAttribute('data-target'));
-                                                            if (this.value.includes('Reject')) {
-                                                                target.classList.remove('d-none');
-                                                            } else {
-                                                                target.classList.add('d-none');
+                                                            const rejectTarget = document.querySelector(this.getAttribute('data-reject'));
+                                                            const approveTarget = document.querySelector(this.getAttribute('data-approve'));
+
+                                                            if (this.value === 'rejected') {
+                                                                rejectTarget.classList.remove('d-none');
+                                                                approveTarget.classList.add('d-none');
+
+                                                                // Make rejection reason required
+                                                                rejectTarget.querySelector('textarea').setAttribute('required', true);
+                                                                approveTarget.querySelectorAll('input').forEach(inp => inp.removeAttribute('required'));
+                                                            } 
+                                                            else if (this.value === 'approved') {
+                                                                approveTarget.classList.remove('d-none');
+                                                                rejectTarget.classList.add('d-none');
+
+                                                                // Make interview date/time required
+                                                                approveTarget.querySelectorAll('input').forEach(inp => inp.setAttribute('required', true));
+                                                                rejectTarget.querySelector('textarea').removeAttribute('required');
+                                                            } 
+                                                            else {
+                                                                rejectTarget.classList.add('d-none');
+                                                                approveTarget.classList.add('d-none');
                                                             }
                                                         });
                                                     });
                                                 });
-                                                </script>
+                                            </script>
+
+
                                             </td>
                                         </tr>
-                                        @endforeach
+                                                @endforeach
 
 
                                         </table>

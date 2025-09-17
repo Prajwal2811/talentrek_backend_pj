@@ -11,67 +11,27 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
+    
     <div class="page-wraper">
-        <div class="flex h-screen">
+        <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
             @include('site.trainer.componants.sidebar')
 
             <div class="flex-1 flex flex-col">
-                <nav class="bg-white shadow-md px-6 py-3 flex items-center justify-between">
-                    <div class="flex items-center space-x-6 w-1/2">
-                    <div class="text-xl font-bold text-blue-900 block lg:hidden">
-                        Talent<span class="text-blue-500">rek</span>
-                    </div>
-                    <!-- <div class="relative w-full">
-                        <input type="text" placeholder="Search for talent" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div> -->
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
-                        </div>
-                        <div class="relative inline-block">
-                        <select aria-label="Select Language" 
-                                class="appearance-none border border-gray-300 rounded-md px-10 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
-                            <option value="en" selected>English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                            <!-- add more languages as needed -->
-                        </select>
-                        <span class="pointer-events-none absolute left-2 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-globe"></i>
-                        </span>
-                        </div>
-                    <div>
-                        <a href="#" role="button"
-                            class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
-                        <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
-                        </a>
-                    </div>
-                    </div>
-                </nav>
+                @include('site.trainer.componants.navbar')
 
-                <main class="p-6 ">
-                    <h2 class="text-xl font-semibold mb-6">Recorded course</h2>
-
-                    
-                    <form action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
+                <main class="p-6 max-h-[900px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                    <h2 class="text-xl font-semibold mb-6">{{ langLabel('recorded_course') }}</h2>
+                    <form id="trainingForm" action="{{ route('trainer.training.recorded.save.data') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Course Title -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Course Title</label>
-                            <input type="text" name="training_title" placeholder="Enter the Course Title" class="w-full border rounded-md p-2" />
+                            <label class="block font-medium mb-1">{{ langLabel('course_title') }}</label>
+                            <input type="text" name="training_title" placeholder="{{ langLabel('enter_course_title') }}" class="w-full border rounded-md p-2" value="{{old('training_title')}}"/>
                             @error('training_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -79,8 +39,8 @@
 
                         <!-- Course Sub Title -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Course Sub Title</label>
-                            <input type="text" name="training_sub_title" placeholder="Enter the Sub Title" class="w-full border rounded-md p-2" />
+                            <label class="block font-medium mb-1">{{ langLabel('course_sub_title') }}</label>
+                            <input type="text" name="training_sub_title" placeholder="{{ langLabel('enter_course_sub_title') }}" class="w-full border rounded-md p-2" value="{{old('training_sub_title')}}"/>
                             @error('training_sub_title')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -88,66 +48,77 @@
 
                         <!-- Description -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Description</label>
-                            <textarea name="training_descriptions" placeholder="Enter the Description" class="w-full border rounded-md p-2 h-24"></textarea>
+                            <label class="block font-medium mb-1">{{ langLabel('description') }}</label>
+                            <textarea name="training_descriptions" placeholder="{{ langLabel('enter_description') }}" class="w-full border rounded-md p-2 h-24">{{old('training_descriptions')}}</textarea>
                             @error('training_descriptions')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        
+                        @php
+                            $categories = App\Models\TrainingCategory::all();
+                        @endphp
                         <!-- Category (Single selection with radio buttons) -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-2">Category</label>
+                            <label class="block font-medium mb-2">{{ langLabel('category') }}<</label>
                             <div class="flex flex-wrap gap-4">
-                                <label>
-                                    <input type="radio" name="training_category" value="business" class="mr-2" /> Business
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="development" class="mr-2" /> Development
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="design" class="mr-2" /> Design
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="marketing" class="mr-2" /> Marketing
-                                </label>
-                                <label>
-                                    <input type="radio" name="training_category" value="health & fitness" class="mr-2" /> Health & Fitness
-                                </label>
+                                @foreach ($categories as $category)
+                                    <label>
+                                        <input type="radio" name="training_category" value="{{ $category->category }}" class="mr-2" /> {{ $category->category }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('training_category')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <!-- Training Level -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block font-medium mb-1">{{ langLabel('training_level') }}<</label>
+                                <select name="training_level" class="w-full border rounded-md p-2">
+                                    <option value="">{{ langLabel('select_training_level') }}</option>
+                                    <option value="Beginner" {{ old('training_level', $training->training_level ?? '') == 'Beginner' ? 'selected' : '' }}>{{ langLabel('beginner') }}</option>
+                                    <option value="Intermediate" {{ old('training_level', $training->training_level ?? '') == 'Intermediate' ? 'selected' : '' }}>{{ langLabel('intermediate') }}</option>
+                                    <option value="Advanced" {{ old('training_level', $training->training_level ?? '') == 'Advanced' ? 'selected' : '' }}>{{ langLabel('advanced') }}</option>
+                                </select>
+                                @error('training_level')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
 
-                       
+
                         <!-- Course Content Structure -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-2">Course Content Structure</label>
+                            <label class="block font-medium mb-2">{{ langLabel('course_content_structure') }}</label>
                             <div class="mb-2">
-                                <input id="sectionTitle" name="content_sections[0][title]" type="text" placeholder="Section title" class="w-full border rounded-md p-2" />
+                                <input id="sectionTitle" name="content_sections[0][title]" type="text" placeholder="{{ langLabel('section_title') }}" class="w-full border rounded-md p-2" />
                             </div>
                             <div class="mb-2">
-                                <textarea id="contentText" name="content_sections[0][description]" placeholder="Contents" class="w-full border rounded-md p-2"></textarea>
+                                <textarea id="contentText" name="content_sections[0][description]" placeholder="{{ langLabel('contents') }}" class="w-full border rounded-md p-2"></textarea>
                             </div>
-                            <button id="addContentBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add Content</button>
+                            <button id="addContentBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">{{ langLabel('add_content') }}</button>
                         </div>
 
                         <!-- Course Video Table (Dynamic row append) -->
                         <div class="bg-white p-4 rounded-md shadow mb-4">
-                            <h3 class="text-md font-semibold mb-2">Course Videos</h3>
+                            <h3 class="text-md font-semibold mb-2">{{ langLabel('course_videos') }}</h3>
                             <div class="overflow-x-auto">
                                 <table id="courseTable" class="w-full text-sm text-left border">
                                     <thead class="bg-gray-100">
                                         <tr class="text-gray-700">
-                                            <th class="p-2 border">Sr. No.</th>
-                                            <th class="p-2 border">Title</th>
-                                            <th class="p-2 border">Description</th>
-                                            <th class="p-2 border">Upload</th>
-                                            <th class="p-2 border">Delete</th>
+                                            <th class="p-2 border">{{ langLabel('sr_no') }}</th>
+                                            <th class="p-2 border">{{ langLabel('title') }}</th>
+                                            <th class="p-2 border">{{ langLabel('description') }}</th>
+                                            <th class="p-2 border">{{ langLabel('upload') }}</th>
+                                            <th class="p-2 border">{{ langLabel('file_duration') }}</th>
+                                            <th class="p-2 border">{{ langLabel('delete') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Yahan rows dynamically JavaScript se add honge -->
+                                        <!--  rows dynamically JavaScript add  -->
                                     </tbody>
                                 </table>
                             </div>
@@ -155,30 +126,41 @@
 
                         <!-- Thumbnail Upload -->
                         <div class="mb-4">
-                            <label class="block font-medium mb-1">Upload Thumbnail</label>
+                            <label class="block font-medium mb-1">{{ langLabel('upload_thumbnail') }}</label>
                             <div class="flex gap-4 items-center">
-                                <input type="file" name="thumbnail" class="border rounded-md p-2 flex-1" />
+                                <input type="file" accept="image/*" name="thumbnail" class="border rounded-md p-2 flex-1" />
                             </div>
                         </div>
 
-                        <!-- Course Price -->
-                        <div class="mb-6">
-                            <label class="block font-medium mb-1">Course Price</label>
-                            <input type="text" name="training_price" placeholder="Enter Course Price" class="w-full border rounded-md p-2" />
-                            @error('training_price')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                        <!-- Course Price and Offer Price -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Course Price -->
+                            <div>
+                                <label class="block font-medium mb-1">{{ langLabel('course_price') }}</label>
+                                <input type="text" name="training_price" placeholder="{{ langLabel('enter_course_price') }}" class="w-full border rounded-md p-2" value="{{old('training_price')}}"/>
+                                @error('training_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Course Offer Price -->
+                            <div>
+                                <label class="block font-medium mb-1">{{ langLabel('offer_price') }}</label>
+                                <input type="text" name="training_offer_price" placeholder="{{ langLabel('enter_offer_price') }}" class="w-full border rounded-md p-2" value="{{old('training_offer_price')}}"/>
+                                @error('training_offer_price')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
+
 
                         <!-- Submit Button -->
                         <div class="text-right">
                             <button type="submit" class="bg-blue-800 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-md font-semibold">
-                                Submit
+                                {{ langLabel('submit') }}
                             </button>
                         </div>
                     </form>
-   
-                     
                 </main>
 
 
@@ -285,6 +267,8 @@
                     });
                 }
             </script> -->
+
+
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
                     const addBtn = document.getElementById('addContentBtn');
@@ -319,8 +303,12 @@
                                 <input type="hidden" name="content_sections[${index}][description]" value="${content}">
                             </td>
                             <td class="p-2 border text-center">
-                                <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input type="file" name="content_sections[${index}][file]" style="display:none" />
+                                <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">{{ langLabel('upload_file') }}</button>
+                                <input accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
+                            </td>
+                            <td class="p-2 border text-center duration-cell">
+                                --
+                                <input type="hidden" name="content_sections[${index}][file_duration]" value="">
                             </td>
                             <td class="p-2 border text-center">
                                 <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
@@ -354,9 +342,35 @@
                     tableBody.addEventListener('change', (e) => {
                         if (e.target.type === 'file') {
                             const fileInput = e.target;
-                            const fileName = fileInput.files.length ? fileInput.files[0].name : 'Upload File';
+                            const file = fileInput.files[0];
                             const btn = fileInput.previousElementSibling;
-                            btn.textContent = fileName;
+
+                            if (file) {
+                                btn.textContent = file.name;
+
+                                const video = document.createElement('video');
+                                video.preload = 'metadata';
+
+                                video.onloadedmetadata = function () {
+                                    window.URL.revokeObjectURL(video.src);
+                                    const durationInSeconds = video.duration;
+
+                                    const minutes = Math.floor(durationInSeconds / 60);
+                                    const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
+                                    const formatted = `${minutes}:${seconds}`;
+
+                                    const tr = fileInput.closest('tr');
+                                    const durationCell = tr.querySelector('.duration-cell');
+                                    const hiddenInput = durationCell.querySelector('input');
+
+                                    durationCell.innerHTML = `
+                                        ${formatted}
+                                        <input type="hidden" name="${hiddenInput.name}" value="${formatted}">
+                                    `;
+                                };
+
+                                video.src = URL.createObjectURL(file);
+                            }
                         }
                     });
 
@@ -368,6 +382,47 @@
                 });
             </script>
 
+<!-- SweetAlert CDN -->
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    $("#trainingForm").on("submit", function (e) {
+        let errors = [];
+        let rows = $("#courseTable tbody tr");
+
+        // 1. Check minimum 1 section
+        if (rows.length === 0) {
+            errors.push("Please add at least one course section.");
+        }
+
+        // 2. Check each row has file uploaded and duration
+        rows.each(function (i, row) {
+            let fileInput = $(row).find('input[type="file"]')[0];
+            let durationInput = $(row).find('.duration-cell input')[0];
+
+            if (!fileInput || fileInput.files.length === 0) {
+                errors.push(`Row ${i + 1}: Please upload a file.`);
+            }
+            if (!durationInput || !durationInput.value) {
+                errors.push(`Row ${i + 1}: File duration missing.`);
+            }
+        });
+
+        // 3. Show SweetAlert if errors exist
+        if (errors.length > 0) {
+            e.preventDefault();
+            swal({
+                title: "Validation Error",
+                text: errors.join("\n"),
+                icon: "error", // 👈 icon added
+                button: "OK"
+            });
+        }
+    });
+});
+</script>
+
 
 
 
@@ -378,36 +433,4 @@
 
 
 
-          
-
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+          @include('site.trainer.componants.footer')
