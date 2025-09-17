@@ -23,7 +23,7 @@ $unreadCount = DB::table('admin_group_chats')
            @click="active = 'mentor.dashboard'"
            :title="!sidebarOpen ? 'Dashboard' : ''">
             <i data-feather="grid" class="mr-3"></i>
-            <span x-show="sidebarOpen" x-transition>Dashboard</span>
+            <span x-show="sidebarOpen" x-transition>{{ langLabel('dashboard') }}</span>
         </a>
 
 
@@ -85,7 +85,7 @@ $unreadCount = DB::table('admin_group_chats')
         <a href="{{ route('mentor.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
            class="flex items-center px-4 py-2 rounded-md hover:bg-white hover:text-blue-900 transition duration-200" :title="!sidebarOpen ? 'Logout' : ''">
            <i data-feather="log-out" class="mr-3"></i>
-           <span x-show="sidebarOpen" x-transition>Logout</span>
+           <span x-show="sidebarOpen" x-transition>{{ langLabel('logout') }}</span>
         </a>
         <form id="logout-form" action="{{ route('mentor.logout') }}" method="POST" class="hidden">@csrf</form>
     </nav>

@@ -46,8 +46,8 @@
                                     </script>
                                 @endif
                                 
-                                <h2 class="text-2xl font-semibold mb-1">Verify OTP</h2>
-                                <p class="text-sm text-gray-500 mb-6">Enter OTP sent on registered email or mobile no.</p>
+                                <h2 class="text-2xl font-semibold mb-1">{{ langLabel('verify_otp') }}</h2>
+                                <p class="text-sm text-gray-500 mb-6">{{ langLabel('enter_otp') }}</p>
                                 
                                 <form action="{{ route('mentor.verify-otp.submit') }}" method="POST" id="otp-form">
                                     @csrf
@@ -55,7 +55,7 @@
                                     <input type="hidden" name="contact" value="{{ session('otp_value') }}">
                                     <input type="hidden" name="otp" id="otp-value"> <!-- Final OTP -->
 
-                                    <label class="block text-sm font-medium mb-1">OTP</label>
+                                    <label class="block text-sm font-medium mb-1">{{ langLabel('otp') }}</label>
                                     <div class="flex justify-between gap-2 mb-1">
                                         @for ($i = 0; $i < 6; $i++)
                                             <input type="text" inputmode="numeric" pattern="\d*" maxlength="1"
@@ -72,18 +72,18 @@
                                         Didn't receive OTP? <a href="#" class="text-blue-600 font-medium">Resend OTP</a>
                                     </div> -->
                                     <div class="text-sm text-gray-600 mb-4 mt-3">
-                                        Didn't receive OTP? 
-                                        <button id="resendOtpBtn" class="text-blue-600 font-medium">Resend OTP</button><br>
+                                        {{ langLabel('didnt_receive_otp') }}
+                                        <button id="resendOtpBtn" class="text-blue-600 font-medium">{{ langLabel('resend_otp') }}</button><br>
                                         
                                         <!-- <span id="countdown" class="ml-2 text-red-500 hidden"></span><br> -->
-                                        <span id="resendMessage" class="ml-2 text-green-600 font-semibold text-sm hidden">OTP Sent</span>
+                                        <span id="resendMessage" class="ml-2 text-green-600 font-semibold text-sm hidden">{{ langLabel('otp_sent') }}</span>
 
                                     </div>
 
 
                                     <button type="submit"
                                         class="block w-full text-center text-sm font-medium text-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 rounded-md transition duration-150">
-                                        Verify OTP
+                                        {{ langLabel('verify_otp') }}
                                     </button>
                                 </form>
 

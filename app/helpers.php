@@ -38,7 +38,7 @@ if (!function_exists('notificationUsersSent')) {
     {
         $user = Auth::user();
         $notifications = DB::table('notifications')->select('notifications.*','jobseekers.name')->join('jobseekers','jobseekers.id','=','notifications.receiver_id'
-        )->where(['notifications.is_read_users' => 0,'user_type' => 'jobseeker'])->get();
+        )->where(['notifications.is_read_users' => 0,'user_type' => 'jobseeker','sender_id' => $user])->get();
         return $notifications;
     }
 }

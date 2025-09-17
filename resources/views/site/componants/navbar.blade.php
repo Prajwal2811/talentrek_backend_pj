@@ -109,7 +109,7 @@
                         class="bg-transparent appearance-none text-base font-medium pl-1 pr-4 text-black focus:outline-none" name="lang" id="lang" onchange="this.form.submit()">
                         <option value="english" {{ session('lang', 'english') == 'english' ? 'selected' : '' }}>English</option>
 
-                        <option value="arabic" {{ session('lang', 'english') == 'arabic' ? 'selected' : '' }}>Arabic</option>
+                        <option value="arabic" {{ session('lang', 'english') == 'arabic' ? 'selected' : '' }}>{{ langLabel('arabic') }}</option>
                     </select>
                 </form>
             </div>

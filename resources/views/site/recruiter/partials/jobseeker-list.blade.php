@@ -10,22 +10,22 @@
         <div>
             <h4 class="font-semibold text-sm blur-sm">{{ $jobseeker->name }}</h4>
             <p class="text-sm text-gray-500">
-                {{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
+                {{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
             </p>
         </div>
     </div>
 
     <!-- Experience -->
     <div class="w-32 text-sm">
-        <p class="font-semibold">Experience</p>
+        <p class="font-semibold">{{ langLabel('experience') }}</p>
         <p>{{ $jobseeker->total_experience ?? '0 years' }}</p>
     </div>
 
     <!-- Skills -->
     <div class="text-sm flex-1">
-        <p class="font-semibold">Skills</p>
+        <p class="font-semibold">{{ langLabel('skills') }}</p>
         <p>
-            {{ $jobseeker->skills->pluck('skills')->filter()->join(', ') ?: 'Not provided' }}
+            {{ $jobseeker->skills->pluck('skills')->filter()->join(', ') ?: langLabel('not_provided') }}
         </p>
     </div>
 
@@ -45,14 +45,14 @@
                 <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
                 <button type="button" onclick="confirmShortlist({{ $jobseekerId }})"
                     class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
-                    Shortlist
+                    {{ langLabel('shortlist') }}
                 </button>
             </form>
         @else
             {{-- Approved or Pending --}}
             <button class="border text-xs px-2 py-1 rounded cursor-not-allowed 
                 {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}" disabled>
-                {{ $isApproved ? 'Approved' : 'Pending' }}
+                {{ $isApproved ? langLabel('approved') : langLabel('pending') }}
             </button>
 
             {{-- View Profile --}}
@@ -60,7 +60,7 @@
                class="text-white text-xs px-2 py-1 rounded inline-block 
                {{ $isApproved ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 cursor-not-allowed' }}"
                {{ $isApproved ? '' : 'onclick=event.preventDefault()' }}>
-                View Profile
+                {{ langLabel('view_profile') }}
             </a>
 
             {{-- Interview Request --}}
@@ -74,7 +74,7 @@
                             : 'bg-purple-500 hover:bg-purple-600') 
                         : 'bg-gray-600 cursor-not-allowed' }}"
                 {{ ($interviewRequested || !$isApproved) ? 'disabled' : '' }}>
-                {{ $interviewRequested ? 'Interview Requested' : 'Interview Request' }}
+                {{ $interviewRequested ? langLabel('interview_requested') : langLabel('interview_request') }}
             </button>
         @endif
     </div>
@@ -82,5 +82,5 @@
 @endforeach
 
 @if($jobseekers->isEmpty())
-<p class="p-4 text-gray-500">No jobseekers match the selected filters.</p>
+<p class="p-4 text-gray-500">{{ langLabel('no_jobseekers_match') }}</p>
 @endif

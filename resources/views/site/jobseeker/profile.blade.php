@@ -33,7 +33,7 @@ $skills = $user->skills->first();
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-3xl font-bold text-white ml-[10%]">Profile</h2>
+                        <h2 class="text-3xl font-bold text-white ml-[10%]">{{ langLabel('profile') }}</h2>
                     </div>
                 </div>
             </div>
@@ -88,7 +88,7 @@ $skills = $user->skills->first();
                             @csrf
                             <button type="submit" class="border rounded px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 flex items-center gap-2">
                                 <i class="fas fa-power-off"></i>
-                                Logout
+                                {{ langLabel('logout') }}
                             </button>
                         </form>
                         </div>
@@ -118,7 +118,7 @@ $skills = $user->skills->first();
                             :class="tab === 'profile' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Profile
+                            {{ langLabel('profile') }}
                             </button>
                         </li>
                         <li>
@@ -127,7 +127,7 @@ $skills = $user->skills->first();
                             :class="tab === 'cart' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Cart
+                             {{ langLabel('cart') }}
                             </button>
                         </li>
                         <li>
@@ -136,7 +136,7 @@ $skills = $user->skills->first();
                             :class="tab === 'training' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Training
+                             {{ langLabel('training') }}
                             </button>
                         </li>
                         <li>
@@ -145,7 +145,7 @@ $skills = $user->skills->first();
                             :class="tab === 'mentorship' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Mentorship
+                             {{ langLabel('mentorship') }}
                             </button>
                         </li>
                         <li>
@@ -154,7 +154,7 @@ $skills = $user->skills->first();
                             :class="tab === 'assessment' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Assessment
+                             {{ langLabel('assessment') }}
                             </button>
                         </li>
                         <li>
@@ -163,7 +163,7 @@ $skills = $user->skills->first();
                             :class="tab === 'coaching' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Coaching
+                             {{ langLabel('coaching') }}
                             </button>
                         </li>
                         <li>
@@ -172,7 +172,7 @@ $skills = $user->skills->first();
                             :class="tab === 'subscription' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Subscription
+                             {{ langLabel('subscription') }}
                             </button>
                         </li>
                         <li>
@@ -181,7 +181,7 @@ $skills = $user->skills->first();
                             :class="tab === 'payment' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Payment
+                             {{ langLabel('payment') }}
                             </button>
                         </li>
                         <li>
@@ -190,7 +190,7 @@ $skills = $user->skills->first();
                             :class="tab === 'certificates' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Certificates
+                            {{ langLabel('certificates') }}
                             </button>
                         </li>
                         <li>
@@ -199,7 +199,7 @@ $skills = $user->skills->first();
                             :class="tab === 'settings' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
                             class="w-full text-left px-4 py-2 rounded"
                             >
-                            Settings
+                            {{ langLabel('settings') }}
                             </button>
                         </li>
                         <!-- More outer tabs can be added here -->
@@ -220,7 +220,7 @@ $skills = $user->skills->first();
                                     }
                                 }
                             }">
-                            <h2 class="text-xl font-semibold mb-4">My Profile</h2>
+                            <h2 class="text-xl font-semibold mb-4">{{ langLabel('my_profile') }}</h2>
                             @if(session('success'))
                                 <span id="successMessage" class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
                                     <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -246,32 +246,32 @@ $skills = $user->skills->first();
                                 @click="profileTab = 'personal'"
                                 :class="profileTab === 'personal' ? 'border-b-2 border-black text-black' : 'text-gray-600'"
                                 class="pb-2"
-                                >Personal Information</button>
+                                >{{ langLabel('personal_information') }}</button>
                                 <button
                                 @click="profileTab = 'education'"
                                 :class="profileTab === 'education' ? 'border-b-2 border-black text-black' : 'text-gray-600'"
                                 class="pb-2"
-                                >Educational Details</button>
+                                >{{ langLabel('educational_details') }}</button>
                                 <button
                                 @click="profileTab = 'work'"
                                 :class="profileTab === 'work' ? 'border-b-2 border-black text-black' : 'text-gray-600'"
                                 class="pb-2"
-                                >Work Experience</button>
+                                >{{ langLabel('work_experience') }}</button>
                                 <button
                                 @click="profileTab = 'skills'"
                                 :class="profileTab === 'skills' ? 'border-b-2 border-black text-black' : 'text-gray-600'"
                                 class="pb-2"
-                                >Skills & Training</button>
+                                >{{ langLabel('skills_and_training') }}</button>
                                 <button
                                 @click="profileTab = 'additional'"
                                 :class="profileTab === 'additional' ? 'border-b-2 border-black text-black' : 'text-gray-600'"
                                 class="pb-2"
-                                >Additional Information</button>
+                                >{{ langLabel('additional_information') }}</button>
                             </div>
                             <div class="space-y-4 mt-4">
                                 <input type="hidden" name="id" value="{{ $user->id }}">
                                 <div id="personal-info-success" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
-                                    <strong>Success!</strong> <span class="message-text"></span>
+                                    <strong>{{ langLabel('success') }}</strong> <span class="message-text"></span>
                                 </div>
                                 <!-- Personal Info -->
                                 <form id="personal-info-form" action="{{ route('jobseeker.profile.update') }}" method="POST">
@@ -279,8 +279,8 @@ $skills = $user->skills->first();
                                 
                                     <div x-show="profileTab === 'personal'" x-cloak class="space-y-4">
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Name <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="name" placeholder="Name" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->name ?? '' }}" />
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('name') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="name" placeholder="{{ langLabel('name') }}" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->name ?? '' }}" />
                                             @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -288,16 +288,16 @@ $skills = $user->skills->first();
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Email address <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="email" name="email" placeholder="Email address"  class="w-full border rounded px-3 py-2"  value="{{ Auth()->user()->email ?? '' }}"/>
+                                                <label class="block text-sm font-medium mb-1">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="email" name="email" placeholder="{{ langLabel('email') }}"  class="w-full border rounded px-3 py-2"  value="{{ Auth()->user()->email ?? '' }}"/>
                                                 @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Gender <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block text-sm font-medium mb-1">{{ langLabel('gender') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <select class="w-full border rounded px-3 py-2" name="gender" id="gender">
-                                                    <option value="">Select Gender</option>
+                                                    <option value="">{{ langLabel('select') }} {{ langLabel('gender') }}</option>
                                                     <option value="Male" {{ Auth()->user()->gender == 'Male' ? 'selected' : '' }}>Male</option>
                                                     <option value="Female" {{ Auth()->user()->gender == 'Female' ? 'selected' : '' }}>Female</option>
                                                 </select>
@@ -310,14 +310,14 @@ $skills = $user->skills->first();
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Phone number <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="tel" placeholder="Phone number" name="phone_number" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->phone_number ?? '' }}"/>
+                                                <label class="block text-sm font-medium mb-1">{{ langLabel('phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="tel" placeholder="{{ langLabel('phone_number') }}" name="phone_number" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->phone_number ?? '' }}"/>
                                                 @error('phone_number')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium mb-1">Date of Birth <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block text-sm font-medium mb-1">{{ langLabel('dob') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <input 
                                                     type="date"
                                                     name="dob" 
@@ -332,7 +332,7 @@ $skills = $user->skills->first();
                                         </div>
                                         
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <span class="text-xs text-blue-600">
                                                 National ID should start with 1 for male and 2 for female.
                                             </span>
@@ -352,16 +352,16 @@ $skills = $user->skills->first();
                                         </div>
                                         
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Address <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" placeholder="Enter address" name="address"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->address ?? '' }}"/>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('address') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" placeholder="{{ langLabel('address') }}" name="address"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->address ?? '' }}"/>
                                             @error('address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">City <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="city" placeholder="Enter city" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->city ?? '' }}"/>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('city') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="city" placeholder="{{ langLabel('select_city') }}" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->city ?? '' }}"/>
                                             @error('city')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -369,24 +369,24 @@ $skills = $user->skills->first();
 
                                          <!-- State -->
                                         <div class="mt-3">
-                                            <label class="block font-medium mb-1">State</label>
-                                            <input type="text" name="state" placeholder="Enter State" value="{{ Auth()->user()->state ?? '' }}" class="w-full border rounded px-3 py-2" />
+                                            <label class="block font-medium mb-1">{{ langLabel('state') }}</label>
+                                            <input type="text" name="state" placeholder="{{ langLabel('select_state') }}" value="{{ Auth()->user()->state ?? '' }}" class="w-full border rounded px-3 py-2" />
                                             @error('state')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Country <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" placeholder="Enter country" name="country"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->country ?? '' }}"/>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('country') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" placeholder="{{ langLabel('select_country') }}" name="country"  class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->country ?? '' }}"/>
                                             @error('country')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="pin_code" placeholder="Enter pin_code" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->pin_code ?? '' }}"/>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('pin_code') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="pin_code" placeholder="{{ langLabel('enter_pin_code') }}" class="w-full border rounded px-3 py-2" value="{{ Auth()->user()->pin_code ?? '' }}"/>
                                             @error('pin_code')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -399,13 +399,13 @@ $skills = $user->skills->first();
                                                 @click="nextTab"
                                                 x-show="profileTab !== 'additional'"
                                             >
-                                                Next
+                                                {{ langLabel('next') }}
                                             </button>
                                             <button
                                                 type="button"
                                                 id="save-personal-info"
                                                 class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">
-                                                Save
+                                                {{ langLabel('save') }}
                                             </button>
                                         </div>
                                     </div>
@@ -473,7 +473,7 @@ $skills = $user->skills->first();
                                 </script>
                                 <!-- Success Message -->
                                 <div id="education-success" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
-                                    <strong>Success!</strong> <span class="message-text"></span>
+                                    <strong>{{ langLabel('success') }}</strong> <span class="message-text"></span>
                                 </div>
 
                                 <!-- Education Form -->
@@ -529,6 +529,7 @@ $skills = $user->skills->first();
 
                                                     <!-- Graduation Year -->
                                                     <div>
+
                                                         <label class="block text-sm font-medium text-gray-700 mb-1">
                                                             Graduation year <span class="text-red-600">*</span>
                                                         </label>
@@ -552,7 +553,7 @@ $skills = $user->skills->first();
 
                                         <!-- Add More Button -->
                                         <div class="col-span-2">
-                                            <button type="button" id="add-education" class="text-green-600 text-sm">Add education +</button>
+                                            <button type="button" id="add-education" class="text-green-600 text-sm">{{ langLabel('add_education') }} +</button>
                                         </div>
 
                                         <!-- Submit Buttons -->
@@ -563,6 +564,7 @@ $skills = $user->skills->first();
                                                     class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">
                                                 Save
                                             </button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -669,7 +671,7 @@ $skills = $user->skills->first();
     
                             <!-- Work Experience Success Message -->
                                 <div id="work-success" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
-                                    <strong>Success!</strong> <span class="message-text"></span>
+                                    <strong>{{ langLabel('success') }}</strong> <span class="message-text"></span>
                                 </div>
 
                                 <!-- Work Experience Form -->
@@ -692,21 +694,21 @@ $skills = $user->skills->first();
 
                                                     <!-- Job Role -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Job Role <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <label class="block text-sm font-medium mb-1">{{ langLabel('job_role') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="job_role[]" class="w-full border rounded px-3 py-2"
                                                             value="{{ old("job_role.$i", $data->job_role ?? '') }}" placeholder="Enter Job Role" />
                                                     </div>
 
                                                     <!-- Organization -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <label class="block text-sm font-medium mb-1">{{ langLabel('organization') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="organization[]" class="w-full border rounded px-3 py-2"
                                                             value="{{ old("organization.$i", $data->organization ?? '') }}" placeholder="Enter Organization" />
                                                     </div>
 
                                                     <!-- Started From -->
                                                     <div>
-                                                        <label class="block text-sm font-medium mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <label class="block text-sm font-medium mb-1">{{ langLabel('started_from') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded px-3 py-2"
                                                             value="{{ old("starts_from.$i", isset($data->starts_from) ? \Carbon\Carbon::parse($data->starts_from)->format('Y-m-d') : '') }}" max="{{ date('Y-m-d') }}"/>
                                                     </div>
@@ -760,15 +762,15 @@ $skills = $user->skills->first();
 
                                         <!-- Add Button -->
                                         <div class="col-span-2">
-                                            <button type="button" id="add-work" class="text-green-600 text-sm">+ Add Experience</button>
+                                            <button type="button" id="add-work" class="text-green-600 text-sm">+ {{ langLabel('add_experience') }}</button>
                                         </div>
 
                                         <!-- Submit Buttons -->
                                         <div class="md:col-span-2 flex justify-end gap-4 mt-4">
                                             <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                    @click="nextTab" x-show="profileTab !== 'additional'">Next</button>
+                                                    @click="nextTab" x-show="profileTab !== 'additional'">{{ langLabel('next') }}</button>
                                             <button type="button" id="save-work-info"
-                                                    class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
+                                                    class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">{{ langLabel('save') }}</button>
                                         </div>
                                     </div>
                                 </form>
@@ -882,7 +884,7 @@ $skills = $user->skills->first();
 
                             <!-- Skills Success Message -->
                                 <div id="skills-success" class="col-12 ml-auto mr-auto text-center alert alert-success alert-dismissible fade show" style="display: none;">
-                                    <strong>Success!</strong> <span class="message-text"></span>
+                                    <strong>{{ langLabel('success') }}</strong> <span class="message-text"></span>
                                 </div>
 
                                 <!-- Skills & Training Form -->
@@ -892,7 +894,7 @@ $skills = $user->skills->first();
 
                                         <!-- Skills -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Skills <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('skills') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="skills" placeholder="E.g., JavaScript, Excel, Marketing"
                                                 class="w-full border rounded px-3 py-2"
                                                 value="{{ old('skills', $skills->skills ?? '') }}" />
@@ -900,7 +902,7 @@ $skills = $user->skills->first();
 
                                         <!-- Area of Interests -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Area of Interests <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('area_of_intrest') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="interest" placeholder="E.g., Data Science, Graphic Design"
                                                 class="w-full border rounded px-3 py-2"
                                                 value="{{ old('interest', $skills->interest ?? '') }}" />
@@ -909,9 +911,9 @@ $skills = $user->skills->first();
                                         <!-- Job Categories -->
                                          
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('job_category') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <select class="w-full border rounded px-3 py-2" name="job_category">
-                                                <option value="">Select Job Category</option>
+                                                <option value="">{{ langLabel('select') }} {{ langLabel('job_category') }}</option>
                                                 @php
                                                     $categories = [
                                                         'IT & Software',
@@ -940,7 +942,7 @@ $skills = $user->skills->first();
 
                                         <!-- Website Link -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Website Link</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('website_link') }}</label>
                                             <input type="url" name="website_link" placeholder="https://yourwebsite.com"
                                                 class="w-full border rounded px-3 py-2"
                                                 value="{{ old('website_link', $skills->website_link ?? '') }}" />
@@ -948,7 +950,7 @@ $skills = $user->skills->first();
 
                                         <!-- Portfolio Link -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Portfolio Link</label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('portfolio_link') }}</label>
                                             <input type="url" name="portfolio_link" placeholder="https://yourportfolio.com"
                                                 class="w-full border rounded px-3 py-2"
                                                 value="{{ old('portfolio_link', $skills->portfolio_link ?? '') }}" />
@@ -958,10 +960,10 @@ $skills = $user->skills->first();
                                         <div class="flex justify-end gap-4 mt-6">
                                             <button type="button" class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                 @click="nextTab" x-show="profileTab !== 'additional'">
-                                                Next
+                                                {{ langLabel('next') }}
                                             </button>
                                             <button type="button" id="save-skills-info"
-                                                class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
+                                                class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">{{ langLabel('save') }}</button>
                                         </div>
                                     </div>
                                 </form>
@@ -1043,21 +1045,21 @@ $skills = $user->skills->first();
                                         
                                         <!-- Resume Upload -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload Resume <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('upload_resume') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex flex-col gap-2">
                                                 @if($resume)
                                                     <div class="flex items-center gap-4">
                                                         <a href="{{ asset($resume->document_path) }}" target="_blank" 
                                                                         class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition duration-200">
-                                                            📄 View Resume
+                                                            📄 {{ langLabel('view_resume') }}
                                                         </a>
 
-                                                        <button type="button" class="delete-file text-red-600 text-sm" data-type="resume">Delete</button>
+                                                        <button type="button" class="delete-file text-red-600 text-sm" data-type="resume">{{ langLabel('delete') }}</button>
                                                     </div>
                                                 @endif
                                                 <div class="flex gap-2 items-center">
                                                     <input type="file" name="resume" class="border rounded-md p-2 w-full text-sm" accept=".pdf,.doc,.docx,.txt" />
-                                                    {{-- <button type="button" class="remove-upload bg-red-500 text-white px-4 py-2 rounded-md text-sm">Remove</button> --}}
+                                                    {{-- <button type="button" class="remove-upload bg-red-500 text-white px-4 py-2 rounded-md text-sm">{{ langLabel('remove') }}</button> --}}
                                                 </div>
                                             </div>
                                         </div>
@@ -1065,15 +1067,15 @@ $skills = $user->skills->first();
                                         <!-- Profile Upload -->
                                         <!-- Upload Field -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload Profile <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('upload_profile') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex flex-col gap-2">
                                                 @if($profile)
                                                     <div class="flex items-center gap-4">
                                                         <a href="{{ asset($profile->document_path) }}" target="_blank" 
                                                             class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition duration-200">
-                                                            📄 View Profile
+                                                            📄 {{ langLabel('view_profile') }}
                                                         </a>
-                                                        <button type="button" class="delete-file text-red-600 text-sm" data-type="profile_picture">Delete</button>
+                                                        <button type="button" class="delete-file text-red-600 text-sm" data-type="profile_picture">{{ langLabel('delete') }}</button>
                                                     </div>
                                                 @endif
                                                 <div class="flex gap-2 items-center">
@@ -1098,7 +1100,7 @@ $skills = $user->skills->first();
 
                                         <!-- Submit Button -->
                                         <div class="flex justify-end gap-4 mt-6">
-                                            <button type="button" id="save-additional-info" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
+                                            <button type="button" id="save-additional-info" class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">{{ langLabel('save') }}</button>
                                         </div>
                                     </div>
                                 </form>
@@ -1106,11 +1108,11 @@ $skills = $user->skills->first();
                                 <!-- Confirmation Modal -->
                                 <div id="deleteConfirmModal" class="fixed inset-0 bg-gray-100 bg-opacity-90 flex items-center justify-center z-50 hidden">
                                     <div class="bg-white rounded-md p-6 w-full max-w-sm shadow-lg">
-                                        <h2 class="text-lg font-semibold mb-4">Confirm Delete</h2>
-                                        <p class="text-gray-700 mb-6">Are you sure you want to delete <span id="delete-file-type" class="font-semibold"></span>?</p>
+                                        <h2 class="text-lg font-semibold mb-4">{{ langLabel('confirm_delete') }}</h2>
+                                        <p class="text-gray-700 mb-6">{{ langLabel('are_you_sure_you_want_to_delete') }} <span id="delete-file-type" class="font-semibold"></span>?</p>
                                         <div class="flex justify-end gap-4">
-                                            <button type="button" id="cancelDeleteBtn" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
-                                            <button type="button" id="confirmDeleteBtn" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Yes, Delete</button>
+                                            <button type="button" id="cancelDeleteBtn" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">{{ langLabel('cancel') }}</button>
+                                            <button type="button" id="confirmDeleteBtn" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">{{ langLabel('yes') }}, {{ langLabel('delete') }}</button>
                                         </div>
                                     </div>
                                 </div>

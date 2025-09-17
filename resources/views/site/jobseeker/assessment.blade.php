@@ -17,7 +17,7 @@
                 <div class="absolute inset-0 bg-white bg-opacity-10"></div>
                 <div class="relative z-10 container mx-auto px-4">
                     <div class="space-y-2">
-                        <h2 class="text-3xl font-bold text-white ml-[10%]">Profile</h2>
+                        <h2 class="text-3xl font-bold text-white ml-[10%]">{{ langLabel('profile') }}</h2>
                     </div>
                 </div>
             </div>
@@ -39,14 +39,14 @@
                                 <div class="lg:col-span-2 space-y-6">
                                     <div>
                                         <h2 class="text-xl font-semibold text-gray-800">{{ $assessment->questions_title }}</h2>
-                                        <p class="text-gray-600 text-sm mt-2">Answer the following questions carefully.</p>
+                                        <p class="text-gray-600 text-sm mt-2">{{ langLabel('answer_the_following_question') }}</p>
                                     </div>
 
                                     <!-- Questions -->
                                     <template x-for="(q, index) in questions" :key="index">
                                         <div x-show="current === index" class="bg-white rounded border p-6 shadow-sm">
                                             <h3 class="text-md font-semibold text-gray-800 mb-2" x-text="q.question"></h3>
-                                            <p class="text-sm text-gray-500 mb-4">Select one option</p>
+                                            <p class="text-sm text-gray-500 mb-4">{{ langLabel('select_one_option') }}</p>
 
                                             <div class="space-y-3">
                                                 <template x-for="(opt, i) in q.options" :key="i">
@@ -77,7 +77,7 @@
                                             }"
                                             class="text-sm font-medium px-5 py-2 rounded transition"
                                         >
-                                            Next question &gt;
+                                            {{ langLabel('next_question') }} &gt;
                                         </button>
                                     </div>
                                 </div>
@@ -86,7 +86,7 @@
                                 <div class="bg-white rounded border p-6 shadow-sm space-y-4">
                                     <!-- Progress -->
                                     <div>
-                                        <h4 class="text-sm font-medium text-gray-700 mb-1">Quiz Tracking</h4>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-1">{{ langLabel('quiz_tracking') }}</h4>
                                         <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1">
                                             <div class="bg-orange-500 h-1.5 rounded-full" :style="`width: ${progress}%`"></div>
                                         </div>
@@ -95,17 +95,17 @@
 
                                    <!-- Timer -->
                                     <div>
-                                        <h4 class="text-sm font-medium text-gray-700 mb-1">Time Remaining</h4>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-1">{{ langLabel('time_remaining') }}</h4>
                                         <p class="text-lg font-bold text-red-600" x-text="formattedTime"></p>
                                         <p class="text-xs text-gray-500 mt-1">
-                                            Total Quiz Time: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
+                                            {{ langLabel('total_quiz_time') }}: {{ $assessment->time_per_question * $assessment->total_questions }} minutes
                                         </p>
                                     </div>
 
 
                                     <!-- Navigation Buttons -->
                                     <div>
-                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Quiz Navigation</h4>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2">{{ langLabel('quiz_navigation') }}</h4>
                                         <div class="grid grid-cols-5 gap-2">
                                             <template x-for="(q, index) in questions" :key="index">
                                                 <button
@@ -133,7 +133,7 @@
                                         @click="confirmSubmit = true"
                                         class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded mt-2"
                                     >
-                                        Finish quiz
+                                        {{ langLabel('finish_quiz') }}
                                     </button>
                                 </div>
                             </div>
@@ -141,15 +141,15 @@
                             <!-- Confirm Submit Modal -->
                             <div x-show="confirmSubmit" x-transition class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
                                 <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 text-center">
-                                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Are you sure you want to submit the quiz?</h2>
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ langLabel('are_you_sure_quiz') }}</h2>
                                     <div class="flex justify-center gap-4 mt-6">
                                         <button @click="confirmSubmit = false"
                                                 class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">
-                                            Cancel
+                                            {{ langLabel('cancel') }}
                                         </button>
                                         <button @click="finalSubmit"
                                                 class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                            Yes, Submit
+                                            {{ langLabel('yes') }}, {{ langLabel('submit') }}
                                         </button>
                                     </div>
                                 </div>

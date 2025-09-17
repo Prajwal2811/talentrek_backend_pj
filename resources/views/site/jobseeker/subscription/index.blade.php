@@ -22,7 +22,7 @@
         <div id="subscriptionModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative">
                 @include('admin.errors')
-                <h3 class="text-xl font-semibold mb-6">Available Subscription Plans</h3>
+                <h3 class="text-xl font-semibold mb-6">{{ langLabel('available_subscription_plans') }}</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @foreach($subscriptions as $plan)
                         <div class="border rounded-lg p-4 shadow-sm text-center">
@@ -49,7 +49,7 @@
                                 <input type="hidden" name="type" value="jobseeker">
                                 <button type="submit"
                                     class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium">
-                                    Buy subscription
+                                    {{ langLabel('buy') }} {{ langLabel('subscription') }}
                                 </button>
                             </form>
                         </div>

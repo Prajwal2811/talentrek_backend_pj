@@ -54,13 +54,13 @@
 
                                     <div class="flex flex-col items-center text-blue-600 cursor-pointer" onclick="showStep(4)">
                                         <div id="step-4-circle" class="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center">4</div>
-                                        <span class="text-xs mt-1 text-center">Training Experience <br />& Skills</span>
+                                        <span class="text-xs mt-1 text-center">{{ langLabel('training_experience') }} <br />& {{ langLabel('skills') }}</span>
                                     </div>
                                     <div class="flex-1 h-px bg-gray-300 mx-2"></div>
 
                                     <div class="flex flex-col items-center text-blue-600 cursor-pointer" onclick="showStep(5)">
                                         <div id="step-5-circle" class="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center">5</div>
-                                        <span class="text-xs mt-1 text-center">Additional<br />information</span>
+                                        <span class="text-xs mt-1 text-center">{{ langLabel('additional') }}<br />information</span>
                                     </div>
                                     </div>
 
@@ -71,15 +71,15 @@
                                     <!-- Step 1: Personal Info -->
                                     <div id="step-1" class="step">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Full name <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="Enter full name" value="{{old('name')}}"/>
+                                            <label class="block mb-1 text-sm font-medium">{{ langLabel('full_name') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_full_name') }}" value="{{old('name')}}"/>
                                             @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Email <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input placeholder="Enter email" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                            <input placeholder="{{ langLabel('enter_email') }}" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
                                             @error('email')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -87,13 +87,13 @@
                                         
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
                                                     <option value="+966">+966</option>
                                                     <option value="+971">+971</option>
                                                 </select>
-                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2 mt-1" value="{{old('phone_number')}}"/>
+                                                <input placeholder="{{ langLabel('enter_phone_number') }}" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2 mt-1" value="{{old('phone_number')}}"/>
                                                 
                                             </div>
                                             @error('phone_number')
@@ -101,7 +101,7 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Date of birth <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('dob') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="date" name="dob" class="w-full border rounded-md p-2 mt-1" value="{{old('dob')}}"/>
                                             @error('dob')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -110,7 +110,7 @@
                                         </div>
                                         <div class="grid grid-cols-2 gap-6 mt-3">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <span class="text-xs text-blue-600">
                                                     National ID should start with 1 for male and 2 for female.
                                                 </span>
@@ -131,46 +131,46 @@
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">
-                                                Address <span style="color: red; font-size: 17px;">*</span>
+                                                {{ langLabel('address') }} <span style="color: red; font-size: 17px;">*</span>
                                             </label>
-                                            <textarea name="address" class="w-full border rounded-md p-2 mt-1" placeholder="Enter address">{{ old('address') }}</textarea>
+                                            <textarea name="address" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_address') }}">{{ old('address') }}</textarea>
                                             @error('address')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                       
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">City <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('city') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="city" class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="Select city" value="{{ old('city') }}" />
+                                                placeholder="{{ langLabel('select_city') }}" value="{{ old('city') }}" />
                                             @error('city')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">State <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('state') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="state" class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="Select state" value="{{ old('state') }}" />
+                                                placeholder="{{ langLabel('select_state') }}" value="{{ old('state') }}" />
                                             @error('state')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Country <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('country') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="country" class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="Select country" value="{{ old('country') }}" />
+                                                placeholder="{{ langLabel('select_country') }}" value="{{ old('country') }}" />
                                             @error('country')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Pin Code <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('pin_code') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="pin_code"
                                                 class="w-full border rounded-md p-2 mt-1"
-                                                placeholder="Enter pin code"
+                                                placeholder="{{ langLabel('enter_pin_code') }}"
                                                 value="{{ old('pin_code') }}"
                                                 maxlength="5"
                                                 oninput="this.value = this.value.replace(/[^0-9]/g, '')"
@@ -180,7 +180,7 @@
                                             @enderror
                                         </div>
                                         <div class="flex justify-end">
-                                            <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">Next</button>
+                                            <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">{{ langLabel('next') }}Next</button>
                                         </div>
                                     
                                     </div>
@@ -245,12 +245,12 @@
                                         </div>
 
                                         <div class="col-span-2">
-                                            <button type="button" id="add-education" class="text-green-600 text-sm mt-3">+ Add Education</button>
+                                            <button type="button" id="add-education" class="text-green-600 text-sm mt-3">+ {{ langLabel('add_education') }}</button>
                                         </div>
 
                                         <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(1)" class="px-4 py-2 border rounded-md">Back</button>
-                                            <button type="button" onclick="showStep(3)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                            <button type="button" onclick="showStep(1)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
+                                            <button type="button" onclick="showStep(3)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
                                         </div>
                                     </div>
 
@@ -265,7 +265,7 @@
                                                     
                                                     {{-- Job Role --}}
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('job_title') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
                                                             placeholder="e.g. Software Engineer"
                                                             x-model="work.job_role">
@@ -273,7 +273,7 @@
 
                                                     {{-- Organization --}}
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('organization') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="organization[]" class="w-full border rounded-md p-2"
                                                             placeholder="e.g. ABC Corp"
                                                             x-model="work.organization">
@@ -281,24 +281,33 @@
 
                                                     {{-- Start Date --}}
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="date" name="starts_from[]" class="w-full border rounded-md p-2"
-                                                            x-model="work.start">
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            {{ langLabel('started_from') }} <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
+                                                        <input 
+                                                            type="date" 
+                                                            name="starts_from[]" 
+                                                            class="w-full border rounded-md p-2" 
+                                                            value="{{ old('starts_from.' . $i) }}" 
+                                                        />
+                                                        @error("starts_from.$i")
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
                                                     </div>
 
                                                     {{-- End Date & Checkbox --}}
-                                                    <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="date" name="end_to[]" class="w-full border rounded-md p-2"
-                                                            x-model="work.end"
-                                                            :disabled="work.working"
-                                                            :readonly="work.working">
+                                                    <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }}, endDate: '{{ old("end_to.$i") }}' }">
+                                                        <!-- Label -->
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                            {{ langLabel('to') }} <span style="color: red; font-size: 17px;">*</span>
+                                                        </label>
 
                                                         <label class="inline-flex items-center mt-2 space-x-2">
-                                                            <input type="checkbox" class="currently-working-checkbox"
-                                                                x-model="work.working"
-                                                                @change="handleWorkingChange(index)">
-                                                            <span>I currently work here</span>
+                                                            <input type="checkbox"
+                                                                name="currently_working[{{ $i }}]"
+                                                                class="currently-working-checkbox"
+                                                                x-model="working">
+                                                            <span>{{ langLabel('currently_work_here') }}</span>
                                                         </label>
                                                     </div>
 
@@ -314,13 +323,13 @@
 
                                         {{-- Add Work Button --}}
                                         <div class="col-span-2">
-                                            <button type="button" class="text-green-600 text-sm mt-3" @click="addWork()">+ Add Work Experience</button>
+                                            <button type="button" id="add-work" class="text-green-600 text-sm mt-3">+ {{ langLabel('add_work_experience') }}</button>
                                         </div>
 
                                         {{-- Navigation Buttons --}}
                                         <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">Back</button>
-                                            <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                            <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
+                                            <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
                                         </div>
 
                                     </div>
@@ -373,16 +382,16 @@
                                     <!-- Step 4: Skills -->
                                     <div id="step-4" class="step hidden">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium">{{ langLabel('skills') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="training_skills" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{old('training_skills')}}"/>
                                             @error('training_skills')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Area Of Interest <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('area_of_intrest') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <select name="area_of_interest" class="w-full border rounded-md p-2 mt-1">
-                                                <option value="">-- Select Area of Interest --</option>
+                                                <option value="">-- {{ langLabel('select_area_of_intrest') }} --</option>
                                                 @foreach($categories as $category)
                                                     <option value="{{ $category->category }}" {{ old('area_of_interest') == $category->category ? 'selected' : '' }}>
                                                         {{ $category->category }}
@@ -395,7 +404,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Job Category <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('job_category') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                                 placeholder="e.g. Communication, Leadership, Python, Cloud Computing" value="{{ old('job_category') }}" />
                                             @error('job_category')
@@ -405,14 +414,14 @@
 
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Website Link</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('website_link') }}</label>
                                             <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
                                             @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link</label>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('portfolio_link') }}</label>
                                             <input type="url" name="portfolio_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}"/>
                                             @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -420,10 +429,10 @@
                                         </div>
                                         <div class="flex justify-between mt-3">
                                             <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md">
-                                                Back
+                                                {{ langLabel('back') }}
                                             </button>
                                             <button type="button" onclick="showStep(5)" class="bg-blue-700 text-white px-6 py-2 rounded-md">
-                                                Next
+                                                {{ langLabel('next') }}
                                             </button>
                                         </div>
                                    
@@ -434,7 +443,7 @@
                                    
                                         <!-- Upload Resume -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">Upload resume <span style="color: red; font-size: 17px;">*</span></label>
+                                            <label class="block text-sm font-medium mb-1">{{ langLabel('upload_resume') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex gap-2 items-center">
                                                 <input type="file" name="resume" accept="application/pdf" class="border rounded-md p-2 w-full text-sm mt-1" />
                                             </div>
@@ -445,24 +454,25 @@
 
                                         <!-- Upload Profile Picture -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
-                                            <div class="flex gap-2 items-center">
-                                                <input type="file" name="profile_picture" accept="image/*" class="border rounded-md p-2 w-full text-sm mt-1" />
-                                            </div>
-                                            @error('profile_picture')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+
+                                        <label class="block text-sm font-medium mb-1 mt-3">{{ langLabel('upload_profile_picture') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                        <div class="flex gap-2 items-center">
+                                            <input type="file" name="profile_picture"  class="border rounded-md p-2 w-full text-sm mt-1" />
+                                        </div>
+                                        @error('profile_picture')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                         </div>
 
                                         <!-- Upload Training Certificate -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1 mt-3">Upload training certificate <span style="color: red; font-size: 17px;">*</span></label>
-                                            <div class="flex gap-2 items-center">
-                                                <input type="file" name="training_certificate" accept="application/pdf,image/*" class="border rounded-md p-2 w-full text-sm mt-1" />
-                                            </div>
-                                            @error('training_certificate')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+                                        <label class="block text-sm font-medium mb-1 mt-3">{{ langLabel('upload_training_certificate') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                        <div class="flex gap-2 items-center">
+                                            <input type="file" name="training_certificate" class="border rounded-md p-2 w-full text-sm mt-1" />
+                                        </div>
+                                        @error('training_certificate')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                         </div>
 
 
@@ -470,8 +480,8 @@
                                             <label class="flex items-start gap-2">
                                             <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}></input>
                                             <span>
-                                                I have read and agreed to 
-                                                <a href="#" class="text-blue-600 underline">terms and conditions</a>
+                                                {{ langLabel('agree_terms') }} 
+                                                <a href="#" class="text-blue-600 underline">{{ langLabel('terms_conditions') }}</a>
                                                 <ul class="list-disc ml-5 mt-1 space-y-1 text-gray-700">
                                                     <li>Mentors must create an account to publish courses.</li>
                                                     <li>Uploaded content must be original or properly licensed.</li>
@@ -485,9 +495,9 @@
                                             </label>
                                         </div>
                                         <div class="flex justify-between">
-                                        <button type="button" onclick="showStep(4)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
                                         <button type="submit" id="submitBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md">
-                                            Submit
+                                            {{ langLabel('submit') }}
                                         </button>
 
                                     

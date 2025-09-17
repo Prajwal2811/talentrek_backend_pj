@@ -28,10 +28,10 @@
                     <nav aria-label="breadcrumb" class="mb-6">
                         <ol class="flex text-2xl font-semibold">
                             <li>
-                            <a href="{{route('recruiter.jobseeker')}}" class="text-blue-600 hover:underline">Jobseekers</a>
+                            <a href="{{route('recruiter.jobseeker')}}" class="text-blue-600 hover:underline">{{ langLabel('jobseeker') }}</a>
                             </li>
                             <li><span class="mx-2 text-black">></span></li>
-                            <li>Jobseeker Details</li>
+                            <li>{{ langLabel('jobseeker_details') }}</li>
                         </ol>
                     </nav>
                     <div class="bg-white p-6 rounded shadow flex flex-col">
@@ -41,7 +41,7 @@
                             <img src="https://i.pravatar.cc/100?img=3" alt="Avatar" class="w-16 h-16 rounded-full object-cover" />
                             <div>
                             <h3 class="text-lg font-semibold">{{ $jobseeker->name}} </h3>
-                            <p class="text-sm text-gray-500">{{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}</p>
+                            <p class="text-sm text-gray-500">{{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}</p>
                             </div>
                             
                         </div>
@@ -66,7 +66,7 @@
                                         : 'bg-gray-600 cursor-not-allowed' }}"
                                 {{ ($interviewRequested || !$isApproved) ? 'disabled' : '' }}
                             >
-                                {{ $interviewRequested ? 'Interview Requested' : 'Interview Request' }}
+                                {{ $interviewRequested ? langLabel('interview_requested') : langLabel('interview_request') }}
                             </button>
                         </div>
                         <hr>
@@ -76,27 +76,27 @@
                             <button
                                 class="flex-1"
                                 :class="activeTab === 'personal' ? 'text-blue-600 border-b-2 border-blue-600 pb-2' : 'text-gray-600 pb-2'"
-                                @click="activeTab = 'personal'">Personal information</button>
+                                @click="activeTab = 'personal'">{{ langLabel('personal_information') }}</button>
                             
                             <button
                                 class="flex-1"
                                 :class="activeTab === 'education' ? 'text-blue-600 border-b-2 border-blue-600 pb-2' : 'text-gray-600 pb-2'"
-                                @click="activeTab = 'education'">Educational details</button>
+                                @click="activeTab = 'education'">{{ langLabel('educational_details') }}</button>
                             
                             <button
                                 class="flex-1"
                                 :class="activeTab === 'work' ? 'text-blue-600 border-b-2 border-blue-600 pb-2' : 'text-gray-600 pb-2'"
-                                @click="activeTab = 'work'">Work experience</button>
+                                @click="activeTab = 'work'">{{ langLabel('work_experience') }}</button>
                             
                             <button
                                 class="flex-1"
                                 :class="activeTab === 'skills' ? 'text-blue-600 border-b-2 border-blue-600 pb-2' : 'text-gray-600 pb-2'"
-                                @click="activeTab = 'skills'">Skills and training</button>
+                                @click="activeTab = 'skills'">{{ langLabel('skills_and_training') }}</button>
                             
                             <button
                                 class="flex-1"
                                 :class="activeTab === 'additional' ? 'text-blue-600 border-b-2 border-blue-600 pb-2' : 'text-gray-600 pb-2'"
-                                @click="activeTab = 'additional'">Additional information</button>
+                                @click="activeTab = 'additional'">{{ langLabel('additional_information') }}</button>
                         </div>
 
 
@@ -106,17 +106,17 @@
                             <div x-show="activeTab === 'personal'" x-transition class="space-y-6 text-sm">
                                 <!-- Row 1: Gender, Birth date, Email, Phone -->
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <p><strong>Gender:</strong> {{ $jobseeker->gender}} </p>
+                                    <p><strong>{{ langLabel('gender') }}:</strong> {{ $jobseeker->gender}} </p>
                                     <p>
-                                    <strong>Birth date:</strong> 
+                                    <strong>{{ langLabel('dob') }}:</strong> 
                                     <span style="filter: blur(3px);"> {{ $jobseeker->date_of_birth}} </span>
                                     </p>
                                     <p>
-                                    <strong>Email address:</strong> 
+                                    <strong>{{ langLabel('email') }}:</strong> 
                                     <span style="filter: blur(3px);">{{ $jobseeker->email }}</span>
                                     </p>
                                     <p>
-                                    <strong>Phone number:</strong> 
+                                    <strong>{{ langLabel('phone_number') }}:</strong> 
                                     <span style="filter: blur(3px);">{{ $jobseeker->phone_number }}</span>
                                     </p>
                                 </div>
@@ -124,14 +124,14 @@
                                 <!-- Row 2: Address, City, Country + empty column -->
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div>
-                                        <p><strong>Address:</strong></p>
+                                        <p><strong>{{ langLabel('address') }}:</strong></p>
                                         <p class="text-gray-600">
                                             <span style="filter: blur(3px);">
                                                 {{ $jobseeker->address }}
                                             </span>
                                         </p>
                                     </div>
-                                    <p><strong>City:</strong> {{ $jobseeker->city }}</p>
+                                    <p><strong>{{ langLabel('city') }}:</strong> {{ $jobseeker->city }}</p>
                                     <!-- <p><strong>Country:</strong> Saudi Arabia</p> -->
                                     <div></div> <!-- empty 4th column -->
                                 </div>
@@ -143,19 +143,19 @@
                                 @foreach($jobseeker->educations as $education)
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 border p-4 rounded-lg bg-gray-50">
                                         <div>
-                                            <p><strong>Highest Qualification:</strong></p>
+                                            <p><strong>{{ langLabel('highest_qualification') }}:</strong></p>
                                             <p>{{ $education->high_education }}</p>
                                         </div>
                                         <div>
-                                            <p><strong>Field of Study:</strong></p>
+                                            <p><strong>{{ langLabel('field_of_study') }}:</strong></p>
                                             <p>{{ $education->field_of_study }}</p>
                                         </div>
                                         <div>
-                                            <p><strong>Institution Name:</strong></p>
+                                            <p><strong>{{ langLabel('institition_name') }}:</strong></p>
                                             <p>{{ $education->institution }}</p>
                                         </div>
                                         <div>
-                                            <p><strong>Graduation Year:</strong></p>
+                                            <p><strong>{{ langLabel('graduation_year') }}:</strong></p>
                                             <p>{{ $education->graduate_year }}</p>
                                         </div>
                                     </div>
@@ -169,19 +169,19 @@
                                 @foreach($jobseeker->experiences as $experience)
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 border p-4 rounded-lg bg-gray-50">
                                         <div>
-                                            <p><strong>Job Role:</strong></p>
+                                            <p><strong>{{ langLabel('job_role') }}:</strong></p>
                                             <p>{{ $experience->job_role }}</p>
                                         </div>
                                         <div>
-                                            <p><strong>Organization:</strong></p>
+                                            <p><strong>{{ langLabel('organization') }}:</strong></p>
                                             <p>{{ $experience->organization }}</p>
                                         </div>
                                         <div>
-                                            <p><strong>Started From:</strong></p>
+                                            <p><strong>{{ langLabel('started_from') }}:</strong></p>
                                             <p>{{ $experience->starts_from }}</p>
                                         </div>
                                         <div>
-                                            <p><strong>Ended In:</strong></p>
+                                            <p><strong>{{ langLabel('ended_in') }}:</strong></p>
                                             <p>
                                                 {{ $experience->end_to }}
                                             </p>
@@ -197,19 +197,19 @@
                                 <!-- First Row: 4 Columns -->
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div>
-                                        <p><strong>Skills:</strong></p>
+                                        <p><strong>{{ langLabel('skills') }}:</strong></p>
                                         <p>{{  $skill->skills }}</p>
                                     </div>
                                     <div>
-                                        <p><strong>Areas of Interest:</strong></p>
+                                        <p><strong>{{ langLabel('area_of_intrest') }}:</strong></p>
                                         <p>{{ $skill->interest ?? '-' }}</p>
                                     </div>
                                     <div>
-                                        <p><strong>Job Categories:</strong></p>
+                                        <p><strong>{{ langLabel('job_category') }}:</strong></p>
                                         <p>{{ $skill->job_category ?? '-' }}</p>
                                     </div>
                                     <div>
-                                        <p><strong>Website Link:</strong></p>
+                                        <p><strong>{{ langLabel('website_link') }}:</strong></p>
                                         @if(!empty($skill->website_link))
                                             <a href="{{ $skill->website_link }}" class="text-blue-600 hover:underline" target="_blank">
                                                 {{ $skill->website_link }}
@@ -223,7 +223,7 @@
                                 <!-- Second Row: Portfolio Link full width -->
                                 <div class="grid grid-cols-1">
                                     <div>
-                                        <p><strong>Portfolio Link:</strong></p>
+                                        <p><strong>{{ langLabel('portfolio_link') }}:</strong></p>
                                         @if(!empty($skill->portfolio_link))
                                             <a href="{{ $skill->portfolio_link }}" class="text-blue-600 hover:underline" target="_blank">
                                                 {{ $skill->portfolio_link }}
@@ -243,7 +243,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                                     <!-- CV Name -->
                                     <div class="flex items-center space-x-2">
-                                        <p class="font-semibold">CV Name:</p>
+                                        <p class="font-semibold">{{ langLabel('cv_name') }}:</p>
                                         <p class="text-gray-600">
                                             {{ $additional->document_name ?? 'N/A' }}
                                         </p>
@@ -251,14 +251,14 @@
 
                                     <!-- Download Link -->
                                     <div class="flex items-center space-x-2">
-                                        <p class="font-semibold">Download Candidate CV:</p>
+                                        <p class="font-semibold">{{ langLabel('download_candidate_cv') }}:</p>
                                         <a 
                                             href="https://example.com/cv-peter-parker.pdf" 
                                             class="text-blue-600 hover:underline"
                                             target="_blank"
                                             download
                                         >
-                                            {{ $additional->document_name ?? 'Download CV' }}
+                                            {{ $additional->document_name ?? langLabel('download_cv') }}
                                         </a>
                                     </div>
                                 </div>

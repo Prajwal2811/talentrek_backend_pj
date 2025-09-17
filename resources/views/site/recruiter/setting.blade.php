@@ -28,7 +28,7 @@
 
             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
              <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeSection: 'profile', activeSubTab: 'company' }">
-                    <h2 class="text-2xl font-semibold mb-6">Settings</h2>
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('settings') }}</h2>
 
                     <div class="flex">
                         <!-- Sidebar -->
@@ -47,21 +47,21 @@
                                     href="#"
                                     @click.prevent="activeSection = 'notifications'"
                                     :class="activeSection === 'notifications' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Notifications</a>
+                                >{{ langLabel('notifications') }}</a>
                                 </li>
                                 <li>
                                 <a
                                     href="#"
                                     @click.prevent="activeSection = 'subscription'; activeSubTab = 'subscription'"
                                     :class="activeSection === 'subscription' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Subscription</a>
+                                >{{ langLabel('subscription') }}</a>
                                 </li>
                                 <li>
                                 <a
                                     href="#"
                                     @click.prevent="activeSection = 'privacy'"
                                     :class="activeSection === 'privacy' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
-                                >Privacy policy</a>
+                                >{{ langLabel('privacy_policy') }}</a>
                                 </li>
                                
                                 <li>
@@ -69,7 +69,7 @@
                                     href="#"
                                     @click.prevent="activeSection = 'delete'"
                                     :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'"
-                                >Delete account</a>
+                                >{{ langLabel('delete_account') }}</a>
                                 </li>
                             </ul>
                         </aside>
@@ -148,12 +148,12 @@
                                             <button @click="activeSubTab = 'company'"
                                                     :class="activeSubTab === 'company' ? 'pb-2 border-b-2 border-blue-600 font-medium' : 'pb-2 text-gray-500 hover:text-black'"
                                                     class="focus:outline-none">
-                                                Company Information
+                                                {{ langLabel('company_information') }}
                                             </button>
                                             <button @click="activeSubTab = 'documents'"
                                                     :class="activeSubTab === 'documents' ? 'pb-2 border-b-2 border-blue-600 font-medium' : 'pb-2 text-gray-500 hover:text-black'"
                                                     class="focus:outline-none">
-                                                Documents
+                                                {{ langLabel('documents') }}
                                             </button>
                                         </nav>
                                     </div>
@@ -165,7 +165,7 @@
                                             <div id="company-profile-success"
                                                 class="alert alert-success text-center"
                                                 style="display: none;">
-                                                <strong>Success!</strong> <span class="message-text"></span>
+                                                <strong>{{ langLabel('success') }}</strong> <span class="message-text"></span>
                                             </div>
 
                                             <div id="success-message" class="p-2 bg-green-100 text-green-800 rounded mb-3 hidden"></div>
@@ -179,7 +179,7 @@
 
                                                 {{-- Company Details --}}
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Name <span class="text-red-600">*</span></label>
+                                                    <label class="block mb-1 font-medium">{{ langLabel('company_name') }} <span class="text-red-600">*</span></label>
                                                     <input type="text" name="company_name"
                                                         value="{{ old('company_name', $companyDetails->company_name ?? '') }}"
                                                         class="w-full border rounded px-3 py-2" />
@@ -187,7 +187,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Email <span class="text-red-600">*</span></label>
+                                                    <label class="block mb-1 font-medium">{{ langLabel('company_email') }} <span class="text-red-600">*</span></label>
                                                     <input type="email" name="business_email"
                                                         value="{{ old('business_email', $companyDetails->business_email ?? '') }}"
                                                         class="w-full border rounded px-3 py-2" />
@@ -195,7 +195,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Phone Number <span class="text-red-600">*</span></label>
+                                                    <label class="block mb-1 font-medium">{{ langLabel('phone_number') }} <span class="text-red-600">*</span></label>
                                                     <input type="text" name="company_phone_number"
                                                         value="{{ old('company_phone_number', $companyDetails->company_phone_number ?? '') }}"
                                                         class="w-full border rounded px-3 py-2" />
@@ -203,9 +203,9 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Industry Type <span class="text-red-600">*</span></label>
+                                                    <label class="block mb-1 font-medium">{{ langLabel('industry_type') }} <span class="text-red-600">*</span></label>
                                                     <select name="industry_type" class="w-full border rounded px-3 py-2">
-                                                        <option value="">Select Industry</option>
+                                                        <option value="">{{ langLabel('select_type') }}</option>
                                                         <option value="Information technology" {{ old('industry_type', $companyDetails->industry_type ?? '') == 'Information technology' ? 'selected' : '' }}>Information technology</option>
                                                         <option value="Healthcare" {{ old('industry_type', $companyDetails->industry_type ?? '') == 'Healthcare' ? 'selected' : '' }}>Healthcare</option>
                                                         <option value="Finance" {{ old('industry_type', $companyDetails->industry_type ?? '') == 'Finance' ? 'selected' : '' }}>Finance</option>
@@ -214,7 +214,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Establishment Date <span class="text-red-600">*</span></label>
+                                                    <label class="block mb-1 font-medium">{{ langLabel('establishment_date') }} <span class="text-red-600">*</span></label>
                                                     <input type="date" name="establishment_date"
                                                         value="{{ old('establishment_date', $companyDetails->establishment_date ?? '') }}"
                                                         class="w-full border rounded px-3 py-2" />
@@ -222,7 +222,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block mb-1 font-medium">Company Website <span class="text-red-600">*</span></label>
+                                                    <label class="block mb-1 font-medium">{{ langLabel('company_website') }} <span class="text-red-600">*</span></label>
                                                     <input type="text" name="company_website"
                                                         value="{{ old('company_website', $companyDetails->company_website ?? '') }}"
                                                         class="w-full border rounded px-3 py-2" />
@@ -231,7 +231,7 @@
 
                                                 {{-- Recruiter Details --}}
                                                 <div class="col-span-2 mt-4">
-                                                    <h3 class="text-xl font-semibold">Recruiter Details</h3>
+                                                    <h3 class="text-xl font-semibold">{{ langLabel('recruiter_details') }}</h3>
                                                 </div>
 
                                                 {{-- Loop recruiters --}}
@@ -240,7 +240,7 @@
                                                     <input type="hidden" name="recruiters[{{ $index }}][id]" value="{{ $r->id }}">
 
                                                     <div>
-                                                        <label class="block mb-1 font-medium">Recruiter Name <span class="text-red-600">*</span></label>
+                                                        <label class="block mb-1 font-medium">{{ langLabel('recruiters_name') }} <span class="text-red-600">*</span></label>
                                                         <input type="text" name="recruiters[{{ $index }}][name]"
                                                             value="{{ old("recruiters.$index.name", $r->name) }}"
                                                             class="w-full border rounded px-3 py-2"
@@ -248,7 +248,7 @@
                                                     </div>
 
                                                     <div>
-                                                        <label class="block mb-1 font-medium">Recruiter Email <span class="text-red-600">*</span></label>
+                                                        <label class="block mb-1 font-medium">{{ langLabel('recruters_email') }} <span class="text-red-600">*</span></label>
                                                         <input type="email" name="recruiters[{{ $index }}][email]"
                                                             value="{{ old("recruiters.$index.email", $r->email) }}"
                                                             class="w-full border rounded px-3 py-2"
@@ -256,7 +256,7 @@
                                                     </div>
 
                                                     <div>
-                                                        <label class="block mb-1 font-medium">National ID <span class="text-red-600">*</span></label>
+                                                        <label class="block mb-1 font-medium">{{ langLabel('national_id') }} <span class="text-red-600">*</span></label>
                                                         <input type="text" name="recruiters[{{ $index }}][national_id]"
                                                             value="{{ old("recruiters.$index.national_id", $r->national_id) }}"
                                                             class="w-full border rounded px-3 py-2"  maxlength="15"
@@ -266,7 +266,7 @@
 
                                                     {{-- ✅ Recruiter Mobile Number --}}
                                                     <div>
-                                                        <label class="block mb-1 font-medium">Mobile Number <span class="text-red-600">*</span></label>
+                                                        <label class="block mb-1 font-medium">{{ langLabel('mobile_number') }} <span class="text-red-600">*</span></label>
                                                         <input type="text" name="recruiters[{{ $index }}][mobile]"
                                                             value="{{ old("recruiters.$index.mobile", $r->mobile) }}"
                                                             class="w-full border rounded px-3 py-2"  maxlength="9"
@@ -280,12 +280,12 @@
                                                 <div class="col-span-2 mt-6 flex justify-end space-x-3">
                                                     <button @click.prevent="activeSubTab = 'documents'"
                                                             class="border px-6 py-2 rounded hover:bg-gray-100">
-                                                        Next
+                                                        {{ langLabel('next') }}
                                                     </button>
                                                     <button type="submit"
                                                             id="save-company-profile"
                                                             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                                        Update
+                                                        {{ langLabel('update') }}
                                                     </button>
                                                 </div>
                                             </form>
@@ -361,15 +361,15 @@
 
                                             <form id="company-documents-form" method="POST" action="{{ route('recruiter.company.document.update') }}" enctype="multipart/form-data" class="space-y-4 text-sm">
                                                 @csrf
-                                                <h3 class="text-lg font-semibold mb-4">Upload Documents</h3>
+                                                <h3 class="text-lg font-semibold mb-4">{{ langLabel('upload_documents') }}</h3>
 
                                                 <!-- Company Profile Picture -->
                                                 <div>
-                                                    <label class="block font-medium mb-1">Company Profile Picture <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block font-medium mb-1">{{ langLabel('company_profile_picture') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     @if($companyProfile)
                                                         <div class="flex items-center gap-4">
-                                                            <a href="{{ asset($companyProfile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">📄 View Image</a>
-                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="company_profile">Delete</button>
+                                                            <a href="{{ asset($companyProfile->document_path) }}" target="_blank" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">📄 {{ langLabel('view_Image') }}</a>
+                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="company_profile">{{ langLabel('delete') }}</button>
                                                         </div>
                                                     @endif
                                                     <input type="file" name="company_profile" accept="image/*" class="w-full border rounded px-3 py-2" />
@@ -377,29 +377,29 @@
 
                                                 <!-- Registration Document -->
                                                 <div>
-                                                    <label class="block font-medium mb-1">Registration Document <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block font-medium mb-1">{{ langLabel('registration_document') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     @if($registrationDoc)
                                                         <div class="flex items-center gap-4">
-                                                            <a href="{{ asset($registrationDoc->document_path) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700">📄 View Document</a>
-                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="register_document">Delete</button>
+                                                            <a href="{{ asset($registrationDoc->document_path) }}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700">📄 {{ langLabel('view_document') }}</a>
+                                                            <button type="button" class="delete-doc text-red-600 text-sm" data-type="register_document">{{ langLabel('delete') }}</button>
                                                         </div>
                                                     @endif
                                                     <input type="file" name="register_document" accept=".pdf,.doc,.docx" class="w-full border rounded px-3 py-2" />
                                                 </div>
 
                                                 <div class="flex justify-end mt-4">
-                                                    <button type="button" id="save-company-docs" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800">Update</button>
+                                                    <button type="button" id="save-company-docs" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800">{{ langLabel('update') }}</button>
                                                 </div>
                                             </form>
 
                                             <!-- Delete Modal -->
                                             <div id="deleteCompanyDocModal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
                                                 <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
-                                                    <h2 class="text-lg font-semibold mb-4">Confirm Delete</h2>
-                                                    <p class="mb-4 text-gray-700">Are you sure you want to delete <span id="delete-doc-type" class="font-bold"></span>?</p>
+                                                    <h2 class="text-lg font-semibold mb-4">{{ langLabel('confirm_deletion') }}</h2>
+                                                    <p class="mb-4 text-gray-700">{{ langLabel('delete_confirm') }} <span id="delete-doc-type" class="font-bold"></span>?</p>
                                                     <div class="flex justify-end gap-4">
-                                                        <button type="button" id="cancelCompanyDocDelete" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
-                                                        <button type="button" id="confirmCompanyDocDelete" class="bg-red-600 text-white px-4 py-2 rounded">Delete</button>
+                                                        <button type="button" id="cancelCompanyDocDelete" class="bg-gray-300 px-4 py-2 rounded">{{ langLabel('cancel') }}</button>
+                                                        <button type="button" id="confirmCompanyDocDelete" class="bg-red-600 text-white px-4 py-2 rounded">{{ langLabel('delete') }}</button>
                                                     </div>
                                                 </div>
                                             </div>

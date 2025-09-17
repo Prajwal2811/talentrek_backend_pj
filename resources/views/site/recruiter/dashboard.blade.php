@@ -25,16 +25,16 @@
             <div class="flex-1 flex flex-col">
                 @include('site.recruiter.componants.navbar')	
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="dashboard()">
-                <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
+                <h2 class="text-2xl font-semibold mb-6">{{ langLabel('dashboard') }}</h2>
 
                 <!-- Stat Cards -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-6 rounded-lg shadow">
-                        <p class="text-xl text-black-500">Jobseeker Shortlisted</p>
+                        <p class="text-xl text-black-500">{{ langLabel('jobseeker') }} {{ langLabel('shortlisted') }}</p>
                         <h3 class="text-3xl font-bold mt-2">{{ $totalShortlisted}}</h3>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
-                        <p class="text-xl text-black-500">Interviews scheduled</p>
+                        <p class="text-xl text-black-500">{{ langLabel('interviews_scheduled') }}</p>
                         <h3 class="text-3xl font-bold mt-2">{{ $totalScheduled }}</h3>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
                 @endphp
                 <!-- Jobseekers contacted -->
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-semibold mb-4">Scheduled Interviews</h3>
+                    <h3 class="text-xl font-semibold mb-4">{{ langLabel('scheduled_interviews') }}</h3>
                      <hr class="border-t border-gray-300 mb-4">
                         @foreach($scheduled_jobseekers->unique('jobseeker_id') as $scheduled_jobseeker)
                             @php
@@ -106,19 +106,19 @@
 
                                 <!-- Interview Info -->
                                 <div class="w-40 text-sm">
-                                    <p class="font-semibold">Interview Date/Time</p>
+                                    <p class="font-semibold">{{ langLabel('interview_date_time') }}</p>
                                     <p>
                                         @if($interviewDateTime)
                                             {{ $interviewDateTime->format('d M Y, h:i A') }}
                                         @else
-                                            Not Scheduled
+                                            {{ langLabel('not_scheduled') }}
                                         @endif
                                     </p>
                                 </div>
 
                                 <!-- Status -->
                                 <div class="w-32 text-sm">
-                                    <p class="font-semibold">Interview Status</p>
+                                    <p class="font-semibold">{{ langLabel('interview_status') }}</p>
                                     <p class="{{ $statusClass }}">
                                         {{ $statusLabel }}
                                     </p>
@@ -129,7 +129,7 @@
                                     @if($status === 'completed')
                                         <!-- Show Interview Result -->
                                         <div class="w-32 text-sm mr-4">
-                                            <p class="font-semibold">Interview Result</p>
+                                            <p class="font-semibold">{{ langLabel('interview_result') }}</p>
                                             <p class="{{ $scheduled_jobseeker->interview_result === 'pass' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold' }}">
                                                 {{ $scheduled_jobseeker->interview_result ? ucfirst($scheduled_jobseeker->interview_result) : 'Not Provided' }}
                                             </p>
@@ -140,7 +140,7 @@
                                                 class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#feedbackModal-{{ $jobseekerId }}">
-                                            Share Feedback
+                                            {{ langLabel('share_feedback') }}
                                         </button>
 
                                         <!-- Feedback Modal -->
@@ -149,7 +149,7 @@
                                                 <div class="modal-content">
                                                     {{-- Modal Header --}}
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title">Share interview feedback</h5>
+                                                        <h5 class="modal-title">{{ langLabel('share_interview_feedback') }}</h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                     </div>
 
@@ -161,24 +161,24 @@
                                                         <div class="modal-body">
                                                             {{-- Feedback Textarea --}}
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-semibold">Feedback</label>
-                                                                <textarea name="feedback" rows="3" class="form-control" placeholder="Write here...">{{ old('feedback', $scheduled_jobseeker->feedback ?? '') }}</textarea>
+                                                                <label class="form-label fw-semibold">{{ langLabel('feedback') }}</label>
+                                                                <textarea name="feedback" rows="3" class="form-control" placeholder="{{ langLabel('write_here') }}...">{{ old('feedback', $scheduled_jobseeker->feedback ?? '') }}</textarea>
                                                             </div>
 
                                                             {{-- Interview Result Dropdown --}}
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-semibold">Select interview status</label>
+                                                                <label class="form-label fw-semibold">{{ langLabel('select_interview_status') }}</label>
                                                                 <select name="interview_result" class="form-select" required>
-                                                                    <option value="">Select option</option>
-                                                                    <option value="pass" @if($scheduled_jobseeker->interview_result === 'pass') selected @endif>Pass</option>
-                                                                    <option value="fail" @if($scheduled_jobseeker->interview_result === 'fail') selected @endif>Fail</option>
+                                                                    <option value="">{{ langLabel('seelct_option') }}</option>
+                                                                    <option value="pass" @if($scheduled_jobseeker->interview_result === 'pass') selected @endif>{{ langLabel('pass') }}</option>
+                                                                    <option value="fail" @if($scheduled_jobseeker->interview_result === 'fail') selected @endif>{{ langLabel('fail') }}</option>
                                                                 </select>
                                                             </div>
                                                         </div>
 
                                                         {{-- Modal Footer --}}
                                                         <div class="modal-footer">
-                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                            <button type="submit" class="btn btn-primary">{{ langLabel('save') }}</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -192,18 +192,18 @@
                                             <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
 
                                             <select name="status" class="border rounded px-2 py-1 text-sm">
-                                                <option value="" disabled>Update Status</option>
-                                                <option value="cancelled" @if ($status === 'cancelled') selected @endif>Cancelled</option>
-                                                <option value="scheduled" @if ($status === 'scheduled') selected @endif>Scheduled</option>
+                                                <option value="" disabled>{{ langLabel('update_status') }}</option>
+                                                <option value="cancelled" @if ($status === 'cancelled') selected @endif>{{ langLabel('cancelled') }}</option>
+                                                <option value="scheduled" @if ($status === 'scheduled') selected @endif>{{ langLabel('scheduled') }}</option>
                                                 <option value="completed"
                                                     @if ($status === 'completed') selected @endif
                                                     @if (!$interviewDateTime || now()->lessThan($interviewDateTime) || now()->greaterThan($interviewDateTime->copy()->addHour())) disabled @endif>
-                                                    Completed
+                                                    {{ langLabel('completed') }}
                                                 </option>
                                             </select>
 
                                             <button type="submit" class="bg-gray-700 text-white text-xs px-2 py-1 rounded">
-                                                Save
+                                                {{ langLabel('save') }}
                                             </button>
                                         </form>
 
@@ -213,7 +213,7 @@
                                         class="text-white text-xs px-2 py-1 rounded inline-block 
                                                 {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
                                         {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
-                                        Join
+                                        {{ langLabel('join') }}
                                         </a>
                                     @endif
                                 </div>

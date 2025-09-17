@@ -34,7 +34,7 @@
                         @endphp
 
                         <div x-show="tab === 'mentorship'" x-cloak>
-                            <h2 class="text-xl font-semibold mb-4">Mentorship</h2>
+                            <h2 class="text-xl font-semibold mb-4">{{ langLabel('mentorship') }}</h2>
                             @foreach ($mentorships as $index => $mentorship)
                                 @php
                                     $mentor = $mentorship->mentor;
@@ -83,17 +83,17 @@
                                                             class="btn btn-primary btn-sm"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#zoomModal{{ $index }}">
-                                                        Join Meet
+                                                        {{ langLabel('join_meet') }}
                                                     </button>
                                                 @elseif ($mentorship->slot_mode === 'offline')
                                                     <button type="button"
                                                             class="btn btn-outline-secondary btn-sm"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#addressModal{{ $index }}">
-                                                        View Address
+                                                        {{ langLabel('view_address') }}
                                                     </button>
                                                 @else
-                                                    <p class="text-red-500 text-sm">Link not available</p>
+                                                    <p class="text-red-500 text-sm">{{ langLabel('link_not_available') }}</p>
                                                 @endif
                                             </div>
                                             <!-- Address Modal for Offline Slot -->
@@ -102,16 +102,16 @@
                                                     <div class="modal-dialog modal-dialog-centered">
                                                         <div class="modal-content">
                                                             <div class="modal-header">
-                                                                <h5 class="modal-title" id="addressModalLabel{{ $index }}">Mentor's Address</h5>
+                                                                <h5 class="modal-title" id="addressModalLabel{{ $index }}">{{ langLabel('mentors_address') }}</h5>
                                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                             </div>
                                                             <div class="modal-body">
                                                                 <p class="text-gray-800">
-                                                                    {{ $mentor?->address ?? 'Address not available' }}
+                                                                    {{ $mentor?->address ?? langLabel('address_not_available') }}
                                                                 </p>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -128,18 +128,18 @@
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="zoomModalLabel{{ $index }}">Join Zoom Meeting with {{ $mentor?->name }}</h5>
+                                                <h5 class="modal-title" id="zoomModalLabel{{ $index }}">{{ langLabel('join_zoom_meeting_with') }} {{ $mentor?->name }}</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <p>Click the link below to join the meeting:</p>
+                                                <p>{{ langLabel('click_the_link_below') }}</p>
                                                 <a href="{{ $zoomLink }}" target="_blank" class="text-blue-600 font-medium underline break-all">
                                                     {{ $zoomLink }}
                                                 </a>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
+                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">{{ langLabel('join_now') }}</a>
                                             </div>
                                         </div>
                                     </div>
@@ -162,11 +162,11 @@
                         @endphp
 
                         <div x-show="tab === 'assessment'" x-cloak>
-                            <h2 class="text-xl font-semibold mb-4">Assessor</h2>
+                            <h2 class="text-xl font-semibold mb-4">{{ langLabel('assessor') }}</h2>
 
                             @if ($assessments->isEmpty())
                                 <div class="text-gray-500 text-sm">
-                                    No assessment sessions found.
+                                    {{ langLabel('no_assessment_session_found') }}
                                 </div>
                             @else
                                 @foreach ($assessments as $index => $assessment)
@@ -213,17 +213,17 @@
                                                                 class="btn btn-primary btn-sm"
                                                                 data-bs-toggle="modal"
                                                                 data-bs-target="#zoomModal{{ $index }}">
-                                                            Join Meet
+                                                            {{ langLabel('join_meet') }}
                                                         </button>
                                                     @elseif ($assessment->slot_mode === 'offline')
                                                         <button type="button"
                                                                 class="btn btn-outline-secondary btn-sm"
                                                                 data-bs-toggle="modal"
                                                                 data-bs-target="#addressModal{{ $index }}">
-                                                            View Address
+                                                            {{ langLabel('view_address') }}
                                                         </button>
                                                     @else
-                                                        <p class="text-red-500 text-sm">Link not available</p>
+                                                        <p class="text-red-500 text-sm">{{ langLabel('link_not_available') }}</p>
                                                     @endif
                                                 </div>
                                                 <!-- Address Modal for Offline Slot -->
@@ -232,16 +232,16 @@
                                                         <div class="modal-dialog modal-dialog-centered">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
-                                                                    <h5 class="modal-title" id="addressModalLabel{{ $index }}">Assessor's Address</h5>
+                                                                    <h5 class="modal-title" id="addressModalLabel{{ $index }}">{{ langLabel('assessors_address') }}</h5>
                                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <p class="text-gray-800">
-                                                                        {{ $assessor?->address ?? 'Address not available' }}
+                                                                        {{ $assessor?->address ?? langLabel('address_not_available') }}
                                                                     </p>
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -256,18 +256,18 @@
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title" id="zoomModalLabel{{ $index }}">Join Zoom Meeting with {{ $assessor?->name }}</h5>
+                                                    <h5 class="modal-title" id="zoomModalLabel{{ $index }}">{{ langLabel('join_zoom_meeting_with') }} {{ $assessor?->name }}</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <p>Click the link below to join the meeting:</p>
+                                                    <p>{{ langLabel('click_the_link_below') }}</p>
                                                     <a href="{{ $zoomLink }}" target="_blank" class="text-blue-600 font-medium underline break-all">
                                                         {{ $zoomLink }}
                                                     </a>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
+                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">{{ langLabel('join_now') }}</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -290,11 +290,11 @@
                     @endphp
 
                     <div x-show="tab === 'coaching'" x-cloak>
-                        <h2 class="text-xl font-semibold mb-4">Coaching</h2>
+                        <h2 class="text-xl font-semibold mb-4">{{ langLabel('coaching') }}</h2>
 
                         @if ($coachings->isEmpty())
                             <div class="text-gray-500 text-sm">
-                                No coaching sessions found.
+                                {{ langLabel('no_coaching_session_found') }}
                             </div>
                         @else
                             @foreach ($coachings as $index => $coaching)
@@ -310,7 +310,7 @@
 
                                     $currentExp = $experiences->firstWhere('end_to', null) ??
                                                 $experiences->sortByDesc('end_to')->first();
-                                    $designation = $currentExp ? ($currentExp->job_role) : 'No designation available';
+                                    $designation = $currentExp ? ($currentExp->job_role) : langLabel('no_destination_available');
 
                                     $zoomLink = $coaching->zoom_join_url ?? null;
                                 @endphp
@@ -340,17 +340,17 @@
                                                             class="btn btn-primary btn-sm"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#zoomModal{{ $index }}">
-                                                        Join Meet
+                                                        {{ langLabel('join_meet') }}
                                                     </button>
                                                 @elseif ($coaching->slot_mode === 'offline')
                                                     <button type="button"
                                                             class="btn btn-outline-secondary btn-sm"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#addressModal{{ $index }}">
-                                                        View Address
+                                                        {{ langLabel('view_address') }}
                                                     </button>
                                                 @else
-                                                    <p class="text-red-500 text-sm">Link not available</p>
+                                                    <p class="text-red-500 text-sm">{{ langLabel('link_not_available') }}</p>
                                                 @endif
                                             </div>
                                             <!-- Address Modal for Offline Slot -->
@@ -359,16 +359,16 @@
                                                     <div class="modal-dialog modal-dialog-centered">
                                                         <div class="modal-content">
                                                             <div class="modal-header">
-                                                                <h5 class="modal-title" id="addressModalLabel{{ $index }}">Coach's Address</h5>
+                                                                <h5 class="modal-title" id="addressModalLabel{{ $index }}">{{ langLabel('coach_address') }}</h5>
                                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                             </div>
                                                             <div class="modal-body">
                                                                 <p class="text-gray-800">
-                                                                    {{ $coach?->address ?? 'Address not available' }}
+                                                                    {{ $coach?->address ?? langLabel('address_not_available') }}
                                                                 </p>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -383,18 +383,18 @@
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="zoomModalLabel{{ $index }}">Join Zoom Meeting with {{ $coach?->name }}</h5>
+                                                <h5 class="modal-title" id="zoomModalLabel{{ $index }}">{{ langLabel('join_zoom_meeting_with') }} {{ $coach?->name }}</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <p>Click the link below to join the meeting:</p>
+                                                <p>{{ langLabel('click_the_link_below') }}</p>
                                                 <a href="{{ $zoomLink }}" target="_blank" class="text-blue-600 font-medium underline break-all">
                                                     {{ $zoomLink }}
                                                 </a>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Now</a>
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
+                                                <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">{{ langLabel('join_now') }}</a>
                                             </div>
                                         </div>
                                     </div>

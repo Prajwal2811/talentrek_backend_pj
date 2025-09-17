@@ -30,26 +30,26 @@
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="">
                     @include('admin.errors')	
 
-                    <h2 class="text-2xl font-semibold mb-6">Jobseekers</h2>
+                    <h2 class="text-2xl font-semibold mb-6">{{ langLabel('jobseeker') }}</h2>
                     <div class="flex space-x-6">
 
                         <!-- Sidebar Filters -->
                         <div class="bg-white p-4 rounded shadow w-64 space-y-4">
-                            <h2 class="font-semibold mb-2">Filters</h2>
+                            <h2 class="font-semibold mb-2">{{ langLabel('filter') }}</h2>
 
                             <!-- Candidates experience -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Candidates experience</p>
-                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="fresher" class="mr-2 filter-checkbox" />Fresher (0-3 years)</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('candidates_experience') }}</p>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="fresher" class="mr-2 filter-checkbox" />{{ langLabel('fresher') }} (0-3 years)</label>
                                 <label class="block text-sm"><input type="checkbox" name="experience[]" value="experienced" class="mr-2 filter-checkbox" />3+ years</label>
-                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="all" class="mr-2 filter-checkbox" />All</label>
+                                <label class="block text-sm"><input type="checkbox" name="experience[]" value="all" class="mr-2 filter-checkbox" />{{ langLabel('all') }}</label>
                             </div>
 
                             @php $educations = \App\Models\EducationDetails::all(); @endphp
 
                             <!-- Education -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Education</p>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('education') }}</p>
                                 @foreach ($educations->unique('high_education') as $education)
                                     <label class="block text-sm">
                                         <input type="checkbox" name="education[]" value="{{ $education->high_education }}" class="mr-2 filter-checkbox" />{{ $education->high_education }}
@@ -59,19 +59,19 @@
 
                             <!-- Gender -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Gender</p>
-                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="male" class="mr-2 filter-checkbox" />Male</label>
-                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="female" class="mr-2 filter-checkbox" />Female</label>
-                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="all" class="mr-2 filter-checkbox" />All</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('gender') }}</p>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="male" class="mr-2 filter-checkbox" />{{ langLabel('male') }}</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="female" class="mr-2 filter-checkbox" />{{ langLabel('female') }}</label>
+                                <label class="block text-sm"><input type="checkbox" name="gender[]" value="all" class="mr-2 filter-checkbox" />{{ langLabel('all') }}</label>
                             </div>
 
                             <!-- Certificate -->
                             <div>
-                                <p class="font-semibold text-sm mb-1">Certificate</p>
-                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="0-5" class="mr-2 filter-checkbox" />Certificate (0-5)</label>
-                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="5+" class="mr-2 filter-checkbox" />Certificate 5+</label>
-                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="not-certified" class="mr-2 filter-checkbox" />Not certified</label>
-                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="all" class="mr-2 filter-checkbox" />All</label>
+                                <p class="font-semibold text-sm mb-1">{{ langLabel('certificate') }}</p>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="0-5" class="mr-2 filter-checkbox" />{{ langLabel('certificate') }} (0-5)</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="5+" class="mr-2 filter-checkbox" />{{ langLabel('certificate') }} 5+</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="not-certified" class="mr-2 filter-checkbox" />{{ langLabel('not_certified') }}</label>
+                                <label class="block text-sm"><input type="checkbox" name="certificate[]" value="all" class="mr-2 filter-checkbox" />{{ langLabel('all') }}</label>
                             </div>
                         </div>
 
@@ -81,9 +81,9 @@
                             <!-- Tabs -->
                             <div class="flex justify-between border-b pb-2 mb-4">
                                 <div class="space-x-6 font-medium text-sm">
-                                    <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">Jobseekers</button>
-                                    <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">Shortlisted</button>
-                                    {{-- <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">Scheduled Interview</button> --}}
+                                    <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">{{ langLabel('jobseeker') }}</button>
+                                    <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">{{ langLabel('shortlisted') }}</button>
+                                    {{-- <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">{{ langLabel('scheduled_interview') }}</button> --}}
 
                                 </div>
                             </div>
@@ -109,25 +109,25 @@
                                                 <div>
                                                     <h4 class="font-semibold text-sm blur-sm">{{ $shortlisted_jobseeker->name }}</h4>
                                                     <p class="text-sm text-gray-500">
-                                                        {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
+                                                        {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             <!-- Experience Years -->
                                             <div class="w-32 text-sm">
-                                                <p class="font-semibold">Experience</p>
+                                                <p class="font-semibold">{{ langLabel('experience') }}</p>
                                                 <p>{{ $shortlisted_jobseeker->total_experience }}</p>
                                             </div>
 
                                             <!-- Skills -->
                                             <div class="text-sm flex-1">
-                                                <p class="font-semibold">Skills</p>
+                                                <p class="font-semibold">{{ langLabel('skills') }}</p>
                                                 <p>
                                                     @if($shortlisted_jobseeker->skills && $shortlisted_jobseeker->skills->count())
                                                         {{ $shortlisted_jobseeker->skills->pluck('skills')->filter()->join(', ') }}
                                                     @else
-                                                        Not provided
+                                                        {{ langLabel('not_provided') }}
                                                     @endif
                                                 </p>
                                             </div>
@@ -143,7 +143,7 @@
                                                 <!-- Status Label -->
                                                 <span class="border text-xs px-2 py-1 rounded 
                                                             {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}">
-                                                    {{ $isApproved ? 'Approved' : 'Pending' }}
+                                                    {{ $isApproved ? langLabel('approved') : langLabel('pending') }}
                                                 </span>
 
 
@@ -152,7 +152,7 @@
                                                 class="text-white text-xs px-2 py-1 rounded inline-block
                                                 {{ $isApproved ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 cursor-not-allowed' }}"
                                                 {{ $isApproved ? '' : 'onclick=event.preventDefault()' }}>
-                                                    View Profile
+                                                    {{ langLabel('view_profile') }}
                                                 </a>
 
                                                 <!-- Interview Request Button -->
@@ -160,7 +160,7 @@
                                                     {{-- Show as badge when disabled --}}
                                                     <span class="inline-block text-white text-xs px-2 py-1 rounded 
                                                                 {{ $interviewRequested ? 'bg-gray-400' : 'bg-gray-600' }}">
-                                                        {{ $interviewRequested ? 'Interview Requested' : 'Not Approved' }}
+                                                        {{ $interviewRequested ? langLabel('interview_requested') : langLabel('not_approved') }}
                                                     </span>
                                                 @else
                                                     {{-- Show as clickable button when enabled --}}
@@ -169,7 +169,7 @@
                                                         onclick="confirmInterviewRequest({{ $jobseekerId }}, true, false)"
                                                         class="text-white text-xs px-2 py-1 rounded bg-purple-500 hover:bg-purple-600"
                                                     >
-                                                        Interview Request
+                                                        {{ langLabel('interview_request') }}
                                                     </button>
                                                 @endif
 
@@ -232,26 +232,26 @@
                                             <div>
                                                 <h4 class="font-semibold text-sm ">{{ $scheduled_jobseeker->name }}</h4>
                                                 <p class="text-sm text-gray-500">
-                                                    {{ $scheduled_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: 'Not provided' }}
+                                                    {{ $scheduled_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
                                                 </p>
                                             </div>
                                         </div>
 
                                         <!-- Interview Info -->
                                         <div class="w-40 text-sm">
-                                            <p class="font-semibold">Interview Date/Time</p>
+                                            <p class="font-semibold">{{ langLabel('interview_date_time') }}</p>
                                             <p>
                                                 @if($interviewDateTime)
                                                     {{ $interviewDateTime->format('d M Y, h:i A') }}
                                                 @else
-                                                    Not Scheduled
+                                                    {{ langLabel('not_scheduled') }}
                                                 @endif
                                             </p>
                                         </div>
 
                                         <!-- Interview Status -->
                                         <div class="w-32 text-sm">
-                                            <p class="font-semibold">Interview Status</p>
+                                            <p class="font-semibold">{{ langLabel('interview_status') }}</p>
                                             <p class="{{ $statusClass }}">
                                                 {{ $statusLabel }}
                                             </p>
@@ -267,17 +267,17 @@
 
                                                 <select name="status" class="border rounded px-2 py-1 text-sm"
                                                     @if($status === 'cancelled' || ($interviewDateTime && now()->greaterThan($interviewDateTime))) disabled @endif>
-                                                    <option value="" disabled>Update Status</option>
+                                                    <option value="" disabled>{{ langLabel('update_status') }}</option>
 
                                                     @if ($status === 'cancelled')
                                                         <!-- Locked if cancelled -->
-                                                        <option value="cancelled" selected>Cancelled</option>
+                                                        <option value="cancelled" selected>{{ langLabel('cancelled') }}</option>
                                                     @elseif ($interviewDateTime && now()->greaterThan($interviewDateTime))
                                                         <!-- Locked if interview expired -->
                                                         <option value="{{ $status }}" selected>{{ ucfirst($status) }}</option>
                                                     @else
-                                                        <option value="cancelled" @if ($status === 'cancelled') selected @endif>Cancelled</option>
-                                                        <option value="scheduled" @if ($status === 'scheduled') selected @endif>Scheduled</option>
+                                                        <option value="cancelled" @if ($status === 'cancelled') selected @endif>{{ langLabel('cancelled') }}</option>
+                                                        <option value="scheduled" @if ($status === 'scheduled') selected @endif>{{ langLabel('scheduled') }}</option>
                                                         <option value="completed" 
                                                             @if ($status === 'completed') selected @endif
                                                             @if (!$interviewDateTime || now()->lessThan($interviewDateTime)) disabled @endif>
@@ -288,7 +288,7 @@
 
                                                 @if ($status !== 'cancelled' && !($interviewDateTime && now()->greaterThan($interviewDateTime)))
                                                     <button type="submit" class="bg-gray-700 text-white text-xs px-2 py-1 rounded">
-                                                        Save
+                                                        {{ langLabel('save') }}
                                                     </button>
                                                 @endif
                                             </form>
@@ -301,7 +301,7 @@
                                             class="text-white text-xs px-2 py-1 rounded inline-block 
                                                     {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
                                             {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
-                                                Join
+                                                {{ langLabel('join') }}
                                             </a>
                                         </div>
                                     </div>
