@@ -622,8 +622,7 @@ class MyLearningController extends Controller
             
             $slotPrice = $this->getUserSlotPrice($request->userId,$request->roleType);
             $slotTax = $this->getSlotPercentage($request->roleType) ;
-            $slotTaxAmount = ($slotPrice * $slotTax / 100) ;
-            $slotTotalAmount = $slotPrice + $slotTaxAmount; 
+            $slotTotalAmount = $slotPrice + ($slotPrice * $slotTax / 100); 
 
             $referenceNo0 = 'TRK-' . strtoupper(substr($request->roleType, 0, 3)) . '-' .$request->userId . '-' .
                $request->slot_id . '-' . 
@@ -670,8 +669,6 @@ class MyLearningController extends Controller
                 "udf6"        => $sessionDate,              // Session booking Date
                 "udf7"        => $slotTax,              // Mentor Session Tax
                 "udf8"        => $slotPrice,              // Mentor session Slot Price
-                "udf9"        => $request->couponCode ?? '',              // Mentor session Slot Price
-                "udf10"       => $slotTaxAmount ?? '',              // Mentor session Slot Price
                 "langid"      => "en",                      // change to ar when goes live for arabic default
                 "responseURL" => $config['success_booking_session_url'],
                 "errorURL"    => $config['success_booking_session_url']

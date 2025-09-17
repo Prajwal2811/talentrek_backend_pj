@@ -21,7 +21,7 @@ class VerifyCsrfToken extends Middleware
         'subscription/payment/success',
         'subscriptionSuccessURL',
         'subscriptionsSuccess',
-        'successMaterialPurchaseMobile'
+        'successSubscriptionMobile'
 
     ];
 }

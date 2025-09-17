@@ -687,158 +687,119 @@
 
 
                                 <!-- Step 3: Work Experience -->
-                                <div id="step-3" class="step hidden">
-
-                                    <!-- Container for multiple work experience entries -->
-                                    @php
-                                        $workCount = count(old('job_role', [null]));
-                                    @endphp
+                               <div id="step-3" class="step hidden" x-data="workExperience()">
 
                                     <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                        @for ($i = 0; $i < $workCount; $i++)
-                                            @php
-                                                $isWorking = old("currently_working.$i") == 'on';
-                                            @endphp
-                                            <div
-                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
-                                                x-data="{
-                                                    working: {{ $isWorking ? 'true' : 'false' }},
-                                                    index: {{ $i }},
-                                                    init() {
-                                                        this.$watch('working', value => {
-                                                            const entries = document.querySelectorAll('.work-entry');
-                                                            entries.forEach((entry, idx) => {
-                                                                const checkbox = entry.querySelector('.currently-working-checkbox');
-                                                                const endInput = entry.querySelector('.datepicker-end');
-
-                                                                if (value) {
-                                                                    // If this checkbox is checked, disable all others
-                                                                    if (idx !== this.index) {
-                                                                        checkbox.disabled = true;
-                                                                        checkbox.checked = false;
-                                                                        if (entry.__x) entry.__x.$data.working = false;
-                                                                    } else {
-                                                                        endInput.value = '';
-                                                                        endInput.readOnly = true;
-                                                                        endInput.disabled = true;
-                                                                    }
-                                                                } else {
-                                                                    // Enable all checkboxes and date inputs
-                                                                    checkbox.disabled = false;
-                                                                    endInput.readOnly = false;
-                                                                    endInput.disabled = false;
-                                                                }
-                                                            });
-                                                        });
-                                                    }
-                                                }"
-                                                x-init="init()"
-                                            >
+                                        <template x-for="(work, index) in workList" :key="index">
+                                            <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
 
                                                 {{-- Job Role --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
-                                                    @error("job_role.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        placeholder="e.g. Software Engineer"
+                                                        x-model="work.job_role">
                                                 </div>
 
                                                 {{-- Organization --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="organization[]" class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
-                                                    @error("organization.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        placeholder="e.g. ABC Corp"
+                                                        x-model="work.organization">
                                                 </div>
 
                                                 {{-- Start Date --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
-                                                        value="{{ old("starts_from.$i") }}" max="{{ date('Y-m-d') }}"/>
-                                                    @error("starts_from.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        x-model="work.start" max="{{ date('Y-m-d') }}">
                                                 </div>
 
                                                 {{-- End Date & Checkbox --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="date" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
-                                                        :disabled="working" :readonly="working"
-                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" max="{{ date('Y-m-d') }}"/>
-                                                    @error("end_to.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        x-model="work.end"
+                                                        :disabled="work.working"
+                                                        :readonly="work.working"
+                                                        max="{{ date('Y-m-d') }}">
 
                                                     <label class="inline-flex items-center mt-2 space-x-2">
                                                         <input type="checkbox" class="currently-working-checkbox"
-                                                            name="currently_working[{{ $i }}]" x-model="working"
-                                                            {{ $isWorking ? 'checked' : '' }}>
+                                                            x-model="work.working"
+                                                            @change="handleWorkingChange(index)">
                                                         <span>I currently work here</span>
                                                     </label>
                                                 </div>
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
-                                                    class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                    style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                        @click="removeWork(index)"
+                                                        x-show="workList.length > 1">&times;</button>
+
                                             </div>
-                                        @endfor
+                                        </template>
                                     </div>
 
+                                    {{-- Add Work Button --}}
                                     <div class="col-span-2">
-                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
+                                        <button type="button" class="text-green-600 text-sm mt-2 mb-2" @click="addWork()">Add work experience +</button>
                                     </div>
 
-                                    <!-- <script>
-                                        const workContainer = document.getElementById('work-container');
-                                        const addWorkBtn = document.getElementById('add-work');
-
-                                        addWorkBtn.addEventListener('click', () => {
-                                            const firstEntry = workContainer.querySelector('.work-entry');
-                                            const clone = firstEntry.cloneNode(true);
-
-                                            // Clear inputs and errors
-                                            clone.querySelectorAll('input').forEach(input => {
-                                                if (input.type === 'checkbox') {
-                                                    input.checked = false;
-                                                    input.disabled = false;
-                                                } else {
-                                                    input.value = '';
-                                                    input.readOnly = false;
-                                                    input.disabled = false;
-                                                }
-                                            });
-
-                                            clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-                                            clone.querySelector('.remove-work').style.display = 'block';
-
-                                            workContainer.appendChild(clone);
-                                            Alpine.initTree(clone);
-                                        });
-
-                                        workContainer.addEventListener('click', (e) => {
-                                            if (e.target.classList.contains('remove-work')) {
-                                                const entry = e.target.closest('.work-entry');
-                                                entry.remove();
-                                            }
-                                        });
-                                    </script> -->
-
-
-                                    <div class="col-span-2 flex justify-between">
-                                        <button type="button" onclick="showStep(2)"
-                                            class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="button" onclick="showStep(4)"
-                                            class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                    {{-- Navigation --}}
+                                    <div class="col-span-2 flex justify-between mt-4">
+                                        <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                     </div>
 
                                 </div>
+
+                                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                                <script>
+                                function workExperience() {
+                                    return {
+                                        workList: [
+                                            @php
+                                                $oldRoles = old('job_role', ['']);
+                                                $oldOrgs = old('organization', ['']);
+                                                $oldStarts = old('starts_from', ['']);
+                                                $oldEnds = old('end_to', ['']);
+                                                $oldWorking = old('currently_working', []);
+                                            @endphp
+                                            @foreach ($oldRoles as $i => $role)
+                                            {
+                                                job_role: "{{ $role }}",
+                                                organization: "{{ $oldOrgs[$i] ?? '' }}",
+                                                start: "{{ $oldStarts[$i] ?? '' }}",
+                                                end: "{{ $oldEnds[$i] ?? '' }}",
+                                                working: {{ isset($oldWorking[$i]) && $oldWorking[$i] == 'on' ? 'true' : 'false' }}
+                                            },
+                                            @endforeach
+                                        ],
+
+                                        addWork() {
+                                            this.workList.push({ job_role:'', organization:'', start:'', end:'', working:false });
+                                        },
+
+                                        removeWork(index) {
+                                            this.workList.splice(index, 1);
+                                        },
+
+                                        handleWorkingChange(index) {
+                                            // Only one checkbox can be checked at a time
+                                            this.workList.forEach((w, i) => {
+                                                if(i !== index) w.working = false;
+                                            });
+
+                                            // Clear end date if currently working
+                                            if(this.workList[index].working) this.workList[index].end = '';
+                                        }
+                                    }
+                                }
+                                </script>
+
 
 
                                 <!-- Step 4: Skills -->

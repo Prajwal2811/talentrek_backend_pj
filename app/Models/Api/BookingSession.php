@@ -36,12 +36,9 @@ class BookingSession extends Model
         'response_payload',
         'payment_status',
         'track_id',
-        'transaction_id',
-        'coupon_type',
-        'coupon_amount',
-        'coupon_code',
-        'tax_amount',
-        'order_id'
+        'transaction_id'
+
+
     ];
 
     // Relationships

@@ -627,9 +627,9 @@ class CartManagementController extends Controller
                 "udf2"        => $request->buy_type,        // Material Purchase type buyNw,butForCorporates,Cart
                 "udf3"        => $request->batch ?? 0,          // Batch ID
                 "udf4"        => $request->training_type ?? 'recorded',         // TrainingType online ,classroom ,recoded 
-                "udf5"        => $request->couponCode,    // Online/Classroom
+                "udf5"        => $request->trainingMode,    // Online/Classroom
                 "udf6"        => $request->material_id,              // Material Id
-                "udf7"        => $tax ?? 0.00,              // Training Material Session Tax
+                "udf7"        => $tax ?? 0.00,              // Mentor Session Tax
                 "udf8"        => $offerPrice,              // Mentor session Slot Price
                 "udf9"        => $CorporatesEmailIds->id ?? '',              // Mentor session Slot Price
                 "udf10"       => $request->trainer_id,              // Mentor session Slot Price
@@ -640,10 +640,6 @@ class CartManagementController extends Controller
             $payload = [$transactionDetails];
 
             $jsonTrandata = json_encode($payload, JSON_UNESCAPED_SLASHES);
-        
-        
-        
-        
         
             $trandata = PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']);
             $trandatas = strtoupper($trandata) ;
@@ -729,7 +725,7 @@ class CartManagementController extends Controller
         $validator = Validator::make($request->all(), $rules, $messages);
         
         if ($validator->fails()) {
-            return response()->json([ 'status' => false,'errors' => $validator->errors()->first()], 200);
+            return response()->json([ 'status' => false,'message' => $validator->errors()->first()], 200);
         }
 
         try {
@@ -839,7 +835,7 @@ class CartManagementController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors()->first()
+                'message' => $validator->errors()->first()
             ], 200);
         }
 
@@ -946,7 +942,7 @@ class CartManagementController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors()->first()
+                'message' => $validator->errors()->first()
             ], 200);
         }
 

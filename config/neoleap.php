@@ -16,7 +16,7 @@ return [
 
 
     
-     // Subscription-specific
-    'subscription_sub_success_url' => env('APP_URL') . env('NEOLEAP_SUBS_SUCCESS_URL'),
-    'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBS_SUCCESS_URL'),
+    // Subscription-specific
+    'subscription_success_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_SUCCESS_URL'),
+    'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_FAILURE_URL'),
 ];

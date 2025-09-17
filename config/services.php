@@ -31,10 +31,19 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
     'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI_JOBSEEKER'), // default
+        'jobseeker_redirect' => env('GOOGLE_REDIRECT_URI_JOBSEEKER'),
+        'mentor_redirect'    => env('GOOGLE_REDIRECT_URI_MENTOR'),
+        'assessor_redirect'  => env('GOOGLE_REDIRECT_URI_ASSESSOR'),
+        'coach_redirect'     => env('GOOGLE_REDIRECT_URI_COACH'),
+        'trainer_redirect'   => env('GOOGLE_REDIRECT_URI_TRAINER'),
+        'recruiter_redirect' => env('GOOGLE_REDIRECT_URI_RECRUITER'),
     ],
+
+    
+
    // config/services.php
     'zoom' => [
         'account_id' => env('ZOOM_ACCOUNT_ID'),

@@ -10,7 +10,7 @@ class PurchasedSubscriptionPaymentRequest extends Model
     use HasFactory;
 
     // Table name (since it's not plural 'purchase_subscription_payment_requests')
-    protected $table = 'purchase_subscriptions_payment_request';
+    protected $table = 'purchased_subscription_payment_requests';
 
     // Primary key
     protected $primaryKey = 'id';

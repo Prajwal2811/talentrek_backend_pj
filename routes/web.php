@@ -297,8 +297,7 @@ Route::any('/subscriptions/failure', [SubscriptionController::class, 'failureSub
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);
 Route::post('/subscriptionSuccessURL', [PaymentController::class, 'successSubscription']);
 Route::post('/successMaterialPurchaseMobile', [PaymentController::class, 'successMaterialPurchaseMobile']);
-
-
+Route::post('/successSubscriptionMobile', [PaymentController::class, 'successSubscriptionMobile']);
 
 Route::get('lang/home', [LangController::class, 'index']);
 Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');

@@ -72,12 +72,8 @@ class SubscriptionManagementController extends Controller
     {        
          $validator = Validator::make($request->all(), [
             'plan_id'     => 'required|exists:subscription_plans,id',
-            'card_number' => 'required|string|min:12|max:19',
-            'expiry'      => 'required',
             'user_id'     => 'required',
-            'type'        => 'required|in:jobseeker,mentor,assessor,coach,trainer',
-            'cvv'         => 'required|string|min:3|max:4',
-            //'couponCode'  => 'required',
+            'type'        => 'required|in:jobseeker,mentor,assessor,coach,trainer',            
         ]);
 
         if ($validator->fails()) {
@@ -144,7 +140,7 @@ class SubscriptionManagementController extends Controller
                 "udf5"        => $request->type,    // Online/Classroom
                 "udf6"        => $plan->duration_days,              // Subscription Plan days
                 "udf7"        => '0.00',              // Mentor Session Tax
-                "udf8"        => number_format($plan->price, 2, '.', ''),
+                "udf8"        => number_format($plan->price, 2, '.', ''),              // Mentor session Slot Price
                 "langid"      => "en",                      // change to ar when goes live for arabic default
                 "responseURL" => $config['success_subscription_mobile_url'],
                 "errorURL"    => $config['success_subscription_mobile_url']

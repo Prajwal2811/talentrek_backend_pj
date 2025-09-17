@@ -374,7 +374,6 @@ class ExplorerController extends Controller
                         }
                     }
                 }
-
                 // Calculate prices            
                 $actualPrice = $TrainingMaterial->training_price;
                 $finalPrice  = $TrainingMaterial->training_offer_price;            
@@ -386,8 +385,6 @@ class ExplorerController extends Controller
                 $TrainingMaterial->taxPercentage   = 10;
                 $TrainingMaterial->tax   = round($finalPrice * ($TrainingMaterial->taxPercentage / 100), 2);
                 $TrainingMaterial->totalPrice = $finalPrice + $TrainingMaterial->tax;
-
-                
                 $TrainingMaterial->videos = $TrainingMaterial->trainingMaterialDocuments;
                 unset($TrainingMaterial->trainer_reviews_avg_ratings,$TrainingMaterial->trainerReviews,$TrainingMaterial->trainingMaterialDocuments,$TrainingMaterial->batch);
                 unset($TrainingMaterial->trainingMaterialDocuments);
