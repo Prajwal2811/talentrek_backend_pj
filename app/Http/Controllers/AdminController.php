@@ -235,9 +235,10 @@ class AdminController extends Controller
 
         // Example logic for revenue and session counts
         $materialSales = JobseekerTrainingMaterialPurchase::select('.')
-                                                        ->join('payments_history', 'jobseeker_training_material_purchases.payment_id', '=', 'payments_history.id')
-                                                        ->where('payments_history.payment_status', 'paid')
-                                                        ->sum('amount_paid');
+                                        ->join('payments_history', 'jobseeker_training_material_purchases.payment_id', '=', 'payments_history.id')
+                                        ->where('payments_history.payment_status', 'paid')
+                                        ->sum('payments_history.amount_paid');
+
 
         $mentorSessionCount = BookingSession::where('user_type', 'mentor')->count();
         $coachSessionCount = BookingSession::where('user_type', 'coach')->count();
