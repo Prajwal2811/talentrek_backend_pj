@@ -431,7 +431,7 @@ class MentorController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
-            'phone_number' => 'required|unique:mentors,phone_number,' . $mentor->id,
+            'phone_number' => 'nullable|unique:mentors,phone_number,' . $mentor->id,
             'dob' => 'required|date',
             'phone_code' => 'required',
             'city' => 'required|string|max:255',
@@ -479,7 +479,7 @@ class MentorController extends Controller
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
-            'phone_number.required' => 'Please enter your phone number.',
+            'phone_number.nullable' => 'Please enter your phone number.',
             'phone_number.unique' => 'This phone number is already taken.',
             'dob.required' => 'Please enter your date of birth.',
             'city.required' => 'Please enter your city.',

@@ -87,13 +87,23 @@
                                         
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block mb-1 text-sm font-medium mt-3">Phone number <span style="color: red; font-size: 17px;">*</span></label>
+                                                <label class="block mb-1 text-sm font-medium mt-3">Phone number</label>
                                                 <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
                                                     <option value="+966">+966</option>
                                                     <option value="+971">+971</option>
                                                 </select>
-                                                <input placeholder="Enter Phone number" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2 mt-1" value="{{old('phone_number')}}"/>
+                                              <input 
+                                                    placeholder="Enter Phone number" 
+                                                    name="phone_number" 
+                                                    type="tel" 
+                                                    class="w-2/3 border rounded-r-md p-2 mt-1" 
+                                                    value="{{ old('phone_number') }}"
+                                                    maxlength="9"
+                                                    pattern="[0-9]{9}"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,9);"
+                                                    
+                                                />
                                                 
                                             </div>
                                             @error('phone_number')
@@ -108,27 +118,33 @@
                                             @enderror
                                         </div>
                                         </div>
-                                        <div class="grid grid-cols-2 gap-6 mt-3">
+                                        
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium">National ID Number <span style="color: red; font-size: 17px;">*</span></label>
                                                 <span class="text-xs text-blue-600">
                                                     National ID should start with 1 for male and 2 for female.
                                                 </span>
                                                 <input 
-                                                    type="text" 
-                                                    name="national_id" 
-                                                    id="national_id" 
-                                                    class="w-full border rounded-md p-2 mt-1" 
-                                                    placeholder="Enter national id number" 
-                                                    value="{{ old('national_id') }}" 
-                                                    maxlength="15"
-                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
-                                                />
-                                                @error('national_id')
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                @enderror
+                                                        type="text" 
+                                                        name="national_id" 
+                                                        id="national_id" 
+                                                        class="w-full border rounded-md p-2 mt-1" 
+                                                        placeholder="Enter national id number" 
+                                                        value="{{ old('national_id') }}" 
+                                                        maxlength="15"
+                                                        pattern="^[1-2][0-9]{14}$"
+                                                        oninput="
+                                                            this.value = this.value.replace(/[^0-9]/g, ''); 
+                                                            if(this.value.length > 15) this.value = this.value.slice(0,15);
+                                                            if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
+                                                        "
+                                                        required
+                                                    />
+                                                    @error('national_id')
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
                                             </div>
-                                        </div>
+                                        
                                       <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">
                                                 Address <span style="color: red; font-size: 17px;">*</span>

@@ -2837,59 +2837,51 @@ class AdminController extends Controller
 
 public function downloadResume($id)
 {
-    require_once base_path('libs/dompdf/autoload.inc.php');
+    require_once base_path('dompdf/autoload.inc.php');
 
-    // Get jobseeker and related data
     $jobseeker = Jobseekers::findOrFail($id);
     $educations = $jobseeker->educations()->get();
     $experiences = $jobseeker->experiences()->get();
     $skills = $jobseeker->skills()->get();
 
-    // === Profile Picture ===
     $profilePic = DB::table('additional_info')
         ->where('user_id', $id)
         ->where('user_type', 'jobseeker')
         ->where('doc_type', 'profile_picture')
         ->value('document_path');
 
-   
-    
-    if ($profilePic && str_starts_with($profilePic, 'http')) {
-        $profilePic = str_replace(url('/'), public_path(), $profilePic);
+    if ($profilePic && !str_starts_with($profilePic, 'http')) {
+        $profilePic = url($profilePic);
     }
 
-
-    // === Training Certificates ===
     $certificates = DB::table('jobseeker_assessment_status as jas')
         ->join('training_materials as t', 'jas.material_id', '=', 't.id')
         ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
-        ->select(
-            't.training_title as course_name',
-            'tr.name as trainer_name',
-            'jas.created_at as completion_date'
-        )
+        ->select('t.training_title as course_name', 'tr.name as trainer_name', 'jas.created_at as completion_date')
         ->where('jas.jobseeker_id', $id)
         ->where('jas.submitted', 1)
         ->get();
 
-    // Get the Blade-style resume template from the DB
     $template = DB::table('resumes_format')->first();
     if (!$template || empty($template->resume)) {
         return back()->with('error', 'Resume template not found.');
     }
 
-    // Render the Blade string
     $html = Blade::render($template->resume, [
         'user' => $jobseeker,
         'educations' => $educations,
         'experiences' => $experiences,
         'skills' => $skills,
         'certificates' => $certificates,
-        'profilePic' => $profilePic, // pass profile pic
+        'profilePic' => $profilePic,
     ]);
 
-    // Generate PDF using DomPDF
-    $dompdf = new \Dompdf\Dompdf();
+    $options = new \Dompdf\Options();
+    $options->set('isRemoteEnabled', true);
+    $options->set('tempDir', storage_path('app/dompdf'));
+    $options->set('chroot', public_path());
+
+    $dompdf = new \Dompdf\Dompdf($options);
     $dompdf->loadHtml($html);
     $dompdf->setPaper('A4', 'portrait');
     $dompdf->render();
@@ -2900,68 +2892,134 @@ public function downloadResume($id)
 }
 
 
+
+
+
+
 public function viewCertificate($jobseeker_id, $material_id)
+
 {
-    require_once base_path('libs/dompdf/autoload.inc.php');
+
+    require_once base_path('dompdf/autoload.inc.php');
+
+
 
     $user = Jobseekers::findOrFail($jobseeker_id);
 
+
+
     $template = CertificateTemplate::first();
+
     if (!$template) {
+
         return back()->with('error', 'Certificate template not found.');
+
     }
+
+
 
     $course = DB::table('training_materials as t')
+
         ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
+
         ->select('t.*', 'tr.name as trainer_name')
+
         ->where('t.id', $material_id)
+
         ->first();
+
+
 
     if (!$course) {
+
         return back()->with('error', 'Course not found.');
+
     }
+
+
 
     $userAssessment = DB::table('jobseeker_assessment_status')
+
         ->where('jobseeker_id', $user->id)
+
         ->where('material_id', $material_id)
+
         ->first();
 
+
+
     $completionDate = $userAssessment->created_at ?? now();
+
     $certificateId = 'T' . str_pad($material_id, 5, '0', STR_PAD_LEFT);
 
-    $bgPath = public_path('asset/images/Talentrek-Certificate-blank.png');
-    if (!file_exists($bgPath)) {
+
+
+    $path = base_path('asset/images/Talentrek-Certificate-blank.png');
+
+    if (!file_exists($path)) {
         return back()->with('error', 'Certificate background image not found.');
     }
-    $type = pathinfo($bgPath, PATHINFO_EXTENSION);
-    $data = file_get_contents($bgPath);
+
+   
+    $type = pathinfo($path, PATHINFO_EXTENSION);
+
+   
+    $data = file_get_contents($path);
+
+    
     $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
 
+
+
+
+
     $placeholders = [
+
         '{{ $user_name }}'         => $user->name,
+
         '{{ $certificate_title }}' => 'CERTIFICATE OF COMPLETION',
+
         '{{ $course_title }}'      => $course->training_title,
+
         '{{ $trainer_name }}'      => $course->trainer_name ?? 'Trainer',
+
         '{{ $course_duration }}'   => $course->total_duration ?? 'N/A',
+
         '{{ $completion_date }}'   => \Carbon\Carbon::parse($completionDate)->format('d M, Y'),
+
         '{{ $certificate_id }}'    => $certificateId,
+
         '{{ $conducted_by }}'      => 'Talentrek',
+
         '{{ $bg_image }}'          => $base64,
+
     ];
+
+
 
     $html = str_replace(array_keys($placeholders), array_values($placeholders), $template->template_html);
 
+
+
     // ✅ Generate PDF inline (no download)
+
     $dompdf = new Dompdf();
+
     $dompdf->loadHtml($html);
+
     $dompdf->setPaper('A4', 'landscape');
+
     $dompdf->render();
 
-    return response($dompdf->output(), 200)
-        ->header('Content-Type', 'application/pdf')
-        ->header('Content-Disposition', 'inline; filename=Certificate-' . $user->name . '.pdf');
-}
 
+
+    return response($dompdf->output(), 200)
+
+        ->header('Content-Type', 'application/pdf')
+
+        ->header('Content-Disposition', 'inline; filename=Certificate-' . $user->name . '.pdf');
+
+}
 
 
 
