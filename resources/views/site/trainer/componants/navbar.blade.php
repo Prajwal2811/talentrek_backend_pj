@@ -17,14 +17,48 @@
                     </div> -->
                     </div>
                     <div class="flex items-center space-x-4">
-                        <div class="relative">
-                        <button aria-label="Notifications" class="text-gray-700 hover:text-blue-600 focus:outline-none relative">
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white">
-                            <i class="feather-bell text-xl"></i>
-                            </span>
-                            <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span>
-                        </button>
+                        <div class="relative"> 
+                            @php $notifications = notificationUsersSent('trainer'); @endphp
+                            <button onclick="toggleBellDropdown()"
+                                class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white">
+                                <span><i data-feather="bell" class="w-4 h-4"></i></span>
+                                @if($notifications->count() > 0) 
+                                    <span class="absolute top-0 right-0 inline-block w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white"></span> 
+                                @endif
+                            </button>
+
+                            <div id="bellDropdown"
+                                class="hidden absolute right-4 top-full mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50" style="width: 305px;">
+                                <a href=""
+                                    class="block px-4 py-2 text-sm text-gray-700 bg-blue-700 border-blue-200 text-white">{{ langLabel('notifications') }} <span class="float-right">{{ langLabel('view_all') }}</span></a>
+                                @foreach($notifications as $notification)
+                                    <a href=""
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" style="margin-bottom:11px;"> {{ $notification->message }} <small class="float-right" style="margin-top:0px;">{{ date('d-m-y H:s A',strtotime($notification->created_at)) }}</small></a>
+                                    <hr>
+                                    <!-- <div class="clearfix">...</div> -->
+                                @endforeach
+                                @if($notifications->count() < 1) 
+                                    <a href=""
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('view_records_found') }}</a>
+                                @endif
+                            </div>
                         </div>
+
+                        <script>
+                            function toggleBellDropdown() {
+                                const dropdown = document.getElementById('bellDropdown');
+                                dropdown.classList.toggle('hidden');
+                            }
+
+                            document.addEventListener('click', function (e) {
+                                const dropdown = document.getElementById('bellDropdown');
+                                const button = e.target.closest('button[onclick="toggleBellDropdown()"]');
+
+                                if (!dropdown.contains(e.target) && !button) {
+                                    dropdown.classList.add('hidden');
+                                }
+                            });
+                        </script>
                         <div class="relative inline-block">
                             <form method="POST" action="{{ route('change.language') }}">
                                 @csrf

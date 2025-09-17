@@ -31,6 +31,7 @@ use App\Http\Controllers\API\SlotManagementController;
 use App\Http\Controllers\API\SessionsManagementController;
 use App\Http\Controllers\API\ReviewManagementController;
 
+use App\Http\Controllers\API\LanguageController;
 
 
 
@@ -222,3 +223,5 @@ Route::post('/completedBookedSessions', [SessionsManagementController::class, 'c
 Route::post('/totalBookedSessions', [SessionsManagementController::class, 'totalBookedSessionsCountsForMCA']);
 
 Route::post('/reviewsDetailsById', [ReviewManagementController::class, 'reviewsDetailsByMCAIds']);
+
+Route::get('/translateText', [LanguageController::class, 'index']);

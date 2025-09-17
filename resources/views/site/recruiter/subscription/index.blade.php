@@ -13,41 +13,40 @@
 
 
 
-        @php
-            use App\Models\SubscriptionPlan;
-            use App\Models\PurchasedSubscription;
-            use App\Models\Recruiters;
+    @php
+        use App\Models\SubscriptionPlan;
+        use App\Models\PurchasedSubscription;
+        use App\Models\Recruiters;
 
-            // Get recruiter subscription plans
-            $subscriptions = SubscriptionPlan::where('user_type', 'recruiter')->get();
-            $recruiter     = auth()->guard('recruiter')->user();
-            $recruiterId   = $recruiter->id;
-            $role          = $recruiter->role;
+        // Get recruiter subscription plans
+        $subscriptions = SubscriptionPlan::where('user_type', 'recruiter')->get();
+        $recruiter = auth()->guard('recruiter')->user();
+        $recruiterId = $recruiter->id;
+        $role = $recruiter->role;
 
-            if ($role === "main") {
-                // Check subscription for main recruiter
-                $isExpired = PurchasedSubscription::where('user_id', $recruiterId)
-                                ->where('user_type', 'recruiter')
-                                ->where('end_date', '<', now())
-                                ->exists();
-            } else {
-                // Find parent recruiter (the "main recruiter" of this sub_main)
-                $recruiterData = Recruiters::where('id', $recruiter->recruiter_of)->first();
+        if ($role === "main") {
+            // Check subscription for main recruiter
+            $isExpired = PurchasedSubscription::where('user_id', $recruiterId)
+                ->where('user_type', 'recruiter')
+                ->where('end_date', '<', now())
+                ->exists();
+        } else {
+            // Find parent recruiter (the "main recruiter" of this sub_main)
+            $recruiterData = Recruiters::where('id', $recruiter->recruiter_of)->first();
 
-                $isExpired = $recruiterData 
-                    ? PurchasedSubscription::where('user_id', $recruiterData->id)
-                                ->where('user_type', 'recruiter')
-                                ->where('end_date', '<', now())
-                                ->exists()
-                    : true; // fallback -> treat as expired if no parent found
-            }
-        @endphp
+            $isExpired = $recruiterData
+                ? PurchasedSubscription::where('user_id', $recruiterData->id)
+                    ->where('user_type', 'recruiter')
+                    ->where('end_date', '<', now())
+                    ->exists()
+                : true; // fallback -> treat as expired if no parent found
+        }
+    @endphp
 
 
     {{-- Case 1: Main recruiter (always show modal) --}}
     @if($role === 'main')
-        <div id="subscriptionModal"
-            class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
+        <div id="subscriptionModal" class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-6xl p-6 rounded-lg shadow-lg relative">
                 @if($isExpired)
                     <h3 class="text-xl font-semibold mb-6 text-red-600">
@@ -123,7 +122,8 @@
                     </button>
                 </form>
                 <div id="paymentMessage" class="mt-3 text-center text-sm"></div>
-                <button onclick="closePaymentModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
+                <button onclick="closePaymentModal()"
+                    class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold">
                     ×
                 </button>
             </div>
@@ -131,101 +131,100 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-        function openPaymentModal(planId) {
-            document.getElementById('selectedPlanId').value = planId;
-            document.getElementById('paymentModal').classList.remove('hidden');
-        }
+            function openPaymentModal(planId) {
+                document.getElementById('selectedPlanId').value = planId;
+                document.getElementById('paymentModal').classList.remove('hidden');
+            }
 
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.add('hidden');
-        }
+            function closePaymentModal() {
+                document.getElementById('paymentModal').classList.add('hidden');
+            }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Open payment modal on Buy Subscription click
-            document.querySelectorAll('.buy-subscription-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    openPaymentModal(this.getAttribute('data-plan-id'));
-                });
-            });
-
-            // Close modal on Escape
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') closePaymentModal();
-            });
-
-            // Handle AJAX payment
-            document.getElementById('paymentForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                let formData = new FormData(this);
-                let messageBox = document.getElementById('paymentMessage');
-                messageBox.textContent = "";
-
-                fetch("{{ route('recruiter.subscription.payment') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: formData
-                })
-                .then(async response => {
-                    let data = await response.json();
-                    if (!response.ok) throw data;
-                    return data;
-                })
-                .then(data => {
-                    closePaymentModal();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        html: `<b>${data.message}</b>`,
-                        confirmButtonColor: '#3085d6',
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        location.reload();
-                    });
-                })
-                .catch(error => {
-                    let errorMsg = error.message || "Something went wrong!";
-                    if (error.errors) {
-                        errorMsg = Object.values(error.errors).flat().join('<br>');
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        html: `<b>${errorMsg}</b>`,
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Close'
+            document.addEventListener('DOMContentLoaded', () => {
+                // Open payment modal on Buy Subscription click
+                document.querySelectorAll('.buy-subscription-btn').forEach(button => {
+                    button.addEventListener('click', function () {
+                        openPaymentModal(this.getAttribute('data-plan-id'));
                     });
                 });
+
+                // Close modal on Escape
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closePaymentModal();
+                });
+
+                // Handle AJAX payment
+                document.getElementById('paymentForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    let formData = new FormData(this);
+                    let messageBox = document.getElementById('paymentMessage');
+                    messageBox.textContent = "";
+
+                    fetch("{{ route('recruiter.subscription.payment') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: formData
+                    })
+                        .then(async response => {
+                            let data = await response.json();
+                            if (!response.ok) throw data;
+                            return data;
+                        })
+                        .then(data => {
+                            closePaymentModal();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                html: `<b>${data.message}</b>`,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        })
+                        .catch(error => {
+                            let errorMsg = error.message || "Something went wrong!";
+                            if (error.errors) {
+                                errorMsg = Object.values(error.errors).flat().join('<br>');
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                html: `<b>${errorMsg}</b>`,
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'Close'
+                            });
+                        });
+                });
             });
-        });
         </script>
-
-    {{-- Case 2: Sub_main recruiter with expired subscription --}}
+        {{-- Case 2: Sub_main recruiter with expired subscription --}}
     @elseif($role === 'sub_recruiter' && $isExpired)
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
-            <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl relative transform transition-all duration-300 scale-95 hover:scale-100">
-                <div class="flex justify-center mb-4">
-                    <div class="bg-yellow-100 text-yellow-600 w-16 h-16 flex items-center justify-center rounded-full shadow-md">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" />
-                        </svg>
-                    </div>
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
+        <div
+            class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl relative transform transition-all duration-300 scale-95 hover:scale-100">
+            <div class="flex justify-center mb-4">
+                <div
+                    class="bg-yellow-100 text-yellow-600 w-16 h-16 flex items-center justify-center rounded-full shadow-md">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" />
+                    </svg>
                 </div>
-                <h3 class="text-2xl font-bold text-center text-blue-600">⚠ Subscription Expired</h3>
-                <div class="mt-4 text-center">
-                    <p class="text-gray-700 text-lg">
-                        Your subscription has <span class="font-semibold text-red-500">expired</span>.<br>
-                        Please contact your <span class="font-semibold text-blue-600">Head Recruiter</span> for assistance.
-                    </p>
-                </div>
-                <div class="my-6 border-t border-gray-200"></div>
             </div>
+            <h3 class="text-2xl font-bold text-center text-blue-600">⚠ Subscription Expired</h3>
+            <div class="mt-4 text-center">
+                <p class="text-gray-700 text-lg">
+                    Your subscription has <span class="font-semibold text-red-500">expired</span>.<br>
+                    Please contact your <span class="font-semibold text-blue-600">Head Recruiter</span> for assistance.
+                </p>
+            </div>
+            <div class="my-6 border-t border-gray-200"></div>
+        </div>
         </div>
     @endif
-

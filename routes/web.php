@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LangController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\CronController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -314,6 +315,42 @@ Route::post('/change-language', [LangController::class, 'changeLanguage'])->name
 Route::get('/', function () {
     return view('site.index');
 })->name('home')->middleware('redirect.role.home');
+
+//subscription expired cron
+//Route::get('/subscriptionExpired', [CronController::class, 'subscriptionExpired'])->name('subscriptionExpired');
+
+Route::get('/subscriptionExpired/{token}', function ($token) {
+    if ($token !== 'my-secret-token-123') {
+        abort(403);
+    }
+    return app(\App\Http\Controllers\CronController::class)->subscriptionExpired();
+});
+
+//batch scheduled cron
+//Route::get('/batchSchedule', [CronController::class, 'batchSchedule'])->name('batchSchedule');
+
+Route::get('/batchSchedule/{token}', function ($token) {
+    if ($token !== 'my-secret-token-1234') {
+        abort(403);
+    }
+    return app(\App\Http\Controllers\CronController::class)->batchSchedule();
+});
+
+//booking slot cron
+//Route::get('/bookingSlot', [CronController::class, 'bookingSlot'])->name('bookingSlot');
+
+Route::get('/bookingSlot/{token}', function ($token) {
+    if ($token !== 'my-secret-token-12345') {
+        abort(403);
+    }
+    return app(\App\Http\Controllers\CronController::class)->bookingSlot();
+});
+
+
+
+
+
+
 
 
 
