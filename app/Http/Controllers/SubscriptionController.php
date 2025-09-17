@@ -89,8 +89,8 @@ class SubscriptionController extends Controller
             "udf7"         => '0.00',
             "udf8"         => number_format($plan->price, 2, '.', ''),
             "langid"       => "en",
-            "responseURL"  => $config['subscription_sub_success_url'],
-            "errorURL"     => $config['subscription_sub_success_url'],
+            "responseURL"  => $config['subscription_success_url'],
+            "errorURL"     => $config['subscription_failure_url'],
         ];
 
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
@@ -101,12 +101,11 @@ class SubscriptionController extends Controller
         $payload = [[
             "id"          => $config['tranportal_id'],
             "trandata"    => $trandata,
-            "responseURL" => $config['subscription_sub_success_url'],
-            "errorURL"    => $config['subscription_sub_success_url']
+            "responseURL" => $config['subscription_success_url'],
+            "errorURL"    => $config['subscription_failure_url']
         ]];
 
         $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES);
-
         // Send request to Neoleap
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -135,7 +134,7 @@ class SubscriptionController extends Controller
      */
     public function successSubscription(Request $request)
     {
-       
+        // echo "<pre>"; print_r($request->all()); echo "</pre>"; exit;
         $config = config('neoleap');
         $responseTrandata = $request->input('trandata');
 

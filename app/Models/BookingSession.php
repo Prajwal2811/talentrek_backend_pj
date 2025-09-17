@@ -16,8 +16,8 @@ class BookingSession extends Model
         'user_type',
         'user_id',
         'booking_slot_id',
-        'slot_date',
         'slot_mode',
+        'slot_date',
         'slot_time',
         'status',
         'admin_status',
@@ -25,12 +25,17 @@ class BookingSession extends Model
         'slot_date_after_postpone',
         'slot_time_after_postpone',
         'cancellation_reason',
-        'zoom_start_url',
+        'cancelled_at',
+        'rescheduled_at',
+        'zoom_meeting_id',
         'zoom_join_url',
-        'zoom_access_token',
-        'zoom_refresh_token',
-        'zoom_token_expires_at',
+        'zoom_start_url',
+        'coupon_type',
+        'coupon_code',
+        'coupon_amount',
+        'order_id',
     ];
+
 
     // Relationships
     public function jobseeker()

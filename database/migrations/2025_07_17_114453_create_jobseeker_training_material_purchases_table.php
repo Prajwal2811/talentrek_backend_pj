@@ -44,6 +44,11 @@ return new class extends Migration
             $table->decimal('tax', 10, 2)->nullable();
             $table->decimal('discount', 10, 2)->nullable();
 
+            $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_amount')->nullable();   
+            $table->string('order_id')->nullable();         // CAPTURED, DECLINED, etc.
+
             // Team members count
             $table->unsignedInteger('member_count')->nullable();
 
@@ -63,3 +68,4 @@ return new class extends Migration
         Schema::dropIfExists('jobseeker_training_material_purchases');
     }
 };
+

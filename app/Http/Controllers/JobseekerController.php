@@ -910,7 +910,7 @@ class JobseekerController extends Controller
 
         foreach ($request->input('job_role', []) as $i => $role) {
             $currentlyWorking = in_array($i, $request->input('currently_working', []));
-            $endToValue = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
+            $endToValue = $currentlyWorking ? 'work here' : ($request->end_to[$i] ?? null);
 
             $data = [
                 'user_id' => $user_id,

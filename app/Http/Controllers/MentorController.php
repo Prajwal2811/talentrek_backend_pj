@@ -27,6 +27,7 @@ use App\Models\PurchasedSubscription;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class MentorController extends Controller
 {
@@ -665,7 +666,7 @@ class MentorController extends Controller
                     <div class="header">
                         <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
                     </div>
-                    <p>Hi <strong>' . e($coach->name ?? $coach->email) . '</strong>,</p>
+                    <p>Hi <strong>' . e($mentor->name ?? $mentor->email) . '</strong>,</p>
 
                     <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
@@ -685,8 +686,8 @@ class MentorController extends Controller
                 </div>
             </body>
             </html>
-            ', function ($message) use ($coach) {
-                $message->to($coach->email)
+            ', function ($message) use ($mentor) {
+                $message->to($mentor->email)
                     ->subject('Welcome to Talentrek – Registration Successful');
         });
 
