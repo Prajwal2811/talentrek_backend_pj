@@ -515,7 +515,6 @@ class LanguageSeeder extends Seeder
             ['code' => 'no_jobseekers', 'english' => 'No jobseekers match the selected filters.', 'arabic' => 'لا يوجد باحثون عن عمل يطابقون الفلاتر المحددة.'],
             ['code' => 'add_other_recruiters', 'english' => 'Add Other Recruiters', 'arabic' => 'إضافة موظفين آخرين'],
             ['code' => 'enter_name', 'english' => 'Enter name', 'arabic' => 'أدخل الاسم'],
-            ['code' => 'enter_email', 'english' => 'Enter email', 'arabic' => 'أدخل البريد الإلكتروني'],
             ['code' => 'national_id', 'english' => 'National ID', 'arabic' => 'الهوية الوطنية'],
             ['code' => 'enter_national_id', 'english' => 'Enter National ID', 'arabic' => 'أدخل الهوية الوطنية'],
             ['code' => 'save_recruiters', 'english' => 'Save Recruiters', 'arabic' => 'حفظ الموظفين'],

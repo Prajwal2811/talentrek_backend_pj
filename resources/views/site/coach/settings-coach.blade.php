@@ -101,26 +101,36 @@ $coach = Auth()->user();
                                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">{{ langLabel('subscription') }}</h3>
 
                                     @php
-                                        $userId = auth()->user('coach')->id;
-                                        // Fetch available plans for this user type
+                                        $userId = auth()->id();
                                         $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'coach')->get();
-
-                                        // Fetch purchased subscriptions for current user
-                                        $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*', 'purchased_subscriptions.*')
+                                        $purchasedSubscriptions = App\Models\PurchasedSubscription::select(
+                                                'subscription_plans.title',
+                                                'subscription_plans.duration_days',
+                                                'purchased_subscriptions.id',
+                                                'purchased_subscriptions.subscription_plan_id',
+                                                'purchased_subscriptions.user_id',
+                                                'payments_history.paid_at'
+                                            )
                                             ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                            ->join('payments_history', 'payments_history.transaction_id', '=', 'purchased_subscriptions.transaction_id')
                                             ->where('subscription_plans.user_type', 'coach')
                                             ->where('purchased_subscriptions.user_id', $userId)
-                                            ->orderBy('purchased_subscriptions.created_at', 'desc')
+                                            ->orderBy('payments_history.paid_at', 'desc')
                                             ->get();
 
                                         $showPlansModal = false;
 
                                         if ($purchasedSubscriptions->count() > 0) {
-                                            $latest = $purchasedSubscriptions->first();
-                                            $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
+                                            foreach ($purchasedSubscriptions as $sub) {
+                                                $startDate = \Carbon\Carbon::parse($sub->paid_at);
+                                                $endDate   = $startDate->copy()->addDays($sub->duration_days);
+                                                $daysLeft  = \Carbon\Carbon::now()->diffInDays($endDate, false);
 
-                                            if ($daysLeft > 0 && $daysLeft <= 30) {
-                                                $showPlansModal = true;
+                                                // check if any active subscription is expiring soon
+                                                if ($daysLeft > 0 && $daysLeft <= 30) {
+                                                    $showPlansModal = true;
+                                                    break;
+                                                }
                                             }
                                         }
                                     @endphp
@@ -157,24 +167,31 @@ $coach = Auth()->user();
                                                 @foreach($subscriptions as $plan)
                                                     <div class="border rounded-lg p-4 shadow-sm text-center">
                                                         <div class="flex flex-col items-center">
-                                                            <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                                                            <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full mb-2">
+                                                                <i class="fas fa-crown text-blue-500 text-xl"></i>
+                                                            </div>
+
                                                             <h4 class="font-semibold">{{ $plan->title }}</h4>
                                                             <p class="font-bold text-lg mt-1">AED {{ $plan->price }}</p>
                                                         </div>
                                                         <p class="text-sm text-gray-500 mt-2 mb-3">{{ $plan->description }}</p>
-                                                        @php
-                                                            $features = is_array($plan->features) ? $plan->features : explode(',', $plan->features);
-                                                        @endphp
                                                         <ul class="list-disc list-outside pl-5 text-sm text-gray-700 mb-4">
-                                                            @foreach($features as $feature)
+                                                            @foreach(is_array($plan->features) ? $plan->features : explode(',', $plan->features) as $feature)
                                                                 <li>{{ trim($feature) }}</li>
                                                             @endforeach
                                                         </ul>
-                                                        <button type="button"
-                                                            class="bg-orange-500 hover:bg-orange-600 text-white w-full py-2 rounded-md text-sm font-medium buy-subscription-btn"
-                                                            data-plan-id="{{ $plan->id }}">
-                                                            {{ langLabel('buy') }} {{ langLabel('subscription') }}
-                                                        </button>
+
+                                                        <!-- Direct form submit instead of JS -->
+                                                        <form action="{{ route('subscription.payment') }}" method="POST">
+                                                            @csrf
+                                                            <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                                            <input type="hidden" name="user_id" value="{{ auth()->user('coach')->id }}">
+                                                            <input type="hidden" name="type" value="coach">
+                                                            <button type="submit"
+                                                                class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 rounded-md text-sm font-medium">
+                                                                Renew subscription
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 @endforeach
                                             </div>

@@ -39,6 +39,7 @@ return new class extends Migration
             $table->date('end_date')->nullable();
 
             // Payment info
+            $table->decimal('actual_amount', 8, 2)->nullable();
             $table->decimal('amount_paid', 8, 2)->nullable();
             $table->string('payment_status')->nullable(); // e.g. 'paid', 'pending', 'failed'
 
@@ -52,8 +53,9 @@ return new class extends Migration
             $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
             $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
             $table->string('coupon_amount')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('taxed_amount')->nullable();         // CAPTURED, DECLINED, etc.
             $table->longText('response_payload')->nullable(); // store full gateway JSON
-            $table->longText('raw_response')->nullable(); // store full gateway JSON
             $table->timestamps();
         });
     }

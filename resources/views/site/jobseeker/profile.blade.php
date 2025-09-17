@@ -1844,23 +1844,38 @@ $skills = $user->skills->first();
                         <h2 class="text-xl font-semibold mb-4">Subscription</h2>
                         @php
                             $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
-                            $purchasedSubscriptions = App\Models\PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
-                                        ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-                                        ->where('subscription_plans.user_type', 'jobseeker')
-                                        ->where('purchased_subscriptions.user_id', $userId)
-                                        ->orderBy('purchased_subscriptions.created_at', 'desc')
-                                        ->get();
+                            $purchasedSubscriptions = App\Models\PurchasedSubscription::select(
+                                    'subscription_plans.title',
+                                    'subscription_plans.duration_days',
+                                    'purchased_subscriptions.id',
+                                    'purchased_subscriptions.subscription_plan_id',
+                                    'purchased_subscriptions.user_id',
+                                    'payments_history.paid_at'
+                                )
+                                ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                ->join('payments_history', 'payments_history.transaction_id', '=', 'purchased_subscriptions.transaction_id')
+                                ->where('subscription_plans.user_type', 'jobseeker')
+                                ->where('purchased_subscriptions.user_id', $userId)
+                                ->orderBy('payments_history.paid_at', 'desc')
+                                ->get();
+
                             $showPlansModal = false;
+
                             if ($purchasedSubscriptions->count() > 0) {
-                                // latest subscription based on created_at
-                                $latest = $purchasedSubscriptions->first();
-                                $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($latest->end_date), false);
-                                echo "Days left: " . $daysLeft;
-                                if ($daysLeft > 0 && $daysLeft <= 30) {
-                                    $showPlansModal = true;
+                                foreach ($purchasedSubscriptions as $sub) {
+                                    $startDate = \Carbon\Carbon::parse($sub->paid_at);
+                                    $endDate   = $startDate->copy()->addDays($sub->duration_days);
+                                    $daysLeft  = \Carbon\Carbon::now()->diffInDays($endDate, false);
+
+                                    // check if any active subscription is expiring soon
+                                    if ($daysLeft > 0 && $daysLeft <= 30) {
+                                        $showPlansModal = true;
+                                        break;
+                                    }
                                 }
                             }
                         @endphp
+
 
                         <script>
                         document.addEventListener('DOMContentLoaded', function () {
@@ -1943,18 +1958,23 @@ $skills = $user->skills->first();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($purchasedSubscriptions as $index => $subscription)
-                                        <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
-                                            <td class="px-4 py-3">{{ $index + 1 }}.</td>
-                                            <td class="px-4 py-3">{{ $subscription->title }}</td>
-                                            <td class="px-4 py-3">
-                                                {{ $subscription->duration_days }} {{ Str::plural('days', $subscription->duration_days) }}
-                                            </td>
-                                            <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->start_date)->format('d/m/Y') }}</td>
-                                            <td class="px-4 py-3">{{ \Carbon\Carbon::parse($subscription->end_date)->format('d/m/Y') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
+    @foreach ($purchasedSubscriptions as $index => $subscription)
+        @php
+            $startDate = \Carbon\Carbon::parse($subscription->paid_at);
+            $endDate   = $startDate->copy()->addDays($subscription->duration_days);
+        @endphp
+        <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
+            <td class="px-4 py-3">{{ $index + 1 }}.</td>
+            <td class="px-4 py-3">{{ $subscription->title }}</td>
+            <td class="px-4 py-3">
+                {{ $subscription->duration_days }} {{ Str::plural('days', $subscription->duration_days) }}
+            </td>
+            <td class="px-4 py-3">{{ $startDate->format('d/m/Y H:i') }}</td>
+            <td class="px-4 py-3">{{ $endDate->format('d/m/Y H:i') }}</td>
+        </tr>
+    @endforeach
+</tbody>
+
                             </table>
                         </div>
                     </div>

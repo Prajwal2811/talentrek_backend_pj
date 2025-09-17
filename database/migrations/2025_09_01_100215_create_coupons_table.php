@@ -17,6 +17,8 @@ return new class extends Migration
             $table->date('valid_from')->nullable();
             $table->date('valid_to')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('is_private')->nullable();
+            $table->string('is_used')->nullable();
             $table->timestamps();
         });
     }

@@ -37,6 +37,7 @@
                                                     <th>Sr. No.</th>
                                                     <th>Code</th>
                                                     <th>Discount</th>
+                                                    <th>Visibility</th> <!-- New Column -->
                                                     <th>Valid From</th>
                                                     <th>Valid To</th>
                                                     <th>Status</th>
@@ -48,6 +49,7 @@
                                                     <th>Sr. No.</th>
                                                     <th>Code</th>
                                                     <th>Discount</th>
+                                                    <th>Visibility</th> <!-- New Column -->
                                                     <th>Valid From</th>
                                                     <th>Valid To</th>
                                                     <th>Status</th>
@@ -55,8 +57,15 @@
                                                 </tr>
                                             </tfoot>
                                             <tbody>
+                                                @php
+                                                    use Carbon\Carbon;
+                                                @endphp
+
                                                 @forelse($coupons as $index => $coupon)
-                                                    <tr>
+                                                    @php
+                                                        $isExpired = $coupon->valid_to && Carbon::parse($coupon->valid_to)->isPast();
+                                                    @endphp
+                                                    <tr class="{{ $isExpired ? 'table-danger' : '' }}">
                                                         <td>{{ $index + 1 }}</td>
                                                         <td>{{ $coupon->code }}</td>
                                                         <td>
@@ -66,10 +75,19 @@
                                                                 ₹{{ number_format($coupon->discount_value, 2) }}
                                                             @endif
                                                         </td>
+                                                        <td>
+                                                            @if($coupon->is_private === 'yes')
+                                                                <span class="badge badge-warning">Private</span>
+                                                            @else
+                                                                <span class="badge badge-info">Public</span>
+                                                            @endif
+                                                        </td>
                                                         <td>{{ $coupon->valid_from ?? '-' }}</td>
                                                         <td>{{ $coupon->valid_to ?? '-' }}</td>
                                                         <td>
-                                                            @if($coupon->is_active)
+                                                            @if($isExpired)
+                                                                <span class="badge badge-secondary">Expired</span>
+                                                            @elseif($coupon->is_active)
                                                                 <span class="badge badge-success">Active</span>
                                                             @else
                                                                 <span class="badge badge-danger">Inactive</span>
@@ -77,7 +95,7 @@
                                                         </td>
                                                         <td>
                                                             <a href="{{ route('admin.coupons.edit', $coupon->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                                                            
+
                                                             <!-- Delete Button (Opens Modal) -->
                                                             <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteCouponModal-{{ $coupon->id }}">
                                                                 Delete
@@ -98,7 +116,7 @@
                                                                         </div>
                                                                         <div class="modal-footer">
                                                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                                                            
+
                                                                             <form action="{{ route('admin.coupons.destroy', $coupon->id) }}" method="POST">
                                                                                 @csrf
                                                                                 @method('DELETE')
@@ -108,16 +126,17 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-
                                                         </td>
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="7" class="text-center">No coupons found</td>
+                                                        <td colspan="8" class="text-center">No coupons found</td>
                                                     </tr>
                                                 @endforelse
+
                                             </tbody>
                                         </table>
+
                                         <div class="mt-3">
                                             {{ $coupons->links() }} {{-- Laravel pagination --}}
                                         </div>

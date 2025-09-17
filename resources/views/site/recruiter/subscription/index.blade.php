@@ -204,8 +204,6 @@
         });
         </script>
 
-    @else
-=======
     {{-- Case 2: Sub_main recruiter with expired subscription --}}
     @elseif($role === 'sub_recruiter' && $isExpired)
         <div class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">

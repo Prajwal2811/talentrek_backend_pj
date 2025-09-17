@@ -243,7 +243,7 @@ class SubscriptionController extends Controller
                 'payment_status'=> 'completed',
                 'transaction_id'=> $data['transId'] ?? null,
                 'track_id'      => $data['trackId'] ?? null,
-                'order_id'      => 'ORD-' . $data['udf1'] . '-' . $data['udf4'] . '-' . now()->format('YmdHis'),
+                'order_id'      => 'ORD-' . $data['udf1'] . '-' . $data['udf4'] . '-' .  $data['ref'],
                 'currency'      => 'SAR',
                 'payment_method'=> 'Al Rajhi',
                 'paid_at'       => now(),

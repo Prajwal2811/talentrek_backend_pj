@@ -19,4 +19,9 @@ return [
      // Subscription-specific
     'subscription_success_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_SUCCESS_URL'),
     'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_FAILURE_URL'),
+
+
+    // Course Purchase
+    'course_success_url' => env('APP_URL') . env('NEOLEAP_COURSE_SUCCESS_URL'),
+    'course_failure_url' => env('APP_URL') . env('NEOLEAP_COURSE_FAILURE_URL'),
 ];

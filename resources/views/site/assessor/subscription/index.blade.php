@@ -19,7 +19,7 @@
                 ->get();
         @endphp
         <!-- Subscription Modal -->
-        div id="subscriptionModal"  class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
+        <div id="subscriptionModal"  class="fixed inset-0 bg-gray-200 bg-opacity-80 flex items-center justify-center z-50">
              <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative">
                 @include('admin.errors')
                 <h3 class="text-xl font-semibold mb-6">{{ langLabel('available_subscription_plans') }}</h3>

@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('jobseeker_training_material_purchases', function (Blueprint $table) {
+        Schema::create('jobseeker_training_material_purchases_payment_record', function (Blueprint $table) {
             $table->id();
 
             // Foreign keys
-            $table->integer('jobseeker_id')->nullable();
-            $table->integer('trainer_id')->nullable();
-            $table->integer('material_id')->nullable();
-            $table->integer('purchased_by')->nullable();
+            $table->string('jobseeker_id')->nullable();
+            $table->string('trainer_id')->nullable();
+            $table->string('material_id')->nullable();
 
+            
             // Nullable enum types
             $table->enum('training_type', ['online', 'classroom', 'recorded'])->nullable();
             $table->enum('session_type', ['online', 'classroom'])->nullable();
@@ -63,8 +63,6 @@ return new class extends Migration
 
             $table->timestamps();
         });
-
-
     }
 
     /**
@@ -74,7 +72,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('jobseeker_training_material_purchases');
+        Schema::dropIfExists('jobseeker_training_material_purchases_payment_record');
     }
 };
-

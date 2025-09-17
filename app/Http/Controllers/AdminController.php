@@ -2690,19 +2690,26 @@ class AdminController extends Controller
     public function storeCoupon(Request $request)
     {
         $request->validate([
-            'code'          => 'required|unique:coupons,code',
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value'=> 'required|numeric|min:0',
-            'valid_from'    => 'nullable|date',
-            'valid_to'      => 'nullable|date|after_or_equal:valid_from',
-            'is_active'     => 'boolean'
+            'code'           => 'required|unique:coupons,code',
+            'discount_type'  => 'required|in:percentage,fixed',
+            'discount_value' => 'required|numeric|min:0',
+            'valid_from'     => 'nullable|date',
+            'valid_to'       => 'nullable|date|after_or_equal:valid_from',
+            'is_active'      => 'boolean',
+            'is_private'     => 'nullable|string', // Accept yes or null
         ]);
 
-        Coupon::create($request->all());
+        $data = $request->all();
+        // Set default value: 'yes' if checked, 'no' if unchecked
+        $data['is_private'] = $request->has('is_private') ? 'yes' : 'no';
+
+        Coupon::create($data);
 
         return redirect()->route('admin.coupons.coupons')
-                         ->with('success', 'Coupon created successfully.');
+                        ->with('success', 'Coupon created successfully.');
     }
+
+
 
    
     public function editCoupon($id)
@@ -2717,19 +2724,25 @@ class AdminController extends Controller
         $coupon = Coupon::findOrFail($id);
 
         $request->validate([
-            'code'          => 'required|unique:coupons,code,' . $coupon->id,
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value'=> 'required|numeric|min:0',
-            'valid_from'    => 'nullable|date',
-            'valid_to'      => 'nullable|date|after_or_equal:valid_from',
-            'is_active'     => 'boolean'
+            'code'           => 'required|unique:coupons,code,' . $coupon->id,
+            'discount_type'  => 'required|in:percentage,fixed',
+            'discount_value' => 'required|numeric|min:0',
+            'valid_from'     => 'nullable|date',
+            'valid_to'       => 'nullable|date|after_or_equal:valid_from',
+            'is_active'      => 'boolean',
+            'is_private'     => 'nullable|string', // Accept 'yes' or null
         ]);
 
-        $coupon->update($request->all());
+        $data = $request->all();
+        // Set default value: 'yes' if checked, 'no' if unchecked
+        $data['is_private'] = $request->has('is_private') ? 'yes' : 'no';
+
+        $coupon->update($data);
 
         return redirect()->route('admin.coupons.coupons')
-                         ->with('success', 'Coupon updated successfully.');
+                        ->with('success', 'Coupon updated successfully.');
     }
+
 
     public function destroyCoupon($id)
     {

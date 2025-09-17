@@ -3463,54 +3463,48 @@ public function submitReview(Request $request)
 
 
 
+ 
     public function applyCoupon(Request $request)
     {
-        $today = Carbon::today();
-        $code = trim($request->input('code', ''));
-        $price = (float) $request->input('price', 0);
+        $request->validate([
+            'code' => 'required|string',
+        ]);
 
-        if ($code === '' || $price <= 0) {
-            return response()->json(['success' => false, 'message' => 'Invalid code or price.']);
+        $code = $request->code;
+
+        // Check only public coupons
+        $coupon = Coupon::where('code', $code)
+                        ->where('is_active', 1)
+                        ->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid coupon code.'
+            ]);
         }
 
-        $coupon = Coupon::where('is_active', 1)
-            ->where('code', $code)
-            ->whereDate('valid_from', '<=', $today)
-            ->whereDate('valid_to', '>=', $today)
-            ->first();
+        $now = Carbon::now();
 
-        if (! $coupon) {
-            return response()->json(['success' => false, 'message' => 'Invalid or expired coupon']);
+        if ($coupon->valid_from && $now->lt(Carbon::parse($coupon->valid_from))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon is not active yet.'
+            ]);
         }
 
-        $discount = 0.0;
-        $type = strtolower(trim($coupon->discount_type ?? ''));
-
-        if ($type === 'percentage' || $type === 'percent') {
-            $percent = (float) $coupon->discount_value;
-            $discount = round($price * ($percent / 100), 2);
-        } else { // assume fixed
-            $discount = round((float) $coupon->discount_value, 2);
+        if ($coupon->valid_to && $now->gt(Carbon::parse($coupon->valid_to))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon has expired.'
+            ]);
         }
-
-        // Prevent discount > price
-        if ($discount > $price) {
-            $discount = $price;
-        }
-
-        $newPrice = round($price - $discount, 2);
-        if ($newPrice < 0) $newPrice = 0.00;
-
-        $tax = round($newPrice * 0.10, 2); // 10% tax on final price
-        $total = round($newPrice + $tax, 2);
 
         return response()->json([
-            'success'  => true,
-            'discount' => $discount,
-            'newPrice' => $newPrice,
-            'tax'      => $tax,
-            'total'    => $total,
-            'message'  => 'Coupon applied successfully'
+            'success' => true,
+            'discount_type' => $coupon->discount_type,
+            'discount_value' => floatval($coupon->discount_value),
+            'message' => 'Coupon applied successfully.'
         ]);
     }
 

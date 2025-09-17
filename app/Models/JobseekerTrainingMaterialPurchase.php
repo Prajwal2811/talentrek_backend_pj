@@ -9,26 +9,31 @@ class JobseekerTrainingMaterialPurchase extends Model
 {
     use HasFactory;
 
-   protected $fillable = [
+    protected $table = 'jobseeker_training_material_purchases';  
+    protected $fillable = [
         'jobseeker_id',
         'trainer_id',
         'material_id',
+        'purchased_by',
         'training_type',
         'session_type',
         'batch_id',
         'purchase_for',
         'payment_id',
         'batchStatus',
-        'transaction_id',
         'status',
-        'amount',
-        'tax',
-        'discount',
+        'tax_percentage',
+        'taxed_amount',
+        'amount_paid',
         'coupon_type',
         'coupon_code',
         'coupon_amount',
-        'member_count',
         'order_id',
+        'track_id',
+        'transaction_id',
+        'payment_status',
+        'response_payload',
+        'member_count',
     ];
 
 
@@ -72,7 +77,4 @@ class JobseekerTrainingMaterialPurchase extends Model
     {
         return $this->hasMany(TeamCourseMember::class, 'purchase_id');
     }
-
-
-
 }

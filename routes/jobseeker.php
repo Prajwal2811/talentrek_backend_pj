@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobseekerController;
+use App\Http\Controllers\CoursePurchaseController;
 
 
 // Joobseeker Routes
@@ -40,6 +41,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('auth/google/callback', [JobseekerController::class, 'handleGoogleCallback'])->name('jobseeker.google.callback');
 
 		
+		
 
 	});
 	
@@ -74,7 +76,14 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-coach-review', [JobseekerController::class, 'submitCoachReview'])->name('submit.coach.review');
 		Route::post('/submit-mentor-review', [JobseekerController::class, 'submitMentorReview'])->name('submit.mentor.review');
 			
-		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+
+		Route::post('/purchase-course', [CoursePurchaseController::class, 'processPurchaseCoursePayment'])->name('jobseeker.purchase-course');
+		Route::post('/course/payment/success', [CoursePurchaseController::class, 'successPurchaseCourse']);
+		Route::post('/course/payment/failure', [CoursePurchaseController::class, 'failurePurchaseCourse']);
+
+
+
+
 		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
 
 		Route::post('/jobseeker/save-answer', [JobseekerController::class, 'saveJobseekerAnswer'])->name('jobseeker.saveAnswer');
@@ -124,7 +133,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 		Route::get('/buy-course/{id}', [JobseekerController::class, 'buyCourseDetails'])->name('buy-course');
 		Route::get('/buy-course-for-team/{id}', [JobseekerController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');
-		Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
+		// Route::post('/purchase-course', [JobseekerController::class, 'purchaseCourse'])->name('jobseeker.purchase-course');
 		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
 
 
@@ -142,7 +151,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/assessor-details/{id}', [JobseekerController::class, 'assessorDetails'])->name('assessor-details');
 		Route::get('/coach-details/{id}', [JobseekerController::class, 'coachDetails'])->name('coach-details');
 
-		Route::post('/apply-coupon', [JobseekerController::class, 'applyCoupon'])->name('jobseeker.apply-coupon');
+		Route::post('/apply-coupon', [JobseekerController::class, 'applyCoupon'])->name('apply.coupon');
 
 
 });

@@ -100,6 +100,20 @@
                                             </div>
                                         </div>
 
+                                        <div class="row">
+                                            <!-- Coupon Visibility -->
+                                            <div class="form-group c_form_group col-md-6">
+                                                <label>
+                                                    <input type="checkbox" name="is_private" value="yes" {{ old('is_private', $coupon->is_private) == 'yes' ? 'checked' : '' }}>
+                                                    Private Coupon
+                                                </label>
+                                                @error('is_private')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+
                                         <button type="submit" class="btn btn-primary theme-bg">Update Coupon</button>
                                     </form>
                                 </div>

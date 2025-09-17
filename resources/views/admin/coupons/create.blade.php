@@ -27,7 +27,6 @@
                                 <div class="body">
                                     <form id="coupon-create-form" method="POST" novalidate action="{{ route('admin.coupons.store') }}">
                                         @csrf
-
                                         <div class="row">
                                             <!-- Coupon Code -->
                                             <div class="form-group c_form_group col-md-6">
@@ -98,6 +97,20 @@
                                                 @enderror
                                             </div>
                                         </div> 
+
+                                        <div class="row">
+                                            <!-- Coupon Visibility -->
+                                            <div class="form-group c_form_group col-md-6">
+                                                <label>
+                                                    <input type="checkbox" name="is_private" value="yes" {{ old('is_private') == 'yes' ? 'checked' : '' }}>
+                                                    Private Coupon
+                                                </label>
+                                                @error('is_private')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+
 
                                         <div class="col-md-12">
                                             <button type="submit" class="btn btn-primary theme-bg">Create Coupon</button>
