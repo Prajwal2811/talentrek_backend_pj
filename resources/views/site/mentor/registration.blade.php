@@ -88,6 +88,7 @@
                                         <div class="grid grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
+
                                                 <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
                                                     <option value="+966">+966</option>
@@ -108,27 +109,33 @@
                                             @enderror
                                         </div>
                                         </div>
-                                        <div class="grid grid-cols-2 gap-6 mt-3">
+                                        
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <span class="text-xs text-blue-600">
                                                     National ID should start with 1 for male and 2 for female.
                                                 </span>
                                                 <input 
-                                                    type="text" 
-                                                    name="national_id" 
-                                                    id="national_id" 
-                                                    class="w-full border rounded-md p-2 mt-1" 
-                                                    placeholder="Enter national id number" 
-                                                    value="{{ old('national_id') }}" 
-                                                    maxlength="15"
-                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
-                                                />
-                                                @error('national_id')
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                @enderror
+                                                        type="text" 
+                                                        name="national_id" 
+                                                        id="national_id" 
+                                                        class="w-full border rounded-md p-2 mt-1" 
+                                                        placeholder="Enter national id number" 
+                                                        value="{{ old('national_id') }}" 
+                                                        maxlength="15"
+                                                        pattern="^[1-2][0-9]{14}$"
+                                                        oninput="
+                                                            this.value = this.value.replace(/[^0-9]/g, ''); 
+                                                            if(this.value.length > 15) this.value = this.value.slice(0,15);
+                                                            if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
+                                                        "
+                                                        required
+                                                    />
+                                                    @error('national_id')
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
                                             </div>
-                                        </div>
+                                        
                                       <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">
                                                 {{ langLabel('address') }} <span style="color: red; font-size: 17px;">*</span>
@@ -265,70 +272,26 @@
 
 
                                     <!-- Step 3: Work Experience -->
-                                    <div id="step-3" class="step hidden">
-                                       @php
-                                        $workCount = count(old('job_role', [null]));
-                                        @endphp
+                                    <div id="step-3" class="step hidden" x-data="workExperience()">
 
                                         <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                            @for ($i = 0; $i < $workCount; $i++)
-                                                @php
-                                                    $isWorking = old("currently_working.$i") == 'on';
-                                                @endphp
-                                                <div
-                                                    class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
-                                                    x-data="{
-                                                        working: {{ $isWorking ? 'true' : 'false' }},
-                                                        index: {{ $i }},
-                                                        init() {
-                                                            this.$watch('working', value => {
-                                                                const entries = document.querySelectorAll('.work-entry');
-                                                                entries.forEach((entry, idx) => {
-                                                                    const checkbox = entry.querySelector('.currently-working-checkbox');
-                                                                    const endInput = entry.querySelector('.datepicker-end');
 
-                                                                    if (value) {
-                                                                        // If this checkbox is checked, disable all others
-                                                                        if (idx !== this.index) {
-                                                                            checkbox.disabled = true;
-                                                                            checkbox.checked = false;
-                                                                            if (entry.__x) entry.__x.$data.working = false;
-                                                                        } else {
-                                                                            endInput.value = '';
-                                                                            endInput.readOnly = true;
-                                                                            endInput.disabled = true;
-                                                                        }
-                                                                    } else {
-                                                                        // Enable all checkboxes and date inputs
-                                                                        checkbox.disabled = false;
-                                                                        endInput.readOnly = false;
-                                                                        endInput.disabled = false;
-                                                                    }
-                                                                });
-                                                            });
-                                                        }
-                                                    }"
-                                                    x-init="init()"
-                                                >
-
+                                            <template x-for="(work, index) in workList" :key="index">
+                                                <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
                                                     {{-- Job Role --}}
                                                     <div>
                                                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('job_title') }} <span style="color: red; font-size: 17px;">*</span><span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
-                                                            placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
-                                                        @error("job_role.$i")
-                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                        @enderror
+                                                            placeholder="e.g. Software Engineer"
+                                                            x-model="work.job_role">
                                                     </div>
 
                                                     {{-- Organization --}}
                                                     <div>
                                                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('organization') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                         <input type="text" name="organization[]" class="w-full border rounded-md p-2"
-                                                            placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
-                                                        @error("organization.$i")
-                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                        @enderror
+                                                            placeholder="e.g. ABC Corp"
+                                                            x-model="work.organization">
                                                     </div>
 
                                                     {{-- Start Date --}}
@@ -346,8 +309,6 @@
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @enderror
                                                     </div>
-                                                    <!-- Alpine.js CDN -->
-                                                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
                                                     {{-- End Date & Checkbox --}}
                                                     <div x-data="{ working: {{ $isWorking ? 'true' : 'false' }}, endDate: '{{ old("end_to.$i") }}' }">
@@ -356,49 +317,84 @@
                                                             {{ langLabel('to') }} <span style="color: red; font-size: 17px;">*</span>
                                                         </label>
 
-                                                        <!-- Date Input -->
-                                                        <input type="date"
-                                                            name="end_to[]"
-                                                            class="w-full border rounded-md p-2 datepicker-end"
-                                                            x-bind:disabled="working"
-                                                            x-bind:readonly="working"
-                                                            x-bind:value="working ? '' : endDate"
-                                                            x-on:change="endDate = $event.target.value">
-
-                                                        <!-- Error Message -->
-                                                        @error("end_to.$i")
-                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                        @enderror
-
-                                                        <!-- Checkbox -->
                                                         <label class="inline-flex items-center mt-2 space-x-2">
                                                             <input type="checkbox"
                                                                 name="currently_working[{{ $i }}]"
                                                                 class="currently-working-checkbox"
                                                                 x-model="working">
                                                             <span>{{ langLabel('currently_work_here') }}</span>
+
                                                         </label>
                                                     </div>
 
-
                                                     {{-- Remove Button --}}
                                                     <button type="button"
-                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                        style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                            class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                            @click="removeWork(index)"
+                                                            x-show="workList.length > 1">&times;</button>
                                                 </div>
-                                            @endfor
+                                            </template>
+
                                         </div>
 
-                                       
+                                        {{-- Add Work Button --}}
                                         <div class="col-span-2">
+
                                             <button type="button" id="add-work" class="text-green-600 text-sm mt-3">+ {{ langLabel('add_work_experience') }}</button>
                                         </div>
 
+                                        {{-- Navigation Buttons --}}
                                         <div class="col-span-2 flex justify-between mt-4">
                                             <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
                                             <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
                                         </div>
+
                                     </div>
+
+                                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                                    <script>
+                                    function workExperience() {
+                                        return {
+                                            workList: [
+                                                @php
+                                                    $oldRoles = old('job_role', ['']);
+                                                    $oldOrgs = old('organization', ['']);
+                                                    $oldStarts = old('starts_from', ['']);
+                                                    $oldEnds = old('end_to', ['']);
+                                                    $oldWorking = old('currently_working', []);
+                                                @endphp
+                                                @foreach ($oldRoles as $i => $role)
+                                                {
+                                                    job_role: "{{ $role }}",
+                                                    organization: "{{ $oldOrgs[$i] ?? '' }}",
+                                                    start: "{{ $oldStarts[$i] ?? '' }}",
+                                                    end: "{{ $oldEnds[$i] ?? '' }}",
+                                                    working: {{ isset($oldWorking[$i]) && $oldWorking[$i] == 'on' ? 'true' : 'false' }}
+                                                },
+                                                @endforeach
+                                            ],
+
+                                            addWork() {
+                                                this.workList.push({ job_role:'', organization:'', start:'', end:'', working:false });
+                                            },
+
+                                            removeWork(index) {
+                                                this.workList.splice(index, 1);
+                                            },
+
+                                            handleWorkingChange(index) {
+                                                // Only one can be checked at a time
+                                                this.workList.forEach((w, i) => {
+                                                    if(i !== index) w.working = false;
+                                                });
+
+                                                // Clear end date if currently working
+                                                if(this.workList[index].working) this.workList[index].end = '';
+                                            }
+                                        }
+                                    }
+                                    </script>
+
                                     
                                     <!-- Step 4: Skills -->
                                     <div id="step-4" class="step hidden">
@@ -475,10 +471,10 @@
                                         <div>
                                             <label class="block text-sm font-medium mb-1">{{ langLabel('upload_resume') }} <span style="color: red; font-size: 17px;">*</span></label>
                                             <div class="flex gap-2 items-center">
-                                                <input type="file" name="resume" accept="application/pdf"  class="border rounded-md p-2 w-full text-sm mt-1" />
+                                                <input type="file" name="resume" accept=".pdf" class="border rounded-md p-2 w-full text-sm mt-1" />
                                             </div>
                                             @error('resume')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
 
@@ -502,6 +498,7 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         </div>
+
 
                                         <div class="text-sm mt-3">
                                             <label class="flex items-start gap-2">

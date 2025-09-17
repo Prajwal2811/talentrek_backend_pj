@@ -18,7 +18,7 @@ return new class extends Migration
 
             // Who paid
             $table->enum('user_type', ['jobseeker', 'trainer', 'mentor', 'coach', 'assessor', 'recruiter', 'expat']);
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->nullable();
 
             // Who received payment
             $table->enum('receiver_type', [

@@ -36,12 +36,14 @@ return new class extends Migration
             $table->text('zoom_join_url')->nullable();
             $table->text('zoom_start_url')->nullable();
 
+            
+            $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_amount')->nullable();   
+            $table->string('order_id')->nullable();         // CAPTURED, DECLINED, etc.
 
             $table->timestamps();
 
-            // Optional: Add foreign keys if tables exist
-            // $table->foreign('jobseeker_id')->references('id')->on('jobseekers')->onDelete('cascade');
-            // $table->foreign('booking_slot_id')->references('id')->on('booking_slots')->onDelete('cascade');
         });
     }
 

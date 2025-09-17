@@ -33,6 +33,7 @@ use App\Models\PurchasedSubscription;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 
 class TrainerController extends Controller

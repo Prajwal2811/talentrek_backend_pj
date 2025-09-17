@@ -15,12 +15,12 @@ class PurchasedSubscription extends Model
      */
     protected $table = 'purchased_subscriptions';
     protected $fillable = [
+        'subscription_plan_id',
         'user_id',
         'user_type',
         'company_id',
 
-        // Subscription info
-        'subscription_plan_id',
+        // Dates
         'start_date',
         'end_date',
 
@@ -35,8 +35,14 @@ class PurchasedSubscription extends Model
         'order_id',
         'currency',
         'result',
+        'coupon_type',
+        'coupon_code',
+        'coupon_amount',
+        'order_id',
+        'response_payload',
         'raw_response',
     ];
+
 
    
 }

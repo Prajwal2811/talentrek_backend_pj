@@ -295,7 +295,7 @@ Route::any('/subscriptions/failure', [SubscriptionController::class, 'failureSub
 
 
 Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlot']);
-Route::post('/subscriptionSuccessURL', [PaymentController::class, 'successSubscription']);
+// Route::post('/subscriptionSuccessURL', [PaymentController::class, 'successSubscription']);
 
 
 Route::get('lang/home', [LangController::class, 'index']);

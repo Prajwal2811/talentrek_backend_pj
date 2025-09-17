@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('subscription_plan_id')->constrained()->onDelete('cascade');
 
             // Polymorphic relation: jobseeker, recruiter, trainer, mentor, coach, assessor, expat
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->enum('user_type', [
                 'jobseeker',
                 'recruiter',
@@ -49,13 +49,14 @@ return new class extends Migration
             $table->string('order_id')->nullable();       // our udf4
             $table->string('currency', 10)->nullable();   // SAR, USD etc.
             $table->string('result')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_amount')->nullable();         // CAPTURED, DECLINED, etc.
             $table->longText('response_payload')->nullable(); // store full gateway JSON
             $table->longText('raw_response')->nullable(); // store full gateway JSON
-
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.

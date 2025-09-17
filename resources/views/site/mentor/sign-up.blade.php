@@ -60,6 +60,9 @@
                                                     <i data-feather="eye" id="eye-icon" class="w-5 h-5"></i>
                                                 </button>
                                             </div>
+                                            @error('password')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <!-- Confirm Password Field -->
@@ -75,6 +78,9 @@
                                                     <i data-feather="eye" id="eye-icon-confirm" class="w-5 h-5"></i>
                                                 </button>
                                             </div>
+                                            @error('confirm_password')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="flex items-start">

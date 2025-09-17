@@ -131,13 +131,18 @@
                                                     <option value="+971">+971</option>
                                                     <!-- Add more country codes if needed -->
                                                 </select>
-                                                <input name="phone_number" placeholder="Enter Phone number" type="tel"
+                                                <input name="phone_number"
+                                                    placeholder="Enter Phone number"
+                                                    type="tel"
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
-                                                    value="{{ old('phone_number') }}"  />
+                                                    value="{{ old('phone_number') }}"
+                                                    maxlength="9"
+                                                    pattern="[0-9]{9}"
+                                                    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)"
+                                                     />
+
                                             </div>
-                                            @error('phone_number')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+                                          
                                         </div>
                                         <div>
                                             <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('dob') }} <span style="color: red; font-size: 17px;">*</span></label>
@@ -188,16 +193,16 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('country') }} <span style="color: red;">*</span></label>
                                         <select id="country" name="country" class="w-full border rounded-md p-2" onchange="loadStates()">
                                             <option value="">{{ langLabel('select_country') }}</option>
-                                            <option value="saudi">Saudi Arabia</option>
-                                            <option value="india">India</option>
-                                            <option value="usa">USA</option>
-                                            <option value="canada">Canada</option>
-                                            <option value="australia">Australia</option>
-                                            <option value="uk">UK</option>
-                                            <option value="germany">Germany</option>
-                                            <option value="france">France</option>
-                                            <option value="uae">UAE</option>
-                                            <option value="japan">Japan</option>
+                                            <option value="saudi" {{ old('country')=='saudi' ? 'selected' : '' }}>Saudi Arabia</option>
+                                            <option value="india" {{ old('country')=='india' ? 'selected' : '' }}>India</option>
+                                            <option value="usa" {{ old('country')=='usa' ? 'selected' : '' }}>USA</option>
+                                            <option value="canada" {{ old('country')=='canada' ? 'selected' : '' }}>Canada</option>
+                                            <option value="australia" {{ old('country')=='australia' ? 'selected' : '' }}>Australia</option>
+                                            <option value="uk" {{ old('country')=='uk' ? 'selected' : '' }}>UK</option>
+                                            <option value="germany" {{ old('country')=='germany' ? 'selected' : '' }}>Germany</option>
+                                            <option value="france" {{ old('country')=='france' ? 'selected' : '' }}>France</option>
+                                            <option value="uae" {{ old('country')=='uae' ? 'selected' : '' }}>UAE</option>
+                                            <option value="japan" {{ old('country')=='japan' ? 'selected' : '' }}>Japan</option>
                                         </select>
                                     </div>
 
@@ -538,40 +543,63 @@
 
                                     };
 
-                                    function loadStates() {
-                                        const country = document.getElementById('country').value;
-                                        const stateSelect = document.getElementById('state');
-                                        const citySelect = document.getElementById('city');
+                                           // Old values from Laravel
+                                            const oldCountry = @json(old('country'));
+                                            const oldState   = @json(old('state'));
+                                            const oldCity    = @json(old('city'));
 
-                                        stateSelect.innerHTML = '<option value="">Select State</option>';
-                                        citySelect.innerHTML = '<option value="">Select City</option>';
+                                            function loadStates() {
+                                                const country = document.getElementById('country').value;
+                                                const stateSelect = document.getElementById('state');
+                                                const citySelect = document.getElementById('city');
 
-                                        if (data[country]) {
-                                            Object.keys(data[country]).forEach(state => {
-                                                const option = document.createElement('option');
-                                                option.value = state;
-                                                option.textContent = state;
-                                                stateSelect.appendChild(option);
+                                                stateSelect.innerHTML = '<option value="">Select State</option>';
+                                                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                                                if (data[country]) {
+                                                    Object.keys(data[country]).forEach(state => {
+                                                        const option = document.createElement('option');
+                                                        option.value = state;
+                                                        option.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+                                                        stateSelect.appendChild(option);
+                                                    });
+
+                                                    if (oldState) {
+                                                        stateSelect.value = oldState;
+                                                        loadCities();
+                                                    }
+                                                }
+                                            }
+
+                                            function loadCities() {
+                                                const country = document.getElementById('country').value;
+                                                const state = document.getElementById('state').value;
+                                                const citySelect = document.getElementById('city');
+
+                                                citySelect.innerHTML = '<option value="">Select City</option>';
+
+                                                if (data[country] && data[country][state]) {
+                                                    data[country][state].forEach(city => {
+                                                        const option = document.createElement('option');
+                                                        option.value = city;
+                                                        option.textContent = city;
+                                                        citySelect.appendChild(option);
+                                                    });
+
+                                                    if (oldCity) {
+                                                        citySelect.value = oldCity;
+                                                    }
+                                                }
+                                            }
+
+                                            // Page load: set old values
+                                            document.addEventListener("DOMContentLoaded", function() {
+                                                if (oldCountry) {
+                                                    document.getElementById('country').value = oldCountry;
+                                                    loadStates();
+                                                }
                                             });
-                                        }
-                                    }
 
-                                    function loadCities() {
-                                        const country = document.getElementById('country').value;
-                                        const state = document.getElementById('state').value;
-                                        const citySelect = document.getElementById('city');
-
-                                        citySelect.innerHTML = '<option value="">Select City</option>';
-
-                                        if (data[country] && data[country][state]) {
-                                            data[country][state].forEach(city => {
-                                                const option = document.createElement('option');
-                                                option.value = city;
-                                                option.textContent = city;
-                                                citySelect.appendChild(option);
-                                            });
-                                        }
-                                    }
                                     </script>
 
 
@@ -687,158 +715,119 @@
 
 
                                 <!-- Step 3: Work Experience -->
-                                <div id="step-3" class="step hidden">
-
-                                    <!-- Container for multiple work experience entries -->
-                                    @php
-                                        $workCount = count(old('job_role', [null]));
-                                    @endphp
+                               <div id="step-3" class="step hidden" x-data="workExperience()">
 
                                     <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                        @for ($i = 0; $i < $workCount; $i++)
-                                            @php
-                                                $isWorking = old("currently_working.$i") == 'on';
-                                            @endphp
-                                            <div
-                                                class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300"
-                                                x-data="{
-                                                    working: {{ $isWorking ? 'true' : 'false' }},
-                                                    index: {{ $i }},
-                                                    init() {
-                                                        this.$watch('working', value => {
-                                                            const entries = document.querySelectorAll('.work-entry');
-                                                            entries.forEach((entry, idx) => {
-                                                                const checkbox = entry.querySelector('.currently-working-checkbox');
-                                                                const endInput = entry.querySelector('.datepicker-end');
-
-                                                                if (value) {
-                                                                    // If this checkbox is checked, disable all others
-                                                                    if (idx !== this.index) {
-                                                                        checkbox.disabled = true;
-                                                                        checkbox.checked = false;
-                                                                        if (entry.__x) entry.__x.$data.working = false;
-                                                                    } else {
-                                                                        endInput.value = '';
-                                                                        endInput.readOnly = true;
-                                                                        endInput.disabled = true;
-                                                                    }
-                                                                } else {
-                                                                    // Enable all checkboxes and date inputs
-                                                                    checkbox.disabled = false;
-                                                                    endInput.readOnly = false;
-                                                                    endInput.disabled = false;
-                                                                }
-                                                            });
-                                                        });
-                                                    }
-                                                }"
-                                                x-init="init()"
-                                            >
+                                        <template x-for="(work, index) in workList" :key="index">
+                                            <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
 
                                                 {{-- Job Role --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. Software Engineer" value="{{ old("job_role.$i") }}" />
-                                                    @error("job_role.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        placeholder="e.g. Software Engineer"
+                                                        x-model="work.job_role">
                                                 </div>
 
                                                 {{-- Organization --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="text" name="organization[]" class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. ABC Corp" value="{{ old("organization.$i") }}" />
-                                                    @error("organization.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        placeholder="e.g. ABC Corp"
+                                                        x-model="work.organization">
                                                 </div>
 
                                                 {{-- Start Date --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
-                                                        value="{{ old("starts_from.$i") }}" max="{{ date('Y-m-d') }}"/>
-                                                    @error("starts_from.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        x-model="work.start" max="{{ date('Y-m-d') }}">
                                                 </div>
 
                                                 {{-- End Date & Checkbox --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="date" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
-                                                        :disabled="working" :readonly="working"
-                                                        :value="working ? '' : '{{ old("end_to.$i") }}'" max="{{ date('Y-m-d') }}"/>
-                                                    @error("end_to.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                        x-model="work.end"
+                                                        :disabled="work.working"
+                                                        :readonly="work.working"
+                                                        max="{{ date('Y-m-d') }}">
 
                                                     <label class="inline-flex items-center mt-2 space-x-2">
                                                         <input type="checkbox" class="currently-working-checkbox"
-                                                            name="currently_working[{{ $i }}]" x-model="working"
-                                                            {{ $isWorking ? 'checked' : '' }}>
+                                                            x-model="work.working"
+                                                            @change="handleWorkingChange(index)">
                                                         <span>I currently work here</span>
                                                     </label>
                                                 </div>
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
-                                                    class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                    style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                        @click="removeWork(index)"
+                                                        x-show="workList.length > 1">&times;</button>
+
                                             </div>
-                                        @endfor
+                                        </template>
                                     </div>
 
+                                    {{-- Add Work Button --}}
                                     <div class="col-span-2">
-                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
+                                        <button type="button" class="text-green-600 text-sm mt-2 mb-2" @click="addWork()">Add work experience +</button>
                                     </div>
 
-                                    <!-- <script>
-                                        const workContainer = document.getElementById('work-container');
-                                        const addWorkBtn = document.getElementById('add-work');
-
-                                        addWorkBtn.addEventListener('click', () => {
-                                            const firstEntry = workContainer.querySelector('.work-entry');
-                                            const clone = firstEntry.cloneNode(true);
-
-                                            // Clear inputs and errors
-                                            clone.querySelectorAll('input').forEach(input => {
-                                                if (input.type === 'checkbox') {
-                                                    input.checked = false;
-                                                    input.disabled = false;
-                                                } else {
-                                                    input.value = '';
-                                                    input.readOnly = false;
-                                                    input.disabled = false;
-                                                }
-                                            });
-
-                                            clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-                                            clone.querySelector('.remove-work').style.display = 'block';
-
-                                            workContainer.appendChild(clone);
-                                            Alpine.initTree(clone);
-                                        });
-
-                                        workContainer.addEventListener('click', (e) => {
-                                            if (e.target.classList.contains('remove-work')) {
-                                                const entry = e.target.closest('.work-entry');
-                                                entry.remove();
-                                            }
-                                        });
-                                    </script> -->
-
-
-                                    <div class="col-span-2 flex justify-between">
-                                        <button type="button" onclick="showStep(2)"
-                                            class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="button" onclick="showStep(4)"
-                                            class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                    {{-- Navigation --}}
+                                    <div class="col-span-2 flex justify-between mt-4">
+                                        <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                     </div>
 
                                 </div>
+
+                                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                                <script>
+                                function workExperience() {
+                                    return {
+                                        workList: [
+                                            @php
+                                                $oldRoles = old('job_role', ['']);
+                                                $oldOrgs = old('organization', ['']);
+                                                $oldStarts = old('starts_from', ['']);
+                                                $oldEnds = old('end_to', ['']);
+                                                $oldWorking = old('currently_working', []);
+                                            @endphp
+                                            @foreach ($oldRoles as $i => $role)
+                                            {
+                                                job_role: "{{ $role }}",
+                                                organization: "{{ $oldOrgs[$i] ?? '' }}",
+                                                start: "{{ $oldStarts[$i] ?? '' }}",
+                                                end: "{{ $oldEnds[$i] ?? '' }}",
+                                                working: {{ isset($oldWorking[$i]) && $oldWorking[$i] == 'on' ? 'true' : 'false' }}
+                                            },
+                                            @endforeach
+                                        ],
+
+                                        addWork() {
+                                            this.workList.push({ job_role:'', organization:'', start:'', end:'', working:false });
+                                        },
+
+                                        removeWork(index) {
+                                            this.workList.splice(index, 1);
+                                        },
+
+                                        handleWorkingChange(index) {
+                                            // Only one checkbox can be checked at a time
+                                            this.workList.forEach((w, i) => {
+                                                if(i !== index) w.working = false;
+                                            });
+
+                                            // Clear end date if currently working
+                                            if(this.workList[index].working) this.workList[index].end = '';
+                                        }
+                                    }
+                                }
+                                </script>
+
 
 
                                 <!-- Step 4: Skills -->
@@ -930,18 +919,13 @@
                                             Upload resume <span style="color: red;">*</span>
                                         </label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt"
+                                            <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx,.txt"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
 
-                                        {{-- Show old selected file name here --}}
-                                        @if(session('old_resume_name'))
-                                            <p class="text-green-600 text-sm mt-1">
-                                                Previously selected: {{ session('old_resume_name') }}
-                                            </p>
-                                        @endif
+                                        <!-- Resume filename display -->
+                                        <p id="resumeFilename" class="text-green-600 text-sm mt-1"></p>
 
-                                        {{-- Show validation error --}}
                                         @error('resume')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -950,7 +934,6 @@
                                         const resumeInput = document.getElementById('resumeFile');
                                         const resumeFilenameDisplay = document.getElementById('resumeFilename');
 
-                                        // Show filename when user selects a file
                                         resumeInput.addEventListener('change', function () {
                                             if (this.files.length > 0) {
                                                 const fileName = this.files[0].name;
@@ -959,27 +942,30 @@
                                             }
                                         });
 
-                                        // On page load, restore filename if available
                                         document.addEventListener('DOMContentLoaded', function () {
                                             const savedFileName = sessionStorage.getItem('resumeFileName');
                                             if (savedFileName) {
                                                 resumeFilenameDisplay.textContent = "Previously selected: " + savedFileName;
                                             }
                                         });
+
                                     </script>
 
 
 
                                     <!-- Upload Profile Picture -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 mt-3">Upload profile picture <span style="color: red; font-size: 17px;">*</span></label>
+                                        <label class="block text-sm font-medium mb-1 mt-3">
+                                            Upload profile picture <span style="color: red;">*</span>
+                                        </label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="file" name="profile_picture" accept="image/png, image/jpeg"
+                                            <input type="file" id="profilePicture" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-                                            @error('profile_picture')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+
+                                        @error('profile_picture')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <div class="text-sm">
@@ -1467,11 +1453,17 @@
                
             },
 
-            errorElement: 'p',
             errorPlacement: function (error, element) {
                 error.addClass('text-red-600 text-sm mt-1');
-                error.insertAfter(element);
+
+                // Special handling for file inputs
+                if (element.attr("type") === "file") {
+                    error.insertAfter(element.closest('div'));
+                } else {
+                    error.insertAfter(element);
+                }
             }
+
         });
 
         // Step navigation with validation check

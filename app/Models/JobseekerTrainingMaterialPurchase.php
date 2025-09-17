@@ -17,13 +17,20 @@ class JobseekerTrainingMaterialPurchase extends Model
         'session_type',
         'batch_id',
         'purchase_for',
+        'payment_id',
+        'batchStatus',
+        'transaction_id',
+        'status',
         'amount',
         'tax',
         'discount',
-        'status',
-        'transaction_id',
-        'member_count'
+        'coupon_type',
+        'coupon_code',
+        'coupon_amount',
+        'member_count',
+        'order_id',
     ];
+
 
 
     // Relationships

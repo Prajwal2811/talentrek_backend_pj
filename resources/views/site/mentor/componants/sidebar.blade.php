@@ -26,6 +26,32 @@ $unreadCount = DB::table('admin_group_chats')
             <span x-show="sidebarOpen" x-transition>{{ langLabel('dashboard') }}</span>
         </a>
 
+
+        <div x-data="{ open: {{ request()->routeIs('mentor.manage-bookings') || request()->routeIs('mentor.create-bookings') ? 'true' : 'false' }} }" class="flex flex-col">
+            <button @click="open = !open"
+                class="flex items-center px-4 py-2 rounded-md transition duration-200 hover:bg-white hover:text-blue-900"
+                :class="sidebarOpen ? '' : 'justify-center'"
+                :title="!sidebarOpen ? 'Booking Slots' : ''">
+                <i data-feather="book-open" class="mr-3"></i>
+                <span x-show="sidebarOpen">Booking Slots</span>
+                <svg x-show="sidebarOpen" :class="{ 'rotate-90': open }" class="ml-auto w-4 h-4 transition-transform duration-200"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <div x-show="open && sidebarOpen" x-transition class="flex flex-col ml-8 mt-1 space-y-1">
+                <a href="{{ route('mentor.manage-bookings') }}"
+                   class="px-4 py-2 rounded-md {{ request()->routeIs('mentor.manage-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
+                    {{ langLabel('booking_slots') }}
+                </a>
+                <a href="{{ route('mentor.create-bookings') }}"
+                   class="px-4 py-2 rounded-md {{ request()->routeIs('mentor.create-bookings') ? 'bg-white text-blue-700' : 'text-white hover:bg-blue-600' }}">
+                    {{ langLabel('create_slots') }}
+                </a>
+            </div>
+        </div>
+
         <!-- Admin Support Link with Badge -->
         @php
             $mentorLinks = [
@@ -141,7 +167,5 @@ aside.w-16 nav a { justify-content: center; }
             }
         });
     }
-
-
 </script>
 

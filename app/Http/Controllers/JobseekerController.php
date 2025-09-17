@@ -202,7 +202,7 @@ class JobseekerController extends Controller
             // Basic Info
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $jobseeker->id,
-            'phone_number' => 'required|unique:jobseekers,phone_number,' . $jobseeker->id,
+            'phone_number' => 'nullable|unique:jobseekers,phone_number,' . $jobseeker->id,
             'phone_code' => 'required|string',
             'dob' => 'required|date',
             'city' => 'required|string|max:255',
@@ -260,7 +260,6 @@ class JobseekerController extends Controller
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already registered.',
-            'phone_number.required' => 'Please enter your phone number.',
             'phone_number.unique' => 'This phone number is already registered.',
             'dob.required' => 'Please select your date of birth.',
             'dob.date' => 'Date of birth must be a valid date.',
@@ -910,7 +909,7 @@ class JobseekerController extends Controller
 
         foreach ($request->input('job_role', []) as $i => $role) {
             $currentlyWorking = in_array($i, $request->input('currently_working', []));
-            $endToValue = $currentlyWorking ? 'Work here' : ($request->end_to[$i] ?? null);
+            $endToValue = $currentlyWorking ? 'work here' : ($request->end_to[$i] ?? null);
 
             $data = [
                 'user_id' => $user_id,
@@ -3385,20 +3384,29 @@ public function submitReview(Request $request)
     // }
    
     public function redirectToGoogle()
+
     {
-        return Socialite::driver('google')->redirect();
+
+        return Socialite::driver('google')
+            ->redirectUrl(config('services.google.jobseeker_redirect'))
+            ->redirect();
+
     }
 
 
-    public function handleGoogleCallback()
+
+
+
+   public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            
+            $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // Check user
+           
             $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
 
-            // Case 1: New Google user (email not exist)
+            
             if (!$jobseeker) {
                 $plainPassword = Str::random(16);
 
@@ -3409,48 +3417,48 @@ public function submitReview(Request $request)
                     'password'          => bcrypt($plainPassword),
                     'pass'              => $plainPassword,
                     'email_verified_at' => now(),
-                    'is_registered'     => 0, //  not registered yet
+                    'is_registered'     => 0, // not registered yet
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $googleUser->getAvatar(),
                 ]);
 
-                // Store ID + email in session
+                
                 session([
-                    'jobseeker_id'    => $jobseeker->id,
-                    'email' => $jobseeker->email,
+                    'jobseeker_id' => $jobseeker->id,
+                    'email'        => $jobseeker->email,
                 ]);
 
-                //  Send to registration form
+                // Redirect to registration form
                 return redirect()->route('jobseeker.registration');
             }
 
-            // Agar inactive account hai
+            // Case 2: Inactive account
             if ($jobseeker->status !== 'active') {
-                session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                return redirect()->route('jobseeker.sign-in');
+                return redirect()
+                    ->route('jobseeker.sign-in')
+                    ->with('error', 'Your account is inactive. Please contact administrator.');
             }
 
-            // Case 2: Existing user with complete registration
+            
             if ($jobseeker->is_registered == 1) {
-                // ✅ Direct login and go to profile/dashboard
                 Auth::guard('jobseeker')->login($jobseeker);
+
                 return redirect()->route('jobseeker.profile');
             }
 
-            // Case 3: Existing but registration incomplete
+            
             session([
-                'jobseeker_id'    => $jobseeker->id,
-                'email' => $jobseeker->email,
+                'jobseeker_id' => $jobseeker->id,
+                'email'        => $jobseeker->email,
             ]);
+
             return redirect()->route('jobseeker.registration');
 
-        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            session()->flash('error', 'Invalid state. Please try again.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Google login failed. Please try again.');
+            return redirect()
+                ->route('jobseeker.sign-in')
+                ->with('error', 'Google login failed. Please try again.');
         }
-
-        return redirect()->route('jobseeker.sign-in');
     }
 
 

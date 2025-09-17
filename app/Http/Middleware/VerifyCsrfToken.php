@@ -19,6 +19,7 @@ class VerifyCsrfToken extends Middleware
         'successSubscription',
         'failureSubscription',
         'subscription/payment/success',
+        'subscription/payment/failure',
         'subscriptionSuccessURL',
         'subscriptionsSuccess',
 
