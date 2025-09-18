@@ -89,6 +89,8 @@
                     @csrf
                     <input type="hidden" name="material_id" value="{{ $material->id }}">
                     <input type="hidden" name="training_type" value="{{ $material->training_type }}">
+                    <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()->id }}">
+
 
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -149,7 +151,7 @@
                                             <tr class="border-t {{ $ended || $isFull ? 'bg-gray-200 text-gray-500' : 'cursor-pointer hover:bg-gray-50' }}"
                                                 onclick="{{ ($ended || $isFull) ? '' : 'selectRadio(' . $batch->id . ')' }}">
                                                 <td class="px-4 py-2">
-                                                    <input type="radio" name="batch" value="{{ $batch->id }}" class="form-radio"
+                                                    <input type="radio" name="batch_id" value="{{ $batch->id }}" class="form-radio"
                                                         id="batch-radio-{{ $batch->id }}" {{ ($ended || $isFull) ? 'disabled' : '' }}>
                                                 </td>
                                                 <td class="px-4 py-2">{{ $batch->batch_no }}</td>
@@ -231,9 +233,13 @@
                                 </div>
                                 <small id="coupon_message" class="text-red-500 mt-1 block"></small>
 
-                                <input type="hidden" id="original_price" value="{{ $offerPrice }}">
-                                <input type="hidden" id="tax_rate" value="{{ $taxRate }}">
+                                <input type="hidden" id="original_price" name="original_price" value="{{ $offerPrice }}">
+                                <input type="hidden" id="tax_rate" name="tax_rate" value="{{ $taxRate }}">
+                                <input type="hidden" name="coupon_type" id="coupon_type" value="">
+                                <input type="hidden" name="coupon_code" id="coupon_code_hidden" value="">
+                                <input type="hidden" name="coupon_amount" id="coupon_amount" value="">
                             </div>
+
 
                             <!-- Billing Information -->
                             <div class="border rounded p-4 space-y-2">
@@ -271,6 +277,7 @@
                                     <span>{{ langLabel('total') }}</span>
                                     <span data-billing="total">SAR {{ number_format($total, 2) }}</span>
                                 </div>
+                                <input type="text" data-billing="total" name="amount_paid" value="{{ number_format($total, 2) }}">
 
                                 @auth('jobseeker')
                                     <!-- Show checkout button if logged in as jobseeker -->
@@ -282,12 +289,8 @@
                                     <div class="alert alert-danger alert-dismissible fade show mt-4 text-center" role="alert" style="text-align: justify;">
                                         <strong>Please log in as a Jobseeker</strong> to purchase a course.
                                     </div>
-
                                 @endauth
-
-
                             </div>
-
                         </div>
                     </div>
                 </form>
@@ -309,8 +312,19 @@
             }
         });
 
-        // AJAX Coupon Apply
-        // AJAX Coupon Apply
+        // Get total input & span for syncing
+        const inputTotal = document.querySelector('input[name="amount_paid"][data-billing="total"]');
+        const spanTotal = document.querySelector('span[data-billing="total"]');
+
+        // ✅ Keep input -> span sync
+        if (inputTotal && spanTotal) {
+            inputTotal.addEventListener("input", function () {
+                let val = parseFloat(this.value || 0);
+                spanTotal.textContent = `SAR ${val.toFixed(2)}`;
+            });
+        }
+
+        // ✅ Coupon Apply
         document.getElementById('apply_coupon').addEventListener('click', function () {
             const code = document.getElementById('coupon_code').value.trim();
             const originalPrice = parseFloat(document.getElementById('original_price').value);
@@ -334,51 +348,57 @@
             })
                 .then(res => res.json())
                 .then(data => {
-                    if (!data.success) {
-                        msgEl.textContent = data.message;
-                        msgEl.classList.remove('text-green-500');
-                        msgEl.classList.add('text-red-500');
-                        return;
-                    }
+                if (!data.success) {
+                    msgEl.textContent = data.message;
+                    msgEl.classList.remove('text-green-500');
+                    msgEl.classList.add('text-red-500');
+                    return;
+                }
 
-                    let discount = 0;
-                    let discountMsg = '';
+                let discount = 0;
+                let discountMsg = '';
 
-                    if (data.discount_type === 'fixed') {
-                        discount = data.discount_value;
-                        discountMsg = `SAR ${discount.toFixed(2)} off`;
-                    } else if (data.discount_type === 'percentage') {
-                        discount = (originalPrice * data.discount_value) / 100;
-                        discountMsg = `${data.discount_value}% off`;
-                    }
+                if (data.discount_type === 'fixed') {
+                    discount = data.discount_value;
+                    discountMsg = `SAR ${discount.toFixed(2)} off`;
+                } else if (data.discount_type === 'percentage') {
+                    discount = (originalPrice * data.discount_value) / 100;
+                    discountMsg = `${data.discount_value}% off`;
+                }
 
-                    // ❌ Reject coupon if discount >= course price
-                    if (discount >= originalPrice) {
-                        msgEl.textContent = "This coupon is not valid (discount cannot be 100% or more).";
-                        msgEl.classList.remove('text-green-500');
-                        msgEl.classList.add('text-red-500');
-                        return;
-                    }
+                // ❌ Reject coupon if discount >= course price
+                if (discount >= originalPrice) {
+                    msgEl.textContent = "This coupon is not valid (discount cannot be 100% or more).";
+                    msgEl.classList.remove('text-green-500');
+                    msgEl.classList.add('text-red-500');
+                    return;
+                }
 
-                    const discountedPrice = originalPrice - discount;
-                    const tax = discountedPrice * (taxRate / 100);
-                    const total = discountedPrice + tax;
+                const discountedPrice = originalPrice - discount;
+                const tax = discountedPrice * (taxRate / 100);
+                const total = discountedPrice + tax;
 
-                    document.querySelector('[data-billing="course_total"]').textContent = `SAR ${discountedPrice.toFixed(2)}`;
-                    document.querySelector('[data-billing="saved_amount"]').textContent = `SAR ${discount.toFixed(2)}`;
-                    document.querySelector('[data-billing="tax"]').textContent = `SAR ${tax.toFixed(2)}`;
-                    document.querySelector('[data-billing="total"]').textContent = `SAR ${total.toFixed(2)}`;
+                document.querySelector('[data-billing="course_total"]').textContent = `SAR ${discountedPrice.toFixed(2)}`;
+                document.querySelector('[data-billing="saved_amount"]').textContent = `SAR ${discount.toFixed(2)}`;
+                document.querySelector('[data-billing="tax"]').textContent = `SAR ${tax.toFixed(2)}`;
+                document.querySelector('[data-billing="total"]').textContent = `SAR ${total.toFixed(2)}`;
 
-                    msgEl.textContent = `Coupon applied: ${discountMsg}`;
-                    msgEl.classList.remove('text-red-500');
-                    msgEl.classList.add('text-green-500');
-                })
-                .catch(err => console.error(err));
+                // ✅ Sync input with span
+                if (inputTotal) inputTotal.value = total.toFixed(2);
+
+                // ✅ Set hidden inputs
+                document.getElementById("coupon_type").value = data.discount_type;
+                document.getElementById("coupon_code_hidden").value = code;
+                document.getElementById("coupon_amount").value = discount.toFixed(2);
+
+                msgEl.textContent = `Coupon applied: ${discountMsg}`;
+                msgEl.classList.remove('text-red-500');
+                msgEl.classList.add('text-green-500');
+            })
+
         });
-
-
-
     </script>
+
 
     <style>
         .active-tab {

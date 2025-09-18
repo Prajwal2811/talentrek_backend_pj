@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobseekerController;
 use App\Http\Controllers\CoursePurchaseController;
+use App\Http\Controllers\SessionBookingController;
 
 
 // Joobseeker Routes
@@ -82,6 +83,13 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/course/payment/failure', [CoursePurchaseController::class, 'failurePurchaseCourse']);
 
 
+		// Purchase request stays POST
+		Route::post('/purchase-session', [SessionBookingController::class, 'processBookingPayment'])
+			->name('mentorship-booking-submit');
+
+		// Callbacks should allow both GET & POST
+		Route::match(['get', 'post'], '/jobseeker/session/payment/success', [SessionBookingController::class, 'successBooking']);
+		Route::match(['get', 'post'], '/jobseeker/session/payment/failure', [SessionBookingController::class, 'failureBooking']);
 
 
 		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
@@ -114,7 +122,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		
 
 		
-		Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
+		// Route::post('/mentorship-book-session', [JobseekerController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
 		Route::post('/assessor-book-session', [JobseekerController::class, 'submitAssessorBooking'])->name('assessor-booking-submit');
 		Route::post('/coach-book-session', [JobseekerController::class, 'submitCoachBooking'])->name('coach-booking-submit');
 

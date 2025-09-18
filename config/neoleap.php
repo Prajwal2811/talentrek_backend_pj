@@ -24,4 +24,8 @@ return [
     // Course Purchase
     'course_success_url' => env('APP_URL') . env('NEOLEAP_COURSE_SUCCESS_URL'),
     'course_failure_url' => env('APP_URL') . env('NEOLEAP_COURSE_FAILURE_URL'),
+
+    // Session booking
+    'session_success_url' => env('APP_URL') . env('NEOLEAP_SESSION_SUCCESS_URL'),
+    'session_failure_url' => env('APP_URL') . env('NEOLEAP_SESSION_FAILURE_URL'),
 ];

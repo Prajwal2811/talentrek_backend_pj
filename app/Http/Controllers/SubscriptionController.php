@@ -46,6 +46,8 @@ class SubscriptionController extends Controller
             'trainer'   => Trainers::class,
             'recruiter' => Recruiters::class,
         ];
+
+        
         $model = $modelMap[$request->type];
 
         $user = $model::findOrFail($request->user_id);

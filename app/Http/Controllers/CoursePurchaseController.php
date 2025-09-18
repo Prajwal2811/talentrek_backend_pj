@@ -21,11 +21,12 @@ class CoursePurchaseController extends Controller
      */
     public function processPurchaseCoursePayment(Request $request)
     {
-        echo "processPurchaseCoursePayment"; die;
+        // echo "processPurchaseCoursePayment"; die;
         $validator = Validator::make($request->all(), [
             'material_id' => 'required|exists:training_materials,id',
+            'training_type' => 'required|in:online,classroom,recorded',
+            'batch_id'      => 'required_if:training_type,online,required_if:training_type,classroom|nullable',
             'user_id'     => 'required',
-            'type'        => 'required|in:jobseeker,mentor,assessor,coach,trainer,recruiter',
         ]);
 
         if ($validator->fails()) {
@@ -35,8 +36,12 @@ class CoursePurchaseController extends Controller
         $material = TrainingMaterial::findOrFail($request->material_id);
 
         // Generate reference
-        $referenceNo = "TRK-COURSE-" . strtoupper(substr($request->type, 0, 3)) . '-' . $material->id . '-' . $request->user_id . '-' . date('YmdHi');
-
+        $referenceNo = "TRK-COURSE-" 
+             . strtoupper(substr($request->training_type, 0, 3)) // ONL, CLA, REC
+             . '-' . $request->material_id 
+             . '-' . $request->batch_id
+             . '-' . $request->user_id;
+             
         // Create payment request record
         $paymentRequest = JobseekerTrainingMaterialPurchasePaymentRequest::create([
             'jobseeker_id'     => $request->user_id,   // use correct column name
@@ -48,43 +53,60 @@ class CoursePurchaseController extends Controller
             'track_id'         => $referenceNo,
 
             'type'             => 'buyNow', // or buyForCorporate/cart from request
-            'training_type'    => $material->training_type ?? 'online', 
+            'training_type'    => $material->training_type ?? 'recorded', 
 
             'transaction_id'   => null,
             'payment_status'   => 'initiated',
 
-            'tax'              => 0.00,
-            'amount'           => $material->training_offer_price,
-            'amount_paid'      => $material->training_offer_price, // total after tax/discount
+            'tax'              => $request->tax_rate,
+            'amount'           => $request->original_price,
+            'amount_paid'      => $request->amount_paid, // total after tax/discount
             'currency'         => 'SAR',
             'payment_gateway'  => 'Al Rajhi',
 
-            'coupon_type'      => null,
-            'coupon_code'      => null,
-            'coupon_amount'    => null,
+            'coupon_type'      => $request->coupon_type ,
+            'coupon_code'      => $request->coupon_code ,
+            'coupon_amount'    => $request->coupon_amount ,
         ]);
 
         // Prepare Neoleap payload
         $config = config('neoleap');
         $transactionDetails = [
-            "id"           => $config['tranportal_id'],
-            "amt"          => number_format($material->training_offer_price, 2, '.', ''),
+            "id"           => $config['tranportal_id'],       // Neoleap config
+            "amt"          => $paymentRequest->amount_paid,   // Final payable amount
             "action"       => "1",
-            "password"     => $config['password'],
-            "currencyCode" => "682",
-            "trackId"      => $referenceNo,
-            "udf1"         => $request->user_id,
-            "udf2"         => $request->type,
-            "udf3"         => $paymentRequest->id,
-            "udf4"         => $material->id,
-            "udf5"         => 'course',
+            "password"     => "T4#2H#ma5yHv\$G7",
+            "currencyCode" => "682",                          // SAR currency code
+            "trackId"      => $paymentRequest->track_id,      // Reference no.
+
+            // UDFs (custom values you want to send)
+            "udf1"         => $paymentRequest->jobseeker_id,   // user_id
+            "udf2"         => $paymentRequest->type,           // buyNow / cart / corporate
+            "udf3"         => $paymentRequest->id,             // payment_request id
+            "udf4"         => $paymentRequest->material_id,    // course id
+            "udf5"         => 'course',                        // static value
+
+            // Extra UDFs you can send (udfnext = udf6, udf7, etc.)
+            "udf6"         => $paymentRequest->batch_id ?? 'N/A',        // batch id if any
+            "udf7"         => $paymentRequest->trainer_id,               // trainer id
+            "udf8"         => $paymentRequest->training_type,            // online / classroom / recorded
+            "udf9"         => $paymentRequest->coupon_code ?? 'N/A',     // coupon code
+            "udf10"        => $paymentRequest->coupon_amount ?? 0,       // discount value
+            "udf11"        => $paymentRequest->amount,                   // original price
+            "udf12"        => $paymentRequest->tax ?? 0,                 // tax rate
+            "udf13"        => $paymentRequest->currency,                 // SAR
+            "udf14"        => $paymentRequest->payment_gateway,          // Al Rajhi
+            "udf15"        => $paymentRequest->payment_status,           // initiated
+
             "langid"       => "en",
             "responseURL"  => $config['course_success_url'],
             "errorURL"     => $config['course_failure_url'],
         ];
 
+        // echo "<pre>"; print_r($transactionDetails); die;
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
         $trandata     = strtoupper(PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']));
+
 
         $paymentRequest->update(['request_payload' => $jsonTrandata]);
 
@@ -94,9 +116,9 @@ class CoursePurchaseController extends Controller
             "responseURL" => $config['course_success_url'],
             "errorURL"    => $config['course_failure_url']
         ]];
-
+        
         $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES);
-
+        // echo "<pre>"; print_r($payloads); die;
         // Send request to Neoleap
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -111,6 +133,7 @@ class CoursePurchaseController extends Controller
 
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
+        // echo "<pre>"; print_r($data); die;
 
         if ($result) {
             [$paymentId, $paymentUrl] = explode(":", $result, 2);
@@ -125,6 +148,8 @@ class CoursePurchaseController extends Controller
      */
     public function successPurchaseCourse(Request $request)
     {
+
+        echo "done"; die;
         $config = config('neoleap');
         $responseTrandata = $request->input('trandata');
 
@@ -170,8 +195,8 @@ class CoursePurchaseController extends Controller
             PaymentHistory::create([
                 'user_type'      => $data['udf2'],        // e.g. jobseeker
                 'user_id'        => $data['udf1'],        // payer id
-                'receiver_type'  => 'talentrek',          // always platform
-                'receiver_id'    => null,                 // null for system
+                'receiver_type'  => 'trainer',          // always platform
+                'receiver_id'    => $data['udf7'],                  // null for system
                 
                 // Purpose
                 'payment_for'    => 'course',             // ⚠ make sure migration enum allows 'course'
