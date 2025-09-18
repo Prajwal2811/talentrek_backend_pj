@@ -13,21 +13,32 @@ class PurchasedSubscription extends Model
      *
      * @var array
      */
-    protected $table = 'purchased_subscriptions';
+    protected $table = 'jobseeker_training_material_purchases';
     protected $fillable = [
-        'user_id',
-        'user_type',
+        'jobseeker_id',
+        'trainer_id',
+        'material_id',
+        'purchased_by',
+        'training_type',
+        'session_type',
+        'batch_id',
+        'purchase_for',
+        'payment_id',
+        'batchStatus',
+        'status',
+        'tax_percentage',
+        'taxed_amount',
         'amount_paid',
+        'coupon_type',
+        'coupon_code',
+        'coupon_amount',
+        'order_id',
+        'track_id',
+        'transaction_id',
         'payment_status',
-        'subscription_plan_id',
-        'subscribable_id',
-        'subscribable_type',
-        'start_date',
-        'end_date',
-        'company_id'
-    ];
-
-   
+        'response_payload',
+        'member_count',
+    ];   
 }
 
 

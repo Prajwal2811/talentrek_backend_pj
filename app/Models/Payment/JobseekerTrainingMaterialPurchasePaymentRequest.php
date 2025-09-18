@@ -23,6 +23,11 @@ class JobseekerTrainingMaterialPurchasePaymentRequest extends Model
         'amount_paid',
         'currency',
         'payment_gateway',
+        'taxed_amount',	    
+        'tax_percentage',   
+        'coupon_type',   
+        'coupon_code',    
+        'coupon_amount'   
     ];
 
     protected $casts = [

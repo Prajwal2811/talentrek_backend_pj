@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-         Schema::create('jobseekers', function (Blueprint $table) {
+        Schema::create('jobseekers', function (Blueprint $table) {
             $table->id(); // Primary key
             $table->string('assigned_admin')->nullable();
             $table->string('name')->nullable();

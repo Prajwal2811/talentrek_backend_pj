@@ -36,12 +36,28 @@ return new class extends Migration
             $table->text('zoom_join_url')->nullable();
             $table->text('zoom_start_url')->nullable();
 
+            
+            $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_amount')->nullable();   
+            $table->string('order_id')->nullable();         // CAPTURED, DECLINED, etc.
+
+
+            $table->string('track_id', 50)->comment('Unique booking reference number');
+            $table->unique('track_id', 'booking_track_id_unique');
+            $table->string('transaction_id', 191)->nullable()->comment('from payment provider');
+            $table->enum('payment_status', ['pending', 'success', 'failed', 'refunded'])->default('pending');
+            $table->json('response_payload')->nullable()->comment('full response from gateway');
+
+
+            $table->decimal('slot_amount', 10, 2);
+            $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('taxed_amount')->nullable(); 
+            $table->decimal('amount_paid', 10, 2);
+
 
             $table->timestamps();
 
-            // Optional: Add foreign keys if tables exist
-            // $table->foreign('jobseeker_id')->references('id')->on('jobseekers')->onDelete('cascade');
-            // $table->foreign('booking_slot_id')->references('id')->on('booking_slots')->onDelete('cascade');
         });
     }
 

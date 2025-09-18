@@ -298,6 +298,7 @@ Route::post('/successBookingSlot', [PaymentController::class, 'successBookingSlo
 Route::post('/subscriptionSuccessURL', [PaymentController::class, 'successSubscription']);
 Route::post('/successMaterialPurchaseMobile', [PaymentController::class, 'successMaterialPurchaseMobile']);
 Route::post('/successSubscriptionMobile', [PaymentController::class, 'successSubscriptionMobile']);
+Route::post('/successMaterialPurchaseMobile', [PaymentController::class, 'successMaterialPurchaseMobile']);
 
 Route::get('lang/home', [LangController::class, 'index']);
 Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');

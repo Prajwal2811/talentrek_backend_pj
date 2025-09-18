@@ -508,25 +508,26 @@ class CartManagementController extends Controller
    
     public function checkoutTrainingMaterials(Request $request)
     {
+        //print_r($request->all());exit;
         $data = $request->all();
         $rules = [
            'jobseekerId'    => 'required|integer',
-            'buy_type'  => 'required|in:buyNow,buyForCorporates,cart'
+            'buy_type'  => 'required|in:buyNow,buyForCorporate,cart'
         ];
 
         $validator = Validator::make($request->all(), $rules);
         
         // ✅ Apply validation only if buyTtpe != cart
         $validator->sometimes('material_id', 'required', function ($input) {
-            return in_array($input->training_type, ['buyNow', 'buyForCorporates']);
+            return in_array($input->training_type, ['buyNow', 'buyForCorporate']);
         });
 
          $validator->sometimes('trainer_id', 'required', function ($input) {
-            return in_array($input->training_type, ['buyNow', 'buyForCorporates']);
+            return in_array($input->training_type, ['buyNow', 'buyForCorporate']);
         });
 
         $validator->sometimes('training_type', 'required', function ($input) {
-            return in_array($input->training_type, ['buyNow', 'buyForCorporates']);
+            return in_array($input->training_type, ['buyNow', 'buyForCorporate']);
         });
 
         // ✅ Apply batch validation only if training_type = online
@@ -547,8 +548,9 @@ class CartManagementController extends Controller
         //try {
             
             //$id = $request->training_material_id;
-            $jobseekerId = $request->jobseekerId;            
+            $jobseekerId = $request->jobseekerId;   
             $buyType     = $request->buy_type;
+            $couponCode     = $request->couponCode;
             if($buyType == 'buyNow'){
                 $exists = JobseekerTrainingMaterialPurchase::where('material_id', $request->material_id)
                     ->where('jobseeker_id', $request->jobseekerId)
@@ -564,6 +566,12 @@ class CartManagementController extends Controller
             $material = null;
             if ($buyType !== 'cart') {
                 $material = TrainingMaterial::with('batches')->findOrFail($request->material_id);
+                if (!$material) {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'This material does not exist.',
+                    ], 200);
+                }
             }
            
             // Calculate prices
@@ -578,11 +586,45 @@ class CartManagementController extends Controller
             } else {
                 $actualPrice = $material->training_price;
                 $offerPrice  = $material->training_offer_price;
+            }    
+            
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('is_active', 1)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_to', '>=', now())
+                ->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' invalid or expired.'
+                ], 200);
             }
 
-            $savedAmount = $actualPrice - $offerPrice;
-            $tax         = round($offerPrice * 0.10, 2);
-            $total       = $offerPrice + $tax;
+            // ========================
+            // Apply discount
+            // ========================
+            $discountAmount = 0;
+
+            if ($coupon->discount_type === 'percentage') {
+                $discountAmount = ($offerPrice * $coupon->discount_value) / 100;
+            } elseif ($coupon->discount_type === 'fixed') {
+                $discountAmount = $coupon->discount_value;
+            }
+
+            // Prevent discount from exceeding price
+            if ($discountAmount > $offerPrice) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' coupon not applied for this slot.'
+                ], 200);
+                //$discountAmount = $offerPrice;
+            }
+            $finalPrice = $offerPrice - $discountAmount;
+            $gstTax = $this->getSlotPercentage('material') ;
+            $taxAmount = $finalPrice * $gstTax / 100 ;
+            $total = number_format($finalPrice + $taxAmount, 2, '.', '');
+              
 
             $payload = '' ;
             $booking = JobseekerTrainingMaterialPurchasePaymentRequest::create([
@@ -596,17 +638,21 @@ class CartManagementController extends Controller
                 'type'             => $request->buy_type, // buyNow | buyForCorporate | cart
                 'transaction_id'   => null,
                 'payment_status'   => 'initiated',
-                'tax'              => $tax ?? 0.00,
                 'amount'           => $offerPrice ?? 0.00,
                 'amount_paid'      => $total ?? 0.00,
                 'currency'         => 'SAR',
                 'payment_gateway'  => 'Al Rajhi',
                 'created_at'       => Carbon::now(),
                 'updated_at'       => Carbon::now(),
+                'taxed_amount' 	    => $taxAmount,
+                'tax_percentage'    => $gstTax,
+                'coupon_type' 	    => $coupon->discount_type ?? '',
+                'coupon_code'       => $couponCode,	
+                'coupon_amount'     => $discountAmount,
             ]);
             $trackId =  self::generateTrackId($jobseekerId, $request->trainer_id, $request->material_id, $request->batch , $request->buy_type) ;
             $referenceNo =  "TRK-" .  $trackId ;
-            if($buyType == 'buyForCorporates'){
+            if($buyType == 'buyForCorporate'){
                 $CorporatesEmailIds = CorporatesEmailIds::create([
                     'corporatesEmailIds' => $request->corporatesEmailId,
                     'paymentRequestId'  =>  $booking->id,

@@ -20,6 +20,7 @@ use App\Models\Api\BookingSlotUnavailableDate;
 use App\Models\Setting;
 use App\Models\Payment\JobseekerSessionBookingPaymentRequest;
 use Carbon\Carbon;
+use App\Models\Api\Coupon;
 use App\Services\PaymentHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -622,34 +623,84 @@ class MyLearningController extends Controller
             
             $slotPrice = $this->getUserSlotPrice($request->userId,$request->roleType);
             $slotTax = $this->getSlotPercentage($request->roleType) ;
-            $slotTotalAmount = $slotPrice + ($slotPrice * $slotTax / 100); 
+
+            $couponCode     = $request->couponCode;
+            
+            // ========================
+            // Fetch & validate coupon
+            // ========================
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('is_active', 1)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_to', '>=', now())
+                ->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' invalid or expired.'
+                ], 200);
+            }
+
+            // ========================
+            // Apply discount
+            // ========================
+            $discountAmount = 0;
+
+            if ($coupon->discount_type === 'percentage') {
+                $discountAmount = ($slotPrice * $coupon->discount_value) / 100;
+            } elseif ($coupon->discount_type === 'fixed') {
+                $discountAmount = $coupon->discount_value;
+            }
+
+            // Prevent discount from exceeding price
+            if ($discountAmount > $slotPrice) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $couponCode.' coupon not applied for this slot.'
+                ], 200);
+                //$discountAmount = $offerPrice;
+            }
+
+            $finalPrice = $slotPrice - $discountAmount;
+
+            // Tax (10% as per your code)
+            $tax   = round($finalPrice * ($slotTax /100), 2);
+            $total = $finalPrice + $tax;
+
+            $slotTaxAmount = $slotPrice * $slotTax / 100 ;
+            $slotTotalAmount = $slotPrice + $slotTaxAmount - $discountAmount; 
 
             $referenceNo0 = 'TRK-' . strtoupper(substr($request->roleType, 0, 3)) . '-' .$request->userId . '-' .
                $request->slot_id . '-' . 
                $request->jobSeekerId . '-' . 
                date('YmdHi', strtotime($sessionDate));
             $booking = JobseekerSessionBookingPaymentRequest::create([
-                'jobseeker_id' => $request->jobSeekerId,
-                'user_type' => $request->roleType,
-                'user_id' => $request->userId,
-                'booking_slot_id' => $request->slot_id,
-                'slot_mode' => $request->trainingMode,
-                'slot_date' => $sessionDate,
-                'slot_time' => '',
-                'track_id' => $referenceNo0,
-                'status' => 'awaiting_payment',
-                'reserved_until' => now()->addDays(5), // hold slot for 15 min
-                'amount' => $slotPrice,
-                'tax' => $slotTax,
-                'total_amount' => $slotTotalAmount,
-                'currency' => 'SAR',
-                'payment_gateway' => 'Al-Rajhi',
+                'jobseeker_id'      => $request->jobSeekerId,
+                'user_type'         => $request->roleType,
+                'user_id'           => $request->userId,
+                'booking_slot_id'   => $request->slot_id,
+                'slot_mode'         => $request->trainingMode,
+                'slot_date'         => $sessionDate,
+                'slot_time'         => '',
+                'track_id'          => $referenceNo0,
+                'status'            => 'awaiting_payment',
+                'reserved_until'    => now()->addDays(5), // hold slot for 5 days
+                'amount'            => $slotPrice,
+                'tax'               => $slotTax,
+                'amount_paid'       => $slotTotalAmount,
+                'total_amount'      => $slotTotalAmount,
+                'currency'          => 'SAR',
+                'payment_gateway'   => 'Al-Rajhi',
+                'tax_percentage'    => $slotTax,
+                'taxed_amount'      => $tax,    
+                'coupon_type'       => $coupon->discount_type,
+                'coupon_code'       => $couponCode,
+                'coupon_amount'     => $discountAmount,
+                'order_id'          => '',
             ]);
 
-            $trackId = strtoupper(substr($request->roleType, 0, 3)). '-' . $booking->id . '-' .$request->userId . '-' .
-               $request->slot_id . '-' . 
-               $request->jobSeekerId . '-' . 
-               date('YmdHi', strtotime($sessionDate));
+            $trackId = strtoupper(substr($request->roleType, 0, 3)). '-' . $booking->id . '-' .$request->userId . '-' . $request->slot_id . '-' . $request->jobSeekerId . '-' . date('YmdHi', strtotime($sessionDate));
             $referenceNo =  "TRK-" .  $trackId ;
 
             $booking->update(['track_id' => $referenceNo]);
@@ -669,6 +720,8 @@ class MyLearningController extends Controller
                 "udf6"        => $sessionDate,              // Session booking Date
                 "udf7"        => $slotTax,              // Mentor Session Tax
                 "udf8"        => $slotPrice,              // Mentor session Slot Price
+                "udf9"        => $couponCode,              // Mentor session Slot Price
+                "udf10"        => $discountAmount,              // Mentor session Slot Price
                 "langid"      => "en",                      // change to ar when goes live for arabic default
                 "responseURL" => $config['success_booking_session_url'],
                 "errorURL"    => $config['success_booking_session_url']
@@ -707,7 +760,7 @@ class MyLearningController extends Controller
             $response = curl_exec($curl);
 
             curl_close($curl);
-            //echo $response;exit;
+            //echo $response;
             // Decode JSON
             $data = json_decode($response, true);
 
@@ -720,6 +773,7 @@ class MyLearningController extends Controller
             
             // Final redirect URL
             $redirectUrl = $paymentUrl . "?PaymentID=" . $paymentId;
+            
             // If not exists, insert
             // BookingSession::create([
             //     'jobseeker_id' => $request->jobSeekerId,

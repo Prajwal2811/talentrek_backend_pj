@@ -12,6 +12,8 @@ use App\Models\Api\BookingSession;
 use App\Models\Payment\PurchasedSubscriptionPaymentRequest;
 use App\Services\PaymentHelper;
 
+use App\Models\Setting;
+
 use App\Models\Jobseekers;
 use App\Models\Assessors;
 use App\Models\Mentors;
@@ -124,11 +126,16 @@ class SubscriptionManagementController extends Controller
             $referenceNo =  "TRK-SUB-" .  $trackId ;
 
             $booking->update(['track_id' => $referenceNo]);
+            
+            
+            $SubscriptionTax = $this->getSlotPercentage('subscription') ;
+            $subscriptionTaxAmount = $plan->price * $SubscriptionTax / 100 ;
+            $SubscriptionTotalAmount = $plan->price + $subscriptionTaxAmount; 
 
             $config = config('neoleap');
             $transactionDetails = [
                 "id"          => $config['tranportal_id'], // Your Merchant ID from Al Rajhi
-                "amt"         => number_format($plan->price, 2, '.', ''),          // Transaction amount
+                "amt"         => number_format($SubscriptionTotalAmount, 2, '.', ''),          // Transaction amount
                 "action"      => "1",               // 1 = Purchase, 4 = Authorization
                 "password"    => "T4#2H#ma5yHv\$G7",
                 "currencyCode"=> "682",             // ISO numeric code (682 = SAR)
@@ -137,10 +144,12 @@ class SubscriptionManagementController extends Controller
                 "udf2"        => $request->type,        // Mentor/Coach/Assessor
                 "udf3"        => $booking->id,          // Booking Id
                 "udf4"        => $request->plan_id,         // Booking Plan id 
-                "udf5"        => $request->type,    // Online/Classroom
+                "udf5"        => $request->type,    // jobseeker/mentor/coach/assessor/trainer
                 "udf6"        => $plan->duration_days,              // Subscription Plan days
-                "udf7"        => '0.00',              // Mentor Session Tax
                 "udf8"        => number_format($plan->price, 2, '.', ''),              // Mentor session Slot Price
+                "udf7"        => $SubscriptionTax,              // Subscription Tax percntage/fixed
+                "udf9"        => $subscriptionTaxAmount,              // Subscription Tax amount
+                "udf10"       => 'percentage',              // Subscription Tax type
                 "langid"      => "en",                      // change to ar when goes live for arabic default
                 "responseURL" => $config['success_subscription_mobile_url'],
                 "errorURL"    => $config['success_subscription_mobile_url']
@@ -290,4 +299,28 @@ class SubscriptionManagementController extends Controller
             'data' => $history
         ]);
     }
+
+    private function getSlotPercentage($type)
+    {
+        if ($type == 'mentor') 
+        {
+            $MentorsDetails = Setting::select('mentorTax')->where('id', 1)->first();
+            return $MentorsDetails->mentorTax ;
+        } 
+        elseif ($type == 'coach') 
+        {
+            $MentorsDetails = Setting::select('coachTax')->where('id', 1)->first();
+            return $MentorsDetails->coachTax ;
+        }
+        elseif ($type == 'assessor') 
+        {
+            $MentorsDetails = Setting::select('assessorTax')->where('id', 1)->first();
+            return $MentorsDetails->assessorTax ;
+        }
+        $MentorsDetails = Setting::select('assessorTax')->where('id', 1)->first();
+        return '12.5';//$MentorsDetails->assessorTax ;
+       
+        return 1 ;
+    }
+    
 }

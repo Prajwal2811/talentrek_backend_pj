@@ -24,13 +24,21 @@ class JobseekerSessionBookingPaymentRequest extends Model
         'track_id',
         'amount',
         'tax',
-        'total_amount',
+        'amount_paid',
         'currency',
         'payment_gateway',
         'transaction_id',
         'payment_status',
         'response_payload',
-        'request_payload'
+        'request_payload',
+        'tax_percentage',
+        'taxed_amount',    
+        'coupon_type',
+        'coupon_code',
+        'coupon_amount',
+        'order_id',     
+        'total_amount'
+        
     ];
 
     protected $casts = [

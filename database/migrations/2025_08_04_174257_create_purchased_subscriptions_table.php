@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('subscription_plan_id')->constrained()->onDelete('cascade');
 
             // Polymorphic relation: jobseeker, recruiter, trainer, mentor, coach, assessor, expat
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->enum('user_type', [
                 'jobseeker',
                 'recruiter',
@@ -39,12 +39,25 @@ return new class extends Migration
             $table->date('end_date')->nullable();
 
             // Payment info
+            $table->decimal('actual_amount', 8, 2)->nullable();
             $table->decimal('amount_paid', 8, 2)->nullable();
             $table->string('payment_status')->nullable(); // e.g. 'paid', 'pending', 'failed'
 
+            // Extra payment gateway details
+            $table->string('transaction_id')->nullable(); // tranid from gateway
+            $table->string('payment_id')->nullable();     // paymentid from gateway
+            $table->string('track_id')->nullable();       // trackid from gateway
+            $table->string('order_id')->nullable();       // our udf4
+            $table->string('currency', 10)->nullable();   // SAR, USD etc.
+            $table->string('result')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_code')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('coupon_amount')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('taxed_amount')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->longText('response_payload')->nullable(); // store full gateway JSON
             $table->timestamps();
         });
-
     }
 
     /**
