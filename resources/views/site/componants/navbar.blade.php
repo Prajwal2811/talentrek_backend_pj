@@ -54,9 +54,22 @@
             <!-- <button class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white">
                 <i data-feather="bell" class="w-4 h-4"></i>
             </button> -->
+            @php
+                $guards = ['jobseeker', 'recruiter', 'trainer', 'assessor', 'coach', 'mentor', 'expat'];
+                $user = null;
+                $guardUsed = null;
 
+                foreach ($guards as $guard) {
+                    if (Auth::guard($guard)->check()) {
+                        $user = Auth::guard($guard)->user();
+                        $guardUsed = $guard;
+                        break;
+                    }
+                }
+            @endphp
+            @if($user)
             <div class="relative"> 
-                @php $notifications = notificationUsersSent('jobseeker'); @endphp
+                @php $notifications = notificationUsersSent($guardUsed); @endphp
                 <button onclick="toggleBellDropdown()"
                     class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white">
                     <span><i data-feather="bell" class="w-4 h-4"></i></span>
@@ -81,7 +94,26 @@
                     @endif
                 </div>
             </div>
+            @else
+            <div class="relative"> 
+                
+                <button onclick="toggleBellDropdown()"
+                    class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white">
+                    <span><i data-feather="bell" class="w-4 h-4"></i></span>
+                    
+                </button>
 
+                <div id="bellDropdown"
+                    class="hidden absolute right-4 top-full mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50" style="width: 305px;">
+                         <a href=""
+                        class="block px-4 py-2 text-sm text-gray-700 bg-blue-700 border-blue-200 text-white">{{ langLabel('notifications') }} <span class="float-right">{{ langLabel('view_all') }}</span></a>
+                   
+                        <a href=""
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('view_records_found') }}</a>
+                   
+                </div>
+            </div>
+            @endif
             <script>
                 function toggleBellDropdown() {
                     const dropdown = document.getElementById('bellDropdown');
@@ -114,7 +146,8 @@
                 </form>
             </div>
 
-            @php
+            
+             @php
                 $guards = ['jobseeker', 'recruiter', 'trainer', 'assessor', 'coach', 'mentor', 'expat'];
                 $user = null;
                 $guardUsed = null;
@@ -127,7 +160,6 @@
                     }
                 }
             @endphp
-
             @if($user)
                 <!-- Logged In View -->
                 <div class="relative">
