@@ -959,6 +959,17 @@ class AdminController extends Controller
                             ]);
                             return back()->with('error', 'Zoom meeting creation failed. Please try again later.');
                         }
+                        $data = [
+                            'sender_id' => $jobseeker->id,
+                            'sender_type' => 'You are shorlisted for interview.',
+                            'receiver_id' => '1',
+                            'message' => 'You are shorlisted for interview on '.$request->interview_date.' at'.$request->interview_time.'.',
+                            'is_read' => 0,
+                            'is_read_admin' => 0,
+                            'user_type' => 'jobseeker'
+                        ];
+
+                        Notification::insert($data);
                     } catch (\Exception $e) {
                         Log::error('Zoom API Exception', [
                             'message' => $e->getMessage(),
