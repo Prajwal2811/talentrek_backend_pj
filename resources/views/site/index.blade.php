@@ -867,8 +867,8 @@
                     const currentUserId = {{ auth()->guard('jobseeker')->id() }};
                     const currentUserType = 'jobseeker';
 
-                    // ---------------------- Real-time Listening ----------------------
-                    Echo.channel('chat.jobseeker')
+                    // ---------------------- Web Real-time Listening ----------------------
+                    Echo.private(`chat.${currentUserType}.${currentUserId}`)
                         .error((err) => console.error('Subscription error:', err))
                         .listen('.message.sent', (e) => {
                             // Ignore own messages

@@ -42,7 +42,12 @@ class Jobseekers extends Authenticatable
         'admin_recruiter_status',
         'google_id',
         'isSubscribtionBuy',
-        'is_registered'
+        'is_registered',
+        'avatar',
+        'active_subscription_plan_id',
+        'zoom_access_token',
+        'zoom_refresh_token',
+        'zoom_token_expires_at'
     ];
 
     /**

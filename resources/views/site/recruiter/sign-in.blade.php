@@ -93,7 +93,7 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         <div class="text-right mt-1">
-                                            <a href="{{ route('trainer.forget.password')}}" class="text-sm text-blue-600 hover:underline">{{ langLabel('forgot_password') }}</a>
+                                            <a href="{{ route('recruiter.forget.password')}}" class="text-sm text-blue-600 hover:underline">{{ langLabel('forgot_password') }}</a>
                                         </div>
                                     </div>
 
@@ -102,7 +102,7 @@
                                             class="mt-1 mr-2 border-gray-300 rounded text-blue-600 focus:ring-blue-500" />
                                         <label for="terms" class="text-sm text-gray-600">
                                             {{ langLabel('agree_terms') }}
-                                            <a href="#" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
+                                            <a href="{{route('terms-and-conditions')}}" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
                                         </label>
                                     </div>
 
@@ -111,7 +111,7 @@
                                         {{ langLabel('sign_in') }}
                                     </button>
 
-                                    <a href="{{ route('trainer.google.redirect') }}" 
+                                    <a href="{{ route('recruiter.google.redirect') }}" 
                                     class="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 mb-3">
                                         <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5 mr-2">
                                         {{ langLabel('signin_google') }}
@@ -121,7 +121,7 @@
 
                                     <div class="text-center text-sm">
                                         {{ langLabel('no_account') }}
-                                        <a href="{{ route('trainer.signup')}}" class="text-blue-600 hover:underline">{{ langLabel('sign_up') }}</a>
+                                        <a href="{{ route('recruiter.signup')}}" class="text-blue-600 hover:underline">{{ langLabel('register') }}</a>
                                     </div>
                                 </form>
 

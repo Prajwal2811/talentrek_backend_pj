@@ -102,7 +102,7 @@
                                             class="mt-1 mr-2 border-gray-300 rounded text-blue-600 focus:ring-blue-500" />
                                         <label for="terms" class="text-sm text-gray-600">
                                             {{ langLabel('agree_terms') }}
-                                            <a href="#" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
+                                            <a href="{{route('terms-and-conditions')}}" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
                                         </label>
                                     </div>
 
@@ -121,7 +121,7 @@
 
                                     <div class="text-center text-sm">
                                         {{ langLabel('no_account') }}
-                                        <a href="{{ route('trainer.signup')}}" class="text-blue-600 hover:underline">{{ langLabel('sign_up') }}</a>
+                                        <a href="{{ route('trainer.signup')}}" class="text-blue-600 hover:underline">{{ langLabel('register') }}</a>
                                     </div>
                                 </form>
 

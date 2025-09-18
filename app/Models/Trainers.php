@@ -34,7 +34,9 @@ class Trainers extends Authenticatable
         'admin_status',
         'inactive_reason',
         'rejection_reason',
-        'is_registered'
+        'is_registered',
+        'isSubscribtionBuy',
+        'active_subscription_plan_id'
     ];
 
     /**

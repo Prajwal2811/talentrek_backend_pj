@@ -591,8 +591,9 @@ class AssessorController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:assessors,email,' . $assessor->id,
-            'phone_number' => 'required|unique:assessors,phone_number,' . $assessor->id,
+            'phone_number' => 'required',
             'phone_code' => 'required',
+            'per_slot_price' => 'required',
             'dob' => 'required|date',
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
@@ -629,9 +630,9 @@ class AssessorController extends Controller
             'website_link' => 'nullable|url',
             'portfolio_link' => 'nullable|url',
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+            'training_certificate' => 'required|file|mimes:pdf|max:2048',
         ], [
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
@@ -640,10 +641,10 @@ class AssessorController extends Controller
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
             'phone_number.required' => 'Please enter your phone number.',
-            'phone_number.unique' => 'This phone number is already taken.',
             'dob.required' => 'Please enter your date of birth.',
             'city.required' => 'Please enter your city.',
             'state.required' => 'Please enter your state.',
+            'per_slot_price.required' => 'Please enter your per slot price.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
 
@@ -687,6 +688,7 @@ class AssessorController extends Controller
             'country' => $validated['country'],
             'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
+            'per_slot_price' => $validated['per_slot_price'],
             'is_registered' => 1
         ]);
 
@@ -1091,9 +1093,9 @@ class AssessorController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'resume' => 'nullable|file|mimes:pdf|max:2048',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:1024',
+            'training_certificate' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
         $documentTypes = [

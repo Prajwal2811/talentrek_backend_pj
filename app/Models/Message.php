@@ -13,6 +13,7 @@ class Message extends Model
         'receiver_type',
         'type', // 'text' or 'file'
         'message',
+        'login_type'
     ];
 
     // Optional: Define if you are using polymorphic relationships

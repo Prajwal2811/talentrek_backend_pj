@@ -48,8 +48,8 @@
     ->distinct()
     ->get();
 
-    // echo "<pre>";
-    // print_r( $jobseekersList );exit; 
+        // echo "<pre>";
+        // print_r( $jobseekersList );exit; 
     
 ?>
 

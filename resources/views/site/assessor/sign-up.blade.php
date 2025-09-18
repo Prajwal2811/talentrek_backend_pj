@@ -87,7 +87,7 @@
                                             <input type="checkbox" class="mt-1 mr-2" id="terms">
                                             <label for="terms" class="text-sm text-gray-600">
                                            {{ langLabel('agree_terms') }}
-                                            <a href="#" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
+                                            <a href="{{route('terms-and-conditions')}}" class="text-blue-600 hover:underline">{{ langLabel('terms_conditions') }}</a>
                                             </label>
                                         </div>
 
@@ -106,7 +106,7 @@
 
                                         <div class="text-center text-sm mt-2">
                                             {{ langLabel('have_account') }}
-                                            <a href="{{ route('trainer.login')}}" class="text-blue-600 hover:underline">{{ langLabel('sign_in') }}</a>
+                                            <a href="{{ route('assessor.login')}}" class="text-blue-600 hover:underline">{{ langLabel('sign_in') }}</a>
                                         </div>
                                     </form>
                                         <script>
