@@ -202,7 +202,7 @@ class JobseekerController extends Controller
             // Basic Info
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $jobseeker->id,
-            'phone_number' => 'nullable|unique:jobseekers,phone_number,' . $jobseeker->id,
+            'phone_number' => 'required',
             'phone_code' => 'required|string',
             'dob' => 'required|date',
             'city' => 'required|string|max:255',
@@ -249,7 +249,7 @@ class JobseekerController extends Controller
             'portfolio_link' => 'nullable|url',
 
             // Files
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
 
         ], [
@@ -260,7 +260,7 @@ class JobseekerController extends Controller
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already registered.',
-            'phone_number.unique' => 'This phone number is already registered.',
+            'phone_number.required' => 'Please select your phone number.',
             'dob.required' => 'Please select your date of birth.',
             'dob.date' => 'Date of birth must be a valid date.',
             'city.required' => 'Please enter your city.',
@@ -302,7 +302,7 @@ class JobseekerController extends Controller
             'resume.required' => 'Please upload your resume.',
             'resume.file' => 'Resume must be a valid file.',
             'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
-            'resume.max' => 'Resume must not be larger than 2MB.',
+            'resume.max' => 'Resume must not be larger than 5MB.',
             'profile_picture.required' => 'Please upload your profile picture.',
             'profile_picture.image' => 'Profile picture must be an image.',
             'profile_picture.mimes' => 'Profile picture must be in JPG, JPEG, or PNG format.',
@@ -1041,9 +1041,9 @@ class JobseekerController extends Controller
         // Dynamic rules
         $rules = [];
         if (!$existingResume) {
-            $rules['resume'] = 'required|file|mimes:pdf,doc,docx|max:2048';
+            $rules['resume'] = 'required|file|mimes:pdf,doc,docx|max:5120';
         } elseif ($request->hasFile('resume')) {
-            $rules['resume'] = 'file|mimes:pdf,doc,docx|max:2048';
+            $rules['resume'] = 'file|mimes:pdf,doc,docx|max:5120';
         }
 
         if (!$existingProfile) {
@@ -1057,7 +1057,7 @@ class JobseekerController extends Controller
             'resume.required' => 'The resume is required.',
             'resume.file'     => 'The resume must be a valid file.',
             'resume.mimes'    => 'The resume must be a file of type: PDF, DOC, or DOCX.',
-            'resume.max'      => 'The resume must not be larger than 2MB.',
+            'resume.max'      => 'The resume must not be larger than 5MB.',
 
             // Profile Messages
             'profile.required' => 'The profile is required.',
@@ -3385,29 +3385,24 @@ public function submitReview(Request $request)
     // }
    
     public function redirectToGoogle()
-
     {
-
         return Socialite::driver('google')
-            ->redirectUrl(config('services.google.jobseeker_redirect'))
-            ->redirect();
+        ->redirectUrl(config('services.google.jobseeker_redirect'))
+        ->redirect();
 
     }
 
-
-
-
-
-   public function handleGoogleCallback()
+    public function handleGoogleCallback()
     {
         try {
-            
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = Socialite::driver('google')
+            ->redirectUrl(config('services.google.jobseeker_redirect'))
+            ->stateless()
+            ->user();
 
-           
+
             $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
 
-            
             if (!$jobseeker) {
                 $plainPassword = Str::random(16);
 
@@ -3418,46 +3413,40 @@ public function submitReview(Request $request)
                     'password'          => bcrypt($plainPassword),
                     'pass'              => $plainPassword,
                     'email_verified_at' => now(),
-                    'is_registered'     => 0, // not registered yet
+                    'is_registered'     => 0,
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $googleUser->getAvatar(),
                 ]);
 
-                
                 session([
                     'jobseeker_id' => $jobseeker->id,
-                    'email'        => $jobseeker->email,
+                    'email'       => $jobseeker->email,
                 ]);
 
-                // Redirect to registration form
                 return redirect()->route('jobseeker.registration');
             }
 
-            // Case 2: Inactive account
             if ($jobseeker->status !== 'active') {
                 return redirect()
-                    ->route('jobseeker.sign-in')
+                    ->route('jobseeker.login')
                     ->with('error', 'Your account is inactive. Please contact administrator.');
             }
 
-            
             if ($jobseeker->is_registered == 1) {
                 Auth::guard('jobseeker')->login($jobseeker);
-
-                return redirect()->route('jobseeker.profile');
+                return redirect()->route('jobseeker.dashboard');
             }
 
-            
             session([
                 'jobseeker_id' => $jobseeker->id,
-                'email'        => $jobseeker->email,
+                'email'       => $jobseeker->email,
             ]);
 
             return redirect()->route('jobseeker.registration');
 
         } catch (\Exception $e) {
             return redirect()
-                ->route('jobseeker.sign-in')
+                ->route('jobseeker.login')
                 ->with('error', 'Google login failed. Please try again.');
         }
     }
@@ -3510,5 +3499,72 @@ public function submitReview(Request $request)
     }
 
 
+    public function downloadCertificate($material_id)
+    {
+       
+        require_once base_path('dompdf/autoload.inc.php');
+
+        $user = auth('jobseeker')->user();
+
+       
+        $template = CertificateTemplate::first();
+        if (!$template) {
+            return back()->with('error', 'Certificate template not found.');
+        }
+
+       
+        $course = DB::table('training_materials as t')
+            ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
+            ->select('t.*', 'tr.name as trainer_name')
+            ->where('t.id', $material_id)
+            ->first();
+
+        if (!$course) {
+            return back()->with('error', 'Course not found.');
+        }
+
+      
+        $userAssessment = DB::table('jobseeker_assessment_status')
+            ->where('jobseeker_id', $user->id)
+            ->where('material_id', $material_id)
+            ->first();
+
+        $completionDate = $userAssessment->created_at ?? now();
+        $assessmentStatus = $userAssessment ? 'Completed' : 'Not Completed';
+        $certificateId = 'T' . str_pad($material_id, 5, '0', STR_PAD_LEFT);
+
+        
+        $bgPath = base_path('asset/images/Talentrek-Certificate-blank.png');
+        $type = pathinfo($bgPath, PATHINFO_EXTENSION);
+        $data = file_get_contents($bgPath);
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+
+      
+        $placeholders = [
+            '{{ $user_name }}' => $user->name,
+            '{{ $certificate_title }}' => 'CERTIFICATE OF COMPLETION',
+            '{{ $course_title }}' => $course->training_title,
+            '{{ $trainer_name }}' => $course->trainer_name ?? 'Trainer',
+            '{{ $course_duration }}' => $course->total_duration ?? 'N/A',
+            '{{ $completion_date }}' => \Carbon\Carbon::parse($completionDate)->format('d M, Y'),
+            '{{ $certificate_id }}' => $certificateId,
+            '{{ $conducted_by }}' => 'Talentrek',
+            '{{ $bg_image }}' => $base64, // <- Background image placeholder
+        ];
+
+        
+        $html = str_replace(array_keys($placeholders), array_values($placeholders), $template->template_html);
+
+        // Generate PDF
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
+        // Return PDF as download
+        return response($dompdf->output(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', "attachment; filename=Certificate-{$user->name}.pdf");
+    }
 
 }

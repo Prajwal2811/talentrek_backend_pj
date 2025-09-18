@@ -92,7 +92,7 @@
                                     <div>
                                         <label class="block mb-1 text-sm font-medium">{{ langLabel('full_name') }} <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="name" class="w-full border rounded-md p-2 mt-1"
-                                            placeholder="{{ langLabel('enter_full_name') }}" value="{{ old('name') }}" />
+                                            placeholder="{{ langLabel('enter_full_name') }}" value="{{ old('name') }}" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')"/>
                                         @error('name')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -124,24 +124,29 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                            <div class="flex">
-                                                <select name="phone_code" class="w-1/3 border rounded-l-md p-2 mt-1">
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('phone_no') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <div class="flex">
+                                                <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
                                                     <option value="+966">+966</option>
-                                                    <option value="+971">+971</option>
-                                                    <!-- Add more country codes if needed -->
+                                                    <!-- <option value="+971">+971</option> -->
+                                                    <!-- <option value="+973">+973</option> -->
                                                 </select>
-                                                <input name="phone_number"
-                                                    placeholder="Enter Phone number"
-                                                    type="tel"
+                                                <input 
+                                                    placeholder="{{ langLabel('enter_phone_number') }}" 
+                                                    name="phone_number" 
+                                                    type="tel" 
                                                     class="w-2/3 border rounded-r-md p-2 mt-1"
                                                     value="{{ old('phone_number') }}"
-                                                    maxlength="9"
-                                                    pattern="[0-9]{9}"
-                                                    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)"
-                                                     />
-
+                                                    maxlength="9" 
+                                                    pattern="[0-9]{9}" 
+                                                    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)" 
+                                                    required
+                                                />
+                                                
                                             </div>
+                                            @error('phone_number')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                           
                                         </div>
                                         <div>
@@ -188,421 +193,35 @@
                                     </div>
 
 
-                                    <!-- Country Dropdown -->
+                                    <!-- Country Input -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('country') }} <span style="color: red;">*</span></label>
-                                        <select id="country" name="country" class="w-full border rounded-md p-2" onchange="loadStates()">
-                                            <option value="">{{ langLabel('select_country') }}</option>
-                                            <option value="saudi" {{ old('country')=='saudi' ? 'selected' : '' }}>Saudi Arabia</option>
-                                            <option value="india" {{ old('country')=='india' ? 'selected' : '' }}>India</option>
-                                            <option value="usa" {{ old('country')=='usa' ? 'selected' : '' }}>USA</option>
-                                            <option value="canada" {{ old('country')=='canada' ? 'selected' : '' }}>Canada</option>
-                                            <option value="australia" {{ old('country')=='australia' ? 'selected' : '' }}>Australia</option>
-                                            <option value="uk" {{ old('country')=='uk' ? 'selected' : '' }}>UK</option>
-                                            <option value="germany" {{ old('country')=='germany' ? 'selected' : '' }}>Germany</option>
-                                            <option value="france" {{ old('country')=='france' ? 'selected' : '' }}>France</option>
-                                            <option value="uae" {{ old('country')=='uae' ? 'selected' : '' }}>UAE</option>
-                                            <option value="japan" {{ old('country')=='japan' ? 'selected' : '' }}>Japan</option>
-                                        </select>
+                                        <label class="block mb-1 text-sm font-medium mt-3">
+                                            {{ langLabel('country') }} <span style="color: red;">*</span>
+                                        </label>
+                                        <input type="text" id="country" name="country" 
+                                            class="w-full border rounded-md p-2" 
+                                            placeholder="Enter country" value="{{ old('country') }}">
                                     </div>
 
-                                    <!-- State Dropdown -->
+                                    <!-- State Input -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('state') }} <span style="color: red;">*</span></label>
-                                        <select id="state" name="state" class="w-full border rounded-md p-2" onchange="loadCities()">
-                                            <option value="">{{ langLabel('select_state') }}</option>
-                                        </select>
+                                        <label class="block mb-1 text-sm font-medium mt-3">
+                                            {{ langLabel('state') }} <span style="color: red;">*</span>
+                                        </label>
+                                        <input type="text" id="state" name="state" 
+                                            class="w-full border rounded-md p-2" 
+                                            placeholder="Enter state" value="{{ old('state') }}">
                                     </div>
 
-                                    <!-- City Dropdown -->
+                                    <!-- City Input -->
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('city') }} <span style="color: red;">*</span></label>
-                                        <select id="city" name="city" class="w-full border rounded-md p-2">
-                                            <option value="">{{ langLabel('select_city') }}</option>
-                                        </select>
+                                        <label class="block mb-1 text-sm font-medium mt-3">
+                                            {{ langLabel('city') }} <span style="color: red;">*</span>
+                                        </label>
+                                        <input type="text" id="city" name="city" 
+                                            class="w-full border rounded-md p-2" 
+                                            placeholder="Enter city" value="{{ old('city') }}">
                                     </div>
-
-                                    <script>
-                                    const data = {
-                                        saudi: {
-                                            "Riyadh Province": [
-                                                "Riyadh", "Al Kharj", "Wadi ad-Dawasir", "Shaqra", "Az Zulfi", "Al Majma'ah", "Al Muzahimiyah",
-                                                "Durma", "Afif", "Al Ghat", "Hotat Bani Tamim", "Al Hariq", "As Sulayyil", "Thadiq", "Huraymila"
-                                            ],
-                                            "Makkah Province": [
-                                                "Jeddah", "Mecca", "Taif", "Rabigh", "Al Lith", "Khulais", "Al Jumum", "Turubah", "Ranyah", "Al Khurma",
-                                                "Maysan", "Al Bahrah", "Adham", "Masturah"
-                                            ],
-                                            "Medina Province": [
-                                                "Medina", "Yanbu", "Badr", "Al-Ula", "Khaybar", "Al Mahd", "Al Hinakiyah", "Wadi Al-Fara", "Al Ais", "Al Ameq"
-                                            ],
-                                            "Eastern Province (Ash Sharqiyah)": [
-                                                "Dammam", "Khobar", "Dhahran", "Qatif", "Hofuf", "Jubail", "Ras Tanura", "Abqaiq", "Al Hasa", "Al Khafji",
-                                                "Safwa", "Tarout", "Al Nairyah", "Al Qaisumah", "Hafar Al-Batin", "Anak", "Al-Oyaynah", "Udhailiyah"
-                                            ],
-                                            "Asir Province": [
-                                                "Abha", "Khamis Mushait", "Bisha", "Ahad Rafidah", "Tanumah", "Sarat Abidah", "Muhayil", "Dharan Al Janub",
-                                                "Tathleeth", "Rijal Alma", "Al Namas", "Balqarn", "Al Majaridah", "Bariq"
-                                            ],
-                                            "Tabuk Province": [
-                                                "Tabuk", "Duba", "Haql", "Tayma", "Al Wajh", "Umluj", "Al Muwaileh", "Sharma", "Al Bada"
-                                            ],
-                                            "Qassim Province": [
-                                                "Buraidah", "Unaizah", "Ar Rass", "Al Mithnab", "Al Bukayriyah", "Al Badayea", "Uyun AlJiwa",
-                                                "Riyadh Al Khabra", "Al Nabhaniyah", "Dhalm"
-                                            ],
-                                            "Hail Province": [
-                                                "Hail", "Baqqa", "Al-Ghazalah", "Ash Shamli", "Turbah", "Al-Shinan", "Al Hait", "Al Hulayfah",
-                                                "Al Uwayqilah", "Al Khuttah"
-                                            ],
-                                            "Najran Province": [
-                                                "Najran", "Sharurah", "Habuna", "Badr Al Janoub", "Yadamah", "Thar", "Khubash", "Al Wadiah", "Bir Askar"
-                                            ],
-                                            "Jazan Province": [
-                                                "Jazan", "Sabya", "Abu Arish", "Samtah", "Al Darb", "Baish", "Ahad Al Masarihah", "Farasan", "Al Aridhah",
-                                                "Al Tuwal", "Fifa", "Dhamad", "Harub", "Al Harth", "Ar Rayth", "Damad"
-                                            ],
-                                            "Al Bahah Province": [
-                                                "Al Bahah", "Baljurashi", "Al Mandaq", "Al Aqiq", "Qilwah", "Al Qura", "Al-Makhwah", "Al-Hajrah"
-                                            ],
-                                            "Northern Borders Province": [
-                                                "Arar", "Rafha", "Turaif", "Al Uwayqilah", "Al Aujam"
-                                            ],
-                                            "Al Jawf Province": [
-                                                "Sakakah", "Dumat Al-Jandal", "Tabarjal", "Qurayyat", "Al Hadithah"
-                                            ]
-                                        },
-                                        india: {
-                                            "Maharashtra": [
-                                            "Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Nanded"
-                                            ],
-                                            "Gujarat": [
-                                            "Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar", "Anand", "Nadiad", "Morbi"
-                                            ],
-                                            "Delhi": [
-                                            "New Delhi", "Dwarka", "Karol Bagh", "Rohini", "Lajpat Nagar", "Saket", "Mayur Vihar", "Vasant Kunj", "Janakpuri", "Connaught Place"
-                                            ],
-                                            "Karnataka": [
-                                            "Bangalore", "Mysore", "Mangalore", "Hubli", "Belgaum", "Gulbarga", "Davangere", "Bellary", "Tumkur", "Udupi"
-                                            ],
-                                            "Tamil Nadu": [
-                                            "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Vellore", "Erode", "Thoothukudi", "Dindigul"
-                                            ],
-                                            "Uttar Pradesh": [
-                                            "Lucknow", "Kanpur", "Varanasi", "Agra", "Meerut", "Allahabad", "Ghaziabad", "Noida", "Bareilly", "Aligarh"
-                                            ],
-                                            "West Bengal": [
-                                            "Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Malda", "Kharagpur", "Bardhaman", "Haldia", "Berhampore"
-                                            ],
-                                            "Rajasthan": [
-                                            "Jaipur", "Udaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Alwar", "Sikar", "Bhilwara", "Chittorgarh"
-                                            ],
-                                            "Punjab": [
-                                            "Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur", "Moga", "Pathankot", "Firozpur"
-                                            ],
-                                            "Kerala": [
-                                            "Kochi", "Thiruvananthapuram", "Kozhikode", "Kollam", "Thrissur", "Alappuzha", "Palakkad", "Kottayam", "Kannur", "Malappuram"
-                                            ]
-                                        },
-                                        usa: {
-                                            "California": [
-                                            "Los Angeles", "San Diego", "San Jose", "San Francisco", "Fresno", "Sacramento", "Long Beach", "Oakland", "Bakersfield", "Anaheim"
-                                            ],
-                                            "Texas": [
-                                            "Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "El Paso", "Arlington", "Plano", "Corpus Christi", "Lubbock"
-                                            ],
-                                            "Florida": [
-                                            "Miami", "Orlando", "Tampa", "Jacksonville", "Tallahassee", "St. Petersburg", "Hialeah", "Fort Lauderdale", "Cape Coral", "Gainesville"
-                                            ],
-                                            "New York": [
-                                            "New York City", "Buffalo", "Rochester", "Yonkers", "Syracuse", "Albany", "New Rochelle", "Mount Vernon", "Schenectady", "Utica"
-                                            ],
-                                            "Illinois": [
-                                            "Chicago", "Springfield", "Naperville", "Peoria", "Rockford", "Joliet", "Aurora", "Elgin", "Waukegan", "Cicero"
-                                            ],
-                                            "Pennsylvania": [
-                                            "Philadelphia", "Pittsburgh", "Allentown", "Erie", "Reading", "Scranton", "Bethlehem", "Lancaster", "Harrisburg", "York"
-                                            ],
-                                            "Ohio": [
-                                            "Columbus", "Cleveland", "Cincinnati", "Toledo", "Akron", "Dayton", "Parma", "Canton", "Youngstown", "Lorain"
-                                            ],
-                                            "Georgia": [
-                                            "Atlanta", "Savannah", "Augusta", "Columbus", "Macon", "Athens", "Sandy Springs", "Roswell", "Albany", "Johns Creek"
-                                            ],
-                                            "Michigan": [
-                                            "Detroit", "Lansing", "Ann Arbor", "Grand Rapids", "Flint", "Warren", "Sterling Heights", "Dearborn", "Livonia", "Troy"
-                                            ],
-                                            "North Carolina": [
-                                            "Charlotte", "Raleigh", "Durham", "Greensboro", "Winston-Salem", "Fayetteville", "Cary", "Wilmington", "High Point", "Chapel Hill"
-                                            ]
-                                        },
-                                        canada: {
-                                            "Ontario": [
-                                            "Toronto", "Ottawa", "Hamilton", "Mississauga", "Brampton", "London", "Markham", "Kitchener", "Windsor", "Vaughan"
-                                            ],
-                                            "British Columbia": [
-                                            "Vancouver", "Victoria", "Kelowna", "Surrey", "Burnaby", "Richmond", "Abbotsford", "Coquitlam", "Nanaimo", "Kamloops"
-                                            ],
-                                            "Alberta": [
-                                            "Calgary", "Edmonton", "Red Deer", "Lethbridge", "St. Albert", "Medicine Hat", "Grande Prairie", "Airdrie", "Spruce Grove", "Leduc"
-                                            ],
-                                            "Quebec": [
-                                            "Montreal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay", "Trois-Rivières", "Terrebonne", "Saint-Jean-sur-Richelieu"
-                                            ],
-                                            "Manitoba": [
-                                            "Winnipeg", "Brandon", "Steinbach", "Thompson", "Portage la Prairie", "Selkirk", "Winkler", "Morden", "Dauphin", "Flin Flon"
-                                            ],
-                                            "Saskatchewan": [
-                                            "Saskatoon", "Regina", "Moose Jaw", "Prince Albert", "Swift Current", "North Battleford", "Yorkton", "Estevan", "Weyburn", "Martensville"
-                                            ],
-                                            "Nova Scotia": [
-                                            "Halifax", "Sydney", "Truro", "New Glasgow", "Bridgewater", "Kentville", "Amherst", "Yarmouth", "Windsor", "Antigonish"
-                                            ],
-                                            "New Brunswick": [
-                                            "Moncton", "Fredericton", "Saint John", "Bathurst", "Miramichi", "Dieppe", "Edmundston", "Campbellton", "Shediac", "Quispamsis"
-                                            ],
-                                            "Newfoundland": [
-                                            "St. John's", "Corner Brook", "Gander", "Mount Pearl", "Conception Bay South", "Paradise", "Grand Falls-Windsor", "Happy Valley-Goose Bay", "Clarenville", "Marystown"
-                                            ],
-                                            "Prince Edward Island": [
-                                            "Charlottetown", "Summerside", "Stratford", "Cornwall", "Montague", "Kensington", "Souris", "Georgetown", "Alberton", "Tignish"
-                                            ]
-                                        },
-                                        australia: {
-                                            "New South Wales": [
-                                            "Sydney", "Newcastle", "Wollongong", "Albury", "Maitland", "Wagga Wagga", "Port Macquarie", "Tamworth", "Orange", "Dubbo"
-                                            ],
-                                            "Victoria": [
-                                            "Melbourne", "Geelong", "Ballarat", "Bendigo", "Shepparton", "Mildura", "Warrnambool", "Wodonga", "Traralgon", "Wangaratta"
-                                            ],
-                                            "Queensland": [
-                                            "Brisbane", "Cairns", "Gold Coast", "Townsville", "Toowoomba", "Mackay", "Rockhampton", "Bundaberg", "Hervey Bay", "Gladstone"
-                                            ],
-                                            "Western Australia": [
-                                            "Perth", "Bunbury", "Albany", "Geraldton", "Kalgoorlie", "Broome", "Busselton", "Esperance", "Port Hedland", "Karratha"
-                                            ],
-                                            "South Australia": [
-                                            "Adelaide", "Mount Gambier", "Whyalla", "Murray Bridge", "Port Augusta", "Port Pirie", "Gawler", "Victor Harbor", "Port Lincoln", "Coober Pedy"
-                                            ],
-                                            "Tasmania": [
-                                            "Hobart", "Launceston", "Devonport", "Burnie", "Ulverstone", "New Norfolk", "Queenstown", "Sorell", "George Town", "Wynyard"
-                                            ],
-                                            "ACT": [
-                                            "Canberra", "Belconnen", "Gungahlin", "Tuggeranong", "Woden Valley", "Weston Creek", "Molonglo Valley", "Fyshwick", "Narrabundah", "Kingston"
-                                            ],
-                                            "Northern Territory": [
-                                            "Darwin", "Alice Springs", "Palmerston", "Katherine", "Nhulunbuy", "Tennant Creek", "Jabiru", "Yulara", "Howard Springs", "Batchelor"
-                                            ],
-                                            "Central Australia": [
-                                            "Yulara", "Tennant Creek", "Hermannsburg", "Kings Canyon", "Papunya", "Ti Tree", "Santa Teresa", "Docker River", "Areyonga", "Yuendumu"
-                                            ],
-                                            "Top End": [
-                                            "Katherine", "Nhulunbuy", "Jabiru", "Maningrida", "Wadeye", "Gunbalanya", "Coomalie", "Ngukurr", "Ramingining", "Beswick"
-                                            ]
-                                        },
-                                        uk: {
-                                            "England": [
-                                            "London", "Manchester", "Birmingham", "Liverpool", "Bristol", "Leicester", "Nottingham", "Coventry", "Southampton", "Reading"
-                                            ],
-                                            "Scotland": [
-                                            "Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Inverness", "Stirling", "Perth", "Paisley", "Ayr", "Motherwell"
-                                            ],
-                                            "Wales": [
-                                            "Cardiff", "Swansea", "Newport", "Wrexham", "Bangor", "Llandudno", "Barry", "Merthyr Tydfil", "Pontypridd", "Aberystwyth"
-                                            ],
-                                            "Northern Ireland": [
-                                            "Belfast", "Derry", "Lisburn", "Newry", "Armagh", "Craigavon", "Bangor", "Antrim", "Coleraine", "Enniskillen"
-                                            ],
-                                            "Kent": [
-                                            "Canterbury", "Maidstone", "Ashford", "Dartford", "Tonbridge", "Folkestone", "Tunbridge Wells", "Sevenoaks", "Gravesend", "Margate"
-                                            ],
-                                            "Essex": [
-                                            "Chelmsford", "Colchester", "Basildon", "Southend-on-Sea", "Harlow", "Brentwood", "Clacton-on-Sea", "Braintree", "Grays", "Maldon"
-                                            ],
-                                            "Surrey": [
-                                            "Guildford", "Woking", "Epsom", "Redhill", "Farnham", "Walton-on-Thames", "Camberley", "Leatherhead", "Reigate", "Godalming"
-                                            ],
-                                            "Lancashire": [
-                                            "Preston", "Blackpool", "Burnley", "Lancaster", "Blackburn", "Accrington", "Chorley", "Morecambe", "Nelson", "Fleetwood"
-                                            ],
-                                            "Devon": [
-                                            "Exeter", "Plymouth", "Torquay", "Barnstaple", "Exmouth", "Newton Abbot", "Tiverton", "Bideford", "Paignton", "Honiton"
-                                            ],
-                                            "Yorkshire": [
-                                            "Leeds", "Sheffield", "Bradford", "York", "Huddersfield", "Hull", "Wakefield", "Doncaster", "Halifax", "Harrogate"
-                                            ]
-                                        },
-                                        germany: {
-                                            "Bavaria": [
-                                            "Munich", "Nuremberg", "Augsburg", "Regensburg", "Ingolstadt", "Würzburg", "Fürth", "Erlangen", "Bayreuth", "Bamberg"
-                                            ],
-                                            "Berlin": [
-                                            "Berlin", "Charlottenburg", "Friedrichshain", "Kreuzberg", "Neukölln", "Prenzlauer Berg", "Spandau", "Steglitz", "Wedding", "Zehlendorf"
-                                            ],
-                                            "Hesse": [
-                                            "Frankfurt", "Wiesbaden", "Darmstadt", "Kassel", "Offenbach", "Hanau", "Marburg", "Gießen", "Fulda", "Rüsselsheim"
-                                            ],
-                                            "Saxony": [
-                                            "Dresden", "Leipzig", "Chemnitz", "Zwickau", "Plauen", "Görlitz", "Freiberg", "Bautzen", "Pirna", "Hoyerswerda"
-                                            ],
-                                            "Hamburg": [
-                                            "Hamburg", "Altona", "Eimsbüttel", "Wandsbek", "Harburg", "Bergedorf", "Hamburg-Mitte", "Hamburg-Nord", "Lurup", "Niendorf"
-                                            ],
-                                            "Bremen": [
-                                            "Bremen", "Bremerhaven", "Walle", "Vegesack", "Hemelingen", "Oberneuland", "Borgfeld", "Huchting", "Findorff", "Blumenthal"
-                                            ],
-                                            "Lower Saxony": [
-                                            "Hannover", "Braunschweig", "Oldenburg", "Osnabrück", "Wolfsburg", "Göttingen", "Salzgitter", "Hildesheim", "Lüneburg", "Celle"
-                                            ],
-                                            "North Rhine": [
-                                            "Cologne", "Düsseldorf", "Dortmund", "Essen", "Duisburg", "Bochum", "Wuppertal", "Bonn", "Bielefeld", "Mönchengladbach"
-                                            ],
-                                            "Saarland": [
-                                            "Saarbrücken", "Neunkirchen", "Homburg", "Völklingen", "Sankt Ingbert", "Merzig", "Saarlouis", "Blieskastel", "St. Wendel", "Lebach"
-                                            ],
-                                            "Schleswig-Holstein": [
-                                            "Kiel", "Lübeck", "Flensburg", "Neumünster", "Norderstedt", "Elmshorn", "Pinneberg", "Itzehoe", "Ahrensburg", "Bad Oldesloe"
-                                            ]
-                                        },
-                                        france: {
-                                            "Île-de-France": [
-                                            "Paris", "Versailles", "Boulogne-Billancourt", "Saint-Denis", "Nanterre", "Créteil", "Courbevoie", "Argenteuil", "Montreuil", "Vitry-sur-Seine"
-                                            ],
-                                            "Provence": [
-                                            "Marseille", "Nice", "Avignon", "Toulon", "Aix-en-Provence", "Cannes", "Antibes", "Grasse", "Hyères", "Fréjus"
-                                            ],
-                                            "Auvergne": [
-                                            "Clermont-Ferrand", "Vichy", "Le Puy-en-Velay", "Montluçon", "Aurillac", "Issoire", "Moulins", "Cusset", "Riom", "Cournon-d'Auvergne"
-                                            ],
-                                            "Nouvelle-Aquitaine": [
-                                            "Bordeaux", "Limoges", "Poitiers", "Pau", "La Rochelle", "Angoulême", "Périgueux", "Bergerac", "Bayonne", "Brive-la-Gaillarde"
-                                            ],
-                                            "Brittany": [
-                                            "Rennes", "Brest", "Quimper", "Lorient", "Vannes", "Saint-Malo", "Saint-Brieuc", "Fougères", "Concarneau", "Morlaix"
-                                            ],
-                                            "Normandy": [
-                                            "Rouen", "Caen", "Le Havre", "Cherbourg", "Évreux", "Dieppe", "Alençon", "Lisieux", "Fécamp", "Granville"
-                                            ],
-                                            "Occitanie": [
-                                            "Toulouse", "Montpellier", "Nîmes", "Perpignan", "Béziers", "Carcassonne", "Albi", "Tarbes", "Montauban", "Narbonne"
-                                            ],
-                                            "Grand Est": [
-                                            "Strasbourg", "Metz", "Nancy", "Reims", "Mulhouse", "Colmar", "Troyes", "Charleville-Mézières", "Épinal", "Haguenau"
-                                            ],
-                                            "Corsica": [
-                                            "Ajaccio", "Bastia", "Corte", "Porto-Vecchio", "Calvi", "Sartène", "Bonifacio", "Propriano", "L'Île-Rousse", "Ghisonaccia"
-                                            ],
-                                            "Centre-Val de Loire": [
-                                            "Orléans", "Tours", "Blois", "Châteauroux", "Bourges", "Chartres", "Vierzon", "Issoudun", "Dreux", "Loches"
-                                            ]
-                                        },
-                                        uae: {
-                                            "Abu Dhabi": [
-                                            "Abu Dhabi", "Al Ain", "Madinat Zayed", "Baniyas", "Shahama", "Al Wathba", "Al Mafraq", "Al Dhafra", "Al Mirfa", "Ghayathi"
-                                            ],
-                                            "Dubai": [
-                                            "Dubai", "Jebel Ali", "Hatta", "Deira", "Al Barsha", "Al Quoz", "Al Satwa", "Al Karama", "Bur Dubai", "Business Bay"
-                                            ],
-                                            "Sharjah": [
-                                            "Sharjah", "Khor Fakkan", "Dibba Al-Hisn", "Kalba", "Al Dhaid", "Al Madam", "Mleiha", "Al Bataeh", "Hamriyah", "Wasit"
-                                            ],
-                                            "Ajman": [
-                                            "Ajman", "Masfout", "Manama", "Al Nuaimia", "Al Rawda", "Al Zahra", "Al Jurf", "Al Hamidiya", "Al Rashidiya", "Helio"
-                                            ],
-                                            "Fujairah": [
-                                            "Fujairah", "Dibba Al-Fujairah", "Masafi", "Mirbah", "Qidfa", "Al Bidya", "Al Fahlain", "Al Halah", "Al Aqah", "Dadna"
-                                            ],
-                                            "Ras Al Khaimah": [
-                                            "RAK City", "Al Rams", "Khatt", "Digdaga", "Julphar", "Al Hamra", "Al Jazirah Al Hamra", "Masafi RAK", "Al Ghail", "Sha'am"
-                                            ],
-                                            "Umm Al Quwain": [
-                                            "UAQ City", "Falaj Al Mualla", "Al Rafaah", "Al Salamah", "Al Haditha", "Al Abraq", "Al Raafa", "Al Khor", "Al Maidan", "Umm Al Quwain Free Zone"
-                                            ],
-                                            "Al Dhafra": [
-                                            "Ghayathi", "Mirfa", "Liwa Oasis", "Ruwais", "Sila", "Al Sila", "Jebel Dhanna", "Al Hamra Airport", "Madinat Zayed", "Dalma Island"
-                                            ],
-                                            "Al Ain Region": [
-                                            "Al Yahar", "Sweihan", "Al Saad", "Al Khazna", "Al Hayer", "Nahel", "Remah", "Mezyad", "Al Foah", "Al Quaa"
-                                            ],
-                                            "Deira": [
-                                            "Deira", "Naif", "Al Rigga", "Al Muraqqabat", "Port Saeed", "Al Baraha", "Al Sabkha", "Hor Al Anz", "Abu Hail", "Al Khabaisi"
-                                            ]
-                                        },
-                                        japan: {
-                                            "Tokyo": ["Tokyo", "Shinjuku", "Shibuya", "Setagaya", "Toshima", "Meguro", "Koto", "Minato", "Nakano", "Bunkyo"],
-                                            "Osaka": ["Osaka", "Sakai", "Hirakata", "Toyonaka", "Takatsuki", "Moriguchi", "Ibaraki", "Izumi", "Kadoma", "Suita"],
-                                            "Kyoto": ["Kyoto", "Uji", "Kameoka", "Fukuchiyama", "Maizuru", "Nagaokakyo", "Yawata", "Muko", "Joyo", "Kizugawa"],
-                                            "Hokkaido": ["Sapporo", "Hakodate", "Asahikawa", "Obihiro", "Kushiro", "Tomakomai", "Kitami", "Muroran", "Chitose", "Iwamizawa"],
-                                            "Fukuoka": ["Fukuoka", "Kitakyushu", "Kurume", "Omuta", "Iizuka", "Tagawa", "Yukuhashi", "Nogata", "Chikushino", "Kasuga"],
-                                            "Aichi": ["Nagoya", "Toyota", "Okazaki", "Ichinomiya", "Toyohashi", "Kasugai", "Anjo", "Kariya", "Komaki", "Inazawa"],
-                                            "Hyogo": ["Kobe", "Himeji", "Amagasaki", "Nishinomiya", "Ashiya", "Akashi", "Kakogawa", "Takarazuka", "Sanda", "Itami"],
-                                            "Hiroshima": ["Hiroshima", "Kure", "Fukuyama", "Onomichi", "Mihara", "Hatsukaichi", "Shobara", "Akitakata", "Takehara", "Higashihiroshima"],
-                                            "Miyagi": ["Sendai", "Ishinomaki", "Tagajo", "Shiogama", "Kesennuma", "Natori", "Tome", "Kurihara", "Osaki", "Higashimatsushima"],
-                                            "Shizuoka": ["Shizuoka", "Hamamatsu", "Fujinomiya", "Fujieda", "Mishima", "Numazu", "Izu", "Kakegawa", "Gotemba", "Yaizu"]
-                                        }
-
-                                    };
-
-                                           // Old values from Laravel
-                                            const oldCountry = @json(old('country'));
-                                            const oldState   = @json(old('state'));
-                                            const oldCity    = @json(old('city'));
-
-                                            function loadStates() {
-                                                const country = document.getElementById('country').value;
-                                                const stateSelect = document.getElementById('state');
-                                                const citySelect = document.getElementById('city');
-
-                                                stateSelect.innerHTML = '<option value="">Select State</option>';
-                                                citySelect.innerHTML = '<option value="">Select City</option>';
-
-                                                if (data[country]) {
-                                                    Object.keys(data[country]).forEach(state => {
-                                                        const option = document.createElement('option');
-                                                        option.value = state;
-                                                        option.textContent = state.charAt(0).toUpperCase() + state.slice(1);
-                                                        stateSelect.appendChild(option);
-                                                    });
-
-                                                    if (oldState) {
-                                                        stateSelect.value = oldState;
-                                                        loadCities();
-                                                    }
-                                                }
-                                            }
-
-                                            function loadCities() {
-                                                const country = document.getElementById('country').value;
-                                                const state = document.getElementById('state').value;
-                                                const citySelect = document.getElementById('city');
-
-                                                citySelect.innerHTML = '<option value="">Select City</option>';
-
-                                                if (data[country] && data[country][state]) {
-                                                    data[country][state].forEach(city => {
-                                                        const option = document.createElement('option');
-                                                        option.value = city;
-                                                        option.textContent = city;
-                                                        citySelect.appendChild(option);
-                                                    });
-
-                                                    if (oldCity) {
-                                                        citySelect.value = oldCity;
-                                                    }
-                                                }
-                                            }
-
-                                            // Page load: set old values
-                                            document.addEventListener("DOMContentLoaded", function() {
-                                                if (oldCountry) {
-                                                    document.getElementById('country').value = oldCountry;
-                                                    loadStates();
-                                                }
-                                            });
-
-                                    </script>
-
-
 
 
                                     <div>
@@ -708,8 +327,8 @@
                                     </div>
 
                                     <div class="col-span-2 flex justify-between">
-                                        <button type="button" onclick="showStep(1)" class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="button" onclick="showStep(3)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                        <button type="button" onclick="showStep(1, false)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(3, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                     </div>
                                 </div>
 
@@ -778,8 +397,8 @@
 
                                     {{-- Navigation --}}
                                     <div class="col-span-2 flex justify-between mt-4">
-                                        <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                        <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                     </div>
 
                                 </div>
@@ -887,10 +506,10 @@
                                         @enderror
                                     </div>
                                     <div class="flex justify-between">
-                                        <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md mt-3">
+                                        <button type="button" onclick="showStep(3, false)" class="px-4 py-2 border rounded-md mt-3">
                                             Back
                                         </button>
-                                        <button type="button" onclick="showStep(5)"
+                                        <button type="button" onclick="showStep(5, true)"
                                             class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
                                             Next
                                         </button>
@@ -974,7 +593,7 @@
 
                                             <span>
                                                 I have read and agreed to
-                                                <a href="#" class="text-blue-600 underline">terms and conditions</a>
+                                                <a href="{{route('terms-and-conditions')}}" class="text-blue-600 underline">terms and conditions</a>
                                                 <ul class="list-disc ml-5 mt-1 space-y-1 text-gray-700">
                                                     <li>Users must create an account to access full course materials and resources.</li>
                                                     <li>Course content is for personal learning use only and cannot be redistributed.</li>
@@ -987,7 +606,7 @@
                                     </div>
 
                                     <div class="flex justify-between mt-4">
-                                        <button type="button" onclick="showStep(4)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4, false)" class="px-4 py-2 border rounded-md">Back</button>
                                         <button id="submitBtn" type="submit" disabled class="bg-blue-600 text-white px-6 py-2 rounded-md opacity-50 cursor-not-allowed">
                                             Submit
                                         </button>
@@ -1467,17 +1086,19 @@
         });
 
         // Step navigation with validation check
-        window.showStep = function (step) {
+        window.showStep = function (step, validate = true) {
             const currentStep = $('.step:visible');
             let valid = true;
 
-            currentStep.find('input, select, textarea').each(function () {
-                if (!$(this).valid()) {
-                    valid = false;
-                }
-            });
-
-            if (!valid) return;
+              // Run validation only if it's "Next"
+            if (validate) {
+                currentStep.find('input, select, textarea').each(function () {
+                    if (!$(this).valid()) {
+                        valid = false;
+                    }
+                });
+                if (!valid) return;
+            }
 
             for (let i = 1; i <= 5; i++) {
                 $(`#step-${i}`).addClass('hidden');

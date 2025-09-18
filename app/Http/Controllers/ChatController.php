@@ -32,31 +32,6 @@ use Illuminate\Support\Facades\URL;
 class ChatController extends Controller
 {
 
-    // ✅ Send a message
-    // public function sendMessage(Request $request)
-    // {
-    //     $sender = $this->getSender();
-
-    //     $message = Message::create([
-    //         'sender_id' => $sender['id'],
-    //         'sender_type' => $sender['type'],
-    //         'receiver_id' => $request->receiver_id,
-    //         'receiver_type' => $request->receiver_type,
-    //         'message' => $request->message,
-    //         'type' => 1
-    //     ]);
-
-    //     broadcast(new MessageSent($message))->toOthers();
-
-    //     return response()->json([
-    //         'id' => $message->id,
-    //         'sender_id' => $message->sender_id,
-    //         'sender_type' => $message->sender_type,
-    //         'message' => $message->message,
-    //         'created_at' => $message->created_at->toDateTimeString()
-    //     ]);
-    // }
-
       
     public function sendMessage(Request $request)
     {
@@ -68,9 +43,11 @@ class ChatController extends Controller
             'receiver_id'  => $request->receiver_id,
             'receiver_type'=> $request->receiver_type,
             'type'         => 1, // default text
-            'message'      => $request->message
+            'message'      => $request->message,
+            'login_type'    => $request->header('X-Login-Type', 'web')
         ];
 
+        
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             // Custom uploads folder
@@ -132,29 +109,6 @@ class ChatController extends Controller
     }
 
 
-    // ✅ Get chat messages between any 2 parties
-    // public function getMessages(Request $request)
-    // {
-    //     $sender = $this->getSender();
-
-    //     if (!$sender['id'] || !$request->receiver_id || !$request->receiver_type) {
-    //         return response()->json(['error' => 'Invalid data'], 422);
-    //     }
-
-    //     $messages = Message::where(function ($q) use ($sender, $request) {
-    //         $q->where('sender_id', $sender['id'])
-    //             ->where('sender_type', $sender['type'])
-    //             ->where('receiver_id', $request->receiver_id)
-    //             ->where('receiver_type', $request->receiver_type);
-    //     })->orWhere(function ($q) use ($sender, $request) {
-    //         $q->where('sender_id', $request->receiver_id)
-    //             ->where('sender_type', $request->receiver_type)
-    //             ->where('receiver_id', $sender['id'])
-    //             ->where('receiver_type', $sender['type']);
-    //     })->orderBy('created_at')->get();
-
-    //     return response()->json($messages);
-    // }
     public function getMessages(Request $request)
     {
         $sender = $this->getSender();
@@ -163,7 +117,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'Invalid data'], 422);
         }
 
-        // ✅ Step 1: Mark as read (unread → read)
+        // Step 1: Mark as read (unread → read)
         Message::where('sender_id', $request->receiver_id)
             ->where('sender_type', $request->receiver_type)
             ->where('receiver_id', $sender['id'])
@@ -171,7 +125,7 @@ class ChatController extends Controller
             ->where('is_read', 0)
             ->update(['is_read' => 1]);
 
-        // ✅ Step 2: Fetch conversation messages
+        //  Step 2: Fetch conversation messages
         $messages = Message::where(function ($q) use ($sender, $request) {
                 $q->where('sender_id', $sender['id'])
                     ->where('sender_type', $sender['type'])
@@ -252,7 +206,7 @@ class ChatController extends Controller
 
         $messageId = DB::table('admin_group_chats')->insertGetId($data);
 
-        // Fetch the inserted message to return
+       
         $message = DB::table('admin_group_chats')->where('id', $messageId)->first();
 
         broadcast(new MessageSent((object)$message))->toOthers();
@@ -280,7 +234,7 @@ class ChatController extends Controller
                 });
             });
         } else {
-            // Mentor ya other users ke liye
+           
             $query->where(function($q) use ($user) {
                 $q->where('receiver_id', $user['id'])
                 ->where('receiver_type', $user['type'])
@@ -465,45 +419,45 @@ class ChatController extends Controller
 
   
     public function getCombinedUnreadCountsForJobseeker()
-{
-    $user = $this->getSender();
+    {
+        $user = $this->getSender();
 
-    if ($user['type'] !== 'jobseeker') {
-        return response()->json([]);
-    }
-
-    // ---------------- Messages table ----------------
-    $messagesCounts = DB::table('messages')
-        ->select('sender_id', 'sender_type', DB::raw('COUNT(*) as unread_count'))
-        ->where('receiver_id', $user['id'])
-        ->where('receiver_type', 'jobseeker')
-        ->where('is_read', 0)
-        ->groupBy('sender_id', 'sender_type');
-
-    // ---------------- Admin group chat ----------------
-    $adminCounts = DB::table('admin_group_chats')
-        ->select('sender_id', 'sender_type', DB::raw('COUNT(*) as unread_count'))
-        ->where('receiver_id', $user['id'])
-        ->where('receiver_type', 'jobseeker')
-        ->where('is_read', 0)
-        ->groupBy('sender_id', 'sender_type');
-
-    // Union both
-    $combined = $messagesCounts->unionAll($adminCounts)->get();
-
-    // Optional: combine counts if same sender_id & type exist in both tables
-    $result = [];
-    foreach($combined as $c){
-        $key = $c->sender_type . '_' . $c->sender_id;
-        if(isset($result[$key])){
-            $result[$key]->unread_count += $c->unread_count;
-        } else {
-            $result[$key] = $c;
+        if ($user['type'] !== 'jobseeker') {
+            return response()->json([]);
         }
-    }
 
-    return response()->json(array_values($result));
-}
+        // ---------------- Messages table ----------------
+        $messagesCounts = DB::table('messages')
+            ->select('sender_id', 'sender_type', DB::raw('COUNT(*) as unread_count'))
+            ->where('receiver_id', $user['id'])
+            ->where('receiver_type', 'jobseeker')
+            ->where('is_read', 0)
+            ->groupBy('sender_id', 'sender_type');
+
+        // ---------------- Admin group chat ----------------
+        $adminCounts = DB::table('admin_group_chats')
+            ->select('sender_id', 'sender_type', DB::raw('COUNT(*) as unread_count'))
+            ->where('receiver_id', $user['id'])
+            ->where('receiver_type', 'jobseeker')
+            ->where('is_read', 0)
+            ->groupBy('sender_id', 'sender_type');
+
+        // Union both
+        $combined = $messagesCounts->unionAll($adminCounts)->get();
+
+        // Optional: combine counts if same sender_id & type exist in both tables
+        $result = [];
+        foreach($combined as $c){
+            $key = $c->sender_type . '_' . $c->sender_id;
+            if(isset($result[$key])){
+                $result[$key]->unread_count += $c->unread_count;
+            } else {
+                $result[$key] = $c;
+            }
+        }
+
+        return response()->json(array_values($result));
+    }
 
 
 

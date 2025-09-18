@@ -42,7 +42,8 @@ class Coach extends Authenticatable
         'avatar',
         'about_coach',
         'isSubscribtionBuy',
-        'is_registered'
+        'is_registered',
+        'active_subscription_plan_id'
     ];
 
 

@@ -591,10 +591,11 @@ class CoachController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:coaches,email,' . $coach->id,
-            'phone_number' => 'required|unique:coaches,phone_number,' . $coach->id,
+            'phone_number' => 'required',
             'dob' => 'required|date',
             'phone_code' => 'required',
             'address' => 'required',
+            'per_slot_price' => 'required',
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
@@ -628,9 +629,9 @@ class CoachController extends Controller
             'website_link' => 'nullable|url',
             'portfolio_link' => 'nullable|url',
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
         ], [
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
@@ -639,10 +640,10 @@ class CoachController extends Controller
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
             'phone_number.required' => 'Please enter your phone number.',
-            'phone_number.unique' => 'This phone number is already taken.',
             'dob.required' => 'Please enter your date of birth.',
             'city.required' => 'Please enter your city.',
             'state.required' => 'Please enter your state.',
+            'per_slot_price.required' => 'Please enter your per slot price.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
 
@@ -686,6 +687,7 @@ class CoachController extends Controller
             'country' => $validated['country'],
             'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
+            'per_slot_price' => $validated['per_slot_price'],
             'is_registered' => 1
         ]);
 
@@ -1132,9 +1134,9 @@ class CoachController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $documentTypes = [
@@ -1546,18 +1548,23 @@ class CoachController extends Controller
 
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+        ->redirectUrl(config('services.google.coach_redirect'))
+        ->redirect();
+
     }
 
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')
+            ->redirectUrl(config('services.google.coach_redirect'))
+            ->stateless()
+            ->user();
 
-            // Check user
+
             $coach = Coach::where('email', $googleUser->getEmail())->first();
 
-            // Case 1: New Google user (email not exist)
             if (!$coach) {
                 $plainPassword = Str::random(16);
 
@@ -1568,47 +1575,41 @@ class CoachController extends Controller
                     'password'          => bcrypt($plainPassword),
                     'pass'              => $plainPassword,
                     'email_verified_at' => now(),
-                    'is_registered'     => 0, //  not registered yet
+                    'is_registered'     => 0,
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $googleUser->getAvatar(),
                 ]);
 
-                // Store ID + email in session
                 session([
-                    'coach_id'    => $coach->id,
-                    'email' => $coach->email,
+                    'coach_id' => $coach->id,
+                    'email'       => $coach->email,
                 ]);
 
-                //  Send to registration form
                 return redirect()->route('coach.registration');
             }
 
-            // Agar inactive account hai
             if ($coach->status !== 'active') {
-                session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                return redirect()->route('coach.login');
+                return redirect()
+                    ->route('coach.login')
+                    ->with('error', 'Your account is inactive. Please contact administrator.');
             }
 
-            // Case 2: Existing user with complete registration
             if ($coach->is_registered == 1) {
-                // ✅ Direct login and go to profile/dashboard
                 Auth::guard('coach')->login($coach);
                 return redirect()->route('coach.dashboard');
             }
 
-            // Case 3: Existing but registration incomplete
             session([
-                'coach_id'    => $coach->id,
-                'email' => $coach->email,
+                'coach_id' => $coach->id,
+                'email'       => $coach->email,
             ]);
+
             return redirect()->route('coach.registration');
 
-        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            session()->flash('error', 'Invalid state. Please try again.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Google login failed. Please try again.');
+            return redirect()
+                ->route('coach.login')
+                ->with('error', 'Google login failed. Please try again.');
         }
-
-        return redirect()->route('coach.login');
     }
 }

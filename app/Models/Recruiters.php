@@ -22,6 +22,7 @@ class Recruiters extends Authenticatable
         'company_id',
         'name',
         'email',
+        'phone_code',
         'phone_number',
         'national_id',
         'password',
@@ -33,7 +34,12 @@ class Recruiters extends Authenticatable
         'admin_status',
         'rejection_reason',
         'recruiter_of',
-        'is_registered'
+        'is_registered',
+        'google_id',
+        'recruiter_of',
+        'avatar',
+        'isSubscribtionBuy',
+        'active_subscription_plan_id',
     ];
 
     /**

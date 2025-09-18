@@ -23,6 +23,10 @@ use App\Models\Notification;
 use Carbon\Carbon;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+
 class RecruiterController extends Controller
 {
      public function showSignInForm(){
@@ -367,11 +371,12 @@ class RecruiterController extends Controller
                'business_email' => 'required|email|unique:recruiters_company,business_email',
                'phone_code' => 'required|string',
                'company_phone_number' => 'required|unique:recruiters_company,company_phone_number',
+               'phone_number' => 'required|unique:recruiters,phone_number',
                'no_of_employee' => 'required|string|max:255',
                'industry_type' => 'required|string|max:255',
                'registration_number' => 'required|string|max:255',
                'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-               'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
+               'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:5120',
           ], [
                'name.required' => 'Name is required.',
                'name.regex' => 'The full name should contain only letters and single spaces.',
@@ -412,11 +417,14 @@ class RecruiterController extends Controller
 
                $recruiter->update([
                     'name'        => $validated['name'],
+                    'phone_code'  => $validated['phone_code'],
+                    'phone_number' => $validated['phone_number'],
                     'email'        => $email,
                     'national_id' => $validated['national_id'],
                     'company_id'  => $company->id,
                     'role'        => 'main',
                     'status'      => 'active',
+                    'is_registered' => 1
                ]);
 
                // Step 3: Update company with recruiter_id
@@ -1269,15 +1277,15 @@ class RecruiterController extends Controller
 
           $validated = $request->validate([
                'company_profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-               'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+               'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
           ], [
                'company_profile.file' => 'The company profile must be a valid file.',
                'company_profile.mimes' => 'The company profile must be a file of type: jpg, jpeg, png.',
-               'company_profile.max' => 'The company profile must not be greater than 2MB.',
+               'company_profile.max' => 'The company profile must not be greater than 5MB.',
 
                'register_document.file' => 'The registration document must be a valid file.',
                'register_document.mimes' => 'The registration document must be a file of type: pdf, doc, docx.',
-               'register_document.max' => 'The registration document must not be greater than 2MB.',
+               'register_document.max' => 'The registration document must not be greater than 5MB.',
           ]);
 
           foreach (['company_profile', 'register_document'] as $type) {
@@ -1685,72 +1693,71 @@ class RecruiterController extends Controller
 
 
      public function redirectToGoogle()
-     {
-          return Socialite::driver('google')->redirect();
-     }
+    {
+        return Socialite::driver('google')
+        ->redirectUrl(config('services.google.recruiter_redirect'))
+        ->redirect();
 
-     public function handleGoogleCallback()
-     {
-          try {
-               $googleUser = Socialite::driver('google')->user();
+    }
 
-               // Check user
-               $recruiter = Recruiters::where('email', $googleUser->getEmail())->first();
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')
+            ->redirectUrl(config('services.google.recruiter_redirect'))
+            ->stateless()
+            ->user();
 
-               // Case 1: New Google user (email not exist)
-               if (!$recruiter) {
-                    $plainPassword = Str::random(16);
 
-                    $recruiter = Recruiters::create([
-                         'name'              => $googleUser->getName(),
-                         'email'             => $googleUser->getEmail(),
-                         'status'            => 'active',
-                         'password'          => bcrypt($plainPassword),
-                         'pass'              => $plainPassword,
-                         'email_verified_at' => now(),
-                         'is_registered'     => 0, //  not registered yet
-                         'google_id'         => $googleUser->getId(),
-                         'avatar'            => $googleUser->getAvatar(),
-                    ]);
+            $recruiter = Recruiters::where('email', $googleUser->getEmail())->first();
 
-                    // Store ID + email in session
-                    session([
-                         'recruiter_id'    => $recruiter->id,
-                         'email' => $recruiter->email,
-                    ]);
+            if (!$recruiter) {
+                $plainPassword = Str::random(16);
 
-                    //  Send to registration form
-                    return redirect()->route('recruiter.registration');
-               }
+                $recruiter = Recruiters::create([
+                    'name'              => $googleUser->getName(),
+                    'email'             => $googleUser->getEmail(),
+                    'status'            => 'active',
+                    'password'          => bcrypt($plainPassword),
+                    'pass'              => $plainPassword,
+                    'email_verified_at' => now(),
+                    'is_registered'     => 0,
+                    'google_id'         => $googleUser->getId(),
+                    'avatar'            => $googleUser->getAvatar(),
+                ]);
 
-               // Agar inactive account hai
-               if ($recruiter->status !== 'active') {
-                    session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                    return redirect()->route('recruiter.login');
-               }
+                session([
+                    'recruiter_id' => $recruiter->id,
+                    'email'       => $recruiter->email,
+                ]);
 
-               // Case 2: Existing user with complete registration
-               if ($recruiter->is_registered == 1) {
-                    // ✅ Direct login and go to profile/dashboard
-                    Auth::guard('recruiter')->login($recruiter);
-                    return redirect()->route('recruiter.dashboard');
-               }
+                return redirect()->route('recruiter.registration');
+            }
 
-               // Case 3: Existing but registration incomplete
-               session([
-                    'recruiter_id'    => $recruiter->id,
-                    'email' => $recruiter->email,
-               ]);
-               return redirect()->route('recruiter.registration');
+            if ($recruiter->status !== 'active') {
+                return redirect()
+                    ->route('recruiter.login')
+                    ->with('error', 'Your account is inactive. Please contact administrator.');
+            }
 
-          } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-               session()->flash('error', 'Invalid state. Please try again.');
-          } catch (\Exception $e) {
-               session()->flash('error', 'Google login failed. Please try again.');
-          }
+            if ($recruiter->is_registered == 1) {
+                Auth::guard('recruiter')->login($recruiter);
+                return redirect()->route('recruiter.dashboard');
+            }
 
-          return redirect()->route('recruiter.login');
-     }
+            session([
+                'recruiter_id' => $recruiter->id,
+                'email'       => $recruiter->email,
+            ]);
+
+            return redirect()->route('recruiter.registration');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('recruiter.login')
+                ->with('error', 'Google login failed. Please try again.');
+        }
+    }
 
 
 

@@ -153,24 +153,22 @@
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                 <div class="flex">
-                                                    <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code" required>
-                                                        <option value="+966">(+966) 🇸🇦 Saudi Arabia</option>
-                                                        <option value="+1">(+1) 🇺🇸 United States</option>
-                                                        <option value="+91">(+91) 🇮🇳 India</option>
-                                                        <option value="+44">(+44) 🇬🇧 United Kingdom</option>
-                                                        <option value="+61">(+61) 🇦🇺 Australia</option>
-                                                        <option value="+81">(+81) 🇯🇵 Japan</option>
-                                                        <option value="+49">(+49) 🇩🇪 Germany</option>
-                                                        <option value="+33">(+33) 🇫🇷 France</option>
-                                                        <option value="+86">(+86) 🇨🇳 China</option>
-                                                        <option value="+971">(+971) 🇦🇪 UAE</option>
-                                                        <option value="+92">(+92) 🇵🇰 Pakistan</option>
-                                                        <option value="+880">(+880) 🇧🇩 Bangladesh</option>
-                                                        <option value="+94">(+94) 🇱🇰 Sri Lanka</option>
-                                                        <option value="+7">(+7) 🇷🇺 Russia</option>
-                                                    </select>
+                                                <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
+                                                    <option value="+966">+966</option>
+                                                    <!-- <option value="+971">+971</option> -->
+                                                    <!-- <option value="+973">+973</option> -->
+                                                </select>
+                                                <input 
+                                                    placeholder="{{ langLabel('enter_phone_number') }}" 
+                                                    name="company_phone_number" 
+                                                    type="tel" 
+                                                    class="w-2/3 border rounded-r-md p-2 mt-1"
+                                                    value="{{ old('company_phone_number') }}"
+                                                    maxlength="9" 
+                                                    pattern="[0-9]{9}" 
+                                                    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)" 
+                                                />
 
-                                                    <input type="tel" name="company_phone_number" class="w-2/3 border rounded-r-md p-2 mt-1" placeholder="{{ langLabel('enter_phone_number') }}"  value="{{ old('company_phone_number') }}"/>
                                                     @error('company_phone_number')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -236,7 +234,7 @@
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_name') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_name') }}" value="{{old('name')}}"/>
+                                                    <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_name') }}" value="{{old('name')}}" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')"/>
                                                     @error('name')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
@@ -251,12 +249,32 @@
                                             </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="phone_number" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_phone_number') }}"  value="{{ old('phone_number') }}" />
-                                                    @error('phone_number')
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block mb-1 text-sm font-medium mt-4">{{ langLabel('recruiters_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <div class="flex">
+                                                    <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
+                                                        <option value="+966">+966</option>
+                                                        <!-- <option value="+971">+971</option> -->
+                                                        <!-- <option value="+973">+973</option> -->
+                                                    </select>
+                                                    <input 
+                                                        placeholder="{{ langLabel('enter_recruiters_phone_number') }}" 
+                                                        name="phone_number" 
+                                                        type="tel" 
+                                                        class="w-2/3 border rounded-r-md p-2 mt-1"
+                                                        value="{{ old('phone_number') }}"
+                                                        maxlength="9" 
+                                                        pattern="[0-9]{9}" 
+                                                        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)" 
+                                                        required
+                                                    />
+
+                                                        @error('phone_number')
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
                                                 </div>
+
+
                                                 <div>
                                                     <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <span class="text-xs text-blue-600">
@@ -270,7 +288,13 @@
                                                         placeholder="Enter national id number" 
                                                         value="{{ old('national_id') }}" 
                                                         maxlength="15"
-                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                        pattern="^[1-2][0-9]{14}$"
+                                                        oninput="
+                                                            this.value = this.value.replace(/[^0-9]/g, ''); 
+                                                            if(this.value.length > 15) this.value = this.value.slice(0,15);
+                                                            if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
+                                                        "
+                                                        required
                                                     />
                                                     @error('national_id')
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -312,7 +336,7 @@
                                         </div>
 
                                         <div class="flex justify-between pt-4">
-                                            <button type="button" onclick="showStep(1)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">{{ langLabel('back') }}</button>
+                                            <button type="button" onclick="showStep(1, false)" class="text-gray-700 border border-gray-400 px-6 py-2 rounded-md">{{ langLabel('back') }}</button>
                                             
                                             <button type="submit" class="inline-block bg-blue-700 text-white px-8 py-2 rounded-md hover:bg-blue-800 transition">
                                                 {{ langLabel('register') }}
@@ -435,17 +459,19 @@
             });
 
             // Step show function with validation
-            window.showStep = function (step) {
+            window.showStep = function (step, validate = true) {
                 const currentStep = $('.step:visible');
                 let valid = true;
 
-                currentStep.find('input, select, textarea').each(function () {
-                    if (!$(this).valid()) {
-                        valid = false;
-                    }
-                });
-
-                if (!valid) return;
+                  // Run validation only if it's "Next"
+                if (validate) {
+                    currentStep.find('input, select, textarea').each(function () {
+                        if (!$(this).valid()) {
+                            valid = false;
+                        }
+                    });
+                    if (!valid) return;
+                }
 
                 // Hide all steps and show current step
                 for (let i = 1; i <= 2; i++) {

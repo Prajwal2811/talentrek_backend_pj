@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator; 
 use App\Models\Review;
 use App\Models\Mentors;
 use App\Models\Assessors;
@@ -435,7 +435,7 @@ class TrainerController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:trainers,email,' . $trainer->id,
-            'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
+            'phone_number' => 'required',
             'phone_code' => 'required',
             'dob' => 'required|date',
             'address' => 'required|string|max:255',
@@ -465,9 +465,9 @@ class TrainerController extends Controller
             'training_skills' => 'required|string',
             'website_link' => 'nullable|url',
             'portfolio_link' => 'nullable|url',
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
         ],
             [
                 // Custom error messages
@@ -477,7 +477,6 @@ class TrainerController extends Controller
                 'email.email' => 'Please provide a valid email address.',
                 'email.unique' => 'This email is already registered.',
                 'phone_number.required' => 'Phone number is required.',
-                'phone_number.unique' => 'This phone number is already in use.',
                 'dob.required' => 'Please enter your date of birth.',
                 'dob.date' => 'Invalid date format for date of birth.',
                 'address.required' => 'Please enter your address.',
@@ -509,14 +508,14 @@ class TrainerController extends Controller
 
                 'resume.required' => 'Please upload your resume.',
                 'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
-                'resume.max' => 'Resume file must not exceed 2MB.',
+                'resume.max' => 'Resume file must not exceed 5MB.',
                 'profile_picture.required' => 'Please upload your profile picture.',
                 'profile_picture.image' => 'Profile picture must be an image.',
                 'profile_picture.mimes' => 'Allowed image types are JPG, JPEG, and PNG.',
                 'profile_picture.max' => 'Profile picture must not exceed 2MB.',
                 'training_certificate.required' => 'Please upload your training certificate.',
                 'training_certificate.mimes' => 'Certificate must be a PDF, DOC, or DOCX file.',
-                'training_certificate.max' => 'Certificate file must not exceed 2MB.',
+                'training_certificate.max' => 'Certificate file must not exceed 5MB.',
             ]);
 
         DB::transaction(function () use ($request, $trainer, $validated) {
@@ -2522,9 +2521,9 @@ class TrainerController extends Controller
 
         // Validation rules for each input field
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'profile_picture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         // Loop through each input and save the uploaded file
@@ -2817,69 +2816,68 @@ class TrainerController extends Controller
 
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+        ->redirectUrl(config('services.google.trainer_redirect'))
+        ->redirect();
+
     }
 
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')
+            ->redirectUrl(config('services.google.trainer_redirect'))
+            ->stateless()
+            ->user();
 
-            // Check user
-            $trainer = Trainers::where('email', $googleUser->getEmail())->first();
 
-            // Case 1: New Google user (email not exist)
+            $trainer = trainers::where('email', $googleUser->getEmail())->first();
+
             if (!$trainer) {
                 $plainPassword = Str::random(16);
 
-                $trainer = Trainers::create([
+                $trainer = trainers::create([
                     'name'              => $googleUser->getName(),
                     'email'             => $googleUser->getEmail(),
                     'status'            => 'active',
                     'password'          => bcrypt($plainPassword),
                     'pass'              => $plainPassword,
                     'email_verified_at' => now(),
-                    'is_registered'     => 0, //  not registered yet
+                    'is_registered'     => 0,
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $googleUser->getAvatar(),
                 ]);
 
-                // Store ID + email in session
                 session([
-                    'trainer_id'    => $trainer->id,
-                    'email' => $trainer->email,
+                    'trainer_id' => $trainer->id,
+                    'email'       => $trainer->email,
                 ]);
 
-                //  Send to registration form
                 return redirect()->route('trainer.registration');
             }
 
-            // Agar inactive account hai
             if ($trainer->status !== 'active') {
-                session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                return redirect()->route('trainer.login');
+                return redirect()
+                    ->route('trainer.login')
+                    ->with('error', 'Your account is inactive. Please contact administrator.');
             }
 
-            // Case 2: Existing user with complete registration
             if ($trainer->is_registered == 1) {
-                // ✅ Direct login and go to profile/dashboard
                 Auth::guard('trainer')->login($trainer);
                 return redirect()->route('trainer.dashboard');
             }
 
-            // Case 3: Existing but registration incomplete
             session([
-                'trainer_id'    => $trainer->id,
-                'email' => $trainer->email,
+                'trainer_id' => $trainer->id,
+                'email'       => $trainer->email,
             ]);
+
             return redirect()->route('trainer.registration');
 
-        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            session()->flash('error', 'Invalid state. Please try again.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Google login failed. Please try again.');
+            return redirect()
+                ->route('trainer.login')
+                ->with('error', 'Google login failed. Please try again.');
         }
-
-        return redirect()->route('trainer.login');
     }
 }

@@ -73,7 +73,7 @@
                                     <div id="step-1" class="step">
                                         <div>
                                             <label class="block mb-1 text-sm font-medium">{{ langLabel('full_name') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_full_name') }}" value="{{old('name')}}"/>
+                                            <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_full_name') }}" value="{{old('name')}}" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')"/>
                                             @error('name')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
@@ -93,9 +93,20 @@
                                                 <div class="flex">
                                                 <select class="w-1/3 border rounded-l-md p-2" name="phone_code">
                                                     <option value="+966">+966</option>
-                                                    <option value="+971">+971</option>
+                                                    <!-- <option value="+971">+971</option> -->
+                                                    <!-- <option value="+973">+973</option> -->
                                                 </select>
-                                                <input placeholder="{{ langLabel('enter_phone_number') }}" name="phone_number" type="tel" class="w-2/3 border rounded-r-md p-2" value="{{old('phone_number')}}"/>
+                                                 <input 
+                                                    placeholder="{{ langLabel('enter_phone_number') }}" 
+                                                    name="phone_number" 
+                                                    type="tel" 
+                                                    class="w-2/3 border rounded-r-md p-2 mt-1"
+                                                    value="{{ old('phone_number') }}"
+                                                    maxlength="9" 
+                                                    pattern="[0-9]{9}" 
+                                                    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,9)" \
+                                                    required
+                                                />
                                                 
                                             </div>
                                             @error('phone_number')
@@ -124,7 +135,13 @@
                                                     placeholder="Enter national id number" 
                                                     value="{{ old('national_id') }}" 
                                                     maxlength="15"
-                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                    pattern="^[1-2][0-9]{14}$"
+                                                    oninput="
+                                                        this.value = this.value.replace(/[^0-9]/g, ''); 
+                                                        if(this.value.length > 15) this.value = this.value.slice(0,15);
+                                                        if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
+                                                    "
+                                                    required
                                                 />
                                                 @error('national_id')
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -255,8 +272,8 @@
                                         </div>
 
                                         <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(1)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
-                                            <button type="button" onclick="showStep(3)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
+                                            <button type="button" onclick="showStep(1, false)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
+                                            <button type="button" onclick="showStep(3, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
                                         </div>
                                     </div>
 
@@ -325,8 +342,8 @@
 
                                         {{-- Navigation Buttons --}}
                                         <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(2)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
-                                            <button type="button" onclick="showStep(4)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
+                                            <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
+                                            <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
                                         </div>
 
                                     </div>
@@ -408,10 +425,10 @@
                                             @enderror
                                         </div>
                                         <div class="flex justify-between">
-                                            <button type="button" onclick="showStep(3)" class="px-4 py-2 border rounded-md mt-3">
+                                            <button type="button" onclick="showStep(3, false)" class="px-4 py-2 border rounded-md mt-3">
                                                 {{ langLabel('back') }}
                                             </button>
-                                            <button type="button" onclick="showStep(5)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
+                                            <button type="button" onclick="showStep(5, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">
                                                 {{ langLabel('next') }}
                                             </button>
                                         </div>
@@ -460,7 +477,7 @@
                                             <input type="checkbox" id="termsCheckbox" name="terms" {{ old('terms') ? 'checked' : '' }}></input>
                                             <span>
                                                 {{ langLabel('agree_terms') }}
-                                                <a href="#" class="text-blue-600 underline">{{ langLabel('terms_conditions') }}</a>
+                                                <a href="{{route('terms-and-conditions')}}" class="text-blue-600 underline">{{ langLabel('terms_conditions') }}</a>
                                                 <ul class="list-disc ml-5 mt-1 space-y-1 text-gray-700">
                                                     <li>Trainers must create an account to publish courses.</li>
                                                     <li>Uploaded content must be original or properly licensed.</li>
@@ -474,7 +491,7 @@
                                             </label>
                                         </div>
                                         <div class="flex justify-between mt-">
-                                        <button type="button" onclick="showStep(4)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
+                                        <button type="button" onclick="showStep(4, false)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
                                         <button type="submit" id="submitBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md">
                                             {{ langLabel('submit') }}
                                         </button>
@@ -767,7 +784,7 @@
 <!-- Step 2: jQuery Validation Plugin -->
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <!-- all step field click on next button-->
-<!-- <script>
+<script>
     $(document).ready(function () {
         const form = $('#multiStepForm');
 
@@ -856,17 +873,19 @@
         });
 
         // Step navigation with validation check
-        window.showStep = function (step) {
+        window.showStep = function (step, validate = true) {
             const currentStep = $('.step:visible');
             let valid = true;
 
-            currentStep.find('input, select, textarea').each(function () {
-                if (!$(this).valid()) {
-                    valid = false;
-                }
-            });
-
-            if (!valid) return;
+            // Run validation only if it's "Next"
+            if (validate) {
+                currentStep.find('input, select, textarea').each(function () {
+                    if (!$(this).valid()) {
+                        valid = false;
+                    }
+                });
+                if (!valid) return;
+            }
 
             for (let i = 1; i <= 5; i++) {
                 $(`#step-${i}`).addClass('hidden');
@@ -878,7 +897,7 @@
         };
 
     });
-</script> -->
+</script>
 
 <script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
 <script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->

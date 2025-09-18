@@ -431,9 +431,10 @@ class MentorController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
-            'phone_number' => 'nullable|unique:mentors,phone_number,' . $mentor->id,
+            'phone_number' => 'required',
             'dob' => 'required|date',
             'phone_code' => 'required',
+            'per_slot_price' => 'required',
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
             'address' => 'required|string|max:255',
@@ -469,9 +470,9 @@ class MentorController extends Controller
             'website_link' => 'required|url',
             'portfolio_link' => 'required|url',
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
         ],[
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
@@ -479,11 +480,11 @@ class MentorController extends Controller
             'email.required' => 'Please enter your email address.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',
-            'phone_number.nullable' => 'Please enter your phone number.',
-            'phone_number.unique' => 'This phone number is already taken.',
+            'phone_number.required' => 'Please enter your phone number.',
             'dob.required' => 'Please enter your date of birth.',
             'city.required' => 'Please enter your city.',
             'state.required' => 'Please enter your state.',
+            'per_slot_price.required' => 'Please enter your per slot price.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
 
@@ -526,6 +527,7 @@ class MentorController extends Controller
             'country' => $validated['country'],
             'pin_code' => $validated['pin_code'],
             'national_id' => $validated['national_id'],
+            'per_slot_price' => $validated['per_slot_price'],
             'is_registered' => 1
         ]);
 
@@ -1385,9 +1387,9 @@ class MentorController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $documentTypes = [
@@ -1568,20 +1570,25 @@ class MentorController extends Controller
     }
 
 
-     public function redirectToGoogle()
+    public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+        ->redirectUrl(config('services.google.mentor_redirect'))
+        ->redirect();
+
     }
 
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')
+            ->redirectUrl(config('services.google.mentor_redirect'))
+            ->stateless()
+            ->user();
 
-            // Check user
+
             $mentor = Mentors::where('email', $googleUser->getEmail())->first();
 
-            // Case 1: New Google user (email not exist)
             if (!$mentor) {
                 $plainPassword = Str::random(16);
 
@@ -1592,48 +1599,42 @@ class MentorController extends Controller
                     'password'          => bcrypt($plainPassword),
                     'pass'              => $plainPassword,
                     'email_verified_at' => now(),
-                    'is_registered'     => 0, //  not registered yet
+                    'is_registered'     => 0,
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $googleUser->getAvatar(),
                 ]);
 
-                // Store ID + email in session
                 session([
-                    'mentor_id'    => $mentor->id,
-                    'email' => $mentor->email,
+                    'mentor_id' => $mentor->id,
+                    'email'       => $mentor->email,
                 ]);
 
-                //  Send to registration form
                 return redirect()->route('mentor.registration');
             }
 
-            // Agar inactive account hai
             if ($mentor->status !== 'active') {
-                session()->flash('error', 'Your account is inactive. Please contact administrator.');
-                return redirect()->route('mentor.login');
+                return redirect()
+                    ->route('mentor.login')
+                    ->with('error', 'Your account is inactive. Please contact administrator.');
             }
 
-            // Case 2: Existing user with complete registration
             if ($mentor->is_registered == 1) {
-                // ✅ Direct login and go to profile/dashboard
                 Auth::guard('mentor')->login($mentor);
                 return redirect()->route('mentor.dashboard');
             }
 
-            // Case 3: Existing but registration incomplete
             session([
-                'mentor_id'    => $mentor->id,
-                'email' => $mentor->email,
+                'mentor_id' => $mentor->id,
+                'email'       => $mentor->email,
             ]);
+
             return redirect()->route('mentor.registration');
 
-        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            session()->flash('error', 'Invalid state. Please try again.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Google login failed. Please try again.');
+            return redirect()
+                ->route('mentor.login')
+                ->with('error', 'Google login failed. Please try again.');
         }
-
-        return redirect()->route('mentor.login');
     }
 
 }

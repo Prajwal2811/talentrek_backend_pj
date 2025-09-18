@@ -42,7 +42,8 @@ class Assessors extends Authenticatable
         'avatar',
         'about_assessor',
         'isSubscribtionBuy',
-        'is_registered'
+        'is_registered',
+        'active_subscription_plan_id'
     ];
 
     /**
