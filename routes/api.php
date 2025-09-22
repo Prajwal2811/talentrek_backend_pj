@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-
+use App\Http\Controllers\API\LanguageController;
 use App\Http\Controllers\API\AppAuthenticationController;
 
 
@@ -61,6 +61,7 @@ use App\Http\Controllers\API\SessionsManagementController;
 use App\Http\Controllers\API\ReviewManagementController;
 use App\Http\Controllers\API\SubscriptionManagementController;
 use App\Http\Controllers\API\CmsController;
+use App\Http\Controllers\API\NotificationController;
 
 
 
@@ -466,3 +467,7 @@ Route::get('/content/{slug}', [CmsController::class, 'content']);
 
 Route::get('/paymentHistory/{userID}/{userType}', [SubscriptionManagementController::class, 'paymentHistoryForUser']);
 
+Route::get('/translateText', [LanguageController::class, 'index']);
+
+Route::get('/notificationList/{userType}/{userId}', [NotificationController::class, 'notificationListByMCAJT']);
+Route::get('/notificationMarkRead/{notificationId}', [NotificationController::class, 'notificationMarkReadByMCAJT']);

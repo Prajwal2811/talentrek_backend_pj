@@ -13,6 +13,7 @@ class AssessmentJobseekerDataStatus extends Model
     protected $fillable = [
         'jobseeker_id',
         'assessment_id',
+        'material_id',
         'submitted',    
 ];    
 }

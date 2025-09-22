@@ -20,6 +20,8 @@ class Notification extends Model
         'type',
         'is_read',
         'is_read_admin',
+        'user_type',
+        'is_read_users'
 
     ];
 

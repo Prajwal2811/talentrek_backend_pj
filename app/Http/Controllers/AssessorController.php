@@ -908,7 +908,7 @@ class AssessorController extends Controller
 
         if (Auth::guard('assessor')->attempt(['email' => $request->email, 'password' => $request->password])) {
 
-            return redirect()->route('assessor.dashboard');
+            return redirect()->route('assessor.dashboard')->with('success', 'Login successful!');
 
         } else {
 
@@ -1184,9 +1184,11 @@ class AssessorController extends Controller
 
             'email' => 'required|email|unique:assessors,email,' . $assessor->id,
 
-            'phone_number' => 'required|unique:assessors,phone_number,' . $assessor->id,
+            'phone_number' => 'required',
 
             'phone_code' => 'required',
+
+            'per_slot_price' => 'required',
 
             'dob' => 'required|date',
 
@@ -1260,11 +1262,11 @@ class AssessorController extends Controller
 
 
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf|max:2048',
 
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
 
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'training_certificate' => 'required|file|mimes:pdf|max:2048',
 
         ], [
 
@@ -1282,13 +1284,13 @@ class AssessorController extends Controller
 
             'phone_number.required' => 'Please enter your phone number.',
 
-            'phone_number.unique' => 'This phone number is already taken.',
-
             'dob.required' => 'Please enter your date of birth.',
 
             'city.required' => 'Please enter your city.',
 
             'state.required' => 'Please enter your state.',
+
+            'per_slot_price.required' => 'Please enter your per slot price.',
 
             'national_id.required' => 'Please enter your national ID.',
 
@@ -1375,6 +1377,8 @@ class AssessorController extends Controller
             'pin_code' => $validated['pin_code'],
 
             'national_id' => $validated['national_id'],
+
+            'per_slot_price' => $validated['per_slot_price'],
 
             'is_registered' => 1
 
@@ -2184,11 +2188,11 @@ class AssessorController extends Controller
 
         $validated = $request->validate([
 
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'nullable|file|mimes:pdf|max:2048',
 
             'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
 
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf|max:2048',
 
         ]);
 
@@ -3005,73 +3009,136 @@ class AssessorController extends Controller
 
 
     public function redirectToGoogle()
+
     {
+
         return Socialite::driver('google')
+
         ->redirectUrl(config('services.google.assessor_redirect'))
+
         ->redirect();
+
+
 
     }
 
+
+
     public function handleGoogleCallback()
+
     {
+
         try {
+
             $googleUser = Socialite::driver('google')
+
             ->redirectUrl(config('services.google.assessor_redirect'))
+
             ->stateless()
+
             ->user();
+
+
+
 
 
             $assessor = Assessors::where('email', $googleUser->getEmail())->first();
 
+
+
             if (!$assessor) {
+
                 $plainPassword = Str::random(16);
 
+
+
                 $assessor = Assessors::create([
+
                     'name'              => $googleUser->getName(),
+
                     'email'             => $googleUser->getEmail(),
+
                     'status'            => 'active',
+
                     'password'          => bcrypt($plainPassword),
+
                     'pass'              => $plainPassword,
+
                     'email_verified_at' => now(),
+
                     'is_registered'     => 0,
+
                     'google_id'         => $googleUser->getId(),
+
                     'avatar'            => $googleUser->getAvatar(),
+
                 ]);
+
+
 
                 session([
+
                     'assessor_id' => $assessor->id,
+
                     'email'       => $assessor->email,
+
                 ]);
 
-                
+
+
                 return redirect()->route('assessor.registration');
+
             }
+
+
 
             if ($assessor->status !== 'active') {
+
                 return redirect()
+
                     ->route('assessor.login')
+
                     ->with('error', 'Your account is inactive. Please contact administrator.');
+
             }
+
+
 
             if ($assessor->is_registered == 1) {
+
                 Auth::guard('assessor')->login($assessor);
+
                 return redirect()->route('assessor.dashboard');
+
             }
 
+
+
             session([
+
                 'assessor_id' => $assessor->id,
+
                 'email'       => $assessor->email,
+
             ]);
+
+
 
             return redirect()->route('assessor.registration');
 
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('assessor.login')
-                ->with('error', 'Google login failed. Please try again.');
-        }
-    }
 
+
+        } catch (\Exception $e) {
+
+            return redirect()
+
+                ->route('assessor.login')
+
+                ->with('error', 'Google login failed. Please try again.');
+
+        }
+
+    }
 
 
 

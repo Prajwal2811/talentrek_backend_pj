@@ -14,8 +14,16 @@ use App\Models\Skills;
 use App\Models\AdditionalInfo;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use App\Services\MobileAppNotificationService;
+
 class JobseekerController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     public function signIn(Request $request)
     {
         // Validate input
@@ -186,6 +194,14 @@ class JobseekerController extends Controller
                 // Send SMS - Simulate (Integrate with Twilio, Msg91, etc.)
                 // SmsService::send($contactValue, "Your OTP is: $otp");
             }
+
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $jobseeker->id,
+                'sender_type' => 'Registration by Jobseeker.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Welcome to Talentrek – Jobseeker registration Successful by App' . $jobseeker->name,
+                'user_type'   => 'jobseeker'
+            ]);
 
             return response()->json([
                 'status' => true,

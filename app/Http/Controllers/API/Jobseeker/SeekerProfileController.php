@@ -10,9 +10,16 @@ use App\Models\Api\WorkExperience;
 use App\Models\Api\Skills;
 use App\Models\Api\AdditionalInfo;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
 
 class SeekerProfileController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     use ApiResponse;
     
     public function index()
@@ -218,7 +225,13 @@ class SeekerProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $jobseeker->id,
+                'sender_type' => 'Jobseeker profile updated successfully..',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Jobseeker profile updated successfully.',
+                'user_type'   => 'jobseeker'
+            ]);
             return $this->successResponse(null, 'Personal information details updated successfully.');
 
         } catch (\Exception $e) {
@@ -310,7 +323,13 @@ class SeekerProfileController extends Controller
                     ]);
                 }
             }
-
+$this->notifications->addAdminNotification([
+                'sender_id'   => $jobseekerId,
+                'sender_type' => 'Jobseeker education updated successfully..',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Jobseeker education updated successfully.',
+                'user_type'   => 'jobseeker'
+            ]);
             return $this->successResponse(null, 'Education details updated successfully.');
 
         } catch (\Exception $e) {
@@ -436,7 +455,13 @@ class SeekerProfileController extends Controller
                     ]);
                 }
             }
-
+$this->notifications->addAdminNotification([
+                'sender_id'   => $jobseekerId,
+                'sender_type' => 'Jobseeker experience updated successfully..',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Jobseeker experience updated successfully.',
+                'user_type'   => 'jobseeker'
+            ]);
             return $this->successResponse(null, 'Work experience details updated successfully.');
             
         } catch (\Exception $e) {
@@ -533,7 +558,13 @@ class SeekerProfileController extends Controller
                     ]);
                 }
             }
-
+$this->notifications->addAdminNotification([
+                'sender_id'   => $jobseekerId,
+                'sender_type' => 'Jobseeker skill updated successfully..',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Jobseeker skill updated successfully.',
+                'user_type'   => 'jobseeker'
+            ]);
             return $this->successResponse(null, 'Skills details updated successfully.');
 
         } catch (\Exception $e) {
@@ -628,7 +659,13 @@ class SeekerProfileController extends Controller
                     ]);
                 }
             }
-
+$this->notifications->addAdminNotification([
+                'sender_id'   => $jobseekerId,
+                'sender_type' => 'Jobseeker additional info updated successfully..',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Jobseeker additional info updated successfully.',
+                'user_type'   => 'jobseeker'
+            ]);
             return $this->successResponse(null, 'Additional info details updated successfully.');
 
         } catch (\Exception $e) {

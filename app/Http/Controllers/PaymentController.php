@@ -12,6 +12,7 @@ use App\Models\Payment\JobseekerSessionBookingPaymentRequest;
 use App\Models\Payment\JobseekerTrainingMaterialPurchaseRecord;
 use App\Models\Payment\JobseekerTrainingMaterialPurchasePaymentRequest;
 use App\Models\Api\CorporatesEmailIds;
+use App\Models\Api\JobseekerTrainingMaterialPurchase;
 
 use App\Models\Api\PurchasedSubscription;
 use App\Models\SubscriptionPlan;
@@ -28,8 +29,18 @@ use App\Models\Coach;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Services\MobileAppNotificationService;
+
+
 class PaymentController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
+
     public function checkout()
     {
         return view('payment.checkout');
@@ -472,8 +483,15 @@ class PaymentController extends Controller
                     'payment_id'            => $data['paymentId'],
                 ]
             );
-                
-            
+               
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $data['udf1'],
+                'sender_type' => 'Subscription buy by a '.$data['udf5'].' .',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Trainer Plan Subscription paid in SAR '.$data['udf8']  .' active from '.$startDate.' to '.$endDate ,
+                'user_type'   => $data['udf5']
+            ]);
+
             return view('payment.slotSuccess', [
                 'transaction_id' => $data['transId'],
                 'amount'         => $data['amt'], // usually returned from gateway
@@ -605,7 +623,7 @@ class PaymentController extends Controller
                                 //send mail for purchase
                         } 
                         
-                        $purchaseDone = PurchasedSubscription::updateOrCreate(
+                        $purchaseDone = JobseekerTrainingMaterialPurchase::updateOrCreate(
                             // Condition (find by unique track_id)
                             ['track_id' => $data['trackId'] ?? null],
 
@@ -653,7 +671,7 @@ class PaymentController extends Controller
                 else if($data['udf2'] == 'cart'){ 
                     $catItems = JobseekerCartItem::where('jobseeker_id', $data['udf1'])->where('status', 'pending')->get();
                     foreach($catItems as $catItem){
-                        $purchaseDone = PurchasedSubscription::updateOrCreate(
+                        $purchaseDone = JobseekerTrainingMaterialPurchase::updateOrCreate(
                             // Condition (find by unique track_id)
                             ['track_id' => $data['trackId'] ?? null],
 
@@ -699,7 +717,7 @@ class PaymentController extends Controller
                     }
                 }
                 else{
-                    $purchaseDone = PurchasedSubscription::updateOrCreate(
+                    $purchaseDone = JobseekerTrainingMaterialPurchase::updateOrCreate(
                         // Condition (find by unique track_id)
                         ['track_id' => $data['trackId'] ?? null],
 

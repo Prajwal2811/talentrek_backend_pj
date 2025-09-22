@@ -13,10 +13,18 @@ use App\Models\Api\WorkExperience;
 use App\Models\Api\TrainingExperience;
 use App\Models\Api\AdditionalInfo;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
 
 use Illuminate\Support\Facades\Mail;
 class CoachController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
+
     public function signIn(Request $request)
     {
         // Validate input
@@ -177,6 +185,8 @@ class CoachController extends Controller
                 // Send SMS - Simulate (Integrate with Twilio, Msg91, etc.)
                 // SmsService::send($contactValue, "Your OTP is: $otp");
             }
+
+           
 
             return response()->json([
                 'status' => true,
@@ -578,7 +588,14 @@ class CoachController extends Controller
                 // SmsService::send($contactValue, "Your OTP is: $otp");
             }
 
-            
+             $this->notifications->addAdminNotification([
+                'sender_id'   => $trainer->id,
+                'sender_type' => 'Registration by Coach.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Welcome to Talentrek – Coach registration Successful by App' . $trainer->name,
+                'user_type'   => 'coach'
+            ]);
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Registration completed successfully.',

@@ -12,8 +12,16 @@ use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\AdditionalInfo;
 use DB;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
+
 class MentorProfileController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     use ApiResponse;
     
     public function index()
@@ -220,6 +228,13 @@ class MentorProfileController extends Controller
                     ]);
                 }
             }
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $Trainers->id,
+                'sender_type' => 'Mentor profile updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Mentor profile updated successfully.',
+                'user_type'   => 'mentor'
+            ]);
 
             return $this->successResponse(null, 'Personal information details updated successfully.');
 
@@ -314,7 +329,13 @@ class MentorProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Mentor education updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Mentor education updated successfully.',
+                'user_type'   => 'mentor'
+            ]);
             return $this->successResponse(null, 'Education details updated successfully.');
 
         } catch (\Exception $e) {
@@ -442,7 +463,13 @@ class MentorProfileController extends Controller
                     ]);
                 }
             }
-
+$this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Mentor experience updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Mentor experience updated successfully.',
+                'user_type'   => 'mentor'
+            ]);
             return $this->successResponse(null, 'Work experience details updated successfully.');
             
         } catch (\Exception $e) {
@@ -543,7 +570,13 @@ class MentorProfileController extends Controller
                     ]);
                 }
             }
-
+$this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Mentor skill updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Mentor skill updated successfully.',
+                'user_type'   => 'mentor'
+            ]);
             return $this->successResponse(null, 'Skills details updated successfully.');
 
         } catch (\Exception $e) {
@@ -664,6 +697,14 @@ class MentorProfileController extends Controller
                     ]);
                 }
             }
+
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Mentor Additional info updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Mentor Additional info updated successfully.',
+                'user_type'   => 'mentor'
+            ]);
 
             return $this->successResponse(null, 'Additional info details updated successfully.');
 

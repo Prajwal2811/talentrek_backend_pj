@@ -12,9 +12,16 @@ use Illuminate\Support\Facades\Validator;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use DB;
+use App\Services\MobileAppNotificationService;
 
 class AssesssorController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     use ApiResponse;
     
     public function index()
@@ -310,6 +317,31 @@ class AssesssorController extends Controller
         //     ->where('correct_option', 1) // Assuming a boolean column
         //     ->value('id');
        
+        $jobseekerId  = $request->jobseeker_id;
+        $material_id   = $request->material_id;
+        $assessmentId = $request->assessment_id;
+
+        // Get user's submitted answers and correct answers
+        $submittedAnswers = AssessmentJobseekerData::where('assessment_id', $assessmentId)
+            ->where('training_id', $material_id)
+            ->where('jobseeker_id', $jobseekerId)
+            ->select('question_id', 'selected_answer', 'correct_answer')
+            ->get();
+
+        // Count how many selected answers are correct
+        $correctAnswerCount = $submittedAnswers->filter(function ($item) {
+            return $item->selected_answer == $item->correct_answer;
+        })->count();
+
+        // Fetch passing threshold from assessment settings
+        $passingQuestions = TrainerAssessment::where('id', $assessmentId)
+            ->value('passing_questions') ?? 0;
+
+        // Determine pass/fail
+        $isPass = $correctAnswerCount >= $passingQuestions;
+        $result = $isPass ? 'Pass' : 'Fail';
+
+        
         $data = [
             'jobseeker_id'     => $request->jobseeker_id,
             'assessment_id'    => $request->assessment_id,
@@ -330,10 +362,19 @@ class AssesssorController extends Controller
                 'assessment_id' => $request->assessment_id,
                 'jobseeker_id'  => $request->jobseeker_id,
                 'training_id'   => $request->material_id,
+                'trainer_id'   => 1,
             ],
             $dataAssessment
         );
 
+        $this->notifications->addNotification([
+            'sender_id'   => $request->jobseeker_id,
+            'sender_type' => 'Jobseeker assessment staus is '.$result,
+            'receiver_id' => 1, // admin user
+            'message'     => 'Jobseeker assessment staus is ' .$result,
+            'user_type'   => 'jobseeker'
+        ]);
+        
         return $this->successResponse(null, 'Question answer final submition done successfully.');
     }
 }

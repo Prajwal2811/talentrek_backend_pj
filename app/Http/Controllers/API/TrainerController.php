@@ -13,10 +13,17 @@ use App\Models\WorkExperience;
 use App\Models\TrainingExperience;
 use App\Models\AdditionalInfo;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
 
 use Illuminate\Support\Facades\Mail;
 class TrainerController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     public function signIn(Request $request)
     {
         // Validate input
@@ -192,6 +199,8 @@ class TrainerController extends Controller
             //     // Send SMS - Simulate (Integrate with Twilio, Msg91, etc.)
             //     // SmsService::send($contactValue, "Your OTP is: $otp");
             // }
+
+            
 
             return response()->json([
                 'status' => true,
@@ -593,7 +602,14 @@ class TrainerController extends Controller
             //     // SmsService::send($contactValue, "Your OTP is: $otp");
             // }
 
-            
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $trainer->id,
+                'sender_type' => 'Registration by Trainer.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Welcome to Talentrek – Trainer registration Successful by App' . $trainer->name,
+                'user_type'   => 'trainer'
+            ]);
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Registration completed successfully.',

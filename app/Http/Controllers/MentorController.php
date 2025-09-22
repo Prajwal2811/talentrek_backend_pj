@@ -60,8 +60,6 @@ use Illuminate\Support\Facades\Mail;
 
 
 
-
-
 class MentorController extends Controller
 
 {
@@ -866,11 +864,13 @@ class MentorController extends Controller
 
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
 
-            'phone_number' => 'required|unique:mentors,phone_number,' . $mentor->id,
+            'phone_number' => 'required',
 
             'dob' => 'required|date',
 
             'phone_code' => 'required',
+
+            'per_slot_price' => 'required',
 
             'city' => 'required|string|max:255',
 
@@ -964,13 +964,13 @@ class MentorController extends Controller
 
             'phone_number.required' => 'Please enter your phone number.',
 
-            'phone_number.unique' => 'This phone number is already taken.',
-
             'dob.required' => 'Please enter your date of birth.',
 
             'city.required' => 'Please enter your city.',
 
             'state.required' => 'Please enter your state.',
+
+            'per_slot_price.required' => 'Please enter your per slot price.',
 
             'national_id.required' => 'Please enter your national ID.',
 
@@ -1055,6 +1055,8 @@ class MentorController extends Controller
             'pin_code' => $validated['pin_code'],
 
             'national_id' => $validated['national_id'],
+
+            'per_slot_price' => $validated['per_slot_price'],
 
             'is_registered' => 1
 
@@ -1484,7 +1486,7 @@ class MentorController extends Controller
 
         if (Auth::guard('mentor')->attempt(['email' => $request->email, 'password' => $request->password])) {
 
-            return redirect()->route('mentor.dashboard');
+            return redirect()->route('mentor.dashboard')->with('success', 'Login successful!');
 
         } else {
 
@@ -3141,71 +3143,135 @@ class MentorController extends Controller
 
 
     public function redirectToGoogle()
+
     {
+
         return Socialite::driver('google')
+
         ->redirectUrl(config('services.google.mentor_redirect'))
+
         ->redirect();
+
+
 
     }
 
+
+
     public function handleGoogleCallback()
+
     {
+
         try {
+
             $googleUser = Socialite::driver('google')
+
             ->redirectUrl(config('services.google.mentor_redirect'))
+
             ->stateless()
+
             ->user();
+
+
+
 
 
             $mentor = Mentors::where('email', $googleUser->getEmail())->first();
 
+
+
             if (!$mentor) {
+
                 $plainPassword = Str::random(16);
 
+
+
                 $mentor = Mentors::create([
+
                     'name'              => $googleUser->getName(),
+
                     'email'             => $googleUser->getEmail(),
+
                     'status'            => 'active',
+
                     'password'          => bcrypt($plainPassword),
+
                     'pass'              => $plainPassword,
+
                     'email_verified_at' => now(),
+
                     'is_registered'     => 0,
+
                     'google_id'         => $googleUser->getId(),
+
                     'avatar'            => $googleUser->getAvatar(),
+
                 ]);
+
+
 
                 session([
+
                     'mentor_id' => $mentor->id,
+
                     'email'       => $mentor->email,
+
                 ]);
 
-                
+
+
                 return redirect()->route('mentor.registration');
+
             }
+
+
 
             if ($mentor->status !== 'active') {
+
                 return redirect()
+
                     ->route('mentor.login')
+
                     ->with('error', 'Your account is inactive. Please contact administrator.');
+
             }
+
+
 
             if ($mentor->is_registered == 1) {
+
                 Auth::guard('mentor')->login($mentor);
+
                 return redirect()->route('mentor.dashboard');
+
             }
 
+
+
             session([
+
                 'mentor_id' => $mentor->id,
+
                 'email'       => $mentor->email,
+
             ]);
+
+
 
             return redirect()->route('mentor.registration');
 
+
+
         } catch (\Exception $e) {
+
             return redirect()
+
                 ->route('mentor.login')
+
                 ->with('error', 'Google login failed. Please try again.');
+
         }
+
     }
 
 

@@ -17,6 +17,6 @@ class AssessmentJobseekerData extends Model
         'selected_answer',
         'assessment_id',
         'question_id',
-        'correct_answer'    
+        'correct_answer',    
 ];    
 }

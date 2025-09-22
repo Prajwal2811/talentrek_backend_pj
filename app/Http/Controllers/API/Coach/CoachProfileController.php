@@ -12,8 +12,16 @@ use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\AdditionalInfo;
 use DB;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
+
 class CoachProfileController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     use ApiResponse;
     
     public function index()
@@ -221,6 +229,14 @@ class CoachProfileController extends Controller
                 }
             }
 
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $Trainers->id,
+                'sender_type' => 'Coach profile updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Coach profile updated successfully.',
+                'user_type'   => 'coach'
+            ]);
+
             return $this->successResponse(null, 'Personal information details updated successfully.');
 
         } catch (\Exception $e) {
@@ -314,7 +330,13 @@ class CoachProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Coach education updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Coach education updated successfully.',
+                'user_type'   => 'coach'
+            ]);
             return $this->successResponse(null, 'Education details updated successfully.');
 
         } catch (\Exception $e) {
@@ -441,7 +463,13 @@ class CoachProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Coach experience updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Coach experience updated successfully.',
+                'user_type'   => 'coach'
+            ]);
             return $this->successResponse(null, 'Work experience details updated successfully.');
             
         } catch (\Exception $e) {
@@ -541,7 +569,13 @@ class CoachProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Coach skill updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Coach skill updated successfully.',
+                'user_type'   => 'coach'
+            ]);
             return $this->successResponse(null, 'Skills details updated successfully.');
 
         } catch (\Exception $e) {
@@ -662,6 +696,13 @@ class CoachProfileController extends Controller
                     ]);
                 }
             }
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Coach additionalvinfo updated successfully.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Coach additionalinfo updated successfully.',
+                'user_type'   => 'coach'
+            ]);
 
             return $this->successResponse(null, 'Additional info details updated successfully.');
 

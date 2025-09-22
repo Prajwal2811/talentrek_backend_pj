@@ -17,11 +17,18 @@ use App\Models\Api\AssessmentQuestion;
 use App\Models\Api\AdditionalInfo;
 use App\Services\ZoomService;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
 
 
 use Illuminate\Support\Facades\Mail;
 class TrainingController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     public function saveTrainingRecordedData(Request $request)
     {
         try {
@@ -195,15 +202,30 @@ class TrainingController extends Controller
             // }
 
             DB::commit();
-
+            
             if($request->courseId)
             {
+                $this->notifications->addAdminNotification([
+                    'sender_id'   => $trainer->id,
+                    'sender_type' => 'Recorded Traning Material updated.',
+                    'receiver_id' => 1, // admin user
+                    'message'     => $request->training_title.' Recorded Training course updated successfully.',
+                    'user_type'   => 'trainer'
+                ]);
+                
                 return response()->json([
                     'success' => true,
                     'message' => 'Recorded training course updated successfully.',
                     'training_id' => $training->id
                 ]);
             }else{
+                $this->notifications->addAdminNotification([
+                    'sender_id'   => $trainer->id,
+                    'sender_type' => 'Recorded Traning Material Added.',
+                    'receiver_id' => 1, // admin user
+                    'message'     => $request->training_title.' Recorded Training course added successfully.',
+                    'user_type'   => 'trainer'
+                ]);
                 return response()->json([
                     'success' => true,
                     'message' => 'Recorded training course saved successfully.',
@@ -464,12 +486,28 @@ class TrainingController extends Controller
             // }
             if($request->courseId)
             {
+                $this->notifications->addAdminNotification([
+                    'sender_id'   => $trainer->id,
+                    'sender_type' => $request->training_type.' Traning Material updated.',
+                    'receiver_id' => 1, // admin user
+                    'message'     => $request->training_title.' '.$request->training_type.' training course added successfully.',
+                    'user_type'   => 'trainer'
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Training and batches updated successfully.',
                     'data'    => $training->load('batches') // Optional: return with batch data
                 ], 201);
             }else{
+                $this->notifications->addAdminNotification([
+                    'sender_id'   => $trainer->id,
+                    'sender_type' => $request->training_type.' Traning Material Updated.',
+                    'receiver_id' => 1, // admin user
+                    'message'     => $request->training_title.' '.$request->training_type.' training course added successfully.',
+                    'user_type'   => 'trainer'
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Training and batches saved successfully.',
@@ -554,6 +592,14 @@ class TrainingController extends Controller
 
             DB::commit();
 
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $trainerId,
+                'sender_type' => 'Trainer add assessment for material/course',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Assessment add successfully for material/course.',
+                'user_type'   => 'trainer'
+            ]);
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Assessment created successfully.',

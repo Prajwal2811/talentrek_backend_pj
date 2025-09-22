@@ -13,10 +13,18 @@ use App\Models\WorkExperience;
 use App\Models\TrainingExperience;
 use App\Models\AdditionalInfo;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
 
 use Illuminate\Support\Facades\Mail;
 class AssessorController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
+
     public function signIn(Request $request)
     {
         // Validate input
@@ -168,6 +176,7 @@ class AssessorController extends Controller
                 // SmsService::send($contactValue, "Your OTP is: $otp");
             }
 
+            
             return response()->json([
                 'status' => true,
                 'message' => 'Registration successful',
@@ -567,6 +576,13 @@ class AssessorController extends Controller
                 // SmsService::send($contactValue, "Your OTP is: $otp");
             }
 
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $trainer->id,
+                'sender_type' => 'Registration by Assessor.',
+                'receiver_id' => 1, // admin user
+                'message'     => 'Welcome to Talentrek – Assessor registration Successful by App' . $trainer->name,
+                'user_type'   => 'assessor'
+            ]);
             
             return response()->json([
                 'status'  => true,

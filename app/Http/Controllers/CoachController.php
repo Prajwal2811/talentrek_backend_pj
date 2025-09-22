@@ -58,6 +58,8 @@ use Illuminate\Support\Facades\Http;
 
 use Illuminate\Support\Str;
 
+use Illuminate\Support\Facades\Mail;
+
 
 
 class CoachController extends Controller
@@ -902,7 +904,7 @@ class CoachController extends Controller
 
         if (Auth::guard('coach')->attempt(['email' => $request->email, 'password' => $request->password])) {
 
-            return redirect()->route('coach.dashboard');
+            return redirect()->route('coach.dashboard')->with('success', 'Login successful!');
 
         } else {
 
@@ -1182,13 +1184,15 @@ class CoachController extends Controller
 
             'email' => 'required|email|unique:coaches,email,' . $coach->id,
 
-            'phone_number' => 'required|unique:coaches,phone_number,' . $coach->id,
+            'phone_number' => 'required',
 
             'dob' => 'required|date',
 
             'phone_code' => 'required',
 
             'address' => 'required',
+
+            'per_slot_price' => 'required',
 
             'city' => 'required|string|max:255',
 
@@ -1278,13 +1282,13 @@ class CoachController extends Controller
 
             'phone_number.required' => 'Please enter your phone number.',
 
-            'phone_number.unique' => 'This phone number is already taken.',
-
             'dob.required' => 'Please enter your date of birth.',
 
             'city.required' => 'Please enter your city.',
 
             'state.required' => 'Please enter your state.',
+
+            'per_slot_price.required' => 'Please enter your per slot price.',
 
             'national_id.required' => 'Please enter your national ID.',
 
@@ -1371,6 +1375,8 @@ class CoachController extends Controller
             'pin_code' => $validated['pin_code'],
 
             'national_id' => $validated['national_id'],
+
+            'per_slot_price' => $validated['per_slot_price'],
 
             'is_registered' => 1
 
@@ -3089,71 +3095,135 @@ class CoachController extends Controller
 
 
     public function redirectToGoogle()
+
     {
+
         return Socialite::driver('google')
+
         ->redirectUrl(config('services.google.coach_redirect'))
+
         ->redirect();
+
+
 
     }
 
+
+
     public function handleGoogleCallback()
+
     {
+
         try {
+
             $googleUser = Socialite::driver('google')
+
             ->redirectUrl(config('services.google.coach_redirect'))
+
             ->stateless()
+
             ->user();
+
+
+
 
 
             $coach = Coach::where('email', $googleUser->getEmail())->first();
 
+
+
             if (!$coach) {
+
                 $plainPassword = Str::random(16);
 
+
+
                 $coach = Coach::create([
+
                     'name'              => $googleUser->getName(),
+
                     'email'             => $googleUser->getEmail(),
+
                     'status'            => 'active',
+
                     'password'          => bcrypt($plainPassword),
+
                     'pass'              => $plainPassword,
+
                     'email_verified_at' => now(),
+
                     'is_registered'     => 0,
+
                     'google_id'         => $googleUser->getId(),
+
                     'avatar'            => $googleUser->getAvatar(),
+
                 ]);
+
+
 
                 session([
+
                     'coach_id' => $coach->id,
+
                     'email'       => $coach->email,
+
                 ]);
 
-                
+
+
                 return redirect()->route('coach.registration');
+
             }
+
+
 
             if ($coach->status !== 'active') {
+
                 return redirect()
+
                     ->route('coach.login')
+
                     ->with('error', 'Your account is inactive. Please contact administrator.');
+
             }
+
+
 
             if ($coach->is_registered == 1) {
+
                 Auth::guard('coach')->login($coach);
+
                 return redirect()->route('coach.dashboard');
+
             }
 
+
+
             session([
+
                 'coach_id' => $coach->id,
+
                 'email'       => $coach->email,
+
             ]);
+
+
 
             return redirect()->route('coach.registration');
 
+
+
         } catch (\Exception $e) {
+
             return redirect()
+
                 ->route('coach.login')
+
                 ->with('error', 'Google login failed. Please try again.');
+
         }
+
     }
 
 }

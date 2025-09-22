@@ -12,8 +12,16 @@ use App\Models\Api\TrainingMaterialsDocument;
 use App\Models\Api\AdditionalInfo;
 use DB;
 use Carbon\Carbon;
+use App\Services\MobileAppNotificationService;
+
 class AssessorProfileController extends Controller
 {
+    protected $notifications;
+
+    public function __construct(MobileAppNotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     use ApiResponse;
     
     public function index()
@@ -217,7 +225,13 @@ class AssessorProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $Trainers->id,
+                'sender_type' => 'Assessor profile updated successfully',
+                'receiver_id' => 1, // admin user
+                'message'     => $request->name.' profile updated successfully.',
+                'user_type'   => 'assessor'
+            ]);
             return $this->successResponse(null, 'Personal information details updated successfully.');
 
         } catch (\Exception $e) {
@@ -310,7 +324,13 @@ class AssessorProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Assessor education updated successfully',
+                'receiver_id' => 1, // admin user
+                'message'     => $request->name.' education updated successfully.',
+                'user_type'   => 'assessor'
+            ]);
             return $this->successResponse(null, 'Education details updated successfully.');
 
         } catch (\Exception $e) {
@@ -325,7 +345,7 @@ class AssessorProfileController extends Controller
 
     public function updateWorkExperienceInfoDetails(Request $request)
     {
-        try {
+        //try {
             // Validate registration fields
             // $request->validate([
             //     // Experience
@@ -437,16 +457,22 @@ class AssessorProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Assessor experience updated successfully',
+                'receiver_id' => 1, // admin user
+                'message'     => $request->name.' experience updated successfully.',
+                'user_type'   => 'assessor'
+            ]);
             return $this->successResponse(null, 'Work experience details updated successfully.');
             
-        } catch (\Exception $e) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Something went wrong.',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => 'Something went wrong.',
+        //         'error'   => $e->getMessage()
+        //     ], 500);
+        // }
     }
 
 
@@ -488,7 +514,7 @@ class AssessorProfileController extends Controller
 
             if (!$TrainingMaterialsDocument) {
                 TrainingExperience::create([
-                    'user_id'   => $trainer->id,
+                    'user_id'   => $TrainersId,
                     'user_type'   => 'assessor',
                     'skills'         => $request->skills,
                     'interest'       => $request->interest,
@@ -499,7 +525,7 @@ class AssessorProfileController extends Controller
             } else {
                 // Update the Trainers basic info
                 $TrainingMaterialsDocument->update([
-                    'user_id'   => $trainer->id,
+                    'user_id'   => $TrainersId,
                     'user_type'   => 'assessor',
                     'skills'         => $request->skills,
                     'interest'       => $request->interest,
@@ -537,8 +563,14 @@ class AssessorProfileController extends Controller
                     ]);
                 }
             }
-
-            return $this->successResponse(null, 'TrainingMaterialsDocument details updated successfully.');
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Assessor skill updated successfully',
+                'receiver_id' => 1, // admin user
+                'message'     => $request->name.' skill updated successfully.',
+                'user_type'   => 'assessor'
+            ]);
+            return $this->successResponse(null, 'Assessor skill details updated successfully.');
 
         } catch (\Exception $e) {
             return response()->json([
@@ -659,7 +691,13 @@ class AssessorProfileController extends Controller
                     ]);
                 }
             }
-
+            $this->notifications->addAdminNotification([
+                'sender_id'   => $TrainersId,
+                'sender_type' => 'Assessor additional info updated successfully',
+                'receiver_id' => 1, // admin user
+                'message'     => $request->name.' additional info updated successfully.',
+                'user_type'   => 'assessor'
+            ]);
             return $this->successResponse(null, 'Additional info details updated successfully.');
 
         } catch (\Exception $e) {

@@ -20,7 +20,7 @@ use App\Models\EducationDetails;
 
 use App\Models\WorkExperience;
 
-use App\Models\Additionalinfo;
+use App\Models\AdditionalInfo;
 
 use App\Models\TrainerAssessment;
 
@@ -44,7 +44,7 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\DB;
 
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator; 
 
 use App\Models\Review;
 
@@ -67,6 +67,8 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
 
 use Illuminate\Support\Str;
+
+use Illuminate\Support\Facades\Mail;
 
 
 
@@ -870,7 +872,7 @@ class TrainerController extends Controller
 
             'email' => 'required|email|unique:trainers,email,' . $trainer->id,
 
-            'phone_number' => 'required|unique:trainers,phone_number,' . $trainer->id,
+            'phone_number' => 'required',
 
             'phone_code' => 'required',
 
@@ -930,11 +932,11 @@ class TrainerController extends Controller
 
             'portfolio_link' => 'nullable|url',
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
 
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
 
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
 
         ],
 
@@ -953,8 +955,6 @@ class TrainerController extends Controller
                 'email.unique' => 'This email is already registered.',
 
                 'phone_number.required' => 'Phone number is required.',
-
-                'phone_number.unique' => 'This phone number is already in use.',
 
                 'dob.required' => 'Please enter your date of birth.',
 
@@ -1018,7 +1018,7 @@ class TrainerController extends Controller
 
                 'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
 
-                'resume.max' => 'Resume file must not exceed 2MB.',
+                'resume.max' => 'Resume file must not exceed 5MB.',
 
                 'profile_picture.required' => 'Please upload your profile picture.',
 
@@ -1032,7 +1032,7 @@ class TrainerController extends Controller
 
                 'training_certificate.mimes' => 'Certificate must be a PDF, DOC, or DOCX file.',
 
-                'training_certificate.max' => 'Certificate file must not exceed 2MB.',
+                'training_certificate.max' => 'Certificate file must not exceed 5MB.',
 
             ]);
 
@@ -1484,7 +1484,7 @@ class TrainerController extends Controller
 
         if (Auth::guard('trainer')->attempt(['email' => $request->email, 'password' => $request->password])) {
 
-            return redirect()->route('trainer.dashboard');
+            return redirect()->route('trainer.dashboard')->with('success', 'Login successful!');
 
         } else {
 
@@ -4368,16 +4368,21 @@ class TrainerController extends Controller
 
                 'reviews.created_at',
 
-                'jobseekers.name as jobseeker_name'
+                'jobseekers.name as jobseeker_name',
+
+                'training_materials.training_title as course_name'
+
 
             )
 
             ->join('jobseekers', 'jobseekers.id', '=', 'reviews.jobseeker_id')
+            
+            ->leftJoin('training_materials', 'training_materials.id', '=', 'reviews.trainer_material')
 
             ->where('reviews.user_type', 'trainer')
 
             ->get();
-
+         
 
 
         return view('site.trainer.reviews', compact('reviews'));
@@ -4434,7 +4439,6 @@ class TrainerController extends Controller
 
         $trainer = Auth::guard('trainer')->user(); 
 
-       
 
         $trainerId = $trainer->id;
 
@@ -4444,15 +4448,21 @@ class TrainerController extends Controller
 
         $trainerSkills = DB::table('trainers')
 
-            ->leftJoin('training_experience', 'training_experience.user_id', '=', 'trainers.id')
+            ->leftJoin('training_experience', function($join) use ($trainerId) {
 
+                $join->on('training_experience.user_id', '=', 'trainers.id')
+
+                    ->where('training_experience.user_type', '=', 'trainer'); 
+                    
+            })
             ->where('trainers.id', $trainerId)
 
-            ->select('trainers.*', 'training_experience.*')
-
+            ->select('trainers.*', 'training_experience.training_experience', 'training_experience.training_skills', 'training_experience.area_of_interest', 'training_experience.website_link', 'training_experience.portfolio_link')
+           
             ->first();
 
-        
+        // echo "<pre>";
+        // print_r( $trainerSkills);exit;    
 
         // Education details (multiple)
 
@@ -5044,11 +5054,11 @@ class TrainerController extends Controller
 
         $validated = $request->validate([
 
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
 
             'profile_picture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
 
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
 
         ]);
 
@@ -5631,73 +5641,135 @@ class TrainerController extends Controller
 
 
     public function redirectToGoogle()
+
     {
+
         return Socialite::driver('google')
+
         ->redirectUrl(config('services.google.trainer_redirect'))
+
         ->redirect();
+
+
 
     }
 
 
 
     public function handleGoogleCallback()
+
     {
+
         try {
+
             $googleUser = Socialite::driver('google')
+
             ->redirectUrl(config('services.google.trainer_redirect'))
+
             ->stateless()
+
             ->user();
 
 
-            $trainer = Trainers::where('email', $googleUser->getEmail())->first();
+
+
+
+            $trainer = trainers::where('email', $googleUser->getEmail())->first();
+
+
 
             if (!$trainer) {
+
                 $plainPassword = Str::random(16);
 
+
+
                 $trainer = trainers::create([
+
                     'name'              => $googleUser->getName(),
+
                     'email'             => $googleUser->getEmail(),
+
                     'status'            => 'active',
+
                     'password'          => bcrypt($plainPassword),
+
                     'pass'              => $plainPassword,
+
                     'email_verified_at' => now(),
+
                     'is_registered'     => 0,
+
                     'google_id'         => $googleUser->getId(),
+
                     'avatar'            => $googleUser->getAvatar(),
+
                 ]);
+
+
 
                 session([
+
                     'trainer_id' => $trainer->id,
+
                     'email'       => $trainer->email,
+
                 ]);
 
-                
+
+
                 return redirect()->route('trainer.registration');
+
             }
+
+
 
             if ($trainer->status !== 'active') {
+
                 return redirect()
+
                     ->route('trainer.login')
+
                     ->with('error', 'Your account is inactive. Please contact administrator.');
+
             }
+
+
 
             if ($trainer->is_registered == 1) {
+
                 Auth::guard('trainer')->login($trainer);
+
                 return redirect()->route('trainer.dashboard');
+
             }
 
+
+
             session([
+
                 'trainer_id' => $trainer->id,
+
                 'email'       => $trainer->email,
+
             ]);
+
+
 
             return redirect()->route('trainer.registration');
 
+
+
         } catch (\Exception $e) {
+
             return redirect()
+
                 ->route('trainer.login')
+
                 ->with('error', 'Google login failed. Please try again.');
+
         }
+
     }
 
 }
