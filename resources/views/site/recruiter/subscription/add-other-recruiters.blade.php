@@ -18,8 +18,10 @@
 
             if ($RecruiterSubscription == 'corporate_3_recruiters') {
                 $totalRecruiters = 3; // including current recruiter
-            } else {
+            } elseif($RecruiterSubscription == 'corporate_4_to_6_recruiters') {
                 $totalRecruiters = 6; // including current recruiter
+            } else{
+                $totalRecruiters = 0;
             }
 
             // One recruiter is current user, so subtract 1 for the extra inputs

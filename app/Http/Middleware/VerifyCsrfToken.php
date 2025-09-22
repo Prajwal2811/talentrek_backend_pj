@@ -18,6 +18,12 @@ class VerifyCsrfToken extends Middleware
         'processSubscriptionPayment',
         'successSubscription',
         'failureSubscription',
+
+        'subscriptionSuccessURL',
+        'subscriptionsSuccess',
+
+
+        
         'subscription/payment/success',
         'subscription/payment/failure',
 
@@ -25,11 +31,10 @@ class VerifyCsrfToken extends Middleware
         'course/payment/failure',
 
 
-        'subscriptionSuccessURL',
-        'subscriptionsSuccess',
+       
 
-        'session/payment/success',
-        'session/payment/failure'
+        'jobseeker/session/payment/success',
+        'jobseeker/session/payment/failure'
 
     ];
 }

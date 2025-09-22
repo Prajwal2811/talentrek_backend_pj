@@ -53,7 +53,12 @@ class SubscriptionController extends Controller
         $user = $model::findOrFail($request->user_id);
 
         // Generate reference
-        $referenceNo = "TRK-SUB-" . strtoupper(substr($request->type, 0, 3)) . '-' . $request->plan_id . '-' . $request->user_id . '-' . date('YmdHi');
+        $referenceNo = "TRK-SUB-" 
+                . strtoupper(substr($request->type, 0, 3)) 
+                . '-' . $request->plan_id 
+                . '-' . $request->user_id 
+                . '-' . date('YmdHi')
+                . '-' . time();
 
         // Create payment request record
         $booking = PurchasedSubscriptionPaymentRequest::create([
@@ -90,6 +95,7 @@ class SubscriptionController extends Controller
             "udf6"         => $plan->duration_days,
             "udf7"         => '0.00',
             "udf8"         => number_format($plan->price, 2, '.', ''),
+            'udf9'         => $plan->id, 
             "langid"       => "en",
             "responseURL"  => $config['subscription_success_url'],
             "errorURL"     => $config['subscription_failure_url'],
@@ -250,6 +256,31 @@ class SubscriptionController extends Controller
                 'payment_method'=> 'Al Rajhi',
                 'paid_at'       => now(),
             ]);
+
+
+            $companyData = RecruiterCompany::where('recruiter_id', $data['udf1'])->firstOrFail();
+            $plan = SubscriptionPlan::findOrFail($data['udf4']);
+
+            $shouldUpdate = false;
+            if (!$companyData->active_subscription_plan_id) {
+                $shouldUpdate = true;
+            } else {
+                $currentActive = PurchasedSubscription::find($companyData->active_subscription_plan_id);
+                if (!$currentActive || $subscription->end_date->gt($currentActive->end_date)) {
+                    $shouldUpdate = true;
+                }
+            }
+
+            if ($shouldUpdate) {
+                $companyData->isSubscribtionBuy = 'yes';
+                $companyData->active_subscription_plan_id   = $subscription->id;
+                $companyData->active_subscription_plan_slug = $plan->slug;
+                $companyData->recruiter_count = null; // reset if needed
+                $companyData->save();
+            }
+
+
+            
         }
 
 

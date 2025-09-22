@@ -23,7 +23,7 @@ class RecruitersSeeder extends Seeder
                 'recruiter_of' => null, // main recruiter, no parent
                 'company_id' => '1',
                 'inactive_reason' => null,
-                'admin_status' => 'approved',
+                'admin_status' => 'superadmin_approved',
                 'rejection_reason' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -57,7 +57,7 @@ class RecruitersSeeder extends Seeder
                 'recruiter_of' => null, // main recruiter
                 'company_id' => '2',
                 'inactive_reason' => null,
-                'admin_status' => 'approved',
+                'admin_status' => 'superadmin_approved',
                 'rejection_reason' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -74,7 +74,7 @@ class RecruitersSeeder extends Seeder
                 'recruiter_of' => null, // main recruiter
                 'company_id' => '2',
                 'inactive_reason' => null,
-                'admin_status' => 'approved',
+                'admin_status' => 'superadmin_approved',
                 'rejection_reason' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),

@@ -1483,71 +1483,71 @@ class RecruiterController extends Controller
 
      public function processSubscriptionPayment(Request $request)
      {
-     $request->validate([
-          'plan_id'     => 'required|exists:subscription_plans,id',
-          'card_number' => 'required|string|min:12|max:19',
-          'expiry'      => 'required|string',
-          'cvv'         => 'required|string|min:3|max:4',
-     ]);
-
-     $plan = SubscriptionPlan::findOrFail($request->plan_id);
-
-     DB::beginTransaction();
-     try {
-          $recruiter = auth('recruiter')->user();
-          $companyData = RecruiterCompany::where('recruiter_id', $recruiter->id)->firstOrFail();
-
-          // Create purchased subscription
-          $newSubscription = PurchasedSubscription::create([
-               'user_id'              => $recruiter->id,
-               'user_type'            => 'recruiter',
-               'company_id'           => $companyData->id,
-               'subscription_plan_id' => $plan->id,
-               'start_date'           => now(),
-               'end_date'             => now()->addDays($plan->duration_days),
-               'amount_paid'          => $plan->price,
-               'payment_status'       => 'paid',
+          $request->validate([
+               'plan_id'     => 'required|exists:subscription_plans,id',
+               'card_number' => 'required|string|min:12|max:19',
+               'expiry'      => 'required|string',
+               'cvv'         => 'required|string|min:3|max:4',
           ]);
 
-          // Determine if we should update active subscription
-          $shouldUpdate = false;
-          if (!$companyData->active_subscription_plan_id) {
-               $shouldUpdate = true;
-          } else {
-               $currentActive = PurchasedSubscription::find($companyData->active_subscription_plan_id);
-               if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+          $plan = SubscriptionPlan::findOrFail($request->plan_id);
+
+          DB::beginTransaction();
+          try {
+               $recruiter = auth('recruiter')->user();
+               $companyData = RecruiterCompany::where('recruiter_id', $recruiter->id)->firstOrFail();
+
+               // Create purchased subscription
+               $newSubscription = PurchasedSubscription::create([
+                    'user_id'              => $recruiter->id,
+                    'user_type'            => 'recruiter',
+                    'company_id'           => $companyData->id,
+                    'subscription_plan_id' => $plan->id,
+                    'start_date'           => now(),
+                    'end_date'             => now()->addDays($plan->duration_days),
+                    'amount_paid'          => $plan->price,
+                    'payment_status'       => 'paid',
+               ]);
+
+               // Determine if we should update active subscription
+               $shouldUpdate = false;
+               if (!$companyData->active_subscription_plan_id) {
                     $shouldUpdate = true;
-               }
-          }
-
-          if ($shouldUpdate) {
-               $companyData->isSubscribtionBuy = 'yes';
-               $companyData->active_subscription_plan_id   = $newSubscription->id;
-               $companyData->active_subscription_plan_slug = $plan->slug;
-
-               // Set recruiter count properly instead of null
-               if ($companyData->recruiter_count !== null) {
-                    $companyData->recruiter_count = null;
+               } else {
+                    $currentActive = PurchasedSubscription::find($companyData->active_subscription_plan_id);
+                    if (!$currentActive || $newSubscription->end_date->gt($currentActive->end_date)) {
+                         $shouldUpdate = true;
+                    }
                }
 
-               $companyData->save();
+               if ($shouldUpdate) {
+                    $companyData->isSubscribtionBuy = 'yes';
+                    $companyData->active_subscription_plan_id   = $newSubscription->id;
+                    $companyData->active_subscription_plan_slug = $plan->slug;
+
+                    // Set recruiter count properly instead of null
+                    if ($companyData->recruiter_count !== null) {
+                         $companyData->recruiter_count = null;
+                    }
+
+                    $companyData->save();
+               }
+
+               DB::commit();
+
+               return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Subscription purchased successfully!',
+               ]);
+
+          } catch (\Exception $e) {
+               DB::rollBack();
+               return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Something went wrong while purchasing the subscription.',
+                    'error'   => $e->getMessage(),
+               ], 500);
           }
-
-          DB::commit();
-
-          return response()->json([
-               'status'  => 'success',
-               'message' => 'Subscription purchased successfully!',
-          ]);
-
-     } catch (\Exception $e) {
-          DB::rollBack();
-          return response()->json([
-               'status'  => 'error',
-               'message' => 'Something went wrong while purchasing the subscription.',
-               'error'   => $e->getMessage(),
-          ], 500);
-     }
      }
 
 
@@ -1555,52 +1555,52 @@ class RecruiterController extends Controller
 
      public function addOthers(Request $request)
      {
-          $validated = $request->validate([
-     'main_recruiter_id'        => 'required|exists:recruiters,id',
-     'company_id'               => 'required|exists:recruiters_company,id',
-     'recruiters'               => 'required|array',
-     'recruiters.*.name'        => 'required|string|max:100',
-     'recruiters.*.email'       => 'required|email',
-     'recruiters.*.national_id' => 'required|digits_between:10,15',
+     // 1️⃣ Validate input
+     $validated = $request->validate([
+          'main_recruiter_id'        => 'required|exists:recruiters,id',
+          'company_id'               => 'required|exists:recruiters_company,id',
+          'recruiters'               => 'required|array|min:1',
+          'recruiters.*.name'        => 'required|string|max:100',
+          'recruiters.*.email'       => 'required|email',
+          'recruiters.*.national_id' => 'required|digits_between:10,15',
      ], [
-     'main_recruiter_id.required'        => 'Main recruiter is required.',
-     'main_recruiter_id.exists'          => 'Selected main recruiter does not exist.',
-     'company_id.required'               => 'Company is required.',
-     'company_id.exists'                 => 'Selected company does not exist.',
-     'recruiters.required'               => 'At least one recruiter must be added.',
-     'recruiters.array'                  => 'Recruiters must be an array.',
-     'recruiters.*.name.required'        => 'Recruiter name is required.',
-     'recruiters.*.name.string'          => 'Recruiter name must be a string.',
-     'recruiters.*.name.max'             => 'Recruiter name may not be greater than 100 characters.',
-     'recruiters.*.email.required'       => 'Recruiter email is required.',
-     'recruiters.*.email.email'          => 'Recruiter email must be a valid email address.',
-     'recruiters.*.national_id.required' => 'Recruiter national ID is required.',
-     'recruiters.*.national_id.digits_between' => 'Recruiter national ID must be between 10 and 15 digits.',
+          'main_recruiter_id.required'        => 'Main recruiter is required.',
+          'main_recruiter_id.exists'          => 'Selected main recruiter does not exist.',
+          'company_id.required'               => 'Company is required.',
+          'company_id.exists'                 => 'Selected company does not exist.',
+          'recruiters.required'               => 'At least one recruiter must be added.',
+          'recruiters.array'                  => 'Recruiters must be an array.',
+          'recruiters.*.name.required'        => 'Recruiter name is required.',
+          'recruiters.*.name.string'          => 'Recruiter name must be a string.',
+          'recruiters.*.name.max'             => 'Recruiter name may not be greater than 100 characters.',
+          'recruiters.*.email.required'       => 'Recruiter email is required.',
+          'recruiters.*.email.email'          => 'Recruiter email must be a valid email address.',
+          'recruiters.*.national_id.required' => 'Recruiter national ID is required.',
+          'recruiters.*.national_id.digits_between' => 'Recruiter national ID must be between 10 and 15 digits.',
      ]);
-
 
      DB::beginTransaction();
 
      try {
-          $company    = RecruiterCompany::findOrFail($validated['company_id']);
-          $addedCount = 0;
+          $company = RecruiterCompany::findOrFail($validated['company_id']);
 
-          foreach ($validated['recruiters'] as $i => $rec) {
-
-               // Skip update, now we want to throw error if exists
+          // 2️⃣ Check for duplicates first
+          foreach ($validated['recruiters'] as $rec) {
                $existing = Recruiters::where('email', $rec['email'])
                     ->orWhere('national_id', $rec['national_id'])
                     ->first();
 
                if ($existing) {
-                    DB::rollBack();
                     return response()->json([
-                         'status'  => 'duplicate',
+                         'status' => 'duplicate',
                          'message' => "Recruiter with email '{$rec['email']}' or National ID '{$rec['national_id']}' already exists."
                     ], 422);
                }
+          }
 
-               // Create new recruiter
+          // 3️⃣ Create recruiters
+          $addedCount = 0;
+          foreach ($validated['recruiters'] as $rec) {
                $username = strtolower(str_replace(' ', '', $rec['name']));
                $password = $username . '@talentrek';
 
@@ -1618,15 +1618,15 @@ class RecruiterController extends Controller
                $addedCount++;
           }
 
-          // Update recruiter count
-          $company->recruiter_count = ($company->recruiter_count ?? 0) + $addedCount;
+          // 4️⃣ Update recruiter count safely
+          $company->recruiter_count = intval($company->recruiter_count ?? 0) + $addedCount;
           $company->save();
 
           DB::commit();
 
           return response()->json([
                'status'  => 'success',
-               'message' => 'Recruiters added successfully.'
+               'message' => "{$addedCount} recruiter(s) added successfully."
           ], 200);
 
      } catch (\Exception $e) {
@@ -1637,6 +1637,7 @@ class RecruiterController extends Controller
           ], 500);
      }
      }
+
 
 
 

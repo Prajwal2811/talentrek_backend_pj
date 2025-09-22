@@ -90,6 +90,7 @@
                     <input type="hidden" name="material_id" value="{{ $material->id }}">
                     <input type="hidden" name="training_type" value="{{ $material->training_type }}">
                     <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()->id }}">
+                    <input type="hidden" name="buy_type" value="buyNow">
 
 
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -277,7 +278,7 @@
                                     <span>{{ langLabel('total') }}</span>
                                     <span data-billing="total">SAR {{ number_format($total, 2) }}</span>
                                 </div>
-                                <input type="text" data-billing="total" name="amount_paid" value="{{ number_format($total, 2) }}">
+                                <input type="hidden" data-billing="total" name="amount_paid" value="{{ number_format($total, 2) }}">
 
                                 @auth('jobseeker')
                                     <!-- Show checkout button if logged in as jobseeker -->

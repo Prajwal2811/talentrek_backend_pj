@@ -17,7 +17,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('jobseeker_id');
             $table->unsignedBigInteger('trainer_id');
+            $table->string('material_type')->nullable(); 
             $table->unsignedBigInteger('material_id');
+            $table->unsignedBigInteger('batch_id')->nullable();
             $table->string('status')->default('pending'); // e.g., 'pending', 'purchased'
             $table->timestamps();
 

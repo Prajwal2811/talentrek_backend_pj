@@ -1257,121 +1257,264 @@ $skills = $user->skills->first();
 
 
                         @php
-                            $cartItems = \App\Models\JobseekerCartItem::with([
-                                'material.reviews', 
+                            use App\Models\Setting;
+                            use App\Models\JobseekerCartItem;
+
+                            $cartItems = JobseekerCartItem::with([
+                                'material.reviews',
                                 'material.profilePicture'
                             ])
-                            ->where('jobseeker_id', auth()->user('jobseeker')->id)
+                            ->where('jobseeker_id', auth('jobseeker')->id())
                             ->get();
 
-                            $courseTotal = $cartItems->sum(fn($item) => $item->material->training_offer_price ?? 0);
-                            $savedAmount = $cartItems->sum(fn($item) => 
-                                ($item->material->training_price ?? 0) > ($item->material->training_offer_price ?? 0)
-                                ? ($item->material->training_price - $item->material->training_offer_price)
-                                : 0
-                            );
-                            $tax = round($courseTotal * 0.05, 2);
-                            $finalTotal = $courseTotal + $tax;
+                            $taxation = Setting::first();
+                            $taxRate = floatval($taxation->trainingMaterialTax ?? 0);
+
+                            $courseTotal = 0.0;
+                            $savedTotal = 0.0;
+
+                            foreach ($cartItems as $item) {
+                                $material = $item->material;
+                                $actualPrice = floatval($material->training_price ?? 0);
+                                $offerPrice = floatval($material->training_offer_price ?? $actualPrice);
+                                $courseTotal += $offerPrice;
+                                $savedTotal += ($actualPrice - $offerPrice);
+                            }
+
+                            $tax = round($courseTotal * ($taxRate / 100), 2);
+                            $total = round($courseTotal + $tax, 2);
                         @endphp
 
+                            <div x-data="{ tab: 'cart' }">
+                                <div x-show="tab === 'cart'" x-cloak>
+                                    <h2 class="text-xl font-semibold mb-4">My Cart</h2>
+                                    <form accept="multipart/form-data" action="{{ route('jobseeker.purchase-course') }}" method="POST">
+                                        @csrf
+                                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            <!-- Left: Course List -->
+                                            <div class="lg:col-span-2 space-y-4">
+                                                @forelse($cartItems as $item)
+                                                    @php $material = $item->material; @endphp
+                                                    <!-- Cart item hidden inputs -->
+                                                    <input type="text" name="items[0][material_id]" value="{{ $material->id }}">
+                                                    <input type="text" name="items[0][training_type]" value="{{ $material->training_type }}">
+                                                    <input type="text" name="items[0][batch_id]" value="">
+                                                    <input type="text" name="items[0][offer_price]" value="{{ $material->training_offer_price }}">
+                                                    <input type="text" name="items[0][tax_rate]" value="{{ $taxRate }}">
+                                                    <input type="text" name="items[0][coupon_code]" value="">
+                                                    <input type="text" name="items[0][coupon_type]" value="">
+                                                    <input type="text" name="items[0][coupon_amount]" value="0">
+                                                    <input type="text" name="user_id" value="{{ auth('jobseeker')->user()->id }}">
+                                                    <input type="text" name="buy_type" value="buyNow">
 
-                        <div x-show="tab === 'cart'" x-cloak>
-                            <h2 class="text-xl font-semibold mb-4">My Cart</h2>
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <!-- Left: Course List -->
-                                <div class="lg:col-span-2 space-y-4">
-                                    @forelse($cartItems as $item)
-                                        @php $material = $item->material; @endphp
-                                        <div class="cart-item flex border rounded-lg p-4 gap-4">
-                                            <!-- Image and Remove -->
-                                            <div class="flex flex-col items-start gap-2">
-                                                <img src="{{ $material->thumbnail_file_path }}" alt="Course" class="w-48 h-48 object-cover rounded" />
-                                                <button class="text-red-500 text-sm hover:underline remove-item" data-id="{{ $item->id }}">Remove</button>
+                                                    <div class="cart-item flex border rounded-lg p-4 gap-4">
+                                                        <!-- Image and Remove -->
+                                                        <div class="flex flex-col items-start gap-2">
+                                                            <img src="{{ $material->thumbnail_file_path }}" alt="Course"
+                                                                class="w-48 h-48 object-cover rounded" />
+                                                            <button type="button" class="text-red-500 text-sm hover:underline remove-item"
+                                                                data-id="{{ $item->id }}">Remove</button>
+                                                        </div>
+
+                                                        <!-- Course Info -->
+                                                        <div class="flex-1">
+                                                            <h4 class="font-semibold text-base">{{ $material->training_title }}</h4>
+                                                            <p class="text-sm text-gray-600 mt-1">
+                                                                {{ Str::limit($material->training_sub_title, 150) }}
+                                                            </p>
+
+                                                            <div class="flex items-center text-yellow-500 text-sm mt-1">
+                                                                @php
+                                                                    $reviews = $material->reviews;
+                                                                    $rating = $reviews->avg('ratings') ?? 0;
+                                                                    $ratingRounded = round($rating);
+                                                                    $reviewCount = $reviews->count();
+                                                                @endphp
+
+                                                                @for ($i = 1; $i <= 5; $i++)
+                                                                    @if ($i <= $ratingRounded)
+                                                                        ★
+                                                                    @else
+                                                                        ☆
+                                                                    @endif
+                                                                @endfor
+
+                                                                <span class="ml-2 text-gray-500 text-xs">
+                                                                    ({{ number_format($rating, 1) }}/5 — {{ $reviewCount }} reviews)
+                                                                </span>
+                                                            </div>
+
+                                                            <div class="flex items-center gap-2 mt-2">
+                                                                @if(($material->training_price ?? 0) > ($material->training_offer_price ?? 0))
+                                                                    <span class="line-through text-sm text-gray-400">
+                                                                        SAR {{ number_format($material->training_price, 2) }}
+                                                                    </span>
+                                                                @endif
+                                                                <span class="text-base font-semibold text-gray-800">
+                                                                    SAR {{ number_format($material->training_offer_price ?? $material->training_price, 2) }}
+                                                                </span>
+                                                            </div>
+
+                                                            <!-- Hidden Inputs for this item -->
+                                                            <input type="hidden" name="materials[{{ $item->id }}][id]" value="{{ $material->id }}">
+                                                            <input type="hidden" name="materials[{{ $item->id }}][type]" value="{{ $material->training_type }}">
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <p class="text-gray-500">Your cart is empty.</p>
+                                                @endforelse
                                             </div>
 
+                                            <!-- Right: Promo + Billing -->
+                                            <div class="space-y-6">
+                                                <!-- Coupon Section -->
+                                                <div>
+                                                    <h3 class="text-sm font-medium mb-2">{{ langLabel('apply_promocode') }}:</h3>
+                                                    <div class="flex space-x-2">
+                                                        <input type="text" id="coupon_code" placeholder="Enter promocode for discount"
+                                                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                                        <button type="button" id="apply_coupon"
+                                                            class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
+                                                    </div>
+                                                    <small id="coupon_message" class="text-red-500 mt-1 block"></small>
 
-                                            <!-- Course Info -->
-                                            <div class="flex-1">
-                                                <h4 class="font-semibold text-base">{{ $material->training_title }}</h4>
-                                                <p class="text-sm text-gray-600 mt-1">{{ Str::limit($material->training_sub_title, 150) }}</p>
-                                                
-                                                <div class="flex items-center text-yellow-500 text-sm mt-1">
-                                                    @php
-                                                        $reviews = $material->reviews;
-                                                        $rating = $reviews->avg('ratings');
-                                                        $ratingRounded = round($rating);
-                                                        $reviewCount = $reviews->count();
-                                                    @endphp
-
-                                                    {{-- Show stars --}}
-                                                    @for ($i = 1; $i <= 5; $i++)
-                                                        @if ($i <= $ratingRounded)
-                                                            ★
-                                                        @else
-                                                            ☆
-                                                        @endif
-                                                    @endfor
-
-                                                    <span class="ml-2 text-gray-500 text-xs">
-                                                        ({{ number_format($rating, 1) }}/5 Rating — {{ $reviewCount }} reviews)
-                                                    </span>
+                                                    <!-- Hidden numeric values for JS -->
+                                                    <input type="hidden" id="original_price" value="{{ number_format($courseTotal, 2, '.', '') }}">
+                                                    <input type="hidden" id="tax_rate" value="{{ number_format($taxRate, 2, '.', '') }}">
+                                                    <input type="hidden" id="saved_total" value="{{ number_format($savedTotal, 2, '.', '') }}">
+                                                    <input type="hidden" name="coupon_type" id="coupon_type" value="">
+                                                    <input type="hidden" name="coupon_code" id="coupon_code_hidden" value="">
+                                                    <input type="hidden" name="coupon_amount" id="coupon_amount" value="">
                                                 </div>
 
+                                                <!-- Billing Information -->
+                                                <div class="border rounded p-4 space-y-2">
+                                                    <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('billing_information') }}</h3>
 
-                                                <div class="flex items-center gap-2 mt-2">
-                                                    @if($material->training_price > $material->training_offer_price)
-                                                        <span class="line-through text-sm text-gray-400">SAR {{ $material->training_price }}</span>
-                                                    @endif
-                                                    <span class="text-base font-semibold text-gray-800">SAR {{ $material->training_offer_price }}</span>
+                                                    <div class="flex justify-between text-sm">
+                                                        <span>{{ langLabel('course_total') }}</span>
+                                                        <span data-billing="course_total">SAR {{ number_format($courseTotal, 2) }}</span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-sm">
+                                                        <span>{{ langLabel('saved_amount') }}</span>
+                                                        <span data-billing="saved_amount">SAR {{ number_format($savedTotal, 2) }}</span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-sm text-green-600 hidden" id="coupon_row">
+                                                        <span>{{ langLabel('applied_coupon') }}</span>
+                                                        <span data-billing="coupon_discount">- SAR 0.00</span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-sm">
+                                                        <span>{{ langLabel('tax') }} ({{ $taxRate }}%)</span>
+                                                        <span data-billing="tax">SAR {{ number_format($tax, 2) }}</span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-base font-semibold pt-2 border-t">
+                                                        <span>{{ langLabel('total') }}</span>
+                                                        <span data-billing="total">SAR {{ number_format($total, 2) }}</span>
+                                                    </div>
+
+                                                    <input type="hidden" name="amount_paid" value="{{ number_format($total, 2, '.', '') }}">
+
+                                                    @auth('jobseeker')
+                                                        <button type="submit"
+                                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                                            {{ langLabel('proceed_checkout') }}
+                                                        </button>
+                                                    @else
+                                                        <div class="alert alert-danger alert-dismissible fade show mt-4 text-center" role="alert"
+                                                            style="text-align: justify;">
+                                                            <strong>Please log in as a Jobseeker</strong> to purchase a course.
+                                                        </div>
+                                                    @endauth
                                                 </div>
                                             </div>
                                         </div>
-                                    @empty
-                                        <p class="text-gray-500">Your cart is empty.</p>
-                                    @endforelse
-
-                                </div>
-
-                                <!-- Right: Promo + Billing -->
-                                <div class="space-y-6">
-                                    <!-- Promocode -->
-                                    <div>
-                                        <h3 class="text-sm font-medium mb-2">Apply Promocode:</h3>
-                                        <div class="flex gap-2">
-                                            <input type="text" placeholder="Enter promocode for discount" class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm" />
-                                            <button class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm">Apply</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Billing Information -->
-                                    <div class="border rounded-lg p-4 space-y-3 bg-gray-50">
-                                        <h3 class="text-sm font-medium pb-2 border-b">Billing Information</h3>
-                                        <div class="flex justify-between text-sm">
-                                            <span>Course total</span>
-                                            <span>SAR {{ number_format($courseTotal, 2) }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                            <span>Saved amount</span>
-                                            <span>SAR {{ number_format($savedAmount, 2) }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                            <span>Tax</span>
-                                            <span>SAR {{ number_format($tax, 2) }}</span>
-                                        </div>
-                                        <hr />
-                                        <div class="flex justify-between text-base font-semibold pt-2">
-                                            <span>Total</span>
-                                            <span>SAR {{ number_format($finalTotal, 2) }}</span>
-                                        </div>
-                                        <a href="">
-                                            <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded text-sm font-medium mt-4">
-                                                Proceed to Checkout
-                                            </button>
-                                        </a>
-                                    </div>
+                                    </form>
                                 </div>
                             </div>
-                        </div>
+
+                            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+                            <script>
+                            document.getElementById('apply_coupon').addEventListener('click', async function () {
+                                const code = document.getElementById('coupon_code').value.trim();
+                                const originalPrice = parseFloat(document.getElementById('original_price').value) || 0;
+                                const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
+                                const originalSaved = parseFloat(document.getElementById('saved_total').value) || 0;
+                                const msgEl = document.getElementById('coupon_message');
+
+                                msgEl.textContent = '';
+                                msgEl.classList.remove('text-green-500', 'text-red-500');
+
+                                if (!code) {
+                                    msgEl.textContent = "Please enter a coupon code.";
+                                    msgEl.classList.add('text-red-500');
+                                    return;
+                                }
+
+                                try {
+                                    const res = await fetch("{{ route('apply.coupon') }}", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                        },
+                                        body: JSON.stringify({ code: code })
+                                    });
+
+                                    const data = await res.json();
+
+                                    if (!data.success) {
+                                        msgEl.textContent = data.message || 'Invalid coupon.';
+                                        msgEl.classList.add('text-red-500');
+                                        return;
+                                    }
+
+                                    let discount = 0;
+                                    if (data.discount_type === 'fixed') {
+                                        discount = parseFloat(data.discount_value) || 0;
+                                    } else if (data.discount_type === 'percentage') {
+                                        discount = originalPrice * (parseFloat(data.discount_value || 0) / 100);
+                                    }
+
+                                    discount = Math.min(discount, originalPrice - 0.01); // prevent 100% discount
+                                    discount = Math.round(discount * 100) / 100;
+
+                                    const discountedSubtotal = Math.round((originalPrice - discount) * 100) / 100;
+                                    const tax = Math.round((discountedSubtotal * (taxRate / 100)) * 100) / 100;
+                                    const total = Math.round((discountedSubtotal + tax) * 100) / 100;
+
+                                    document.querySelector('[data-billing="course_total"]').textContent = `SAR ${originalPrice.toFixed(2)}`;
+                                    document.querySelector('[data-billing="coupon_discount"]').textContent = `- SAR ${discount.toFixed(2)}`;
+                                    document.querySelector('[data-billing="tax"]').textContent = `SAR ${tax.toFixed(2)}`;
+                                    document.querySelector('[data-billing="total"]').textContent = `SAR ${total.toFixed(2)}`;
+                                    document.querySelector('[data-billing="saved_amount"]').textContent = `SAR ${(originalSaved + discount).toFixed(2)}`;
+
+                                    document.getElementById('coupon_row').classList.remove('hidden');
+
+                                    document.getElementById("coupon_type").value = data.discount_type;
+                                    document.getElementById("coupon_code_hidden").value = code;
+                                    document.getElementById("coupon_amount").value = discount.toFixed(2);
+                                    document.querySelector('input[name="amount_paid"]').value = total.toFixed(2);
+
+                                    const discountMsg = data.discount_type === 'fixed' ? `SAR ${discount.toFixed(2)} off` : `${parseFloat(data.discount_value).toFixed(2)}% off`;
+                                    msgEl.textContent = `Coupon applied: ${discountMsg}`;
+                                    msgEl.classList.add('text-green-500');
+
+                                } catch (err) {
+                                    console.error(err);
+                                    msgEl.textContent = "An error occurred while applying the coupon. Please try again.";
+                                    msgEl.classList.add('text-red-500');
+                                }
+                            });
+                            </script>
+
+
+
+
                         <!-- Remove Confirmation Modal -->
                        <!-- Remove Confirmation Modal -->
                         <div id="removeConfirmModal" class="fixed top-20 left-0 right-0 flex justify-center z-50 hidden">

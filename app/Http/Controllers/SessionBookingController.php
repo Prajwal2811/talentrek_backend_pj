@@ -19,7 +19,7 @@ class SessionBookingController extends Controller
      */
     public function processBookingPayment(Request $request)
     {
-
+        // echo "<pre>"; print_r( $request->all() ); die;
         $validator = Validator::make($request->all(), [
             'user_type'       => 'required|in:mentor,assessor,coach',
             'user_id'         => 'required', // the mentor/assessor/coach id
@@ -52,7 +52,8 @@ class SessionBookingController extends Controller
                 . '-' . $request->user_id
                 . '-' . $request->slot_id
                 . '-' . $request->jobseeker_id
-                . '-' . date('YmdHi');
+                . '-' . date('YmdHi')
+                . '-' . time();
 
 
         // Create payment request record
@@ -61,7 +62,7 @@ class SessionBookingController extends Controller
             'user_type' => $request->user_type, 
             'user_id' => $request->user_id, 
             'slot_mode' => $request->mode, 
-            'slot_date' => $request->date, 
+            'slot_date' => date('Y-m-d', strtotime($request->date)),
             'booking_slot_id' => $request->slot_id, 
             'slot_time' => $request->slot_time, 
             'request_payload' => null, 
@@ -79,6 +80,7 @@ class SessionBookingController extends Controller
             'coupon_amount'     => $request->coupon_amount,
          ]);
 
+        //  echo "<pre>"; print_r($paymentRequest); die;
         $paymentRequest->track_id = 'TRK-' . strtoupper($request->user_type) . '-' . $paymentRequest->id. time();
         $paymentRequest->save();
         // Prepare Neoleap payload
@@ -102,7 +104,6 @@ class SessionBookingController extends Controller
             "password"     => "T4#2H#ma5yHv\$G7",
             "currencyCode" => "682",
             "trackId"      => $paymentRequest->track_id,
-            // UDFs
             "udf1"         => $paymentRequest->jobseeker_id,
             "udf2"         => $paymentRequest->user_type,
             "udf3"         => $paymentRequest->id,
@@ -115,6 +116,7 @@ class SessionBookingController extends Controller
             "udf10"        => $paymentRequest->currency,
             "udf11"        => $paymentRequest->payment_gateway,
             "udf12"        => $paymentRequest->payment_status,
+            "udf13"        => $paymentRequest->slot_date,
             "langid"       => "en",
             "responseURL"  => $config['session_success_url'],
             "errorURL"     => $config['session_failure_url'],
@@ -151,7 +153,7 @@ class SessionBookingController extends Controller
 
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
-
+        // echo "<pre>"; print_r($data); die;
 
         if ($result) {
             [$paymentId, $paymentUrl] = explode(":", $result, 2);
@@ -161,13 +163,10 @@ class SessionBookingController extends Controller
         return redirect()->back()->with('error', 'Unable to initiate payment. Please try again.');
     }
 
-    /**
-     * Success callback
-     */
+  
     public function successBooking(Request $request)
     {
-        echo "done"; die;
-        
+        // echo "done"; die;
         $config = config('neoleap');
         $responseTrandata = $request->input('trandata');
 
@@ -175,60 +174,85 @@ class SessionBookingController extends Controller
             return redirect()->back()->with('error', 'Missing payment response.');
         }
 
+        // Decrypt the response
         $decrypted = urldecode(PaymentHelper::decryptAES($responseTrandata, $config['secret_key']));
         $data = json_decode($decrypted, true)[0] ?? null;
 
         if (!$data) {
             return redirect()->back()->with('error', 'Invalid payment response.');
         }
-
+        
+        // Fetch the payment request
         $paymentRequest = SessionBookingPaymentRequest::where('track_id', $data['trackId'])->first();
         if (!$paymentRequest) {
             return redirect()->back()->with('error', 'Payment request not found.');
         }
 
-        $status = $data['result'] === 'CAPTURED' ? 'completed' : 'pending';
+        // Determine payment status
+        $status = $data['result'] === 'CAPTURED' ? 'completed' : 'failed';
+
+        // Update payment request
         $paymentRequest->update([
-            'transaction_id'  => $data['transId'] ?? null,
-            'payment_status'  => $status === 'completed' ? 'success' : 'failed',
-            'response_payload'=> json_encode($data),
+            'transaction_id'   => $data['transId'] ?? null,
+            'payment_status'   => $status === 'completed' ? 'success' : 'failed',
+            'response_payload' => $data,
         ]);
 
         if ($status === 'completed') {
-            // Create session booking
-            SessionBooking::create([
-                'jobseeker_id' => $data['udf1'],
-                'user_type'    => $data['udf2'],
-                'user_id'      => $data['udf4'],
-                'mode'         => $data['udf5'],
-                'date'         => $paymentRequest->date,
-                'slot_id'      => $paymentRequest->slot_id,
-                'slot_time'    => $paymentRequest->slot_time,
-                'status'       => 'active',
-                'track_id'     => $data['trackId'],
-                'transaction_id'=> $data['transId'],
-            ]);
+            // Prevent duplicate booking
+            $existingBooking = SessionBooking::where('track_id', $data['trackId'])->first();
 
-            // Add entry in payment history
-            PaymentHistory::create([
-                'user_type'      => 'jobseeker',
-                'user_id'        => $data['udf1'],
-                'receiver_type'  => $data['udf2'], // mentor/assessor/coach
-                'receiver_id'    => $data['udf4'],
-                'payment_for'    => 'session_booking',
-                'amount_paid'    => $data['amt'],
-                'tax'            => $data['udf8'] ?? 0,
-                'payment_status' => 'completed',
-                'transaction_id' => $data['transId'] ?? null,
-                'track_id'       => $data['trackId'],
-                'currency'       => 'SAR',
-                'payment_method' => 'Al Rajhi',
-                'paid_at'        => now(),
-            ]);
+            if (!$existingBooking) {
+                $originalPrice = $paymentRequest->amount ?? 0;
+                $taxAmount = ($originalPrice * ($paymentRequest->tax_percentage ?? 0)) / 100;
+                $couponAmount = $paymentRequest->coupon_amount ?? 0;
+                $totalPaid = $paymentRequest->total_amount ?? ($originalPrice + $taxAmount - $couponAmount);
+
+                // Create session booking
+                $booking = SessionBooking::create([
+                    'jobseeker_id'       => $data['udf1'],
+                    'user_type'          => $data['udf2'],
+                    'user_id'            => $data['udf4'],
+                    'slot_mode'          => $data['udf5'],
+                    'slot_date'          => $paymentRequest->slot_date,
+                    'booking_slot_id'    => $paymentRequest->booking_slot_id,
+                    'slot_time'          => $paymentRequest->slot_time,
+                    'status'             => 'active',
+                    'track_id'           => $data['trackId'],
+                    'transaction_id'     => $data['transId'],
+                    'payment_status'     => 'success',
+                    'slot_amount'        => $originalPrice,
+                    'tax_percentage'     => $paymentRequest->tax_percentage,
+                    'taxed_amount'       => $taxAmount,
+                    'coupon_type'        => $paymentRequest->coupon_type,
+                    'coupon_code'        => $paymentRequest->coupon_code,
+                    'coupon_amount'      => $couponAmount,
+                    'amount_paid'        => $totalPaid,
+                    'response_payload'   => $data,
+                ]);
+
+                // Create payment history
+                PaymentHistory::create([
+                    'user_type'      => 'jobseeker',
+                    'user_id'        => $data['udf1'],
+                    'receiver_type'  => $data['udf2'],
+                    'receiver_id'    => $data['udf4'],
+                    'payment_for'    => 'booking_slot',
+                    'amount_paid'    => $totalPaid,
+                    'tax'            => $taxAmount,
+                    'payment_status' => 'completed',
+                    'transaction_id' => $data['transId'] ?? null,
+                    'track_id'       => $data['trackId'],
+                    'currency'       => 'SAR',
+                    'payment_method' => 'Al Rajhi',
+                    'paid_at'        => now(),
+                ]);
+            }
         }
 
         return redirect()->back()->with('success', 'Session booked successfully!');
     }
+
 
     /**
      * Failure callback

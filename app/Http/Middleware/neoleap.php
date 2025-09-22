@@ -7,7 +7,7 @@ return [
     'terminal_id'   => env('NEOLEAP_TERMINAL_ID'),
     'secret_key'    => env('NEOLEAP_SECRET_KEY'), // usually 3DES/AES key
     'payment_url'   => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
-    'callback_url'  => env('APP_URL').env('NEOLEAP_SUCCESS_URL'),
+    'callback_url'  => env('APP_URL').env('NEOLEAP_SUCCESS_URL '),
     'return_url'    => env('APP_URL').env('NEOLEAP_SUCCESS_URL'),
     'success_booking_session_url'    => env('APP_URL').env('NEOLEAP_BOOKING_SESSION_SUCCESS_URL'),
     'success_subscription_mobile_url'    => env('APP_URL').env('NEOLEAP_SUBSCRIPTION_MOBILE_SUCCESS_URL'),
@@ -16,16 +16,7 @@ return [
 
 
     
-     // Subscription-specific
+    // Subscription-specific
     'subscription_success_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_SUCCESS_URL'),
     'subscription_failure_url' => env('APP_URL') . env('NEOLEAP_SUBSCRIPTION_FAILURE_URL'),
-
-
-    // Course Purchase
-    'course_success_url' => env('APP_URL') . env('NEOLEAP_COURSE_SUCCESS_URL'),
-    'course_failure_url' => env('APP_URL') . env('NEOLEAP_COURSE_FAILURE_URL'),
-
-    // Booking session
-    'session_success_url' => env('APP_URL') . env('NEOLEAP_SESSION_SUCCESS_URL'),
-    'session_failure_url' => env('APP_URL') . env('NEOLEAP_SESSION_FAILURE_URL'),
 ];

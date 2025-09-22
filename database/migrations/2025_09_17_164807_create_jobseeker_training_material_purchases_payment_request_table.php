@@ -35,7 +35,10 @@ return new class extends Migration
             $table->enum('payment_status', ['initiated', 'success', 'failed', 'refunded'])->default('initiated');
 
             // Amounts
-            $table->decimal('tax', 10, 2)->default(0.00);
+            $table->decimal('taxed_amount', 10, 2)->default(0.00);
+            $table->decimal('tax_percentage', 10, 2)->default(0.00);
+
+
             $table->decimal('amount', 10, 2)->default(0.00);       // base amount
             $table->decimal('amount_paid', 10, 2)->default(0.00);  // after discount/tax
 
@@ -50,11 +53,7 @@ return new class extends Migration
             // Timestamps
             $table->timestamps();
 
-            // Indexes
-            $table->index('jobseeker_id', 'idx_jobseeker');
-            $table->index('trainer_id', 'idx_trainer');
-            $table->index('material_id', 'idx_material');
-            $table->index('batch_id', 'idx_batch');
+        
         });
     }
 

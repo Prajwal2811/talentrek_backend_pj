@@ -84,12 +84,17 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		// Purchase request stays POST
-		Route::post('/purchase-session', [SessionBookingController::class, 'processBookingPayment'])
-			->name('mentorship-booking-submit');
+		Route::post('/jobseeker/purchase-session', [SessionBookingController::class, 'processBookingPayment'])
+			->name('jobseeker.mentorship-booking-submit');
 
-		// Callbacks should allow both GET & POST
-		Route::match(['get', 'post'], '/jobseeker/session/payment/success', [SessionBookingController::class, 'successBooking']);
-		Route::match(['get', 'post'], '/jobseeker/session/payment/failure', [SessionBookingController::class, 'failureBooking']);
+		// Session booking payment routes
+		Route::post('/jobseeker/session/payment/success', [SessionBookingController::class, 'successBooking'])
+			->name('session.payment.success');
+
+		Route::post('/jobseeker/session/payment/failure', [SessionBookingController::class, 'failureBooking'])
+			->name('session.payment.failed');
+
+
 
 
 		Route::post('/team-purchase-course', [JobseekerController::class, 'teamPurchaseCourse'])->name('jobseeker.team-purchase-course');
