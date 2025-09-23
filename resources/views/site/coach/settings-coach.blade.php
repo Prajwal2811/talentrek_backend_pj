@@ -21,10 +21,10 @@ $coach = Auth()->user();
             </div>
         </div>
     </div>
-
-	@if($coachNeedsSubscription)
-        @include('site.coach.subscription.index')
+    @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
     @endif
+	
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
@@ -331,109 +331,28 @@ $coach = Auth()->user();
 
 
                                    <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
-
-                                <!-- Scrollable notification list -->
-                                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                    <!-- Notification Items -->
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Approved your request</p>
-                                        <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> New comment on your post</p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
-                                        <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
+                                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">{{ langLabel('notifications') }}</h3>
+                                    <!-- Scrollable notification list -->
+                                    <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                        <!-- Notification Items -->
+                                         @php $notifications = notificationUsersSent('coach'); @endphp
+                                         @foreach($notifications as $notification)
+                                            <div class="flex items-start gap-4 border-b pb-4">
+                                                <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
+                                                <a href="{{ route('coach.notifications_details',['id' => $notification->id,'user_type' => 'coach']) }}">
+                                                <div>
+                                                    <p><span class="font-semibold">{{ $notification->message }}</span></p>
+                                                    <p class="text-sm text-gray-500 mt-1">{{ date('d-m-y H:s A',strtotime($notification->created_at)) }}</p>
+                                                </div>
+                                                </a>
+                                            </div>
+                                         @endforeach
+                                        @if($notifications->count() < 1) 
+                                            <a href=""
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ langLabel('view_records_found') }}</a>
+                                        @endif
                                     </div>
                                 </div>
-                                </div>
-                                
 
                                 <div x-show="activeSection === 'payment'" x-transition class="bg-white p-6">
                                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">Payment History</h3>
@@ -481,114 +400,7 @@ $coach = Auth()->user();
                                     </div>
                                     </div>
 
-                                <!-- Notifications Section -->
-                                <div x-show="activeSection === 'notifications'" x-transition class="bg-white p-6 ">
-                                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Notifications</h3>
-
-                                <!-- Scrollable notification list -->
-                                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                    <!-- Notification Items -->
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">12:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Your task deadline is <span class="font-medium">3:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">10 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent you a file at <span class="font-medium">11:45 am</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">30 Minute ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Meeting rescheduled to <span class="font-medium">1:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">1 Hour ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Approved your request</p>
-                                        <p class="text-sm text-gray-500 mt-1">2 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have call scheduled at <span class="font-medium">4:00 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> New comment on your post</p>
-                                        <p class="text-sm text-gray-500 mt-1">3 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">5:30 pm</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">4 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Sent a reminder for report submission</p>
-                                        <p class="text-sm text-gray-500 mt-1">5 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Task completed: <span class="font-medium">UI Design</span></p>
-                                        <p class="text-sm text-gray-500 mt-1">6 Hours ago</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4 border-b pb-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> You have meeting on <span class="font-medium">10:30 am</span> tomorrow</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
-
-                                    <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
-                                    <div>
-                                        <p><span class="font-semibold">James Walker</span> Reminder: Submit your weekly report</p>
-                                        <p class="text-sm text-gray-500 mt-1">Yesterday</p>
-                                    </div>
-                                    </div>
-                                </div>
-                                </div>
-
-
-                                
-
+                               
                                 <!-- Subscription Section (with internal tabs) -->
                                 <div x-show="activeSection === 'profile'" x-transition>
                                     <!-- Company Header -->

@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RecruiterController;
-
+use App\Http\Controllers\NotificationController;
 
 Route::group(['prefix' => 'recruiter'], function() {
 	Route::group(['middleware' => 'recruiter.guest'], function(){
@@ -60,6 +60,10 @@ Route::group(['prefix' => 'recruiter'], function() {
 
 		Route::post('/recruiter/add-others', [RecruiterController::class, 'addOthers'])->name('recruiter.add.others');
 		Route::post('/recruiter/feedback/reply', [RecruiterController::class, 'replyFeedback'])->name('recruiter.feedback.reply');
+
+		Route::get('notifications', [RecruiterController::class, 'notifications'])->name('recruiter.notifications');
+
+        Route::get('notifications_details/{id}/{user_type}', [NotificationController::class, 'viewDetails'])->name('recruiter.notifications_details');
 
 	});
 });

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LangController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\CronController;
+use App\Http\Controllers\ZoomController;
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -347,7 +348,7 @@ Route::get('/bookingSlot/{token}', function ($token) {
 });
 
 
-
+Route::post('/zoom-meeting', [ZoomController::class, 'createAndSend']);
 
 
 

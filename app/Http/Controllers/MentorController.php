@@ -1636,4 +1636,10 @@ class MentorController extends Controller
         return redirect()->route('mentor.login');
     }
 
+    public function notifications() 
+    {
+       return view('site.mentor.notification');
+
+    }
+
 }

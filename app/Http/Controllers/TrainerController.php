@@ -2882,4 +2882,10 @@ class TrainerController extends Controller
 
         return redirect()->route('trainer.login');
     }
+
+    public function notifications() 
+    {
+       return view('site.trainer.notification');
+
+    }
 }

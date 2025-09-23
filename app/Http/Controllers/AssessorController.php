@@ -1568,6 +1568,10 @@ class AssessorController extends Controller
         }
     }
 
-    
+    public function notifications() 
+    {
+       return view('site.assessor.notification');
+
+    }
 }
 

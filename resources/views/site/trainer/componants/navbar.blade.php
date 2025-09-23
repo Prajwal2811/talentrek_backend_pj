@@ -29,10 +29,10 @@
 
                             <div id="bellDropdown"
                                 class="hidden absolute right-4 top-full mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50" style="width: 305px;">
-                                <a href=""
+                                <a href="{{ route('trainer.notifications') }}"
                                     class="block px-4 py-2 text-sm text-gray-700 bg-blue-700 border-blue-200 text-white">{{ langLabel('notifications') }} <span class="float-right">{{ langLabel('view_all') }}</span></a>
                                 @foreach($notifications as $notification)
-                                    <a href=""
+                                    <a href="{{ route('trainer.notifications_details',['id' => $notification->id,'user_type' => 'trainer']) }}"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" style="margin-bottom:11px;"> {{ $notification->message }} <small class="float-right" style="margin-top:0px;">{{ date('d-m-y H:s A',strtotime($notification->created_at)) }}</small></a>
                                     <hr>
                                     <!-- <div class="clearfix">...</div> -->

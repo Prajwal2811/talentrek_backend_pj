@@ -1611,4 +1611,10 @@ class CoachController extends Controller
 
         return redirect()->route('coach.login');
     }
+
+    public function notifications() 
+    {
+       return view('site.coach.notification');
+
+    }
 }

@@ -1753,5 +1753,10 @@ class RecruiterController extends Controller
      }
 
 
+     public function notifications() 
+    {
+       return view('site.recruiter.notification');
+
+    }
 
 }
