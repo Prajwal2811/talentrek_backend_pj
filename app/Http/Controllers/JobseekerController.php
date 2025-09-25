@@ -1877,6 +1877,29 @@ class JobseekerController extends Controller
     }
 
 
+    public function createZoomMeeting($topic, $startTime)
+    {
+        $token = getAccessToken();
+        if (!$token) {
+            return ['error' => 'Failed to fetch access token'];
+        }
+        $email = env('ZOOM_USER_EMAIL');
+        $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
+            'topic' => $topic,
+            'type' => 2,
+            'start_time' => $startTime,
+            'duration' => 30,
+            'timezone' => 'Asia/Kolkata',
+            'settings' => [
+                'host_video' => true,
+                'participant_video' => true,
+                'join_before_host' => false,
+            ],
+        ]);
+
+        return $response->json();
+    }
+
     public function submitMentorshipBooking(Request $request)
     {
 
@@ -1919,15 +1942,24 @@ class JobseekerController extends Controller
 
         // If online, create Zoom meeting
         if ($request->mode === 'online') {
-            $zoom = new ZoomService();
+            
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Mentorship with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $this->createZoomMeeting("Mentorship with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
                     'zoom_start_url' => $zoomMeeting['start_url'],
                     'zoom_join_url' => $zoomMeeting['join_url'],
                 ]);
+                $jobseekerDetails = Jobseekers::where('id', $jobseeker->id)->first();
+                $emails = [$jobseekerDetails->email];
+
+                foreach ($emails as $email) {
+                    Mail::raw("Join Zoom Meeting: $joinUrl", function($message) use ($email) {
+                        $message->to($email)
+                                ->subject('Zoom Meeting Invitation');
+                    });
+                }
             } else {
                 \Log::error('Zoom creation failed for mentorship booking', [
                     'jobseeker_id' => $jobseeker->id,
