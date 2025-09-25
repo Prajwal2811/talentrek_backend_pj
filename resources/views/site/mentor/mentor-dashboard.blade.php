@@ -36,7 +36,7 @@
     <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
         <!-- Sidebar -->
 
-        @include('site.mentor.componants.sidebar')
+         @include('site.mentor.componants.sidebar')
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
@@ -433,5 +433,6 @@
     <script>feather.replace();</script>
 
 
+    
 
 @include('site.mentor.componants.footer')

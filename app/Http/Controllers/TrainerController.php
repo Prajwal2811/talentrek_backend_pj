@@ -443,6 +443,7 @@ class TrainerController extends Controller
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
+            'gender' => 'required|string|in:Male,Female,Other',
             'national_id' => [
                 'required',
                 'min:10',
@@ -486,6 +487,8 @@ class TrainerController extends Controller
                 'pin_code.required' => 'Please enter your pin code.',
                 'national_id.required' => 'Please enter your national ID.',
                 'national_id.min' => 'National ID must be at least 10 digits.',
+                'gender.required' => 'Please select your gender.',
+                'gender.in' => 'Gender must be Male, Female, or Other.',
 
                 'high_education.*.required' => 'Please select your highest education.',
                 'field_of_study.*.required' => 'Please select your field of study.',
@@ -523,6 +526,7 @@ class TrainerController extends Controller
             $trainer->update([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'gender' => $validated['gender'],
                 'phone_code' => $validated['phone_code'],
                 'phone_number' => $validated['phone_number'],
                 'date_of_birth' => $validated['dob'],
@@ -739,9 +743,25 @@ class TrainerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
+        // Check registration completion
+        if ($trainer->is_registered == 0) {
+            session([
+                'trainer_id'  => $trainer->id,
+                'email'         => $trainer->email,
+                'phone_number'  => $trainer->phone_number,
+            ]);
+
+            return redirect()->route('trainer.registration')
+                ->with([
+                'info'  => 'Please complete your registration.',
+                'email' => session('email'),
+                'phone' => session('phone_number'),
+                ]);
+        }
+
         // ✅ Attempt login only if status = active and admin_status = approved
         if (Auth::guard('trainer')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect()->route('trainer.dashboard');
+            return redirect()->route('trainer.dashboard')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
@@ -2179,14 +2199,28 @@ class TrainerController extends Controller
     public function trainerReviews()
     {
         $reviews = Review::select(
+
                 'reviews.id',
+
                 'reviews.reviews',
+
                 'reviews.ratings',
+
                 'reviews.created_at',
-                'jobseekers.name as jobseeker_name'
+
+                'jobseekers.name as jobseeker_name',
+
+                'training_materials.training_title as course_name'
+
+
             )
+
             ->join('jobseekers', 'jobseekers.id', '=', 'reviews.jobseeker_id')
+            
+            ->leftJoin('training_materials', 'training_materials.id', '=', 'reviews.trainer_material')
+
             ->where('reviews.user_type', 'trainer')
+
             ->get();
 
         return view('site.trainer.reviews', compact('reviews'));
@@ -2221,10 +2255,20 @@ class TrainerController extends Controller
 
         // Trainer basic details and skill details
         $trainerSkills = DB::table('trainers')
-            ->leftJoin('training_experience', 'training_experience.user_id', '=', 'trainers.id')
+
+            ->leftJoin('training_experience', function($join) use ($trainerId) {
+
+                $join->on('training_experience.user_id', '=', 'trainers.id')
+
+                    ->where('training_experience.user_type', '=', 'trainer'); 
+                    
+            })
             ->where('trainers.id', $trainerId)
-            ->select('trainers.*', 'training_experience.*')
+
+            ->select('trainers.*', 'training_experience.training_experience', 'training_experience.training_skills', 'training_experience.area_of_interest', 'training_experience.website_link', 'training_experience.portfolio_link')
+           
             ->first();
+
         
         // Education details (multiple)
         $educationDetails = DB::table('education_details')
@@ -2258,6 +2302,7 @@ class TrainerController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:jobseekers,email,' . $user->id,
+            'gender' => 'required|string|in:Male,Female,Other',
             'phone' => 'required|digits:9',
             'dob' => 'required|date',
             'address' => 'required|string|max:255',
@@ -2298,12 +2343,15 @@ class TrainerController extends Controller
             'address.string' => 'Location must be a valid string.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
+            'gender.required' => 'Please select your gender.',
+            'gender.in' => 'Gender must be Male, Female, or Other.',
         ]);
 
 
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'],
             'address' => $validated['address'],

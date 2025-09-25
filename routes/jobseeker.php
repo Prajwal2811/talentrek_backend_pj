@@ -16,6 +16,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::view('/reset-password','site.jobseeker.reset-password')->name('jobseeker.reset-password');
 		Route::view('/registration','site.jobseeker.registration')->name('jobseeker.registration');
 		
+		
 
 		// Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('jobseeker.sign-in');
 		// Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('jobseeker.sign-up');
@@ -24,7 +25,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::get('/registration', [JobseekerController::class, 'showRegistrationForm'])->name('jobseeker.registration');
 		Route::post('/registration', [JobseekerController::class, 'postRegistration'])->name('jobseeker.register.post'); 
 		Route::post('/registration/store', [JobseekerController::class, 'storeJobseekerInformation'])->name('jobseeker.registration.store');
-
+		Route::get('/cv-template/download/{id}', [JobseekerController::class, 'downloadCvTemplate'])
+     	->name('cv.template.download');
 		Route::get('/sign-in', [JobseekerController::class, 'showSignInForm'])->name('signin.form');
 		Route::get('/sign-up', [JobseekerController::class, 'showSignUpForm'])->name('signup.form');
 		Route::post('/jobseeker/login', [JobseekerController::class, 'loginJobseeker'])->name('jobseeker.login.submit');

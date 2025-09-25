@@ -699,21 +699,32 @@
                                             <!-- Trainer Info Form -->
                                             <form id="trainer-info-form" action="{{ route('trainer.profile.update') }}" method="POST">
                                                 @csrf
+                                                
+                                                <!-- Full Name -->
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Full Name</label>
+                                                    <input type="text" name="name" value="{{ $trainerSkills->name ?? '' }}" placeholder="John Doe" class="w-full border rounded px-3 py-2" />
+                                                    @error('name')
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
                                                 <div class="grid grid-cols-2 gap-6 mt-3">
-                                                    <!-- Full Name -->
-                                                    <div>
-                                                        <label class="block mb-1 font-medium">Full Name</label>
-                                                        <input type="text" name="name" value="{{ $trainerSkills->name ?? '' }}" placeholder="John Doe" class="w-full border rounded px-3 py-2" />
-                                                        @error('name')
-                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                        @enderror
-                                                    </div>
-
                                                     <!-- Email -->
                                                     <div>
                                                         <label class="block mb-1 font-medium">Email</label>
                                                         <input type="email" name="email" value="{{ $trainerSkills->email ?? '' }}" placeholder="john.doe@example.com" class="w-full border rounded px-3 py-2" />
                                                         @error('email')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium mt-3">Gender <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
+                                                            <option value="">Select Gender</option>
+                                                            <option value="Male" {{ old('gender', $trainerSkills->gender ?? '') == 'Male' ? 'selected' : '' }}>Male</option>
+                                                            <option value="Female" {{ old('gender', $trainerSkills->gender ?? '') == 'Female' ? 'selected' : '' }}>Female</option>
+                                                        </select>
+                                                        @error('gender')
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                         @enderror
                                                     </div>
@@ -1258,13 +1269,21 @@
 
                                                     <!-- Training Experience -->
                                                     <div>
+
                                                         <label class="block text-sm font-medium mb-1">Training Experience</label>
+
                                                         <input type="text" name="training_experience" placeholder="training experience"
+
                                                             class="w-full border rounded px-3 py-2"
-                                                            value="{{ old('training_experience', $trainerSkills->training_experience ?? '') }}" />
+
+                                                             value="{{ old('training_experience', $trainerSkills->training_experience ?? '') }}" />
+
                                                         @error('training_experience')
+
                                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+
                                                         @enderror
+
                                                     </div>
 
                                                     <!-- Website Link -->

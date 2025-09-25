@@ -77,12 +77,27 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
-                                        <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input placeholder="{{ langLabel('enter_email') }}" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
-                                            @error('email')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+                                        <div class="grid grid-cols-2 gap-6">
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input placeholder="{{ langLabel('enter_email') }}" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
+                                                @error('email')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('gender') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
+                                                    <option value="">{{ langLabel('select_gender') }}</option>
+                                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>{{ langLabel('male') }}
+                                                    </option>
+                                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>
+                                                        {{ langLabel('female') }}</option>
+                                                </select>
+                                                @error('gender')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
                                         
                                         <div class="grid grid-cols-2 gap-6">
@@ -123,9 +138,9 @@
                                         <div class="grid grid-cols-2 gap-6 mt-3">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                <span class="text-xs text-blue-600">
+                                                <!-- <span class="text-xs text-blue-600">
                                                     National ID should start with 1 for male and 2 for female.
-                                                </span>
+                                                </span> -->
                                                 <input 
                                                     type="text" 
                                                     name="national_id" 
@@ -135,11 +150,8 @@
                                                     value="{{ old('national_id') }}" 
                                                     maxlength="15"
                                                     pattern="^[1-2][0-9]{14}$"
-                                                    oninput="
-                                                        this.value = this.value.replace(/[^0-9]/g, ''); 
-                                                        if(this.value.length > 15) this.value = this.value.slice(0,15);
-                                                        if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
-                                                    "
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                    
                                                     required
                                                 />
                                                 @error('national_id')
@@ -638,7 +650,7 @@
     }
 </script>
 <!-- multiple Education -->
-<script>
+<!-- <script>
     const educationContainer = document.getElementById('education-container');
 
     function updateQualificationOptions() {
@@ -729,9 +741,9 @@
             updateQualificationOptions(); // <=== Important
         }
     });
-</script>
+</script> -->
 <!-- Multiple exprience  -->    
-<script>
+<!-- <script>
     const workContainer = document.getElementById('work-container');
     const addWorkBtn = document.getElementById('add-work');
 
@@ -788,7 +800,203 @@
         }
     });
 
+</script> -->
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+        const form = $('#multiStepForm');
+
+        // === Initialize form validation ===
+        form.validate({
+            ignore: [], // include hidden fields
+            errorElement: 'label',
+            errorClass: 'text-red-600 text-sm mt-1',
+            rules: {
+                name: "required",
+                gender: "required",
+                dob: "required",
+                national_id: "required",
+                address: "required",
+                city: "required",
+                state: "required",
+                country: "required",
+                pin_code: "required",
+                per_slot_price: "required",
+                training_skills: "required",
+                area_of_interest: "required",
+                job_category: "required",
+                resume: "required",
+                profile_picture: "required",
+                training_certificate: "required",
+            },
+            messages: {
+                name: "Full name is required",
+                gender: "Please select gender",
+                dob: "Date of birth is required",
+                national_id: "National ID is required",
+                address: "Address is required",
+                city: "City is required",
+                state: "State is required",
+                country: "Country is required",
+                pin_code: "Pin code is required",
+                per_slot_price: "Per slot price is required",
+                training_skills: "Please enter your skills",
+                area_of_interest: "Please select an area of interest",
+                job_category: "Job category is required",
+                resume: "Please upload your resume",
+                profile_picture: "Please upload a profile picture",
+                training_certificate: "Please upload a training certificate",
+            }
+        });
+
+        // === Add validation to already visible Education block(s) ===
+        $('#education-container .education-entry').each(function () {
+            $(this).find('input').each(function () {
+                $(this).rules('add', {
+                    required: true,
+                    messages: { required: "This field is required" }
+                });
+            });
+        });
+
+        // === Add validation to already visible Work Experience block(s) ===
+        $('#work-container .work-entry').each(function () {
+            $(this).find('input').each(function () {
+                const name = $(this).attr('name');
+                if (!name) return;
+                let msg = "This field is required";
+                if (name.includes("job_role")) msg = "Job title is required";
+                if (name.includes("organization")) msg = "Company name is required";
+                if (name.includes("starts_from")) msg = "Start date is required";
+                if (name.includes("end_to")) msg = "End date is required";
+
+                $(this).rules('add', { required: true, messages: { required: msg } });
+            });
+        });
+
+        // === Add / Remove Education & Work blocks dynamically ===
+        // --- Education ---
+        let educationIndex = $('#education-container .education-entry').length - 1;
+        $('#add-education').click(function () {
+            educationIndex++;
+            const newBlock = $(`
+                <div class="education-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+                    <div>
+                        <label>Highest qualification <span style="color: red;">*</span></label>
+                        <input type="text" name="high_education[${educationIndex}]" class="w-full border border-gray-300 rounded-md p-2" placeholder="Enter highest qualification" >
+                    </div>
+                    
+                    <div>
+                        <label>Field of study <span style="color: red;">*</span></label>
+                        <input type="text" name="field_of_study[${educationIndex}]" class="w-full border border-gray-300 rounded-md p-2" placeholder="Enter field of study">
+                    </div>
+                    
+                    <div>
+                        <label>Institution name <span style="color: red;">*</span></label>
+                        <input type="text" name="institution[${educationIndex}]" class="w-full border border-gray-300 rounded-md p-2" placeholder="Enter institution name">
+                    </div>
+                    <div>
+                        <label>Graduation year <span style="color: red;">*</span></label>
+                        <input type="number" name="graduate_year[${educationIndex}]" class="w-full border border-gray-300 rounded-md p-2" placeholder="Enter graduation year (e.g. 2022 / Before 2000)"">
+                    </div>
+                    <button type="button" class="remove-education absolute top-2 right-2 text-red-600 font-bold">&times;</button>
+                </div>
+            `);
+            $('#education-container').append(newBlock);
+
+            // Add validation dynamically
+            newBlock.find('input').each(function () {
+                $(this).rules('add', { required: true, messages: { required: "This field is required" } });
+            });
+        });
+
+        $('#education-container').on('click', '.remove-education', function () {
+            $(this).closest('.education-entry').remove();
+        });
+
+        // --- Work ---
+        let workIndex = $('#work-container .work-entry').length - 1;
+        $('#add-work').click(function () {
+            workIndex++;
+            const newBlock = $(`
+                <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+                    <div>
+                        <label>Job Title <span style="color: red;">*</span></label>
+                        <input type="text" name="job_role[${workIndex}]" class="w-full border rounded-md p-2" placeholder="e.g. Software Engineer">
+                    </div>
+                    <div>
+                        <label>Organization <span style="color: red;">*</span></label>
+                        <input type="text" name="organization[${workIndex}]" class="w-full border rounded-md p-2" placeholder="e.g. ABC Corp">
+                    </div>
+
+                    <div>
+                        <label>Started From <span style="color: red;">*</span></label>
+                        <input type="date" name="starts_from[${workIndex}]" class="w-full border rounded-md p-2" placeholder="">
+                    </div>
+                    <div>
+                        <label>To <span style="color: red;">*</span></label>
+                        <input type="date" name="end_to[${workIndex}]" class="w-full border rounded-md p-2" placeholder="">
+                        <label><input type="checkbox" class="currently-working-checkbox" name="currently_working[${workIndex}]"> Currently working here</label>
+                    </div>
+                    <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold">&times;</button>
+                </div>
+            `);
+            $('#work-container').append(newBlock);
+
+            // Add validation dynamically
+            newBlock.find('input[name^="job_role"]').rules('add', { required: true, messages: { required: "Job title is required" }});
+            newBlock.find('input[name^="organization"]').rules('add', { required: true, messages: { required: "Company name is required" }});
+            newBlock.find('input[name^="starts_from"]').rules('add', { required: true, messages: { required: "Start date is required" }});
+            newBlock.find('input[name^="end_to"]').rules('add', { required: true, messages: { required: "End date is required" }});
+
+            // Currently working checkbox logic
+            newBlock.find('.currently-working-checkbox').change(function () {
+                const endInput = $(this).closest('.work-entry').find('input[name^="end_to"]');
+                if ($(this).is(':checked')) endInput.prop('readonly', true).prop('disabled', true).val('');
+                else endInput.prop('readonly', false).prop('disabled', false);
+            });
+            
+        });
+
+        $('#work-container').on('click', '.remove-work', function () {
+            $(this).closest('.work-entry').remove();
+        });
+
+        // === Step Navigation with validation ===
+        window.showStep = function (step, validate = true) {
+            const currentStep = $('.step:visible');
+            let valid = true;
+
+            if (validate) {
+                currentStep.find('input, select, textarea').each(function () {
+                    if (!$(this).valid()) valid = false;
+                });
+                if (!valid) return;
+            }
+
+            // $('.step').addClass('hidden');
+            // $('.step-circle').removeClass('bg-blue-600 text-white');
+            // $(`#step-${step}`).removeClass('hidden');
+            // $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
+
+            for (let i = 1; i <= 5; i++) {
+                $(`#step-${i}`).addClass('hidden');
+                $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white');
+            } 
+
+            $(`#step-${step}`).removeClass('hidden');
+            $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
+        };
+    });
 </script>
+
+
+
+
 
 
 
@@ -897,7 +1105,7 @@
 <!-- Step 2: jQuery Validation Plugin -->
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <!-- all step field click on next button-->
-<script>
+<!-- <script>
     $(document).ready(function () {
         const form = $('#multiStepForm');
 
@@ -1020,7 +1228,40 @@
         };
 
     });
+</script> -->
+
+<!-- Natioanl id and gender logic code -->
+<script>
+    $(document).ready(function () {
+        function validateNationalIdInput() {
+            const gender = $('#gender').val();
+            const value = $('#national_id').val();
+
+            if (gender === 'Male') {
+                if (value && !value.startsWith('1')) {
+                    $('#national_id').val('');
+                }
+            } else if (gender === 'Female') {
+                if (value && !value.startsWith('2')) {
+                    $('#national_id').val('');
+                }
+            }
+        }
+
+        $('#gender').on('change', function () {
+            const selectedGender = $(this).val();
+
+            // Clear National ID field when gender is changed
+            $('#national_id').val('');
+
+            // Attach input event for validation
+            $('#national_id').off('input').on('input', function () {
+                validateNationalIdInput();
+            });
+        });
+    });
 </script>
+
 
 <script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
 <script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->

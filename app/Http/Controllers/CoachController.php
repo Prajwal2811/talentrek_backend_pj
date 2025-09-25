@@ -449,9 +449,25 @@ class CoachController extends Controller
             return back()->withInput($request->only('email'));
         }
 
+        if ($coach->is_registered == 0) {
+            session([
+                'coach_id'  => $coach->id,
+                'email'         => $coach->email,
+                'phone_number'  => $coach->phone_number,
+            ]);
+
+            return redirect()->route('coach.registration')
+                ->with([
+                    'info'  => 'Please complete your registration.',
+                    'email' => session('email'),
+                    'phone' => session('phone_number'),
+                ]);
+        }
+
+
         // ✅ Now attempt login only if status is active and admin_status is approved
         if (Auth::guard('coach')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect()->route('coach.dashboard');
+            return redirect()->route('coach.dashboard')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
@@ -600,6 +616,7 @@ class CoachController extends Controller
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
+            'gender' => 'required|string|in:Male,Female,Other',
             'national_id' => [
                 'required',
                 'min:10',
@@ -629,9 +646,9 @@ class CoachController extends Controller
             'website_link' => 'nullable|url',
             'portfolio_link' => 'nullable|url',
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
         ], [
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
@@ -646,6 +663,8 @@ class CoachController extends Controller
             'per_slot_price.required' => 'Please enter your per slot price.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
+            'gender.required' => 'Please select your gender.',
+            'gender.in' => 'Gender must be Male, Female, or Other.',
 
             'high_education.*.required' => 'Please enter your highest education.',
             'institution.*.required' => 'Please enter the institution name.',
@@ -678,6 +697,7 @@ class CoachController extends Controller
         $coach->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone_number'],
             'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
@@ -955,11 +975,13 @@ class CoachController extends Controller
             'pin_code' => 'required|digits:5',
             'about_coach' => 'nullable|string',
             'per_slot_price' => 'required',
+            'gender' => 'required|string|in:Male,Female,Other',
         ]);
 
         $coach->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
@@ -1134,9 +1156,9 @@ class CoachController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
             'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         $documentTypes = [

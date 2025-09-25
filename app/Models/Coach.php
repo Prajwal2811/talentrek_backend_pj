@@ -19,6 +19,7 @@ class Coach extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'gender',
         'national_id',
         'phone_code',
         'phone_number',

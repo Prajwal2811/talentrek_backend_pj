@@ -256,7 +256,7 @@
                                                 <label>Email address</label>
                                                 <input readonly type="text" class="form-control" value="{{ $jobseeker->email }}">
                                             </div>
-                                            <div class="col-md-12 form-group">
+                                            <!-- <div class="col-md-12 form-group">
                                                 <label>Date of birth</label>
                                                 @php
                                                     $date = \Carbon\Carbon::parse($jobseeker->date_of_birth);
@@ -271,6 +271,27 @@
                                                     $formattedDate = $day . $suffix . ' ' . $date->format('F Y');
                                                 @endphp
                                                 <input readonly type="text" class="form-control" value="{{ $formattedDate }}">
+                                            </div> -->
+                                            <div class="col-md-12 form-group">
+                                                <label>Date of birth</label>
+                                                @php
+                                                    $formattedDate = '';
+                                                    if (!empty($jobseeker->date_of_birth)) {
+                                                        $date = \Carbon\Carbon::parse($jobseeker->date_of_birth);
+                                                        $day = $date->format('j');
+                                                        $suffix = match (true) {
+                                                            $day % 100 >= 11 && $day % 100 <= 13 => 'th',
+                                                            $day % 10 == 1 => 'st',
+                                                            $day % 10 == 2 => 'nd',
+                                                            $day % 10 == 3 => 'rd',
+                                                            default => 'th',
+                                                        };
+                                                        $formattedDate = $day . $suffix . ' ' . $date->format('F Y');
+                                                    }
+                                                @endphp
+
+                                                <input readonly type="text" class="form-control" 
+                                                    value="{{ $formattedDate ?: '' }}">
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Phone number</label>

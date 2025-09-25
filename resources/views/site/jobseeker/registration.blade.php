@@ -161,9 +161,9 @@
                                     <div class="grid grid-cols-2 gap-6 mt-3">
                                         <div class="col-span-2">
                                             <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                            <span class="text-xs text-blue-600">
+                                            <!-- <span class="text-xs text-blue-600">
                                                 National ID should start with 1 for male and 2 for female.
-                                            </span>
+                                            </span> -->
                                             <input 
                                                 type="text" 
                                                 name="national_id" 
@@ -527,9 +527,11 @@
                                             <span class="text-xs text-gray-500">(Download CV template and make sure the
                                                 template you upload must follow the attached template)</span>
                                         </label>
-                                        <button class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs btn mt-2">
-                                            Download CV template
-                                        </button>
+                                        <a href="{{ route('cv.template.download', 1) }}" 
+                                        class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs btn mt-2">
+                                        Download CV template
+                                        </a>
+
 
                                     </div>
                                     <!-- Upload Resume -->

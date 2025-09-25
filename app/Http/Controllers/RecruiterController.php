@@ -377,6 +377,7 @@ class RecruiterController extends Controller
                'registration_number' => 'required|string|max:255',
                'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
                'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:5120',
+               'gender' => 'required|string|in:Male,Female,Other',
           ], [
                'name.required' => 'Name is required.',
                'name.regex' => 'The full name should contain only letters and single spaces.',
@@ -385,6 +386,8 @@ class RecruiterController extends Controller
                'company_website.url' => 'Enter a valid URL.',
                'business_email.unique' => 'This business email is already used.',
                'company_phone_number.unique' => 'This phone number is already used.',
+               'gender.required' => 'Please select your gender.',
+               'gender.in' => 'Gender must be Male, Female, or Other.',
           ]);
 
           DB::beginTransaction();
@@ -420,6 +423,7 @@ class RecruiterController extends Controller
                     'phone_code'  => $validated['phone_code'],
                     'phone_number' => $validated['phone_number'],
                     'email'        => $email,
+                    'gender' => $validated['gender'],
                     'national_id' => $validated['national_id'],
                     'company_id'  => $company->id,
                     'role'        => 'main',
@@ -592,12 +596,28 @@ class RecruiterController extends Controller
           return back()->withInput($request->only('email'));
      }
 
+     // Check registration completion
+     if ($recruiter->is_registered == 0) {
+          session([
+               'recruiter_id'  => $recruiter->id,
+               'email'         => $recruiter->email,
+               'phone_number'  => $recruiter->phone_number,
+          ]);
+
+          return redirect()->route('recruiter.registration')
+               ->with([
+               'info'  => 'Please complete your registration.',
+               'email' => session('email'),
+               'phone' => session('phone_number'),
+               ]);
+     }
+
      // ✅ Attempt login only if status = active and admin_status = approved
      if (Auth::guard('recruiter')->attempt([
           'email'    => $request->email,
           'password' => $request->password
      ])) {
-          return redirect()->route('recruiter.dashboard');
+          return redirect()->route('recruiter.dashboard')->with('success', 'Login successful!');
      } else {
           session()->flash('error', 'Incorrect password.');
           return back()->withInput($request->only('email'));
@@ -1148,6 +1168,7 @@ class RecruiterController extends Controller
           'recruiters.*.email'       => 'required|email',
           'recruiters.*.national_id' => 'required|digits:15',
           'recruiters.*.mobile'      => 'required|digits:9',
+          'recruiters.*.gender'      => 'required|string|in:Male,Female,Other',
      ];
 
      $messages = [
@@ -1186,6 +1207,9 @@ class RecruiterController extends Controller
 
           'recruiters.*.mobile.required'   => 'Recruiter mobile number is required.',
           'recruiters.*.mobile.digits'     => 'Recruiter mobile number must be exactly 9 digits.',
+
+          'recruiters.*.gender.required'   => 'Please select your gender.',
+          'recruiters.*.gender.in'     => 'Gender must be Male, Female, or Other.',
           ];
 
           // Usage
@@ -1256,6 +1280,7 @@ class RecruiterController extends Controller
                     'email'       => $data['email'],
                     'national_id' => $data['national_id'],
                     'mobile'      => $data['mobile'],
+                    'gender'      => $data['gender'],
                ]);
           }
      }

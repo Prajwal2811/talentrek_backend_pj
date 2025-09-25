@@ -79,12 +79,27 @@
                                             @enderror
 
                                         </div>
-                                        <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                            <input placeholder="{{ langLabel('enter_email') }}" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
-                                            @error('email')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
+                                        <div class="grid grid-cols-2 gap-6">
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('email') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input placeholder="{{ langLabel('enter_email') }}" name="email" type="email" class="w-full border rounded-md p-2 mt-1" value="{{old('email', $email)}}" readonly/>
+                                                @error('email')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('gender') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
+                                                    <option value="">{{ langLabel('select_gender') }}</option>
+                                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>{{ langLabel('male') }}
+                                                    </option>
+                                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>
+                                                        {{ langLabel('female') }}</option>
+                                                </select>
+                                                @error('gender')
+                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
                                         
                                         <div class="grid grid-cols-2 gap-6">
@@ -136,11 +151,8 @@
                                                     value="{{ old('national_id') }}" 
                                                     maxlength="15"
                                                     pattern="^[1-2][0-9]{14}$"
-                                                    oninput="
-                                                        this.value = this.value.replace(/[^0-9]/g, ''); 
-                                                        if(this.value.length > 15) this.value = this.value.slice(0,15);
-                                                        if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
-                                                    "
+                                                    maxlength="15"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
                                                     required
                                                 />
                                                 @error('national_id')
@@ -896,6 +908,38 @@
             $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
         };
 
+    });
+</script>
+
+<!-- Natioanl id and gender logic code -->
+<script>
+    $(document).ready(function () {
+        function validateNationalIdInput() {
+            const gender = $('#gender').val();
+            const value = $('#national_id').val();
+
+            if (gender === 'Male') {
+                if (value && !value.startsWith('1')) {
+                    $('#national_id').val('');
+                }
+            } else if (gender === 'Female') {
+                if (value && !value.startsWith('2')) {
+                    $('#national_id').val('');
+                }
+            }
+        }
+
+        $('#gender').on('change', function () {
+            const selectedGender = $(this).val();
+
+            // Clear National ID field when gender is changed
+            $('#national_id').val('');
+
+            // Attach input event for validation
+            $('#national_id').off('input').on('input', function () {
+                validateNationalIdInput();
+            });
+        });
     });
 </script>
 

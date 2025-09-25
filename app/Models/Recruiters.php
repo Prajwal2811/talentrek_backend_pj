@@ -22,6 +22,7 @@ class Recruiters extends Authenticatable
         'company_id',
         'name',
         'email',
+        'gender',
         'phone_code',
         'phone_number',
         'national_id',

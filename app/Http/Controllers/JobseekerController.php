@@ -53,7 +53,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
 
 use App\Models\JobseekerTrainingAssessmentTime;
-
+use App\Models\Resume;
 
 
 class JobseekerController extends Controller
@@ -613,7 +613,7 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // ✅ Check admin_status
+        //  Check admin_status
         if ($jobseeker->admin_status === 'superadmin_reject' || $jobseeker->admin_status === 'rejected') {
             session()->flash('error', 'Your account has been rejected by administrator.');
             return back()->withInput($request->only('email'));
@@ -624,7 +624,7 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // ✅ Check registration completion
+        // Check registration completion
         if ($jobseeker->is_registered == 0) {
             session([
                 'jobseeker_id'  => $jobseeker->id,
@@ -640,9 +640,9 @@ class JobseekerController extends Controller
                 ]);
         }
 
-        // ✅ Attempt login only if all checks pass
+        //  Attempt login only if all checks pass
         if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect()->route('jobseeker.profile');
+            return redirect()->route('jobseeker.profile')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
@@ -3566,5 +3566,24 @@ public function submitReview(Request $request)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', "attachment; filename=Certificate-{$user->name}.pdf");
     }
+
+    public function downloadCvTemplate($id)
+    {
+        
+        $resume = Resume::find($id);
+
+        if (!$resume || empty($resume->resume_file_path)) {
+            return back()->with('error', 'CV template not found.');
+        }
+
+        $filePath = public_path($resume->resume_file_path);
+
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File does not exist on server.');
+        }
+
+        return response()->download($filePath, $resume->resume_file);
+    }
+
 
 }
