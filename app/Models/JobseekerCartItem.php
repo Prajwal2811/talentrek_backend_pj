@@ -14,6 +14,7 @@ class JobseekerCartItem extends Model
         'jobseeker_id',
         'trainer_id',
         'material_id',
+        'batch_id',
         'status',
     ];
 

@@ -42,7 +42,7 @@ return new class extends Migration
             // Billing fields
             $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
             $table->string('taxed_amount')->nullable(); 
-            $table->decimal('amount_paid', 10, 2);
+            $table->decimal('amount_paid', 10, 2)->nullable();
 
 
             $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
@@ -51,7 +51,7 @@ return new class extends Migration
             $table->string('order_id')->nullable();         // CAPTURED, DECLINED, etc.
 
 
-            $table->string('track_id', length: 50)->comment('Unique booking reference number');
+            $table->string('track_id', length: 50)->nullable()->comment('Unique booking reference number');
             $table->unique('track_id', 'booking_track_id_unique');
             $table->string('transaction_id', 191)->nullable()->comment('from payment provider');
             $table->enum('payment_status', ['pending', 'success', 'failed', 'refunded'])->default('pending');

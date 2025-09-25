@@ -24,6 +24,17 @@ return [
     'course_success_url' => env('APP_URL') . env('NEOLEAP_COURSE_SUCCESS_URL'),
     'course_failure_url' => env('APP_URL') . env('NEOLEAP_COURSE_FAILURE_URL'),
 
+    // Course Purchase
+    'team_course_success_url' => env('APP_URL') . env('NEOLEAP_TEAM_COURSE_SUCCESS_URL'),
+    'team_course_failure_url' => env('APP_URL') . env('NEOLEAP_TEAM_COURSE_FAILURE_URL'),
+
+
+     // Course Purchase
+    'cart_course_success_url' => env('APP_URL') . env('NEOLEAP_CART_COURSE_SUCCESS_URL'),
+    'cart_course_failure_url' => env('APP_URL') . env('NEOLEAP_CART_COURSE_FAILURE_URL'),
+
+
+
     // Booking session
     'session_success_url' => env('APP_URL') . env('NEOLEAP_SESSION_SUCCESS_URL'),
     'session_failure_url' => env('APP_URL') . env('NEOLEAP_SESSION_FAILURE_URL'),

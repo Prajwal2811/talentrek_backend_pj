@@ -18,32 +18,32 @@ return new class extends Migration
 
             // Foreign keys (not enforced yet)
             $table->unsignedBigInteger('jobseeker_id');
-            $table->unsignedBigInteger('trainer_id');
-            $table->unsignedBigInteger('material_id');
+            $table->unsignedBigInteger('trainer_id')->nullable();
+            $table->unsignedBigInteger('material_id')->nullable();
             $table->unsignedBigInteger('batch_id')->nullable();
 
             // Payment request details
             $table->json('request_payload')->nullable();
 
             // Shortened unique index for track_id
-            $table->string('track_id', 100)->comment('Unique track/reference ID');
+            $table->string('track_id', 100)->nullable()->comment('Unique track/reference ID');
             $table->unique('track_id', 'training_track_id_unique');
 
             $table->enum('type', ['buyNow', 'buyForCorporate', 'cart']);
-            $table->string('training_type', 50); // online/classroom/recorded
+            $table->string('training_type', 50)->nullable(); // online/classroom/recorded
             $table->string('transaction_id', 100)->nullable();
             $table->enum('payment_status', ['initiated', 'success', 'failed', 'refunded'])->default('initiated');
 
             // Amounts
-            $table->decimal('taxed_amount', 10, 2)->default(0.00);
-            $table->decimal('tax_percentage', 10, 2)->default(0.00);
+            $table->decimal('taxed_amount', 10, 2)->default(0.00)->nullable();
+            $table->decimal('tax_percentage', 10, 2)->default(0.00)->nullable();
 
 
-            $table->decimal('amount', 10, 2)->default(0.00);       // base amount
-            $table->decimal('amount_paid', 10, 2)->default(0.00);  // after discount/tax
+            $table->decimal('amount', 10, 2)->default(0.00)->nullable();       // base amount
+            $table->decimal('amount_paid', 10, 2)->default(0.00)->nullable();  // after discount/tax
 
-            $table->string('currency', 10)->default('INR');
-            $table->string('payment_gateway', 50);
+            $table->string('currency', 10)->default('SAR')->nullable();
+            $table->string('payment_gateway', 50)->nullable();
 
 
             $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.

@@ -45,330 +45,296 @@
           </script>
 
 
+        <main class="w-11/12 mx-auto py-8">
             @php
-                $memberCount = 4; // Default count shown on load
+                use App\Models\Taxation;
+                use Carbon\Carbon;
 
-                $actualPrice = $material->training_price;  // per member actual price
-                $offerPrice = $material->training_offer_price; // per member offer price
-                $savedPrice = ($material->training_price - $material->training_offer_price) * $memberCount;
-
-                $tax = round($offerPrice * 0.10, 2); // 10% tax
-                $total = $offerPrice + $tax;
+                $taxation = Taxation::where('user_type', 'trainer')->where('is_active', 1)->first();
+                $actualPrice = floatval($material->training_price);
+                $offerPrice = floatval($material->training_offer_price ?? $actualPrice);
+                $taxRate = floatval($taxation->rate ?? 0);
             @endphp
 
+            <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+                <div class="flex-1">
+                    @if (session()->has('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
+                            <strong>Oops!</strong> {{ session('error') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
 
-        <script>
-            let memberCount = 1; // start at 1
+                    <script>
+                        setTimeout(() => {
+                            ['successAlert','errorAlert'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if(el) el.remove();
+                            });
+                        }, 3000);
+                    </script>
 
-            const offerPrice = {{ $offerPrice }}; // per member
-            const actualPrice = {{ $actualPrice }}; // per member
-            const taxRate = 0.10; // 10%
+                    <form action="{{ route('jobseeker.team-purchase-course-for-team') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="material_id" value="{{ $material->id }}">
+                        <input type="hidden" name="training_type" value="{{ $material->training_type }}">
+                        <input type="hidden" name="member_count" id="memberCountInput" value="2">
+                        <input type="hidden" name="original_price" id="original_price" value="{{ $offerPrice }}">
+                        <input type="hidden" id="tax_rate" value="{{ $taxRate }}">
+                        <input type="hidden" name="coupon_type" id="coupon_type" value="">
+                        <input type="hidden" name="coupon_code" id="coupon_code_hidden" value="">
+                        <input type="hidden" name="coupon_amount" id="coupon_amount" value="">
+                        <input type="hidden" name="amount_paid" id="totalInput" value="">
 
-            function updateBilling() {
-                const courseTotal = offerPrice * memberCount;
-                const savedAmount = (actualPrice - offerPrice) * memberCount;
-                const tax = courseTotal * taxRate;
-                const total = courseTotal + tax;
+                        <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                document.getElementById("billingCourseTotal").textContent = `SAR ${courseTotal.toFixed(2)}`;
-                document.getElementById("billingSavedAmount").textContent = `SAR ${savedAmount.toFixed(2)}`;
-                document.getElementById("billingTax").textContent = `SAR ${tax.toFixed(2)}`;
-                document.getElementById("billingTotal").textContent = `SAR ${total.toFixed(2)}`;
-            }
+                            <!-- Left Column: Batch + Members -->
+                            <div class="lg:col-span-2 space-y-6">
 
-            function increaseCount() {
-                memberCount++;
-                document.getElementById("memberCount").textContent = memberCount;
-                document.getElementById("memberCountInput").value = memberCount;
-                updateBilling();
-            }
+                                @if($material->training_type === 'online' || $material->training_type === 'classroom')
+                                    <!-- Training Mode -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
+                                        <input type="hidden" name="session_type" value="{{ $material->training_type }}">
+                                        <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" disabled>
+                                            <option value="online" @if($material->training_type==='online') selected @endif>Online</option>
+                                            <option value="classroom" @if($material->training_type==='classroom') selected @endif>Classroom</option>
+                                        </select>
+                                    </div>
 
-            function decreaseCount() {
-                if (memberCount > 1) { // minimum 1
-                    memberCount--;
-                    document.getElementById("memberCount").textContent = memberCount;
-                    document.getElementById("memberCountInput").value = memberCount;
-                    updateBilling();
-                }
-            }
-
-            // run once on page load so billing matches default 1 member
-            document.addEventListener("DOMContentLoaded", updateBilling);
-        </script>
-
-
-
-
-    <main class="w-11/12 mx-auto py-8">
-        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
-            <div class="flex-1">
-                <div class="row">
-                    <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
-                        @if (session()->has('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
-                                <strong>Oops!</strong> {{ session('error') }}
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                </button>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <script>
-                    // Automatically hide alerts after 3 seconds
-                    setTimeout(() => {
-                        const successAlert = document.getElementById('successAlert');
-                        const errorAlert = document.getElementById('errorAlert');
-
-                        if (successAlert) {
-                            successAlert.classList.add('fade');
-                            setTimeout(() => successAlert.remove(), 500); // Remove from DOM after fade
-                        }
-                        if (errorAlert) {
-                            errorAlert.classList.add('fade');
-                            setTimeout(() => errorAlert.remove(), 500); // Remove from DOM after fade
-                        }
-                    }, 3000);
-                </script>
-                
-                <form accept="multipart/form-data" action="{{ route('jobseeker.team-purchase-course') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="material_id" value="{{ $material->id }}">
-                    <input type="hidden" name="training_type" value="{{ $material->training_type }}">
-
-                    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 space-y-6">
-
-                            @if($material->training_type === "online" || $material->training_type === "classroom")
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
-                                    <input type="hidden" name="session_type" value="{{ $material->training_type }}">
-                                    <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" disabled>
-                                        <option value="" disabled>{{ langLabel('select_training_mode') }}</option>
-                                        <option value="online" @if($material->training_type === 'online') selected @endif>Online</option>
-                                        <option value="classroom" @if($material->training_type === 'classroom') selected @endif>Classroom</option>
-                                    </select>
-                                </div>
-                                @error('session_type')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-
-                                <div>
+                                    <!-- Select Batch -->
                                     <h3 class="text-sm font-medium mb-2">{{ langLabel('select_batch') }}</h3>
-                                    <div class="overflow-x-auto">
-                                        <table class="w-full table-auto border border-gray-200 rounded text-sm text-center">
-                                            <thead class="bg-gray-100 text-gray-700">
-                                                <tr>
-                                                    <th class="px-4 py-2">{{ langLabel('select') }}</th>
-                                                    <th class="px-4 py-2">{{ langLabel('batch_no') }}</th>
-                                                    <th class="px-4 py-2">{{ langLabel('start_date') }}</th>
-                                                    <th class="px-4 py-2">{{ langLabel('timings') }}</th>
-                                                    <th class="px-4 py-2">{{ langLabel('duration') }}</th>
-                                                    <th class="px-4 py-2">{{ langLabel('strength') }}</th>
-                                                    <th class="px-4 py-2">{{ langLabel('days') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @forelse($material->batches as $batch)
-                                                    @php
-                                                        $start = \Carbon\Carbon::parse($batch->start_date);
-                                                        $now = \Carbon\Carbon::now();
-                                                        preg_match('/\d+/', strtolower($batch->duration), $m);
-                                                        $end = match (true) {
-                                                            str_contains(strtolower($batch->duration),'day') => $start->copy()->addDays($m[0] ?? 0),
-                                                            str_contains(strtolower($batch->duration),'month') => $start->copy()->addMonths($m[0] ?? 0),
-                                                            str_contains(strtolower($batch->duration),'year') => $start->copy()->addYears($m[0] ?? 0),
-                                                            default => $start
-                                                        };
-                                                        $ended = $end->isPast();
-                                                        $started = $start->isPast() && !$ended;
-                                                        $strength = $batch->strength;
-                                                        $enrolled = App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
-                                                                        ->where('material_id', $material->id)
-                                                                        ->count();
-                                                        $availableSeats = $strength - $enrolled;
-                                                        $isFull = $availableSeats <= 0;
-                                                    @endphp
-                                                    <tr class="border-t {{ $ended || $isFull ? 'bg-gray-200 text-gray-500' : 'cursor-pointer hover:bg-gray-50' }}"
-                                                        onclick="{{ ($ended || $isFull) ? '' : 'selectRadio(' . $batch->id . ',' . $availableSeats . ')' }}">
-                                                        <td class="px-4 py-2">
-                                                            <input type="radio" name="batch" value="{{ $batch->id }}" class="form-radio" id="batch-radio-{{ $batch->id }}"
-                                                                {{ ($ended || $isFull) ? 'disabled' : '' }}>
-                                                        </td>
-                                                        <td class="px-4 py-2">{{ $batch->batch_no }}</td>
-                                                        <td class="px-4 py-2">
-                                                            {{ $start->format('d M Y') }}
-                                                            @if($started)
-                                                                <div class="text-xs text-orange-600 mt-1 font-semibold">{{ langLabel('batch_hs_started') }}</div>
-                                                            @elseif($ended)
-                                                                <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_ended') }}</div>
-                                                            @elseif($isFull)
-                                                                <div class="text-xs text-red-600 mt-1 font-semibold">{{ langLabel('batch_full') }}</div>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-4 py-2">{{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}</td>
-                                                        <td class="px-4 py-2">{{ $batch->duration }}</td>
-                                                        <td class="px-4 py-2">{{ $batch->strength.' ('.$availableSeats.')' }}</td>
-                                                        @php
-                                                            $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days;
-                                                        @endphp
-                                                        <td class="px-4 py-2">{{ $days }}</td>
-                                                    </tr>
-                                                @empty
-                                                    <tr><td colspan="7" class="px-4 py-2 text-gray-500">{{ langLabel('no_batches_available') }}</td></tr>
-                                                @endforelse
-                                            </tbody>
-                                        </table>
+                                    <div class="grid grid-cols-1 gap-4">
+                                        @forelse($material->batches as $batch)
+                                            @php
+                                                $start = Carbon::parse($batch->start_date);
+                                                $end = isset($batch->end_date) ? Carbon::parse($batch->end_date) : $start;
+                                                $ended = $end->isPast();
+                                                $started = $start->isPast() && !$ended;
+                                                $strength = $batch->strength;
+                                                $enrolled = \App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                                                                ->where('material_id', $material->id)
+                                                                ->count();
+                                                $availableSeats = $strength - $enrolled;
+                                                $isFull = $availableSeats <= 0;
+                                                $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days;
+                                            @endphp
+
+                                            <div class="border rounded-lg p-4 flex justify-between items-center cursor-pointer hover:shadow-lg transition relative {{ $ended || $isFull ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white' }}"
+                                                onclick="{{ ($ended || $isFull) ? '' : 'selectBatch('.$batch->id.','.$availableSeats.')' }}">
+                                                <div class="flex items-center space-x-4">
+                                                    <input type="radio" name="batch_id" value="{{ $batch->id }}" id="batch-radio-{{ $batch->id }}" class="form-radio h-5 w-5 text-blue-600" {{ ($ended || $isFull)?'disabled':'' }}>
+                                                    <div>
+                                                        <h4 class="font-semibold text-gray-800">{{ $batch->batch_no }}</h4>
+                                                        <p class="text-gray-500 text-sm">
+                                                            Start: {{ $start->format('d M Y') }} <br>
+                                                            End: {{ $end->format('d M Y') }} <br>
+                                                            Timing: {{ Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right space-y-1">
+                                                    @if($ended)
+                                                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Batch Ended</span>
+                                                    @elseif($started)
+                                                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">Batch Started</span>
+                                                    @elseif($isFull)
+                                                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Full</span>
+                                                    @else
+                                                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{{ $availableSeats }} Seats Left</span>
+                                                    @endif
+                                                    <p class="text-gray-600 text-sm">Duration: {{ $batch->duration }}</p>
+                                                    <p class="text-gray-600 text-sm">Days: {{ $days }}</p>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <p class="text-gray-500 text-center">No batches available</p>
+                                        @endforelse
                                     </div>
-                                    @error('batch')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
+                                @endif
 
-                                    <script>
-                                        function selectRadio(id, availableSeats) {
-                                            const radio = document.getElementById('batch-radio-' + id);
-                                            if (radio) {
-                                                radio.checked = true;
-                                                const emailsContainer = document.getElementById('memberEmails');
-                                                // Max additional members = availableSeats - 1 (current user counts as 1)
-                                                const maxAdditionalMembers = availableSeats > 2 ? availableSeats - 2 : 1;
-                                                emailsContainer.dataset.maxMembers = maxAdditionalMembers;
-
-                                                const countEl = document.getElementById('memberCount');
-                                                const inputEl = document.getElementById('memberCountInput');
-                                                let current = parseInt(countEl.textContent);
-
-                                                if(current > maxAdditionalMembers + 1) { 
-                                                    changeCount(maxAdditionalMembers + 1 - current);
-                                                }
-                                            }
-                                        }
-                                    </script>
-                                </div>
-                            @endif
-
-                            <!-- Member selection -->
-                            <div class="flex border rounded p-4 space-x-4">
-                                <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}" alt="Course" class="w-28 h-20 object-cover rounded">
-                                <div class="flex-1">
-                                    <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
-                                    <div class="flex items-center space-x-2 mt-2">
-                                        <span class="text-sm font-medium text-gray-700">{{ langLabel('number_of_menbers') }}</span>
-                                        <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
-                                            <button type="button" onclick="changeCount(-1)" class="text-gray-600 text-lg">◀</button>
-                                            <span id="memberCount" class="text-base font-semibold text-gray-800">2</span>
-                                            <button type="button" onclick="changeCount(1)" class="text-gray-600 text-lg">▶</button>
+                                <!-- Member Selection -->
+                                <div class="flex border rounded p-4 space-x-4 mt-4">
+                                    <img src="{{ $material->thumbnail ?? asset('asset/images/gallery/pic-4.png') }}" alt="Course" class="w-28 h-20 object-cover rounded">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-sm">{{ $material->training_title . ' (' . $material->training_type .')' }}</h4>
+                                        <div class="flex items-center space-x-2 mt-2">
+                                            <span class="text-sm font-medium text-gray-700">{{ langLabel('number_of_members') }}</span>
+                                            <div class="inline-flex items-center border border-gray-300 rounded px-3 py-2 space-x-6">
+                                                <button type="button" onclick="changeCount(-1)" class="text-gray-600 text-lg">◀</button>
+                                                <span id="memberCount" class="text-base font-semibold text-gray-800">2</span>
+                                                <button type="button" onclick="changeCount(1)" class="text-gray-600 text-lg">▶</button>
+                                            </div>
                                         </div>
+                                        <small id="memberCountError" class="text-red-600 text-sm mt-1 hidden"></small>
                                     </div>
-                                    <small id="memberCountError" class="text-red-600 text-sm mt-1 block hidden"></small>
-                                    <input type="hidden" name="member_count" id="memberCountInput" value="2">
+                                </div>
+
+                                <div id="memberEmails" data-max-members="0" class="mt-3">
+                                    <input type="email" name="member_emails[]" placeholder="Enter email for member 1" class="border p-2 rounded w-full mb-2">
+                                    <input type="email" name="member_emails[]" placeholder="Enter email for member 2" class="border p-2 rounded w-full mb-2">
+                                </div>
+
+                            </div>
+
+                            <!-- Right Column: Billing + Coupon -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="text-sm font-medium mb-2">{{ langLabel('apply_promocode') }}:</h3>
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="coupon_code" placeholder="Enter promocode" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                        <button type="button" id="apply_coupon" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
+                                    </div>
+                                    <small id="coupon_message" class="text-red-500 mt-1 block"></small>
+                                </div>
+
+                                <div class="border rounded p-4 space-y-2">
+                                    <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('billing_information') }}</h3>
+                                    <div class="flex justify-between text-sm">
+                                        <span>{{ langLabel('course_total') }}</span>
+                                        <span id="billingCourseTotal"></span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>{{ langLabel('saved_amount') }}</span>
+                                        <span id="billingSavedAmount"></span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>{{ langLabel('tax') }} ({{ $taxRate }}%)</span>
+                                        <span id="billingTax"></span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-semibold pt-2 border-t">
+                                        <span>{{ langLabel('total') }}</span>
+                                        <span id="billingTotal"></span>
+                                    </div>
+                                    <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                        {{ langLabel('proceed_checkout') }}
+                                    </button>
                                 </div>
                             </div>
-
-                            <!-- Emails container -->
-                            <div id="memberEmails" class="mt-3" data-max-members="0">
-                                <input type="email" name="member_emails[]" placeholder="Enter email for member 1" class="border p-2 rounded w-full mb-2">
-                                <input type="email" name="member_emails[]" placeholder="Enter email for member 2" class="border p-2 rounded w-full mb-2">
-                            </div>
-
-                            <script>
-                                function changeCount(delta) {
-                                    const countEl = document.getElementById('memberCount');
-                                    const inputEl = document.getElementById('memberCountInput');
-                                    const emailsContainer = document.getElementById('memberEmails');
-                                    const errorEl = document.getElementById('memberCountError');
-
-                                    const maxAdditionalMembers = parseInt(emailsContainer.dataset.maxMembers);
-
-                                    if (isNaN(maxAdditionalMembers) || maxAdditionalMembers === 0) {
-                                        errorEl.textContent = "Please select a batch first.";
-                                        errorEl.classList.remove('hidden');
-                                        return;
-                                    } else {
-                                        errorEl.textContent = "";
-                                        errorEl.classList.add('hidden');
-                                    }
-
-                                    let current = parseInt(countEl.textContent);
-                                    let newCount = current + delta;
-
-                                    if (newCount < 2) newCount = 2; 
-                                    if (newCount > maxAdditionalMembers + 1) newCount = maxAdditionalMembers + 1;
-
-                                    countEl.textContent = newCount;
-                                    inputEl.value = newCount;
-
-                                    const existingInputs = emailsContainer.querySelectorAll('input');
-                                    const memberInputsNeeded = newCount - 1;
-
-                                    if (memberInputsNeeded > existingInputs.length) {
-                                        for (let i = existingInputs.length + 1; i <= memberInputsNeeded; i++) {
-                                            const input = document.createElement('input');
-                                            input.type = 'email';
-                                            input.name = 'member_emails[]';
-                                            input.placeholder = `Enter email for member ${i + 1}`;
-                                            input.className = 'border p-2 rounded w-full mb-2';
-                                            emailsContainer.appendChild(input);
-                                        }
-                                    } else if (memberInputsNeeded < existingInputs.length) {
-                                        for (let i = existingInputs.length; i > memberInputsNeeded; i--) {
-                                            emailsContainer.removeChild(existingInputs[i - 1]);
-                                        }
-                                    }
-                                }
-                            </script>
 
                         </div>
+                    </form>
 
-                        <!-- Billing & Checkout -->
-                        <div x-data="{ paymentMethod: 'card' }" class="space-y-4">
-                            @php
-                                $taxation = App\Models\Taxation::where('user_type', 'trainer')->where('is_active', 1)->first();
-                                $actualPrice = floatval($material->training_price);
-                                $offerPrice = floatval($material->training_offer_price ?? $actualPrice);
-                                $savedPrice = $actualPrice - $offerPrice;
-                                $taxRate = floatval($taxation->rate);
-                                $tax = round($offerPrice * ($taxRate / 100), 2);
-                                $total = round($offerPrice + $tax, 2);
-                            @endphp
+                    <!-- JS Section -->
+                    <script>
+                        let memberCount = 2;
+                        const offerPrice = {{ $offerPrice }};
+                        const actualPrice = {{ $actualPrice }};
+                        const taxRate = {{ $taxRate/100 }};
 
-                            <div class="border rounded p-4 space-y-2">
-                                <h3 class="text-sm font-medium border-b pb-2">{{ langLabel('billing_information') }}</h3>
-                                <div class="flex justify-between text-sm">
-                                    <span>{{ langLabel('course_total') }}</span>
-                                    <span>SAR {{ number_format($offerPrice, 2) }}</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span>{{ langLabel('saved_amount') }}</span>
-                                    <span>SAR {{ number_format($savedPrice, 2) }}</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span>{{ langLabel('tax') }} ({{ $taxation->rate }}%)</span>
-                                    <span>SAR {{ number_format($tax, 2) }}</span>
-                                </div>
-                                <div class="flex justify-between text-base font-semibold pt-2 border-t">
-                                    <span>{{ langLabel('total') }}</span>
-                                    <span>SAR {{ number_format($total, 2) }}</span>
-                                </div>
-                                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                    {{ langLabel('proceed_checkout') }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                        function selectBatch(batchId, availableSeats){
+                            const radio = document.getElementById('batch-radio-'+batchId);
+                            if(radio) radio.checked = true;
 
+                            const emails = document.getElementById('memberEmails');
+                            const maxMembers = availableSeats-1;
+                            emails.dataset.maxMembers = maxMembers;
 
-                    <style>
-                        .active-tab {
-                            border-bottom-color: #2563eb;
-                            color: #2563eb;
+                            const countEl = document.getElementById('memberCount');
+                            const inputEl = document.getElementById('memberCountInput');
+                            let currentCount = parseInt(countEl.textContent);
+                            if(currentCount > maxMembers + 1) {
+                                changeCount(maxMembers + 1 - currentCount);
+                            }
                         }
-                    </style>
 
+                        function changeCount(delta){
+                            const countEl = document.getElementById('memberCount');
+                            const inputEl = document.getElementById('memberCountInput');
+                            const emails = document.getElementById('memberEmails');
+                            const errorEl = document.getElementById('memberCountError');
+                            const max = parseInt(emails.dataset.maxMembers);
+                            if(!max || max <= 0){
+                                errorEl.textContent = "Please select a batch first.";
+                                errorEl.classList.remove('hidden');
+                                return;
+                            } else {
+                                errorEl.textContent = "";
+                                errorEl.classList.add('hidden');
+                            }
+
+                            let newCount = memberCount + delta;
+                            if(newCount < 2) newCount = 2;
+                            if(newCount > max + 1) newCount = max + 1;
+                            memberCount = newCount;
+                            countEl.textContent = newCount;
+                            inputEl.value = newCount;
+
+                            const existing = emails.querySelectorAll('input');
+                            const needed = newCount - 1;
+                            if(needed > existing.length){
+                                for(let i = existing.length+1; i <= needed; i++){
+                                    const input = document.createElement('input');
+                                    input.type='email';
+                                    input.name='member_emails[]';
+                                    input.placeholder=`Enter email for member ${i+1}`;
+                                    input.className='border p-2 rounded w-full mb-2';
+                                    emails.appendChild(input);
+                                }
+                            } else if(needed < existing.length){
+                                for(let i = existing.length; i > needed; i--){
+                                    emails.removeChild(existing[i-1]);
+                                }
+                            }
+                            updateBilling();
+                        }
+
+                        function updateBilling(discount = 0){
+                            const courseTotal = offerPrice*memberCount - discount;
+                            const savedAmount = (actualPrice - offerPrice)*memberCount + discount;
+                            const tax = courseTotal*taxRate;
+                            const total = courseTotal + tax;
+
+                            document.getElementById('billingCourseTotal').textContent=`SAR ${courseTotal.toFixed(2)}`;
+                            document.getElementById('billingSavedAmount').textContent=`SAR ${savedAmount.toFixed(2)}`;
+                            document.getElementById('billingTax').textContent=`SAR ${tax.toFixed(2)}`;
+                            document.getElementById('billingTotal').textContent=`SAR ${total.toFixed(2)}`;
+                            document.getElementById('totalInput').value=total.toFixed(2);
+                        }
+
+                        document.addEventListener("DOMContentLoaded", () => { updateBilling(); });
+
+                        document.getElementById('apply_coupon').addEventListener('click', function(){
+                            const code = document.getElementById('coupon_code').value.trim();
+                            const msgEl = document.getElementById('coupon_message');
+                            if(!code){ msgEl.textContent="Enter coupon code."; return; }
+
+                            fetch("{{ route('apply.coupon') }}", {
+                                method:'POST',
+                                headers:{"Content-Type":"application/json","X-CSRF-TOKEN":"{{ csrf_token() }}"},
+                                body:JSON.stringify({code})
+                            })
+                            .then(res=>res.json())
+                            .then(data=>{
+                                if(!data.success){
+                                    msgEl.textContent=data.message;
+                                    msgEl.classList.add('text-red-500');
+                                    msgEl.classList.remove('text-green-500');
+                                    return;
+                                }
+
+                                let discount=0;
+                                if(data.discount_type==='fixed') discount=data.discount_value;
+                                else if(data.discount_type==='percentage') discount=(offerPrice*memberCount*data.discount_value)/100;
+
+                                document.getElementById('coupon_type').value=data.discount_type;
+                                document.getElementById('coupon_code_hidden').value=code;
+                                document.getElementById('coupon_amount').value=discount.toFixed(2);
+
+                                updateBilling(discount);
+
+                                msgEl.textContent=`Coupon applied: ${data.discount_type==='fixed' ? 'SAR '+discount.toFixed(2)+' off' : data.discount_value+'% off'}`;
+                                msgEl.classList.remove('text-red-500');
+                                msgEl.classList.add('text-green-500');
+                            });
+                        });
+                    </script>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+
+
+
     
         </div>
 

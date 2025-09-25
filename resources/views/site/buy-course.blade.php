@@ -112,78 +112,69 @@
                                 </div>
 
                                 <h3 class="text-sm font-medium mb-2">{{ langLabel('select_batch') }}</h3>
-                                <table class="w-full table-auto border border-gray-200 rounded text-sm text-center">
-                                    <thead class="bg-gray-100 text-gray-700">
-                                        <tr>
-                                            <th class="px-4 py-2">{{ langLabel('select') }}</th>
-                                            <th class="px-4 py-2">{{ langLabel('batch_no') }}</th>
-                                            <th class="px-4 py-2">{{ langLabel('start_date') }}</th>
-                                            <th class="px-4 py-2">{{ langLabel('timings') }}</th>
-                                            <th class="px-4 py-2">{{ langLabel('duration') }}</th>
-                                            <th class="px-4 py-2">{{ langLabel('strength') }}</th>
-                                            <th class="px-4 py-2">{{ langLabel('days') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                    <div class="grid grid-cols-1 gap-4">
                                         @forelse($material->batches as $batch)
                                             @php
-                                                $start = \Carbon\Carbon::parse($batch->start_date);
-                                                $now = \Carbon\Carbon::now();
-
-                                                preg_match('/\d+/', strtolower($batch->duration), $m);
-                                                $end = match (true) {
-                                                    str_contains(strtolower($batch->duration), 'day') => $start->copy()->addDays($m[0] ?? 0),
-                                                    str_contains(strtolower($batch->duration), 'month') => $start->copy()->addMonths($m[0] ?? 0),
-                                                    str_contains(strtolower($batch->duration), 'year') => $start->copy()->addYears($m[0] ?? 0),
-                                                    default => $start
-                                                };
+                                                // Use database start_date and end_date
+                                                $start = Carbon\Carbon::parse($batch->start_date);
+                                                $end = isset($batch->end_date) ? Carbon\Carbon::parse($batch->end_date) : $start;
 
                                                 $ended = $end->isPast();
                                                 $started = $start->isPast() && !$ended;
 
                                                 $strength = $batch->strength;
-                                                $enrolled = App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
-                                                    ->where('material_id', $material->id)
-                                                    ->count();
-                                                $availableStrength = $strength - $enrolled;
-                                                $isFull = $availableStrength <= 0;
+                                                $enrolled = \App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                                                                ->where('material_id', $material->id)
+                                                                ->count();
+                                                $availableSeats = $strength - $enrolled;
+                                                $isFull = $availableSeats <= 0;
+
                                                 $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days;
                                             @endphp
-                                            <tr class="border-t {{ $ended || $isFull ? 'bg-gray-200 text-gray-500' : 'cursor-pointer hover:bg-gray-50' }}"
-                                                onclick="{{ ($ended || $isFull) ? '' : 'selectRadio(' . $batch->id . ')' }}">
-                                                <td class="px-4 py-2">
-                                                    <input type="radio" name="batch_id" value="{{ $batch->id }}" class="form-radio"
-                                                        id="batch-radio-{{ $batch->id }}" {{ ($ended || $isFull) ? 'disabled' : '' }}>
-                                                </td>
-                                                <td class="px-4 py-2">{{ $batch->batch_no }}</td>
-                                                <td class="px-4 py-2">
-                                                    {{ $start->format('d M Y') }}
-                                                    @if($started)
-                                                        <div class="text-xs text-orange-600 mt-1 font-semibold">
-                                                            {{ langLabel('batch_has_started') }}</div>
-                                                    @elseif($ended)
-                                                        <div class="text-xs text-red-600 mt-1 font-semibold">
-                                                            {{ langLabel('batch_ended') }}</div>
+
+                                            <div class="border rounded-lg p-4 flex justify-between items-center cursor-pointer hover:shadow-lg transition relative {{ $ended || $isFull ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white' }}"
+                                                onclick="{{ ($ended || $isFull) ? '' : 'selectBatch('.$batch->id.','.$availableSeats.')' }}">
+                                                <div class="flex items-center space-x-4">
+                                                    <input type="radio" name="batch_id" value="{{ $batch->id }}" id="batch-radio-{{ $batch->id }}" class="form-radio h-5 w-5 text-blue-600" {{ ($ended || $isFull)?'disabled':'' }}>
+                                                    <div>
+                                                        <h4 class="font-semibold text-gray-800">{{ $batch->batch_no }}</h4>
+                                                        <p class="text-gray-500 text-sm">
+                                                            Start: {{ $start->format('d M Y') }} <br>
+                                                            End: {{ $end->format('d M Y') }} <br>
+                                                            Timing: {{ Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="text-right space-y-1">
+                                                    @if($ended)
+                                                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Batch Ended</span>
+                                                    @elseif($started)
+                                                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">Batch Started</span>
                                                     @elseif($isFull)
-                                                        <div class="text-xs text-red-600 mt-1 font-semibold">
-                                                            {{ langLabel('batch_full') }}</div>
+                                                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Full</span>
+                                                    @else
+                                                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{{ $availableSeats }} Seats Left</span>
                                                     @endif
-                                                </td>
-                                                <td class="px-4 py-2">
-                                                    {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} -
-                                                    {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}</td>
-                                                <td class="px-4 py-2">{{ $batch->duration }}</td>
-                                                <td class="px-4 py-2">{{ $batch->strength }}</td>
-                                                <td class="px-4 py-2">{{ $days }}</td>
-                                            </tr>
+                                                    <p class="text-gray-600 text-sm">Duration: {{ $batch->duration }}</p>
+                                                    <p class="text-gray-600 text-sm">Days: {{ $days }}</p>
+                                                </div>
+                                            </div>
                                         @empty
-                                            <tr>
-                                                <td colspan="7" class="px-4 py-2 text-gray-500">
-                                                    {{ langLabel('no_batched_available') }}</td>
-                                            </tr>
+                                            <p class="text-gray-500 text-center">No batches available</p>
                                         @endforelse
-                                    </tbody>
-                                </table>
+                                    </div>
+
+                                    <script>
+                                        function selectBatch(id, seats) {
+                                            const radio = document.getElementById('batch-radio-' + id);
+                                            if (radio) radio.checked = true;
+                                            // Optional: Update available seats or total dynamically
+                                            console.log('Selected batch:', id, 'Seats available:', seats);
+                                        }
+                                    </script>
+
+
 
                                 <script>
                                     function selectRadio(id) {

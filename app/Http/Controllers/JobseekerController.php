@@ -2292,18 +2292,26 @@ class JobseekerController extends Controller
             return response()->json(['message' => 'Invalid material ID.'], 400);
         }
 
+        // Make sure batch_id is provided
+        $batchId = $request->input('batch_id');
+        if (!$batchId) {
+            return response()->json(['message' => 'Please select a batch before adding to cart.'], 400);
+        }
+
         $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
             ->where('material_id', $id)
+            ->where('batch_id', $batchId)
             ->exists();
 
         if ($exists) {
-            return response()->json(['message' => 'Item is already in your cart.'], 200);
+            return response()->json(['message' => 'Item with this batch is already in your cart.'], 200);
         }
 
         JobseekerCartItem::create([
             'jobseeker_id' => $jobseekerId,
             'trainer_id' => $material->trainer_id,
             'material_id' => $id,
+            'batch_id' => $batchId,
             'status' => 'pending',
         ]);
 

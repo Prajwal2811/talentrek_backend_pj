@@ -77,10 +77,6 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-mentor-review', [JobseekerController::class, 'submitMentorReview'])->name('submit.mentor.review');
 			
 
-		Route::post('/purchase-course', [CoursePurchaseController::class, 'processPurchaseCoursePayment'])->name('jobseeker.purchase-course');
-		Route::post('/course/payment/success', [CoursePurchaseController::class, 'successPurchaseCourse']);
-		Route::post('/course/payment/failure', [CoursePurchaseController::class, 'failurePurchaseCourse']);
-
 
 		// Purchase request stays POST
 		
