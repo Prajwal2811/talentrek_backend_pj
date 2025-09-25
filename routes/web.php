@@ -151,7 +151,7 @@ Route::post('/broadcasting/auth', function () {
 
 
 Route::group(['middleware' => 'jobseeker.auth'], function () {
-    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('jobseeker.chat.send');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('jobseeker.chat.send');  
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('jobseeker.chat.fetch');
 
     Route::post('/jobseeker/admin/chat/send', [ChatController::class, 'sendGroupMessage'])->name('jobseeker.group.chat.send');

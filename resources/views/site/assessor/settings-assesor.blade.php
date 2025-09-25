@@ -682,18 +682,31 @@ $assessor = Auth()->user();
                                             <!-- assessor Info Form -->
                                             <form id="assessor-info-form" action="{{ route('assessor.profile.update') }}" method="POST">
                                                 @csrf
-                                                <div class="grid grid-cols-2 gap-6 mt-3">
-                                                    <!-- Name -->
-                                                    <div>
-                                                        <label class="block mb-1 font-medium">Full Name</label>
-                                                        <input type="text" name="name" value="{{ $assessor->name }}" class="w-full border rounded px-3 py-2" />
-                                                    </div>
+                                                
+                                                <!-- Name -->
+                                                <div>
+                                                    <label class="block mb-1 font-medium">Full Name</label>
+                                                    <input type="text" name="name" value="{{ $assessor->name }}" class="w-full border rounded px-3 py-2" />
+                                                </div>
 
+                                                <div class="grid grid-cols-2 gap-6 mt-3">
                                                     <!-- Email -->
                                                     <div>
                                                         <label class="block mb-1 font-medium">Email</label>
                                                         <input type="email" name="email" value="{{ $assessor->email }}" class="w-full border rounded px-3 py-2" />
                                                     </div>
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium mt-3">Gender <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
+                                                            <option value="">Select Gender</option>
+                                                            <option value="Male" {{ old('gender', $assessor->gender ?? '') == 'Male' ? 'selected' : '' }}>Male</option>
+                                                            <option value="Female" {{ old('gender', $assessor->gender ?? '') == 'Female' ? 'selected' : '' }}>Female</option>
+                                                        </select>
+                                                        @error('gender')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+
                                                 </div>
 
                                                 <div class="grid grid-cols-2 gap-6 mt-3">

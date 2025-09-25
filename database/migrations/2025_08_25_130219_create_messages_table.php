@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('receiver_id');
             $table->string('receiver_type', 50);
             $table->text('message');
+            $table->string('app_type');
             $table->tinyInteger('type')->comment('1 = Text, 2 = File');
             $table->integer('is_read')->default(0)->nullable();
             $table->timestamps(0); // created_at and updated_at, nullable

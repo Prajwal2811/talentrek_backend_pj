@@ -40,18 +40,7 @@ $skills = $user->skills->first();
         </div>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        @if(session('success'))
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: "{{ session('success') }}",
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    });
-                });
-            </script>
-        @endif
+        
         @include('admin.errors')
         <main class="w-11/12 mx-auto py-8" x-data="{ tab: 'personal' }">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -2456,6 +2445,8 @@ $(document).ready(function () {
         });
     });
 </script>
+
+
 
 
 
