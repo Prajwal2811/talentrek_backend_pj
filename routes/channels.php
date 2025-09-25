@@ -17,6 +17,10 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
+Broadcast::channel('appChat.{id}', function ($id) {
+    // Check if the user is authenticated and if the ID matches
+   return (int) $id;
+});
 
 Broadcast::channel('chat.jobseeker.{id}', function ($user, $id) {
     // Check if the user is authenticated and if the ID matches

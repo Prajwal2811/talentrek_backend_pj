@@ -13,6 +13,7 @@ use App\Models\Api\AdditionalInfo;
 use App\Models\Api\BookingSlotUnavailableDate;
 use App\Models\Api\BookingSession;
 use App\Models\SubscriptionPlan;
+use App\Models\Api\PurchasedSubscription;
 
 use DB;
 use Carbon\Carbon;
@@ -424,16 +425,62 @@ class SessionsManagementController extends Controller
         }
     }
 
-    public function subscriptionPlanListForMCAJT($type='mentor')
+    // public function subscriptionPlanListForMCAJT($type='mentor')
+    // {
+    // //    try {
+    //         $SubscriptionPlan = SubscriptionPlan::select('*')->where('user_type',$type)->where('is_active',1)->get();
+    //         if ($SubscriptionPlan->isEmpty()) {
+    //             return $this->errorResponse('No Subscription list found for '.$type.' .', 200,[]);
+    //         }
+    //         return $this->successResponse($SubscriptionPlan, 'Subscription list for '.$type.' fetched successfully.');
+    //     // } catch (\Exception $e) {
+    //     //     return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
+    //     // }
+    // }
+
+    public function subscriptionPlanListForMCAJT($type='mentor',$userId)
     {
-    //    try {
+        try {
+            // ✅ Validate input
+            $validTypes = ['mentor', 'assessor', 'trainer', 'coach', 'jobseeker'];
+            if (!in_array($type, $validTypes)) {
+                return $this->errorResponse('Invalid user type provided.', 400, []);
+            }
+
+            if (empty($userId) || !is_numeric($userId)) {
+                return $this->errorResponse('Invalid user ID provided.', 400, []);
+            }
+            
             $SubscriptionPlan = SubscriptionPlan::select('*')->where('user_type',$type)->where('is_active',1)->get();
             if ($SubscriptionPlan->isEmpty()) {
                 return $this->errorResponse('No Subscription list found for '.$type.' .', 200,[]);
             }
-            return $this->successResponse($SubscriptionPlan, 'Subscription list for '.$type.' fetched successfully.');
-        // } catch (\Exception $e) {
-        //     return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
-        // }
+            
+            // ✅ Check if user has an active subscription
+           $activeSubscriptions = PurchasedSubscription::where('user_id', $userId)
+                ->where('user_type', $type)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->where('payment_status', 'paid')
+                ->get();
+
+            if ($activeSubscriptions->isNotEmpty()) {
+                // user has one or more running subscriptions
+                $isRunning = true;
+            } else {
+                $isRunning = false;
+            }
+
+            return response()->json([
+                'success' => true,
+                'isSubscription' => $isRunning,
+                'data' => $SubscriptionPlan,
+                'message' => 'Subscription list for '.$type.' fetched successfully.'
+            ]);        
+            
+            
+        } catch (\Exception $e) {
+            return $this->errorResponse('An error occurred while fetching Subscription list for '.$type.' .', 500,[]);
+        }    
     }
 }

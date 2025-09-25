@@ -60,14 +60,15 @@ class ChatController extends Controller
     public function sendMessage(Request $request)
     {
         //$sender = $this->getSender();
-
+        $request->app_type ='mobile' ;
         $data = [
             'sender_id'    => $request->sender_id,
-            'sender_type'  => $request->sender_type,            ,
+            'sender_type'  => $request->sender_type,
             'receiver_id'  => $request->receiver_id,
             'receiver_type'=> $request->receiver_type,
             'type'         => 1, // default text
-            'message'      => $request->message
+            'message'      => $request->message,
+            'app_type'      =>$request->app_type
         ];
 
         if ($request->hasFile('file')) {
@@ -82,7 +83,10 @@ class ChatController extends Controller
 
         $message = Message::create($data);
 
-        broadcast(new MessageSent($message))->toOthers();
+
+        $test = broadcast(new MessageSent($message))->toOthers();
+
+        dd($test);
 
         return response()->json([
             'id'          => $message->id,
@@ -92,39 +96,7 @@ class ChatController extends Controller
             'type'        => $message->type,
             'created_at'  => $message->created_at->toDateTimeString()
         ]);
-    }
-
-
-
-    private function getSender()
-    {
-        if (auth()->guard('jobseeker')->check()) 
-        {
-            return ['id' => auth()->guard('jobseeker')->id(), 'type' => 'jobseeker'];
-        } 
-        elseif (auth()->guard('trainer')->check()) 
-        {
-            return ['id' => auth()->guard('trainer')->id(), 'type' => 'trainer'];
-        } 
-        elseif (auth()->guard('mentor')->check()) 
-        {
-            return ['id' => auth()->guard('mentor')->id(), 'type' => 'mentor'];
-        } 
-        elseif (auth()->guard('coach')->check()) 
-        {
-            return ['id' => auth()->guard('coach')->id(), 'type' => 'coach'];
-        }
-        elseif (auth()->guard('assessor')->check()) 
-        {
-            return ['id' => auth()->guard('assessor')->id(), 'type' => 'assessor'];
-        }
-        elseif (auth()->guard('admin')->check()) 
-        {
-            return ['id' => auth()->guard('admin')->id(), 'type' => 'admin'];
-        }
-
-        return ['id' => null, 'type' => null];
-    }
+    }   
 
 
     // ✅ Get chat messages between any 2 parties
@@ -136,12 +108,12 @@ class ChatController extends Controller
             return response()->json(['error' => 'Invalid data'], 422);
         }
 
-        $messages = Message::where(function ($q) use ($sender, $request) {
+        $messages = Message::where(function ($q) use ( $request) {
             $q->where('sender_id', $request->sender_id)
                 ->where('sender_type', $request->sender_type)
                 ->where('receiver_id', $request->receiver_id)
                 ->where('receiver_type', $request->receiver_type);
-        })->orWhere(function ($q) use ($sender, $request) {
+        })->orWhere(function ($q) use ( $request) {
             $q->where('sender_id', $request->receiver_id)
                 ->where('sender_type', $request->receiver_type)
                 ->where('receiver_id', $request->sender_id)
@@ -150,28 +122,6 @@ class ChatController extends Controller
 
         return response()->json($messages);
     }
-
-
-
-    public function delete(Request $request)
-    {
-        $message = Message::find($request->id);
-
-        //$sender = $this->getSender();
-
-        if ($message && $message->sender_id == $request->sender_id && $message->sender_type == $request->sender_type) {
-            $receiverId = $message->receiver_id;
-            $message->delete();
-
-            broadcast(new MessageDeleted($request->id, $receiverId))->toOthers();
-
-            return response()->json(['status' => 'deleted']);
-        }
-
-    }
-
-
-
     public function sendGroupMessage(Request $request)
     {
         //$sender = $this->getSender(); // returns ['id' => ..., 'type' => ...]

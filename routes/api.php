@@ -62,6 +62,7 @@ use App\Http\Controllers\API\ReviewManagementController;
 use App\Http\Controllers\API\SubscriptionManagementController;
 use App\Http\Controllers\API\CmsController;
 use App\Http\Controllers\API\NotificationController;
+use App\Http\Controllers\API\ChatController;
 
 
 
@@ -471,3 +472,7 @@ Route::get('/translateText', [LanguageController::class, 'index']);
 
 Route::get('/notificationList/{userType}/{userId}', [NotificationController::class, 'notificationListByMCAJT']);
 Route::get('/notificationMarkRead/{notificationId}', [NotificationController::class, 'notificationMarkReadByMCAJT']);
+
+
+Route::post('/sendMessage', [ChatController::class, 'sendMessage']);
+Route::post('/getMessages', [ChatController::class, 'getMessages']);

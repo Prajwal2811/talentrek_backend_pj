@@ -72,38 +72,46 @@ class MessageSent implements ShouldBroadcast
 
     //     return array_map(fn($ch) => new Channel($ch), $channels);
     // }
-     public function broadcastOn()
+    public function broadcastOn()
     {
+        
         $channels = [];
+        // For mobile App
+        if ($this->message->app_type === 'mobile') {
+            $channels[] = 'appChat';
+            $channels[] = 'appChat';
+            
+        }else{
 
-        // ✅ Always send to sender & receiver channel
-        if ($this->message->sender_type === 'admin') {
-            $channels[] = 'chat.admin';
-            $channels[] = 'chat.jobseeker';
-        }
+            // ✅ Always send to sender & receiver channel
+            if ($this->message->sender_type === 'admin') {
+                $channels[] = 'chat.admin';
+                $channels[] = 'chat.jobseeker';
+            }
 
-        if ($this->message->sender_type === 'jobseeker') {
-            $channels[] = 'chat.jobseeker';
-            $channels[] = 'chat.admin';
-        }
+            if ($this->message->sender_type === 'jobseeker') {
+                $channels[] = 'chat.jobseeker';
+                $channels[] = 'chat.admin';
+            }
 
-        if ($this->message->sender_type === 'mentor') {
-            $channels[] = 'chat.mentor';
-            $channels[] = 'chat.admin';
-        }
+            if ($this->message->sender_type === 'mentor') {
+                $channels[] = 'chat.mentor';
+                $channels[] = 'chat.admin';
+            }
 
-        if ($this->message->sender_type === 'coach') {
-            $channels[] = 'chat.coach';
-            $channels[] = 'chat.admin';
-        }
+            if ($this->message->sender_type === 'coach') {
+                $channels[] = 'chat.coach';
+                $channels[] = 'chat.admin';
+            }
 
-        if ($this->message->sender_type === 'assessor') {
-            $channels[] = 'chat.assessor';
-            $channels[] = 'chat.admin';
-        }
+            if ($this->message->sender_type === 'assessor') {
+                $channels[] = 'chat.assessor';
+                $channels[] = 'chat.admin';
+            }
 
-        if ($this->message->receiver_type) {
-            $channels[] = 'chat.' . $this->message->receiver_type;
+            if ($this->message->receiver_type) {
+                $channels[] = 'chat.' . $this->message->receiver_type;
+            }
         }
 
         // ✅ Duplicate hata do
@@ -124,7 +132,7 @@ class MessageSent implements ShouldBroadcast
         if (!($createdAt instanceof Carbon)) {
             $createdAt = Carbon::parse($createdAt);
         }
-
+//print_r($this->message);exit;
         return [
             'id'           => $this->message->id,
             'sender_id'    => $this->message->sender_id,
@@ -133,6 +141,7 @@ class MessageSent implements ShouldBroadcast
             'receiver_type'=> $this->message->receiver_type,
             'message'      => $this->message->message,
             'type'         => $this->message->type,
+            'app_type'     => $this->message->app_type,
             'created_at'   => $createdAt->toDateTimeString(),
         ];
     }
