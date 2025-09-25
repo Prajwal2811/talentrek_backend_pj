@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Language;
+use Illuminate\Support\Facades\Http;
 
 if (!function_exists('hasModuleAccess')) {
     function hasModuleAccess($module)
@@ -114,4 +115,16 @@ if (!function_exists('langLabel')) {
         return $translations[$code] ?? ucfirst($code);
     }
 }
+if (!function_exists('getAccessToken')) {
+    function getAccessToken() {
+        $response = Http::asForm()->withBasicAuth(
+            env('ZOOM_CLIENT_ID'),
+            env('ZOOM_CLIENT_SECRET')
+        )->post('https://zoom.us/oauth/token', [
+            'grant_type' => 'account_credentials',
+            'account_id' => env('ZOOM_ACCOUNT_ID'),
+        ]);
 
+        return $response->json()['access_token'] ?? null;
+    }
+}

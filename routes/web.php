@@ -350,7 +350,7 @@ Route::get('/bookingSlot/{token}', function ($token) {
 
 Route::post('/zoom-meeting', [ZoomController::class, 'createAndSend']);
 
-
+Route::get('/zoom-host-share', [ZoomController::class, 'hostAndShare']);
 
 
 
