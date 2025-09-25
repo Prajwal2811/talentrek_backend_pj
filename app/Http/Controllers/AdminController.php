@@ -928,7 +928,8 @@ class AdminController extends Controller
         $validated = $request->validate($rules);
 
         $jobseeker = RecruiterJobseekersShortlist::where('jobseeker_id', $request->jobseeker_id)->firstOrFail();
-
+ 
+        $jobseekerDetails = Jobseekers::where('id', $request->jobseeker_id)->firstOrFail();
         if ($request->role === 'admin') {
             $jobseeker->admin_status = $request->status;
             $jobseeker->rejection_reason = $request->status === 'rejected' ? $request->reason : null;
@@ -961,16 +962,26 @@ class AdminController extends Controller
                             return back()->with('error', 'Zoom meeting creation failed. Please try again later.');
                         }
                         $data = [
-                            'sender_id' => $jobseeker->id,
-                            'sender_type' => 'You are shorlisted for interview.',
+                            'sender_id' => $request->jobseeker_id,
+                            'sender_type' => 'You are shortlisted for interview.',
                             'receiver_id' => '1',
-                            'message' => 'You are shorlisted for interview on '.$request->interview_date.' at'.$request->interview_time.'.',
-                            'is_read' => 0,
-                            'is_read_admin' => 0,
+                            'message' => 'You are shortlisted for interview on '.$request->interview_date.' at'.$request->interview_time.'.',
+                            'is_read_users' => 0,
                             'user_type' => 'jobseeker'
                         ];
 
                         Notification::insert($data);
+
+                        $data1 = [
+                            'sender_id' => $jobseeker->recruiter_id,
+                            'sender_type' => 'Superadmin scheduled interview for jobseeker.',
+                            'receiver_id' => '1',
+                            'message' => 'Superadmin scheduled interview for '.$jobseekerDetails->name.' on '.$request->interview_date.' at'.$request->interview_time.'.',
+                            'is_read_users' => 0,
+                            'user_type' => 'recruiter'
+                        ];
+
+                        Notification::insert($data1);
                     } catch (\Exception $e) {
                         Log::error('Zoom API Exception', [
                             'message' => $e->getMessage(),
@@ -1041,6 +1052,7 @@ class AdminController extends Controller
         'updated_by' => $user->only(['id', 'name', 'email', 'role']),
         'time' => now(),
     ]);
+
 
     // Email on rejection
     if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $recruiter->email) {

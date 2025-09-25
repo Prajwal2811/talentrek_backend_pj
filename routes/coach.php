@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CoachController;
+use App\Http\Controllers\NotificationController;
 
 
 // Coach Routes
@@ -71,6 +72,10 @@ Route::group(['prefix' => 'coach'], function() {
 		Route::post('update-slot-status', [CoachController::class, 'updateStatus'])->name('coach.update-slot-status');
 		Route::post('/coach/update-slot-time', [CoachController::class, 'updateSlotTime'])->name('coach.update-slot-time');
 		Route::post('/coach/delete-slot', [CoachController::class, 'deleteSlot'])->name('coach.delete-slot');
+
+		Route::get('notifications', [CoachController::class, 'notifications'])->name('coach.notifications');
+
+        Route::get('notifications_details/{id}/{user_type}', [NotificationController::class, 'viewDetails'])->name('coach.notifications_details');
 
 	});
 });

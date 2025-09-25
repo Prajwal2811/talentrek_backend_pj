@@ -26,4 +26,15 @@ class NotificationController extends Controller
 
         return view('admin.notifications.details', compact('notifications'));
     }
+
+    
+    public function viewDetails($id,$user_type)
+    {        
+        $notifications = DB::table('notifications')->select('notifications.*','jobseekers.name','jobseekers.email')->join('jobseekers','jobseekers.id','=','notifications.receiver_id'
+        )->where(['notifications.is_read_users' => 0,'notifications.id' => $id])->first();
+
+        DB::table('notifications')->where('id',$id)->update(['is_read_users' => 1]);
+
+        return view('site.'.$user_type.'.notification', compact('notifications'));
+    }
 }
