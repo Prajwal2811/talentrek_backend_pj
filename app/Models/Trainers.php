@@ -18,6 +18,7 @@ class Trainers extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'gender',
         'phone_code',
         'phone_number',
         'password',

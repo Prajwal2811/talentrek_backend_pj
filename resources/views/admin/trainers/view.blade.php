@@ -384,16 +384,16 @@
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>experience</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->experience }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->training_experience }}">
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Area of interests</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->interest }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->training_skills }}">
                                                                     </div>
-                                                                    <div class="col-md-6 form-group">
+                                                                    <!-- <div class="col-md-6 form-group">
                                                                         <label>Job categories</label>
                                                                         <input readonly type="text" class="form-control" value="{{ $skill->job_category }}">
-                                                                    </div>
+                                                                    </div> -->
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Website link</label>
                                                                         <input readonly type="url" class="form-control" value="{{ $skill->website_link }}">

@@ -399,11 +399,11 @@
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Skills</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->trainingexperience }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->training_skills }}">
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Area of interests</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->interest }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->area_of_interest }}">
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Job categories</label>

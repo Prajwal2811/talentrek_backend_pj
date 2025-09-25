@@ -190,7 +190,7 @@ Route::group(['prefix' => 'admin'], function() {
 		Route::middleware('admin.module:Resume Format')->group(function () {
 			Route::get('/resume-format', [AdminController::class, 'resume'])->name('admin.resume');
 			Route::post('/resume-format/store', [AdminController::class, 'resumeUpdate'])->name('admin.resume.store');
-			Route::get('/admin/resume/download-option/{id}', [AdminController::class, 'downloadOption'])
+			Route::get('/resume/download-option/{id}', [AdminController::class, 'downloadOption'])
     ->name('admin.resume.download.option');
 
 			

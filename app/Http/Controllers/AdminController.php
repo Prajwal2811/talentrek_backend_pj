@@ -1208,23 +1208,60 @@ class AdminController extends Controller
 
     public function resume()
     {
-        return view('admin.resume.index');
+        $resume = Resume::latest()->first();
+        return view('admin.resume.index', compact('resume'));
     }
 
+
+    // public function resumeUpdate(Request $request)
+    // {
+    //     $request->validate([
+    //         'resume' => 'required',
+    //     ]);
+
+    //     $resume = Resume::find($request->input('id')) ?? new Resume();
+    //     $resume->resume = $request->input('resume');
+    //     $resume->save();
+
+    //     return redirect()->route('admin.resume.download.option', ['id' => $resume->id])
+    //                     ->with('success', 'Resume format uploaded successfully.');
+    // }
+
+   
 
     public function resumeUpdate(Request $request)
     {
         $request->validate([
             'resume' => 'required',
+            'resume_file' => 'required|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
         $resume = Resume::find($request->input('id')) ?? new Resume();
         $resume->resume = $request->input('resume');
+
+        if ($request->hasFile('resume_file')) {
+            $file = $request->file('resume_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+
+            $destinationPath = public_path('assets/resumes');
+
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0777, true, true);
+            }
+
+            $file->move($destinationPath, $fileName);
+
+            $resume->resume_file = $fileName;
+            $resume->resume_file_path = 'assets/resumes/' . $fileName;
+        }
+
         $resume->save();
 
-        return redirect()->route('admin.resume.download.option', ['id' => $resume->id])
-                        ->with('success', 'Resume format uploaded successfully.');
+        return redirect()
+            ->route('admin.resume')
+            ->with('success', 'Resume format uploaded successfully.');
     }
+
 
 
 
@@ -2477,9 +2514,13 @@ class AdminController extends Controller
     public function viewAssessor($id)
     {
         $assessor = Assessors::findOrFail($id);
+       
         $educations = $assessor->educations()->orderBy('id', 'desc')->get();
+        
         $experiences = $assessor->experiences()->orderBy('id', 'desc')->get();
         $trainingexperience = $assessor->trainingexperience()->orderBy('id', 'desc')->get();
+        // echo "<pre>";
+        // print_r($trainingexperience);exit;
         $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','assessor')->get();
         $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
                                                     ->where('purchased_subscriptions.user_id', $id)

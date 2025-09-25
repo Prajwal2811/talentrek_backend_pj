@@ -25,6 +25,7 @@ class Resume extends Authenticatable
      */
     protected $fillable = [
         'resume',
+        'resume_file',
     ];
 
     /**
