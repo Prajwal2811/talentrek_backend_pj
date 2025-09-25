@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MentorController;
-
+use App\Http\Controllers\NotificationController;
 
 // Mentor Routes
 Route::group(['prefix' => 'mentor'], function() {
@@ -86,7 +86,9 @@ Route::group(['prefix' => 'mentor'], function() {
 		Route::delete('mentor/delete-document/{type}', [MentorController::class, 'deleteMentorDocument'])->name('mentor.additional.delete');
 
 		
-		
+		Route::get('notifications', [MentorController::class, 'notifications'])->name('mentor.notifications');
+
+        Route::get('notifications_details/{id}/{user_type}', [NotificationController::class, 'viewDetails'])->name('mentor.notifications_details');
 
 		Route::delete('/delete', [MentorController::class, 'deleteAccount'])->name('mentor.destroy');
 		// Route::get('/trainer-settings', [MentorController::class, 'getTrainerAllDetails'])->name('trainer.settings');

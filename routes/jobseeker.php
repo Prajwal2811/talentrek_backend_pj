@@ -5,7 +5,6 @@ use App\Http\Controllers\JobseekerController;
 use App\Http\Controllers\CoursePurchaseController;
 use App\Http\Controllers\SessionBookingController;
 
-
 // Joobseeker Routes
 Route::group(['prefix' => 'jobseeker'], function() {
 	Route::group(['middleware' => 'jobseeker.guest'], function(){
@@ -171,4 +170,5 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/apply-coupon', [JobseekerController::class, 'applyCoupon'])->name('apply.coupon');
 
 
+		
 });

@@ -2992,7 +2992,17 @@ public function submitReview(Request $request)
                     'result_status' => $resultStatus,
                 ]
             );
+            
+            $data = [
+                'sender_id' => $jobseekerId,
+                'sender_type' => 'Your assessment result.',
+                'receiver_id' => '1',
+                'message' => 'You are '.$resultStatus.' in assessment with score '.$correctCount,
+                'is_read_users' => 0,
+                'user_type' => 'jobseeker'
+            ];
 
+            Notification::insert($data);
             // Clear quiz timer
             $sessionKey = 'quiz_start_time_' . $assessmentId . '_' . $jobseekerId;
             session()->forget($sessionKey);

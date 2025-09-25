@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\NotificationController;
 
 Route::group(['prefix' => 'trainer'], function() {
 
@@ -27,6 +28,7 @@ Route::group(['prefix' => 'trainer'], function() {
 
         Route::get('auth/google/redirect', [TrainerController::class, 'redirectToGoogle'])->name('trainer.google.redirect');
 		Route::get('auth/google/callback', [TrainerController::class, 'handleGoogleCallback'])->name('trainer.google.callback');
+
 
     });
 
@@ -82,6 +84,12 @@ Route::group(['prefix' => 'trainer'], function() {
         Route::post('/profile/update-skills-info',[TrainerController::class, 'updateTrainerSkillsInfo'])->name('trainer.skill.update'); 
         Route::post('/profile/additional-info',[TrainerController::class, 'updateAdditionalInfo'])->name('trainer.additional.update'); 
         Route::delete('/profile/additional/delete/{type}', [TrainerController::class, 'deleteAdditionalFile'])->name('trainer.additional.delete');
+
+        Route::get('notifications', [TrainerController::class, 'notifications'])->name('trainer.notifications');
+
+        Route::get('notifications_details/{id}/{user_type}', [NotificationController::class, 'viewDetails'])->name('trainer.notifications_details');
+
     });
 
 });
+

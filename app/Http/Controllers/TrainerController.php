@@ -2880,4 +2880,10 @@ class TrainerController extends Controller
                 ->with('error', 'Google login failed. Please try again.');
         }
     }
+
+    public function notifications() 
+    {
+       return view('site.trainer.notification');
+
+    }
 }

@@ -42,7 +42,7 @@ if (!function_exists('notificationUsersSent')) {
             'jobseeker' => ['table' => 'jobseekers', 'name' => 'jobseekers.name'],
             'trainer'   => ['table' => 'trainers', 'name' => 'trainers.name'],
             'mentor'    => ['table' => 'mentors', 'name' => 'mentors.name'],
-            'coach'     => ['table' => 'coach', 'name' => 'coach.name'],
+            'coach'     => ['table' => 'coaches', 'name' => 'coaches.name'],
             'assessor'  => ['table' => 'assessors', 'name' => 'assessors.name'],
             'recruiter' => ['table' => 'recruiters', 'name' => 'recruiters.name'],
         ];
@@ -61,6 +61,39 @@ if (!function_exists('notificationUsersSent')) {
                 'notifications.is_read_users' => 0,
                 'notifications.user_type' => $user_type
             ])
+            ->orderBy('notifications.id', 'DESC')
+            ->get();
+
+        return $notifications;
+    }
+}
+
+if (!function_exists('notificationsAll')) {
+    function notificationsAll($user_type)
+    {
+        $user = Auth::user();
+
+        $tables = [
+            'jobseeker' => ['table' => 'jobseekers', 'name' => 'jobseekers.name'],
+            'trainer'   => ['table' => 'trainers', 'name' => 'trainers.name'],
+            'mentor'    => ['table' => 'mentors', 'name' => 'mentors.name'],
+            'coach'     => ['table' => 'coaches', 'name' => 'coaches.name'],
+            'assessor'  => ['table' => 'assessors', 'name' => 'assessors.name'],
+            'recruiter' => ['table' => 'recruiters', 'name' => 'recruiters.name'],
+        ];
+
+        if (!isset($tables[$user_type])) {
+            return collect();
+        }
+
+        $table  = $tables[$user_type]['table'];
+        $name   = $tables[$user_type]['name'];
+
+        $notifications = DB::table('notifications')
+            ->select('notifications.*', $name . ' as sender_name')
+            ->join($table, $table . '.id', '=', 'notifications.sender_id')
+            ->where('notifications.user_type', $user_type)
+            ->whereIn('notifications.is_read_users', [0, 1])
             ->orderBy('notifications.id', 'DESC')
             ->get();
 

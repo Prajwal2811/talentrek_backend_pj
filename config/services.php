@@ -51,6 +51,7 @@ return [
         'client_id' => env('ZOOM_CLIENT_ID'),
         'client_secret' => env('ZOOM_CLIENT_SECRET'),
         'user_email' => env('ZOOM_USER_EMAIL'),
+        'user_id' => env('ZOOM_USER_ID'),
     ],
 
 

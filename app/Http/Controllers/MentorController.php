@@ -1637,4 +1637,10 @@ class MentorController extends Controller
         }
     }
 
+    public function notifications() 
+    {
+       return view('site.mentor.notification');
+
+    }
+
 }

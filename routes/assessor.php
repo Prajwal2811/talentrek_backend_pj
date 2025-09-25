@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AssessorController;
-
+use App\Http\Controllers\NotificationController;
 
 
 // Assessor Routes
@@ -76,5 +76,10 @@ Route::group(['prefix' => 'assessor'], function() {
 		Route::post('update-slot-status', [AssessorController::class, 'updateStatus'])->name('assessor.update-slot-status');
 		Route::post('/assessor/update-slot-time', [AssessorController::class, 'updateSlotTime'])->name('assessor.update-slot-time');
 		Route::post('/assessor/delete-slot', [AssessorController::class, 'deleteSlot'])->name('assessor.delete-slot');
+
+		Route::get('notifications', [AssessorController::class, 'notifications'])->name('assessor.notifications');
+
+        Route::get('notifications_details/{id}/{user_type}', [NotificationController::class, 'viewDetails'])->name('assessor.notifications_details');
+
 	});
 });
