@@ -34,8 +34,26 @@ class BookingSession extends Model
         'coupon_code',
         'coupon_amount',
         'order_id',
+        'track_id',
+        'transaction_id',
+        'payment_status',
+        'response_payload',
+        'slot_amount',
+        'tax_percentage',
+        'taxed_amount',
+        'amount_paid',
     ];
 
+    protected $casts = [
+        'slot_date' => 'date',
+        'slot_date_after_postpone' => 'date',
+        'cancelled_at' => 'datetime',
+        'rescheduled_at' => 'datetime',
+        'is_postpone' => 'boolean',
+        'response_payload' => 'array',
+        'slot_amount' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
+    ];
 
     // Relationships
     public function jobseeker()

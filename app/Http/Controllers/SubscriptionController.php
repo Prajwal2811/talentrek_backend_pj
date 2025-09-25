@@ -117,7 +117,7 @@ class SubscriptionController extends Controller
         // Send request to Neoleap
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+            CURLOPT_URL => $config['curlopt_url'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => $payloads,

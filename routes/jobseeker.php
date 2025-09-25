@@ -84,15 +84,7 @@ Route::group(['prefix' => 'jobseeker'], function() {
 
 
 		// Purchase request stays POST
-		Route::post('/jobseeker/purchase-session', [SessionBookingController::class, 'processBookingPayment'])
-			->name('jobseeker.mentorship-booking-submit');
-
-		// Session booking payment routes
-		Route::post('/jobseeker/session/payment/success', [SessionBookingController::class, 'successBooking'])
-			->name('session.payment.success');
-
-		Route::post('/jobseeker/session/payment/failure', [SessionBookingController::class, 'failureBooking'])
-			->name('session.payment.failed');
+		
 
 
 

@@ -29,43 +29,46 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
-            Route::middleware('api')
+                Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            Route::middleware('web')
+                Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/admin.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/admin.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/jobseeker.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/jobseeker.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/expat.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/expat.php'));
 
-            Route::middleware('web')
+                Route::middleware('web')
                 ->group(base_path('routes/recruiter.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/mentor.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/mentor.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/assessor.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/assessor.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/trainer.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/trainer.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/coach.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/coach.php'));
 
-            Route::middleware('web')
-                    ->group(base_path('routes/user.php'));
+                Route::middleware('web')
+                        ->group(base_path('routes/user.php'));
 
 
-            Route::middleware('web')
+                Route::middleware('web')
                     ->group(base_path('routes/subscription.php'));
+
+                Route::middleware('web')
+                    ->group(base_path('routes/session.php'));
         });
     }
 

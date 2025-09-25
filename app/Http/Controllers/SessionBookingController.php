@@ -9,9 +9,22 @@ use App\Models\SessionBooking;
 use App\Models\SessionBookingPaymentRequest;
 use App\Models\Mentors;
 use App\Models\Assessors;
+use App\Models\BookingSlot;
+use App\Models\PurchasedSubscription;
+use App\Models\BookingSession;
 use App\Models\Coach;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Jobseekers; // make sure to import your model
+use App\Services\ZoomService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingZoomLinkToJobseeker;
+use App\Mail\BookingZoomLinkToMentor;
+
+
+
 class SessionBookingController extends Controller
 {
     /**
@@ -19,6 +32,25 @@ class SessionBookingController extends Controller
      */
     public function processBookingPayment(Request $request)
     {
+        $jobseekerId = $request->jobseeker_id;
+
+        // Check if jobseeker has a valid subscription
+        $subscription = PurchasedSubscription::where('user_id', $jobseekerId)
+            ->where('user_type', 'jobseeker')
+            ->where('payment_status', 'paid')
+            ->orderBy('end_date', 'desc')
+            ->first();
+
+        $hasValidSubscription = false;
+
+        if ($subscription) {
+            $endDate = \Carbon\Carbon::parse($subscription->end_date);
+            $hasValidSubscription = !$endDate->isPast(); // true if not expired
+        }
+
+        if (!$hasValidSubscription) {
+            return redirect()->back()->with('error', 'You need an active subscription to book a session.');
+        }
         // echo "<pre>"; print_r( $request->all() ); die;
         $validator = Validator::make($request->all(), [
             'user_type'       => 'required|in:mentor,assessor,coach',
@@ -140,7 +172,7 @@ class SessionBookingController extends Controller
         // Send request to Neoleap
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+            CURLOPT_URL => $config['curlopt_url'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => $payloads,
@@ -166,7 +198,6 @@ class SessionBookingController extends Controller
   
     public function successBooking(Request $request)
     {
-        // echo "done"; die;
         $config = config('neoleap');
         $responseTrandata = $request->input('trandata');
 
@@ -174,83 +205,105 @@ class SessionBookingController extends Controller
             return redirect()->back()->with('error', 'Missing payment response.');
         }
 
-        // Decrypt the response
         $decrypted = urldecode(PaymentHelper::decryptAES($responseTrandata, $config['secret_key']));
-        $data = json_decode($decrypted, true)[0] ?? null;
+        $data = json_decode($decrypted, true);
 
-        if (!$data) {
+        if (!$data || !isset($data[0])) {
             return redirect()->back()->with('error', 'Invalid payment response.');
         }
-        
-        // Fetch the payment request
-        $paymentRequest = SessionBookingPaymentRequest::where('track_id', $data['trackId'])->first();
-        if (!$paymentRequest) {
-            return redirect()->back()->with('error', 'Payment request not found.');
-        }
 
-        // Determine payment status
-        $status = $data['result'] === 'CAPTURED' ? 'completed' : 'failed';
+        $data = $data[0];
 
-        // Update payment request
-        $paymentRequest->update([
-            'transaction_id'   => $data['transId'] ?? null,
-            'payment_status'   => $status === 'completed' ? 'success' : 'failed',
-            'response_payload' => $data,
-        ]);
+        if ($data['result'] === 'CAPTURED') {
+            $paymentRequest = SessionBookingPaymentRequest::where('track_id', $data['trackId'])->first();
 
-        if ($status === 'completed') {
-            // Prevent duplicate booking
-            $existingBooking = SessionBooking::where('track_id', $data['trackId'])->first();
+            if (!$paymentRequest) {
+                return redirect()->back()->with('error', 'Booking not found.');
+            }
 
-            if (!$existingBooking) {
-                $originalPrice = $paymentRequest->amount ?? 0;
-                $taxAmount = ($originalPrice * ($paymentRequest->tax_percentage ?? 0)) / 100;
-                $couponAmount = $paymentRequest->coupon_amount ?? 0;
-                $totalPaid = $paymentRequest->total_amount ?? ($originalPrice + $taxAmount - $couponAmount);
+            $paymentRequest->update([
+                'transaction_id'   => $data['transId'] ?? null,
+                'payment_status'   => 'success',
+                'status'           => 'confirmed',
+                'response_payload' => json_encode($data),
+            ]);
 
-                // Create session booking
-                $booking = SessionBooking::create([
-                    'jobseeker_id'       => $data['udf1'],
-                    'user_type'          => $data['udf2'],
-                    'user_id'            => $data['udf4'],
-                    'slot_mode'          => $data['udf5'],
-                    'slot_date'          => $paymentRequest->slot_date,
-                    'booking_slot_id'    => $paymentRequest->booking_slot_id,
-                    'slot_time'          => $paymentRequest->slot_time,
-                    'status'             => 'active',
-                    'track_id'           => $data['trackId'],
-                    'transaction_id'     => $data['transId'],
-                    'payment_status'     => 'success',
-                    'slot_amount'        => $originalPrice,
-                    'tax_percentage'     => $paymentRequest->tax_percentage,
-                    'taxed_amount'       => $taxAmount,
-                    'coupon_type'        => $paymentRequest->coupon_type,
-                    'coupon_code'        => $paymentRequest->coupon_code,
-                    'coupon_amount'      => $couponAmount,
-                    'amount_paid'        => $totalPaid,
-                    'response_payload'   => $data,
-                ]);
+            $booking = BookingSession::updateOrCreate(
+                ['track_id' => $data['trackId']],
+                [
+                    'jobseeker_id'    => $paymentRequest->jobseeker_id,
+                    'user_type'       => $paymentRequest->user_type,
+                    'user_id'         => $paymentRequest->user_id,
+                    'booking_slot_id' => $paymentRequest->booking_slot_id,
+                    'slot_mode'       => $paymentRequest->slot_mode,
+                    'slot_date'       => $paymentRequest->slot_date,
+                    'slot_time'       => $paymentRequest->slot_time,
+                    'coupon_type'     => $paymentRequest->coupon_type,
+                    'coupon_code'     => $paymentRequest->coupon_code,
+                    'coupon_amount'   => $paymentRequest->coupon_amount ?? 0.00,
+                    'order_id'        => 'ORD-' . ($data['ref'] ?? time()),
+                    'track_id'        => $paymentRequest->track_id,
+                    'transaction_id'  => $data['transId'] ?? $paymentRequest->transaction_id,
+                    'response_payload'=> $paymentRequest->response_payload,
+                    'slot_amount'     => $paymentRequest->amount,
+                    'tax_percentage'  => $paymentRequest->tax_percentage,
+                    'taxed_amount'    => $paymentRequest->taxed_amount ?? 0.00,
+                    'amount_paid'     => $paymentRequest->total_amount,
+                    'payment_status'  => 'success',
+                    'updated_at'      => now(),
+                ]
+            );
 
-                // Create payment history
-                PaymentHistory::create([
-                    'user_type'      => 'jobseeker',
-                    'user_id'        => $data['udf1'],
-                    'receiver_type'  => $data['udf2'],
-                    'receiver_id'    => $data['udf4'],
-                    'payment_for'    => 'booking_slot',
-                    'amount_paid'    => $totalPaid,
-                    'tax'            => $taxAmount,
-                    'payment_status' => 'completed',
-                    'transaction_id' => $data['transId'] ?? null,
-                    'track_id'       => $data['trackId'],
-                    'currency'       => 'SAR',
-                    'payment_method' => 'Al Rajhi',
-                    'paid_at'        => now(),
-                ]);
+            // ✅ If online, create Zoom meeting
+            if ($booking->slot_mode === 'online') {
+                $zoom = new ZoomService();
+
+                // Safe parsing to avoid double time errors
+                $dateOnly = \Carbon\Carbon::parse($booking->slot_date)->format('Y-m-d');
+                $startTime = $dateOnly . ' ' . explode(' - ', $booking->slot_time)[0];
+
+                $zoomMeeting = $zoom->createMeeting("Consultation with #{$booking->jobseeker_id}", $startTime);
+
+                if ($zoomMeeting) {
+                    $booking->update([
+                        'zoom_start_url' => $zoomMeeting['start_url'] ?? null,
+                        'zoom_join_url'  => $zoomMeeting['join_url'] ?? null,
+                        'zoom_meeting_id'=> $zoomMeeting['id'] ?? null,
+                    ]);
+
+                    // Send email to Jobseeker
+                    Mail::to($booking->jobseeker->email)->send(new BookingZoomLinkToJobseeker($booking));
+
+                    // Send email to Mentor/Coach
+                    $mentor = Mentors::find($booking->user_id); // adjust based on user_type
+                    if ($mentor) {
+                        Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                    }
+
+                } else {
+                    Log::error('Zoom creation failed for booking', [
+                        'jobseeker_id' => $booking->jobseeker_id,
+                        'user_id'      => $booking->user_id,
+                        'slot_time'    => $booking->slot_time,
+                    ]);
+                    return redirect()->back()->with('error', 'Zoom meeting creation failed. Please try again later.');
+                }
+            } elseif ($booking->slot_mode === 'offline') {
+                // Get mentor/coach address for offline
+                $mentor = Mentors::find($booking->user_id); // adjust if user_type = mentor/coach
+                $mentorAddress = $mentor?->address ?? 'Address not available';
+                $booking->update(['offline_address' => $mentorAddress]);
+            }
+
+            // 🔑 Log the jobseeker in
+            $jobseeker = Jobseekers::find($paymentRequest->jobseeker_id);
+            if ($jobseeker) {
+                Auth::guard('jobseeker')->login($jobseeker); 
             }
         }
 
-        return redirect()->back()->with('success', 'Session booked successfully!');
+        return redirect()->route('jobseeker.profile')
+                        ->with('success', 'Session booked successfully!');
     }
 
 

@@ -28,14 +28,19 @@ return new class extends Migration
             $table->timestamp('reserved_until')->nullable();
 
             // Payment Info
-            $table->string('track_id')->comment('Unique booking reference number');
+            $table->string('track_id')->nullable()->comment('Unique booking reference number');
             $table->unique('track_id', 'booking_track_id_unique');
+
 
             $table->decimal('amount', 10, 2)->comment('Base session amount');
             $table->decimal('tax_percentage', 5, 2)->default(0)->comment('Applied tax rate %');
             $table->decimal('tax', 10, 2)->default(0)->comment('Calculated tax value');
             $table->decimal('taxed_amount', 10, 2)->default(0)->comment('Amount after tax but before coupons');
             $table->decimal('total_amount', 10, 2)->comment('Final amount after tax & coupon');
+
+            // New fields
+            $table->decimal('amount_paid', 10, 2)->default(0)->comment('Amount actually paid by jobseeker');
+            $table->string('order_id', 191)->nullable()->comment('Payment gateway order ID');
 
             // Coupon Info
             $table->enum('coupon_type', ['fixed', 'percentage'])->nullable();
@@ -52,6 +57,7 @@ return new class extends Migration
             // Timestamps
             $table->timestamps();
         });
+
 
     }
 

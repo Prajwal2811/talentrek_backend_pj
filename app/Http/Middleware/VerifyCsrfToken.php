@@ -31,10 +31,8 @@ class VerifyCsrfToken extends Middleware
         'course/payment/failure',
 
 
-       
-
-        'jobseeker/session/payment/success',
-        'jobseeker/session/payment/failure'
+        'purchase-session/payment/success',
+        'purchase-session/payment/failure'
 
     ];
 }

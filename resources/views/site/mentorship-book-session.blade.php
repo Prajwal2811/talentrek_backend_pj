@@ -173,7 +173,7 @@
 
                     <!-- Booking Form -->
                     <section class="max-w-7xl mx-auto p-4">
-                        <form method="POST" action="{{ route('booking-submit') }}" x-data="{ paymentMethod: '' }" id="mentorshipBookingForm">
+                        <form method="POST" action="{{ route('session.booking-submit') }}" x-data="{ paymentMethod: '' }" id="mentorshipBookingForm">
                             @csrf
 
                             <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -205,8 +205,8 @@
                                         <div id="slotContainer" class="grid grid-cols-4 gap-4 text-center text-sm">
                                             <!-- Slots will be dynamically loaded here -->
                                         </div>
-                                        <input type="text" name="slot_id" id="selectedSlotId" required />
-                                        <input type="text" name="slot_time" id="selectedSlotTime" required />
+                                        <input type="hidden" name="slot_id" id="selectedSlotId" required />
+                                        <input type="hidden" name="slot_time" id="selectedSlotTime" required />
                                     </div>
                                 </div>
 
@@ -254,7 +254,6 @@
                                         <input type="hidden" name="coupon_code" id="coupon_code_hidden" value="">
                                         <input type="hidden" name="coupon_amount" id="coupon_amount" value="0">
                                         <input type="hidden" name="amount_paid" id="amount_paid" value="{{ number_format($grandTotal, 2, '.', '') }}">
-
                                         <button id="bookBtn" type="button"
                                             class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
                                             {{ langLabel('proceed_checkout') }}
