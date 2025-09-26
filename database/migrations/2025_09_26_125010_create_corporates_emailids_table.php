@@ -13,23 +13,15 @@ return new class extends Migration
     {
         Schema::create('corporates_emailids', function (Blueprint $table) {
             $table->id();
-
-            // Store multiple email ids as JSON
-            $table->json('corporatesEmailIds')->nullable();
-
-            // Foreign keys (not enforced but kept as references)
+            $table->json('corporatesEmailIds')->nullable(); // JSON array of emails
             $table->unsignedBigInteger('paymentRequestId')->nullable();
             $table->unsignedBigInteger('successPaymentId')->nullable();
-
-            // Track reference
-            $table->string('track_id', 100)->nullable();
-
+            $table->string('track_id')->nullable()->unique();
             $table->timestamps();
 
-            // Indexes
-            $table->index('paymentRequestId', 'idx_payment_request');
-            $table->index('successPaymentId', 'idx_success_payment');
-            $table->index('track_id', 'idx_track_id');
+            // Optional: add foreign keys if the related tables exist
+            // $table->foreign('paymentRequestId')->references('id')->on('purchased_subscription_payment_requests')->onDelete('set null');
+            // $table->foreign('successPaymentId')->references('id')->on('purchased_subscriptions')->onDelete('set null');
         });
     }
 

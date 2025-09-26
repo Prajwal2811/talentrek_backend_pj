@@ -7,6 +7,7 @@ use App\Services\PaymentHelper;
 use App\Models\PaymentHistory;
 use App\Models\Jobseekers;
 use App\Models\Setting;
+use App\Models\CorporatesEmailIds;
 use App\Models\JobseekerCartItem;
 use App\Models\TrainingBatch;
 use App\Models\TrainingMaterial;
@@ -374,6 +375,7 @@ class CoursePurchaseController extends Controller
         $referenceNo = "TRK-TEAM-" . strtoupper(substr($material->training_type, 0, 3)) . '-' . $material->id
                         . '-' . ($request->batch_id ?? '0') . '-' . auth('jobseeker')->id() . '-' . date('YmdHi') . '-' . time();
 
+
         // Create payment request
         $paymentRequest = JobseekerTrainingMaterialPurchasePaymentRequest::create([
             'jobseeker_id'    => auth('jobseeker')->id(),
@@ -463,65 +465,108 @@ class CoursePurchaseController extends Controller
         }
 
         $decrypted = urldecode(PaymentHelper::decryptAES($responseTrandata, $config['secret_key']));
-        $data = json_decode($decrypted, true)[0] ?? null;
+        $dataArray = json_decode($decrypted, true);
+        $data = $dataArray[0] ?? null;
 
-        if (!$data) return redirect()->back()->with('error', 'Invalid payment response.');
+        if (!$data) {
+            return redirect()->back()->with('error', 'Invalid payment response.');
+        }
 
+        // Fetch payment request
         $payment = JobseekerTrainingMaterialPurchasePaymentRequest::where('track_id', $data['trackId'])->first();
-        if (!$payment) return redirect()->back()->with('error', 'Payment request not found.');
+        if (!$payment) {
+            return redirect()->back()->with('error', 'Payment request not found.');
+        }
 
-        $paymentStatus = $data['result'] === 'CAPTURED' ? 'success' : 'failed';
+        // Update payment request
         $payment->update([
             'transaction_id'   => $data['transId'] ?? null,
-            'payment_status'   => $paymentStatus,
+            'payment_status'   => $data['result'] === 'CAPTURED' ? 'success' : 'failed',
             'response_payload' => json_encode($data),
         ]);
 
-        if ($paymentStatus === 'success') {
-            // Loop through team members
-            $memberEmails = json_decode($payment->request_payload, true)['member_emails'] ?? [];
-            $totalMembers = count($memberEmails) + 1; // including team leader
-            for ($i = 0; $i < $totalMembers; $i++) {
-                JobseekerTrainingMaterialPurchase::create([
-                    'jobseeker_id'    => $i===0 ? $payment->jobseeker_id : null,
-                    'material_id'     => $payment->material_id,
-                    'batch_id'        => $payment->batch_id,
-                    'status'          => 'active',
-                    'track_id'        => $payment->track_id,
-                    'transaction_id'  => $payment->transaction_id,
-                    'payment_status'  => 'success',
-                    'response_payload'=> json_encode($data),
+        // Continue only if payment is successful
+        if ($data['result'] !== 'CAPTURED') {
+            return redirect()->route('jobseeker.profile')->with('error', 'Team payment failed. Please try again.');
+        }
+
+        // Create main purchase record
+        $purchase = JobseekerTrainingMaterialPurchase::create([
+            'jobseeker_id'     => $payment->jobseeker_id,
+            'material_id'      => $payment->material_id,
+            'batch_id'         => $payment->batch_id,
+            'status'           => 'active',
+            'track_id'         => $payment->track_id,
+            'transaction_id'   => $payment->transaction_id,
+            'payment_status'   => 'success',
+            'response_payload' => json_encode($data),
+        ]);
+
+        // Fetch corporate/team emails
+        $corporateEmails = CorporatesEmailIds::where('track_id', $data['trackId'])->first();
+        if ($corporateEmails) {
+            $savedEmails = $corporateEmails->corporatesEmailIds ?? [];
+            $corporateEmails->update(['successPaymentId' => $purchase->id]);
+
+            foreach ($savedEmails as $memberEmail) {
+                if (empty($memberEmail)) continue;
+
+                // Find or create jobseeker
+                $jobseeker = Jobseekers::firstOrCreate(
+                    ['email' => $memberEmail],
+                    ['password' => 1111, 'pass' => 1111, 'roles' => 'jobseeker']
+                );
+
+                // Insert into team members
+                DB::table('team_course_members')->insert([
+                    'main_jobseeker_id'              => $payment->jobseeker_id,
+                    'jobseeker_id'                   => $jobseeker->id,
+                    'trainer_id'                     => 1,
+                    'training_material_purchases_id' => $purchase->id,
+                    'material_id'                    => 0,
+                    'training_type'                  => $data['udf4'] ?? 'recorded',
+                    'session_type'                   => 'group',
+                    'batch_id'                       => $data['udf3'] ?? 0,
+                    'transaction_id'                 => $data['transId'] ?? null,
+                    'payment_status'                 => 'success',
+                    'track_id'                       => $data['trackId'] ?? null,
+                    'email'                          => $memberEmail,
+                    'created_at'                     => now(),
+                    'updated_at'                     => now(),
                 ]);
             }
+        }
 
-            // Payment history for team leader
-            PaymentHistory::create([
-                'user_type'      => 'jobseeker',
-                'user_id'        => $payment->jobseeker_id,
-                'receiver_type'  => 'trainer',
-                'receiver_id'    => $payment->trainer_id,
-                'payment_for'    => 'training',
-                'amount_paid'    => $payment->amount_paid,
-                'tax'            => $payment->taxed_amount,
-                'applied_coupon' => $payment->coupon_code,
-                'payment_status' => 'completed',
-                'transaction_id' => $payment->transaction_id,
-                'track_id'       => $payment->track_id,
-                'order_id'       => 'ORD-' . $payment->jobseeker_id . '-' . $payment->material_id . '-' . now()->format('YmdHi'),
-                'currency'       => 'SAR',
-                'payment_method' => $payment->payment_gateway,
-                'paid_at'        => now(),
-            ]);
+        // Create payment history for main jobseeker
+        PaymentHistory::create([
+            'user_type'      => 'jobseeker',
+            'user_id'        => $payment->jobseeker_id,
+            'receiver_type'  => 'trainer',
+            'receiver_id'    => $payment->trainer_id,
+            'payment_for'    => 'training',
+            'amount_paid'    => $payment->amount_paid,
+            'tax'            => $payment->taxed_amount,
+            'applied_coupon' => $payment->coupon_code,
+            'payment_status' => 'completed',
+            'transaction_id' => $payment->transaction_id,
+            'track_id'       => $payment->track_id,
+            'order_id'       => 'ORD-' . $payment->jobseeker_id . '-' . $payment->material_id . '-' . now()->format('YmdHi'),
+            'currency'       => 'SAR',
+            'payment_method' => $payment->payment_gateway,
+            'paid_at'        => now(),
+        ]);
 
-             // 🔑 Log the jobseeker in
-            $jobseeker = Jobseekers::find($payment->jobseeker_id);
-            if ($jobseeker) {
-                Auth::guard('jobseeker')->login($jobseeker); 
-            }
+        // Auto-login main jobseeker
+        $jobseeker = Jobseekers::find($payment->jobseeker_id);
+        if ($jobseeker) {
+            Auth::guard('jobseeker')->login($jobseeker);
         }
 
         return redirect()->route('jobseeker.profile')->with('success', 'Team course purchased successfully!');
     }
+
+
+
 
 
     /**
@@ -584,7 +629,7 @@ class CoursePurchaseController extends Controller
         $hasEndedBatch = false;
 
         foreach ($materialIds as $index => $materialId) {
-            $material = \App\Models\TrainingMaterial::find($materialId);
+            $material = TrainingMaterial::find($materialId);
             if (!$material) continue;
 
             $batchId = $batchIds[$index] ?? null;
@@ -706,7 +751,7 @@ class CoursePurchaseController extends Controller
         if ($paymentStatus === 'success') {
             $materialIds = explode(',', $payment->material_ids ?? ''); // optional if saved
             foreach ($materialIds as $materialId) {
-                $material = \App\Models\TrainingMaterial::find($materialId);
+                $material = TrainingMaterial::find($materialId);
                 if (!$material) continue;
 
                 JobseekerTrainingMaterialPurchase::create([
