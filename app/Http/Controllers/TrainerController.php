@@ -464,11 +464,11 @@ class TrainerController extends Controller
             'end_to.*' => 'required|date',
             'training_experience' => 'required|string',
             'training_skills' => 'required|string',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
         ],
             [
                 // Custom error messages
@@ -2569,9 +2569,9 @@ class TrainerController extends Controller
 
         // Validation rules for each input field
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-            'profile_picture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         // Loop through each input and save the uploaded file

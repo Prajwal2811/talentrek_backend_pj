@@ -482,15 +482,15 @@
 
 
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('website_link') }}</label>
-                                            <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('website_link') }}<span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://www.example.com" value="{{old('website_link')}}" required/>
                                             @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div>
-                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('portfolio_link') }}</label>
-                                            <input type="url" name="portfolio_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}"/>
+                                            <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('portfolio_link') }}<span style="color: red; font-size: 17px;">*</span></label>
+                                            <input type="url" name="portfolio_link" class="w-full border rounded-md p-2 mt-1" placeholder="e.g. https://portfolio.example.com" value="{{old('portfolio_link')}}" required/>
                                             @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
