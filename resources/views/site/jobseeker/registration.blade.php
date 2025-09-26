@@ -488,7 +488,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link </label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Website Link <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
                                             value="{{ old('website_link') }}" />
@@ -497,7 +497,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link</label>
+                                        <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link<span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" mt-1
                                             placeholder="e.g. https://portfolio.example.com"
                                             value="{{ old('portfolio_link') }}" />
@@ -551,7 +551,7 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <script>
+                                    <!-- <script>
                                         const resumeInput = document.getElementById('resumeFile');
                                         const resumeFilenameDisplay = document.getElementById('resumeFilename');
 
@@ -570,7 +570,7 @@
                                             }
                                         });
 
-                                    </script>
+                                    </script> -->
 
 
 
