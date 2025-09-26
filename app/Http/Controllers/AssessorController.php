@@ -643,11 +643,11 @@ class AssessorController extends Controller
             'training_skills' => 'required|string',
             'area_of_interest' => 'required|string',
             'job_category' => 'required|string',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
 
             'resume' => 'required|file|mimes:pdf|max:2048',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
             'training_certificate' => 'required|file|mimes:pdf|max:2048',
         ], [
             // ✅ Custom messages

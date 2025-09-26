@@ -472,7 +472,7 @@ class MentorController extends Controller
             'portfolio_link' => 'required|url',
 
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
             'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
         ],[
             // ✅ Custom messages

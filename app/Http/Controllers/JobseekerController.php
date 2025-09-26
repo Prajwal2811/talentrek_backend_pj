@@ -245,12 +245,12 @@ class JobseekerController extends Controller
             'skills' => 'required|string',
             'interest' => 'required|string',
             'job_category' => 'required|string|max:255',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
 
             // Files
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
 
         ], [
 
@@ -302,11 +302,11 @@ class JobseekerController extends Controller
             'resume.required' => 'Please upload your resume.',
             'resume.file' => 'Resume must be a valid file.',
             'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
-            'resume.max' => 'Resume must not be larger than 5MB.',
+            'resume.max' => 'Resume must not be larger than 2MB.',
             'profile_picture.required' => 'Please upload your profile picture.',
             'profile_picture.image' => 'Profile picture must be an image.',
             'profile_picture.mimes' => 'Profile picture must be in JPG, JPEG, or PNG format.',
-            'profile_picture.max' => 'Profile picture must not be larger than 2MB.',
+            'profile_picture.max' => 'Profile picture must not be larger than 1MB.',
         ]);
 
 
@@ -941,8 +941,8 @@ class JobseekerController extends Controller
             'skills' => 'required|string',
             'interest' => 'required|string',
             'job_category' => 'required|string|max:255',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
         ], [
             // Skills
             'skills.required' => 'Please enter your skills.',
