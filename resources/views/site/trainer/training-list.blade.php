@@ -57,13 +57,45 @@
                                                 <td class="px-6 py-3">{{ $training->training_title }}</td>
                                                 <td class="px-6 py-3">{{ number_format($training->training_price ?? 0, 2) }}</td>
                                                 <td class="px-6 py-3">{{ number_format($training->training_offer_price ?? 0, 2) }}</td>
-                                                <td class="px-6 py-3">
-                                                    <a href="{{ route('trainer.training.recorded.edit', $training->id) }}"
-                                                    class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
-                                                    {{ langLabel('edit') }}
-                                                    </a>
+                                                @php
+                                                    $isPurchased = App\Models\JobseekerTrainingMaterialPurchase::where('material_id', $training->id)->exists();
+                                                @endphp
 
+                                                <td class="px-6 py-3">
+                                                    @if($isPurchased)
+                                                        <!-- Show button that triggers modal -->
+                                                        <button type="button"
+                                                            class="bg-gray-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-gray-600 transition"
+                                                            data-bs-toggle="modal" data-bs-target="#cannotEditModal-{{ $training->id }}">
+                                                            {{ langLabel('edit') }}
+                                                        </button>
+
+                                                        <!-- Modal -->
+                                                        <div class="modal fade" id="cannotEditModal-{{ $training->id }}" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">{{ langLabel('Not allowed') }}</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        This training material has been purchased by someone, so it cannot be edited.
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <!-- Normal edit link -->
+                                                        <a href="{{ route('trainer.training.recorded.edit', $training->id) }}"
+                                                            class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
+                                                            {{ langLabel('edit') }}
+                                                        </a>
+                                                    @endif
                                                 </td>
+
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -98,13 +130,44 @@
                                                 <td class="px-6 py-3">{{ $training->training_title }}</td>
                                                 <td class="px-6 py-3">{{ number_format($training->training_price ?? 0, 2) }}</td>
                                                 <td class="px-6 py-3">{{ number_format($training->training_offer_price ?? 0, 2) }}</td>
+                                                @php
+                                                    $isPurchased = App\Models\JobseekerTrainingMaterialPurchase::where('material_id', $training->id)->exists();
+                                                @endphp
                                                 <td class="px-6 py-3">
-                                                    <a href="{{ route('trainer.training.online.edit', $training->id) }}"
-                                                    class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
-                                                    {{ langLabel('edit') }}
-                                                    </a>
+                                                    @if($isPurchased)
+                                                        <!-- Show button that triggers modal -->
+                                                        <button type="button"
+                                                            class="bg-gray-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-gray-600 transition"
+                                                            data-bs-toggle="modal" data-bs-target="#cannotEditModal-{{ $training->id }}">
+                                                            {{ langLabel('edit') }}
+                                                        </button>
 
+                                                        <!-- Modal -->
+                                                        <div class="modal fade" id="cannotEditModal-{{ $training->id }}" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">{{ langLabel('Not allowed') }}</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        This training material has been purchased by someone, so it cannot be edited.
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <!-- Normal edit link -->
+                                                        <a href="{{ route('trainer.training.online.edit', $training->id) }}"
+                                                            class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
+                                                            {{ langLabel('edit') }}
+                                                        </a>
+                                                    @endif
                                                 </td>
+
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -138,13 +201,45 @@
                                                 <td class="px-6 py-3">{{ $training->training_title }}</td>
                                                 <td class="px-6 py-3">{{ number_format($training->training_price ?? 0, 2) }}</td>
                                                 <td class="px-6 py-3">{{ number_format($training->training_offer_price ?? 0, 2) }}</td>
-                                                <td class="px-6 py-3">
-                                                    <a href="{{ route('trainer.training.online.edit', $training->id) }}"
-                                                    class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
-                                                    {{ langLabel('edit') }}
-                                                    </a>
+                                                @php
+                                                    $isPurchased = App\Models\JobseekerTrainingMaterialPurchase::where('material_id', $training->id)->exists();
+                                                @endphp
 
+                                                <td class="px-6 py-3">
+                                                    @if($isPurchased)
+                                                        <!-- Show button that triggers modal -->
+                                                        <button type="button"
+                                                            class="bg-gray-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-gray-600 transition"
+                                                            data-bs-toggle="modal" data-bs-target="#cannotEditModal-{{ $training->id }}">
+                                                            {{ langLabel('edit') }}
+                                                        </button>
+
+                                                        <!-- Modal -->
+                                                        <div class="modal fade" id="cannotEditModal-{{ $training->id }}" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">{{ langLabel('Not allowed') }}</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        This training material has been purchased by someone, so it cannot be edited.
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ langLabel('close') }}</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <!-- Normal edit link -->
+                                                        <a href="{{ route('trainer.training.online.edit', $training->id) }}"
+                                                            class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-600 transition">
+                                                            {{ langLabel('edit') }}
+                                                        </a>
+                                                    @endif
                                                 </td>
+
                                             </tr>
                                         @endforeach
                                     </tbody>

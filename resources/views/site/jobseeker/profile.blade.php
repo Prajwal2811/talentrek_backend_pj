@@ -703,18 +703,13 @@ $skills = $user->skills->first();
                                                     </div>
 
                                                     <!-- End To & Checkbox -->
-                                                   @php
+                                                    @php
                                                         $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
                                                             (isset($data->end_to) && $data->end_to === 'work here');
                                                         $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
                                                     @endphp
 
-                                                    <div x-data="{ 
-                                                            working: {{ $isWorking ? 'true' : 'false' }}, 
-                                                            endDate: '{{ $defaultDate }}', 
-                                                            defaultDate: '{{ $defaultDate }}'
-                                                        }"
-                                                    >
+                                                    <div class="end-date-container">
                                                         <label class="block text-sm font-medium mb-1">
                                                             To <span style="color: red; font-size: 17px;">*</span>
                                                         </label>
@@ -723,8 +718,9 @@ $skills = $user->skills->first();
                                                             type="date" 
                                                             name="end_to[]" 
                                                             class="datepicker-end w-full border rounded px-3 py-2"
-                                                            x-bind:disabled="working"
-                                                            x-model="endDate"
+                                                            value="{{ $defaultDate }}"
+                                                            data-default="{{ $defaultDate }}"
+                                                            {{ $isWorking ? 'disabled' : '' }}
                                                             max="{{ date('Y-m-d') }}"
                                                         />
 
@@ -733,18 +729,16 @@ $skills = $user->skills->first();
                                                                 type="checkbox" 
                                                                 name="currently_working[]" 
                                                                 value="{{ $i }}"
-                                                                x-model="working"
-                                                                x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
+                                                                {{ $isWorking ? 'checked' : '' }}
+                                                                class="currently-working-checkbox"
                                                             />
                                                             <span>I currently work here</span>
                                                         </label>
                                                     </div>
 
-
-
                                                     <!-- Remove Button -->
                                                     <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                            style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                        style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
                                                 </div>
                                             @endfor
                                         </div>
@@ -752,6 +746,11 @@ $skills = $user->skills->first();
                                         <!-- Add Button -->
                                         <div class="col-span-2">
                                             <button type="button" id="add-work" class="text-green-600 text-sm">+ {{ langLabel('add_experience') }}</button>
+                                        </div>
+
+                                        <!-- Success Message -->
+                                        <div id="work-success" class="p-3 bg-green-100 text-green-800 rounded mt-2" style="display:none;">
+                                            <span class="message-text"></span>
                                         </div>
 
                                         <!-- Submit Buttons -->
@@ -764,46 +763,63 @@ $skills = $user->skills->first();
                                     </div>
                                 </form>
 
-                                <!-- JS Script for Work Experience -->
                                 <script>
                                     const workContainer = document.getElementById('work-container');
                                     const addWorkBtn = document.getElementById('add-work');
 
+                                    // Initialize checkbox logic for an entry
+                                    function initWorkEntry(entry) {
+                                        const checkbox = entry.querySelector('.currently-working-checkbox');
+                                        const endInput = entry.querySelector('.datepicker-end');
+                                        const defaultDate = endInput.dataset.default || '';
+
+                                        endInput.dataset.defaultDate = defaultDate;
+
+                                        checkbox.addEventListener('change', () => {
+                                            if (checkbox.checked) {
+                                                // Uncheck all other checkboxes
+                                                workContainer.querySelectorAll('.currently-working-checkbox').forEach(cb => {
+                                                    if (cb !== checkbox) {
+                                                        cb.checked = false;
+                                                        const otherEnd = cb.closest('.work-entry').querySelector('.datepicker-end');
+                                                        otherEnd.disabled = false;
+                                                        otherEnd.value = otherEnd.dataset.defaultDate;
+                                                    }
+                                                });
+
+                                                endInput.value = '';
+                                                endInput.disabled = true;
+                                            } else {
+                                                endInput.disabled = false;
+                                                endInput.value = endInput.dataset.defaultDate;
+                                            }
+                                        });
+                                    }
+
+                                    // Initialize existing entries
+                                    workContainer.querySelectorAll('.work-entry').forEach(initWorkEntry);
+
+                                    // Add new work entry
                                     addWorkBtn.addEventListener('click', () => {
                                         const firstEntry = workContainer.querySelector('.work-entry');
                                         const clone = firstEntry.cloneNode(true);
 
                                         clone.querySelectorAll('input').forEach(input => {
-                                            if (input.type === 'hidden') {
-                                                input.remove();
-                                            } else if (input.type === 'checkbox') {
-                                                input.checked = false;
-
-                                                const xDataContainer = input.closest('[x-data]');
-                                                if (xDataContainer && xDataContainer.__x) {
-                                                    xDataContainer.__x.$data.working = false;
-                                                }
-                                            } else {
+                                            if (input.type === 'hidden') input.remove();
+                                            else if (input.type === 'checkbox') input.checked = false;
+                                            else {
                                                 input.value = '';
-                                                input.removeAttribute('disabled'); // Make sure input is editable
+                                                input.disabled = false;
                                             }
                                         });
 
-                                        // ✅ Specifically clear end_to[] input value (just in case)
-                                        const endToInput = clone.querySelector('.datepicker-end');
-                                        if (endToInput) {
-                                            endToInput.value = '';
-                                        }
-
-                                        clone.querySelectorAll('p.text-red-600').forEach(err => err.remove());
                                         clone.querySelector('.remove-work').style.display = 'block';
 
                                         workContainer.appendChild(clone);
-                                        Alpine.initTree(clone); // Reinit Alpine.js
+                                        initWorkEntry(clone); // initialize checkbox logic
                                     });
 
-
-
+                                    // Remove work entry
                                     workContainer.addEventListener('click', e => {
                                         if (e.target.classList.contains('remove-work')) {
                                             const entry = e.target.closest('.work-entry');
@@ -811,11 +827,12 @@ $skills = $user->skills->first();
                                         }
                                     });
 
+                                    // Save work info (AJAX)
                                     document.getElementById('save-work-info').addEventListener('click', function () {
                                         const form = document.getElementById('work-info-form');
                                         const formData = new FormData(form);
                                         const successBox = document.getElementById('work-success');
-                                        const successText = successBox.querySelector('.message-text');
+                                        const successText = successBox?.querySelector('.message-text');
 
                                         // Clear previous errors
                                         form.querySelectorAll('.text-red-600').forEach(e => e.remove());
@@ -833,13 +850,14 @@ $skills = $user->skills->first();
                                             return response.json();
                                         })
                                         .then(data => {
-                                            successText.textContent = data.message;
-                                            successBox.style.display = 'block';
-                                            setTimeout(() => {
-                                                successBox.style.display = 'none';
-                                                successText.textContent = '';
-                                            }, 3000);
-
+                                            if (successBox && successText) {
+                                                successText.textContent = data.message;
+                                                successBox.style.display = 'block';
+                                                setTimeout(() => {
+                                                    successBox.style.display = 'none';
+                                                    successText.textContent = '';
+                                                }, 3000);
+                                            }
                                             if (typeof nextTab === "function") nextTab();
                                         })
                                         .catch(error => {
@@ -848,11 +866,9 @@ $skills = $user->skills->first();
                                                 const [baseField, index] = fieldName.split('.');
                                                 const inputList = form.querySelectorAll(`[name="${baseField}[]"]`);
                                                 const input = inputList[parseInt(index)];
-
                                                 if (input) {
                                                     let existingError = input.parentNode.querySelector('.text-red-600');
                                                     if (existingError) existingError.remove();
-
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[fieldName][0];
@@ -866,9 +882,10 @@ $skills = $user->skills->first();
                                                 }
                                             });
                                         });
-
                                     });
                                 </script>
+
+
 
 
                             <!-- Skills Success Message -->
@@ -1605,22 +1622,24 @@ $skills = $user->skills->first();
                                     </div>
                                 </div>
                             </div>
-
-
-
-
-
-
-
-
-
-
-
                         @php
-                            $courses = App\Models\JobseekerTrainingMaterialPurchase::select('training_batches.*','jobseeker_training_material_purchases.*','jobseeker_training_material_purchases.id as purchase_id')->with(['material.reviews'])
-                                                        ->where('jobseeker_id', auth()->user()->id)
-                                                        ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
-                                                        ->get();
+                            $courses = App\Models\JobseekerTrainingMaterialPurchase::select(
+                                        'training_batches.*',
+                                        'jobseeker_training_material_purchases.*',
+                                        'jobseeker_training_material_purchases.id as purchase_id',
+                                        'team_course_members.id as team_member_id' // optional, if you want info from team
+                                    )
+                                    ->with(['material.reviews'])
+                                    ->where('jobseeker_training_material_purchases.jobseeker_id', auth()->user()->id)
+                                    // join training batches
+                                    ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
+                                    // left join team_course_members for the same jobseeker
+                                    ->leftJoin('team_course_members', function($join) {
+                                        $join->on('team_course_members.training_material_purchases_id', '=', 'jobseeker_training_material_purchases.id')
+                                            ->where('team_course_members.jobseeker_id', '=', auth()->user()->id);
+                                    })
+                                    ->get();
+
                            
                             $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
                             ->where('user_id', auth()->user()->id)

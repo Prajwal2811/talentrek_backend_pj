@@ -873,69 +873,81 @@
                             </script>
 
 
+                            @php
+                                // Fetch payments for this jobseeker
+                                $payments = App\Models\PaymentHistory::where('user_type', 'jobseeker')
+                                            ->where('user_id', $jobseeker->id)
+                                            ->orderBy('created_at', 'desc')
+                                            ->get();
 
+                                $statusColors = [
+                                    'pending' => 'warning text-dark',
+                                    'completed' => 'success text-white',
+                                    'failed' => 'danger text-white',
+                                    'refunded' => 'info text-dark',
+                                ];
+
+                                $visiblePayments = $payments->take(3); // first 3 payments
+                                $hiddenPayments = $payments->slice(3); // rest of the payments
+                            @endphp
 
                             <div class="card">
                                 <div class="header">
-                                    <h2>Jobseeker Payments</h2>
+                                    <h2>{{ $jobseeker->name }}'s Payments</h2>
                                 </div>
                                 <div class="body">
                                     <div class="container-fluid">
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Payment Card 1 -->
-                                                <div class="card p-3 mb-4 shadow-sm">
-                                                    <div class="d-flex flex-column">
-                                                        <h5 class="fw-bold mb-2">Payment #001</h5>
-                                                        <div class="mb-2">
-                                                            <strong>Paid To Date:</strong> 10 June 2025<br>
-                                                            <strong>Amount:</strong> ₹1,499<br>
-                                                            <strong>Payment Status:</strong>
-                                                            <span
-                                                                class="badge bg-success text-white small px-2 py-1">Paid</span>
+                                                <!-- Visible Payments -->
+                                                @foreach($visiblePayments as $payment)
+                                                    <div class="card p-3 mb-4 shadow-sm">
+                                                        <div class="d-flex flex-column">
+                                                            <h5 class="fw-bold mb-2">Payment #{{ str_pad($payment->id, 3, '0', STR_PAD_LEFT) }}</h5>
+                                                            <div class="mb-2">
+                                                                <strong>Paid On:</strong> {{ $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('d M Y') : 'N/A' }}<br>
+                                                                <strong>Amount:</strong> ₹{{ number_format($payment->amount_paid, 2) }}<br>
+                                                                <strong>Payment Status:</strong>
+                                                                @php
+                                                                    $statusClass = $statusColors[$payment->payment_status] ?? 'secondary text-white';
+                                                                @endphp
+                                                                <span class="badge bg-{{ explode(' ', $statusClass)[0] }} {{ explode(' ', $statusClass)[1] ?? '' }} small px-2 py-1">
+                                                                    {{ ucfirst($payment->payment_status) }}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                @endforeach
 
                                                 <!-- Hidden More Payments -->
-                                                <div id="morePayments" class="d-none">
-
-                                                    <!-- Payment Card 2 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-2">Payment #002</h5>
-                                                            <div class="mb-2">
-                                                                <strong>Paid To Date:</strong> 01 May 2025<br>
-                                                                <strong>Amount:</strong> ₹499<br>
-                                                                <strong>Payment Status:</strong>
-                                                                <span
-                                                                    class="badge bg-warning text-dark small px-2 py-1">Pending</span>
+                                                @if($hiddenPayments->count() > 0)
+                                                    <div id="morePayments" class="d-none">
+                                                        @foreach($hiddenPayments as $payment)
+                                                            <div class="card p-3 mb-4 shadow-sm">
+                                                                <div class="d-flex flex-column">
+                                                                    <h5 class="fw-bold mb-2">Payment #{{ str_pad($payment->id, 3, '0', STR_PAD_LEFT) }}</h5>
+                                                                    <div class="mb-2">
+                                                                        <strong>Paid On:</strong> {{ $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('d M Y') : 'N/A' }}<br>
+                                                                        <strong>Amount:</strong> ₹{{ number_format($payment->amount_paid, 2) }}<br>
+                                                                        <strong>Payment Status:</strong>
+                                                                        @php
+                                                                            $statusClass = $statusColors[$payment->payment_status] ?? 'secondary text-white';
+                                                                        @endphp
+                                                                        <span class="badge bg-{{ explode(' ', $statusClass)[0] }} {{ explode(' ', $statusClass)[1] ?? '' }} small px-2 py-1">
+                                                                            {{ ucfirst($payment->payment_status) }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                        @endforeach
                                                     </div>
 
-                                                    <!-- Payment Card 3 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-2">Payment #003</h5>
-                                                            <div class="mb-2">
-                                                                <strong>Paid To Date:</strong> 25 April 2025<br>
-                                                                <strong>Amount:</strong> ₹999<br>
-                                                                <strong>Payment Status:</strong>
-                                                                <span
-                                                                    class="badge bg-danger text-white small px-2 py-1">Failed</span>
-                                                            </div>
-                                                        </div>
+                                                    <!-- View More Button -->
+                                                    <div class="text-center mt-4">
+                                                        <button class="btn btn-primary" id="toggleButtonPay" onclick="togglePayments()">View More</button>
                                                     </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButtonPay"
-                                                        onclick="togglePayments()">View More</button>
-                                                </div>
+                                                @endif
 
                                             </div>
                                         </div>
@@ -958,6 +970,8 @@
                                     }
                                 </script>
                             </div>
+
+
 
 
                             <div class="card">

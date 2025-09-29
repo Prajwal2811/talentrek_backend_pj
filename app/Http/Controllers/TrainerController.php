@@ -536,7 +536,8 @@ class TrainerController extends Controller
                 'country' => $validated['country'],
                 'pin_code' => $validated['pin_code'],
                 'national_id' => $validated['national_id'],
-                'is_registered' => 1
+                'is_registered' => 1,
+                'is_registered' => 'active'
             ]);
 
             // Save education
@@ -588,7 +589,7 @@ class TrainerController extends Controller
 
             // File uploads
             $uploadTypes = [
-                'resume' => 'resume',
+                'resume' => 'trainer_resume',
                 'profile_picture' => 'trainer_profile_picture',
                 'training_certificate' => 'training_certificate',
 

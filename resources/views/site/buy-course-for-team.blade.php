@@ -77,15 +77,15 @@
                     <form action="{{ route('jobseeker.team-purchase-course-for-team') }}" method="POST" id="teamPurchaseForm">
                         @csrf
 
-                        <input type="text" name="material_id" value="{{ $material->id }}">
-                        <input type="text" name="training_type" value="{{ $material->training_type }}">
-                        <input type="text" name="member_count" id="memberCountInput" value="">
-                        <input type="text" name="original_price" id="original_price" value="{{ $offerPrice }}">
-                        <input type="text" name="tax_rate" id="tax_rate" value="{{ $taxRate }}">
-                        <input type="text" name="coupon_type" id="coupon_type" value="">
-                        <input type="text" name="coupon_code" id="coupon_code_text" value="">
-                        <input type="text" name="coupon_amount" id="coupon_amount" value="">
-                        <input type="text" name="amount_paid" id="totalInput" value="">
+                        <input type="hidden" name="material_id" value="{{ $material->id }}">
+                        <input type="hidden" name="training_type" value="{{ $material->training_type }}">
+                        <input type="hidden" name="member_count" id="memberCountInput" value="">
+                        <input type="hidden" name="original_price" id="original_price" value="{{ $offerPrice }}">
+                        <input type="hidden" name="tax_rate" id="tax_rate" value="{{ $taxRate }}">
+                        <input type="hidden" name="coupon_type" id="coupon_type" value="">
+                        <input type="hidden" name="coupon_code" id="coupon_code_text" value="">
+                        <input type="hidden" name="coupon_amount" id="coupon_amount" value="">
+                        <input type="hidden" name="amount_paid" id="totalInput" value="">
 
                         <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <!-- Left Column -->

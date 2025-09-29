@@ -2007,28 +2007,149 @@ class AdminController extends Controller
 
 
     public function payments()
-    {   
-        $payments = PaymentHistory::select('payments_history.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','payments_history.id as payment_id')
-                    ->join('jobseekers', 'payments_history.jobseeker_id', '=', 'jobseekers.id')
-                    ->orderBy('payments_history.created_at', 'desc')
-                    ->get();
-        // echo "<pre>"; print_r($payments); die;
+    {
+        $payments = PaymentHistory::orderBy('created_at', 'desc')->get();
+
+        // Loop through payments to get user and receiver names
+        $payments->transform(function ($payment) {
+
+            // Resolve payer name/email based on user_type
+            switch ($payment->user_type) {
+                case 'jobseeker':
+                    $user = Jobseekers::find($payment->user_id);
+                    $payment->user_name = $user ? $user->name : null;
+                    $payment->user_email = $user ? $user->email : null;
+                    break;
+                case 'trainer':
+                    $user = Trainers::find($payment->user_id);
+                    $payment->user_name = $user ? $user->name : null;
+                    $payment->user_email = $user ? $user->email : null;
+                    break;
+                case 'mentor':
+                    $user = Mentors::find($payment->user_id);
+                    $payment->user_name = $user ? $user->name : null;
+                    $payment->user_email = $user ? $user->email : null;
+                    break;
+                case 'coach':
+                    $user = Coach::find($payment->user_id);
+                    $payment->user_name = $user ? $user->name : null;
+                    $payment->user_email = $user ? $user->email : null;
+                    break;
+                case 'assessor':
+                    $user = Assessors::find($payment->user_id);
+                    $payment->user_name = $user ? $user->name : null;
+                    $payment->user_email = $user ? $user->email : null;
+                    break;
+                case 'recruiter':
+                    $user = Recruiters::find($payment->user_id);
+                    $payment->user_name = $user ? $user->name : null;
+                    $payment->user_email = $user ? $user->email : null;
+                    break;
+                // case 'expat':
+                //     $user = Expat::find($payment->user_id);
+                //     $payment->user_name = $user ? $user->name : null;
+                //     $payment->user_email = $user ? $user->email : null;
+                //     break;
+                default:
+                    $payment->user_name = null;
+                    $payment->user_email = null;
+            }
+
+            // Resolve receiver name
+            if ($payment->receiver_type && $payment->receiver_type !== 'talentrek') {
+                $receiverModel = match($payment->receiver_type) {
+                    'trainer' => Trainers::class,
+                    'mentor' => Mentors::class,
+                    'coach' => Coach::class,
+                    'assessor' => Assessors::class,
+                    'recruiter' => Recruiters::class,
+                    // 'expat' => Expat::class,
+                    default => null,
+                };
+
+                if ($receiverModel) {
+                    $receiver = $receiverModel::find($payment->receiver_id);
+                    $payment->receiver_name = $receiver ? $receiver->name : null;
+                }
+            } else {
+                $payment->receiver_name = 'Talentrek';
+            }
+
+            return $payment;
+        });
+
         return view('admin.payments.index', compact('payments'));
     }
 
+
     public function viewPayment($id)
     {
-        $payment = PaymentHistory::select('payments_history.*', 'jobseekers.name as jobseeker_name', 'jobseekers.email as jobseeker_email','training_materials.*')
-                                ->join('jobseekers', 'payments_history.jobseeker_id', '=', 'jobseekers.id')
-                                ->join('training_materials', 'payments_history.material_id', '=', 'training_materials.id')
-                                ->where('payments_history.id', $id)
-                                ->firstOrFail();
+        $payment = PaymentHistory::findOrFail($id);
 
-        // Get the jobseeker's details
-        $jobseeker = JobSeekers::find($payment->jobseeker_id);
+        // Resolve payer (who paid)
+        $payment->user_name = null;
+        $payment->user_email = null;
 
-        return view('admin.payments.view', compact('payment', 'jobseeker'));
+        switch ($payment->user_type) {
+            case 'jobseeker':
+                $user = Jobseekers::find($payment->user_id);
+                break;
+            case 'trainer':
+                $user = Trainers::find($payment->user_id);
+                break;
+            case 'mentor':
+                $user = Mentors::find($payment->user_id);
+                break;
+            case 'coach':
+                $user = Coach::find($payment->user_id);
+                break;
+            case 'assessor':
+                $user = Assessors::find($payment->user_id);
+                break;
+            case 'recruiter':
+                $user = Recruiters::find($payment->user_id);
+                break;
+            // case 'expat':
+            //     $user = Expat::find($payment->user_id);
+            //     break;
+            default:
+                $user = null;
+        }
+
+        if ($user) {
+            $payment->user_name = $user->name;
+            $payment->user_email = $user->email ?? null;
+        }
+
+        // Resolve receiver
+        if ($payment->receiver_type && $payment->receiver_type !== 'talentrek') {
+            $receiverModel = match($payment->receiver_type) {
+                'trainer' => Trainers::class,
+                'mentor' => Mentors::class,
+                'coach' => Coach::class,
+                'assessor' => Assessors::class,
+                'recruiter' => Recruiters::class,
+                // 'expat' => Expat::class,
+                default => null,
+            };
+
+            if ($receiverModel) {
+                $receiver = $receiverModel::find($payment->receiver_id);
+                $payment->receiver_name = $receiver ? $receiver->name : null;
+            }
+        } else {
+            $payment->receiver_name = 'Talentrek';
+        }
+
+        // If payment is for training, attach training material info
+        $payment->material = null;
+        if ($payment->payment_for === 'training' && $payment->material_id) {
+            $payment->material = TrainingMaterial::find($payment->material_id);
+        }
+
+        return view('admin.payments.view', compact('payment'));
     }
+
 
 
 

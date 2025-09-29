@@ -53,9 +53,23 @@
                     <!-- Course Content -->
                     <div class="mb-4">
                         <label class="block font-medium mb-1">{{ langLabel('course_content') }}</label>
-                        <textarea name="training_descriptions" class="w-full border rounded-md p-2 h-24" placeholder="{{ langLabel('enter_course_content') }}">{{ old('training_descriptions') }}</textarea>
-                        @error('training_descriptions')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        <textarea id="training_editor" name="training_descriptions">
+                            {{ old('training_descriptions') }}
+                        </textarea>
+                        @error('training_descriptions')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
+
+                    <!-- Rich Text Editor CSS & JS (already included once, don't repeat if it's above) -->
+                    <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
+                    <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
+                    <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+
+                    <script>
+                        var trainingEditor = new RichTextEditor("#training_editor");
+                    </script>
+
 
                     <!-- Training Level -->
                     <div class="mb-4">

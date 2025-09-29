@@ -46,27 +46,31 @@
 
                                         <div class="row mb-3">
                                             <div class="col-md-6">
-                                                <label class="form-label">Jobseeker Name</label>
-                                                <input type="text" class="form-control" value="{{ $payment->jobseeker_name }}" readonly>
+                                                <label class="form-label">Payer Name</label>
+                                                <input type="text" class="form-control" value="{{ $payment->user_name ?? 'N/A' }}" readonly>
                                             </div>
                                             <div class="col-md-6">
-                                                <label class="form-label">Jobseeker Email</label>
-                                                <input type="email" class="form-control" value="{{ $payment->jobseeker_email }}" readonly>
+                                                <label class="form-label">Payer Email</label>
+                                                <input type="email" class="form-control" value="{{ $payment->user_email ?? 'N/A' }}" readonly>
                                             </div>
                                         </div>
 
                                         <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Receiver Name</label>
+                                                <input type="text" class="form-control" value="{{ $payment->receiver_name ?? 'N/A' }}" readonly>
+                                            </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Amount</label>
                                                 <input type="text" class="form-control" value="₹{{ number_format($payment->amount_paid, 2) }}" readonly>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label">Payment Method</label>
-                                                <input type="text" class="form-control" value="{{ ucfirst($payment->payment_method) }}" readonly>
-                                            </div>
                                         </div>
 
                                         <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Payment Method</label>
+                                                <input type="text" class="form-control" value="{{ ucfirst($payment->payment_method ?? 'N/A') }}" readonly>
+                                            </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Status</label>
                                                 @php
@@ -74,41 +78,50 @@
                                                         'pending' => 'warning',
                                                         'completed' => 'success',
                                                         'failed' => 'danger',
-                                                        'refunded' => 'info', // or 'secondary' if you prefer
+                                                        'refunded' => 'info',
                                                     ];
-
                                                     $status = $payment->payment_status;
                                                     $bgClass = $statusColors[$status] ?? 'secondary';
                                                 @endphp
-
                                                 <input type="text" 
                                                     class="form-control bg-{{ $bgClass }} text-white" 
                                                     value="{{ ucfirst($status) }}" 
                                                     readonly>
-
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label">Paid On</label>
-                                                <input type="text" class="form-control" value="{{ \Carbon\Carbon::parse($payment->created_at)->format('d M Y, h:i A') }}" readonly>
                                             </div>
                                         </div>
+
                                         <div class="row mb-3">
-                                            <div class="col-md-12">
-                                                <h3 class="form-label heading text-bold">Training Info</h3>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Paid On</label>
+                                                <input type="text" class="form-control" value="{{ $payment->paid_at ? \Carbon\Carbon::parse($payment->paid_at)->format('d M Y, h:i A') : 'N/A' }}" readonly>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Payment For</label>
+                                                <input type="text" class="form-control" value="{{ ucfirst(str_replace('_', ' ', $payment->payment_for)) }}" readonly>
+                                            </div>
+                                        </div>
+
+                                        @if($payment->payment_for === 'training' && $payment->material)
+                                            <div class="row mb-3">
+                                                <div class="col-md-12">
+                                                    <h3 class="form-label heading text-bold">Training Info</h3>
                                                     <div class="row mb-3 mt-1">
                                                         <div class="col-md-12">
                                                             <label class="form-label">Training Course</label>
-                                                            <input type="text" class="form-control" value="{{ $payment->training_title }}" readonly>
+                                                            <input type="text" class="form-control" value="{{ $payment->material->title ?? 'N/A' }}" readonly>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>  
+                                            </div>
+                                        @endif
+
                                         <a href="{{ route('admin.payments') }}" class="btn btn-secondary mt-3">Back to Payments</a>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                 </div>
             </div>

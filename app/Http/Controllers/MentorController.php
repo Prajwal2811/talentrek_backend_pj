@@ -862,7 +862,7 @@ class MentorController extends Controller
                 ];
             });
         // echo "<pre>";    
-        // print_r($cancelled);exit; 
+        // print_r($sessions['pending']);exit; 
 
         
 

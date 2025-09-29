@@ -416,15 +416,21 @@
                                                         @else
                                                             <div class="row">
                                                                 @foreach($additioninfos as $info)
-                                                                    @if($info->doc_type == 'resume')
+                                                                    @if($info->doc_type == 'trainer_resume')
                                                                         <div class="col-md-12 form-group d-flex align-items-center">
                                                                             <label class="w-100">Uploaded Resume</label>
                                                                             <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                             <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                         </div>
-                                                                    @elseif($info->doc_type == 'profile_picture')
+                                                                    @elseif($info->doc_type == 'trainer_profile_picture')
                                                                         <div class="col-md-12 form-group d-flex align-items-center">
                                                                             <label class="w-100">Uploaded Profile Picture</label>
+                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                        </div>
+                                                                    @elseif($info->doc_type == 'training_certificate')
+                                                                        <div class="col-md-12 form-group d-flex align-items-center">
+                                                                            <label class="w-100">Uploaded Training Certificate</label>
                                                                             <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                             <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                         </div>
@@ -500,98 +506,8 @@
                                     button.textContent = hidden ? "View Less" : "View More";
                                 }
                             </script>
-
-
-
-                            <div class="card">
-                                <div class="header">
-                                    <h2>trainer Payments</h2>
-                                </div>
-                                <div class="body">
-                                    <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-lg-12">
-
-                                                <!-- Payment Card 1 -->
-                                                <div class="card p-3 mb-4 shadow-sm">
-                                                    <div class="d-flex flex-column">
-                                                        <h5 class="fw-bold mb-2">Payment #001</h5>
-                                                        <div class="mb-2">
-                                                            <strong>Paid To Date:</strong> 10 June 2025<br>
-                                                            <strong>Amount:</strong> ₹1,499<br>
-                                                            <strong>Payment Status:</strong>
-                                                            <span
-                                                                class="badge bg-success text-white small px-2 py-1">Paid</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Hidden More Payments -->
-                                                <div id="morePayments" class="d-none">
-
-                                                    <!-- Payment Card 2 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-2">Payment #002</h5>
-                                                            <div class="mb-2">
-                                                                <strong>Paid To Date:</strong> 01 May 2025<br>
-                                                                <strong>Amount:</strong> ₹499<br>
-                                                                <strong>Payment Status:</strong>
-                                                                <span
-                                                                    class="badge bg-warning text-dark small px-2 py-1">Pending</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Payment Card 3 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-2">Payment #003</h5>
-                                                            <div class="mb-2">
-                                                                <strong>Paid To Date:</strong> 25 April 2025<br>
-                                                                <strong>Amount:</strong> ₹999<br>
-                                                                <strong>Payment Status:</strong>
-                                                                <span
-                                                                    class="badge bg-danger text-white small px-2 py-1">Failed</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButtonPay"
-                                                        onclick="togglePayments()">View More</button>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- JS Toggle -->
-                                <script>
-                                    function togglePayments() {
-                                        const morePayments = document.getElementById("morePayments");
-                                        const button = document.getElementById("toggleButtonPay");
-
-                                        if (morePayments.classList.contains("d-none")) {
-                                            morePayments.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            morePayments.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
-                            </div>
-
-                           
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>

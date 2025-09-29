@@ -89,7 +89,7 @@
                     @csrf
                     <input type="hidden" name="material_id" value="{{ $material->id }}">
                     <input type="hidden" name="training_type" value="{{ $material->training_type }}">
-                    <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()->id }}">
+                    <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()?->id }}">
                     <input type="hidden" name="buy_type" value="buyNow">
 
 

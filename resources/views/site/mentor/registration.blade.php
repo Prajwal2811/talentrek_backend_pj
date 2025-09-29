@@ -233,12 +233,6 @@
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
-
-
-
-
-
-
                                         <div class="flex justify-end">
                                             <button type="button" onclick="showStep(2)" class="bg-blue-700 text-white px-6 py-2 rounded-md mt-3">{{ langLabel('next') }}</button>
                                         </div>

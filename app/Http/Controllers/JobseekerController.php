@@ -864,40 +864,46 @@ class JobseekerController extends Controller
             'job_role.*' => 'required|string|max:255',
             'organization.*' => 'required|string|max:255',
             'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
+            'end_to.*' => 'nullable|date',
             'currently_working' => 'array',
         ], [
             'job_role.*.required' => 'Please enter your job role.',
-            'job_role.*.string' => 'Job role should be a valid text.',
-            'job_role.*.max' => 'Job role can’t be more than 255 characters.',
+            'job_role.*.string' => 'Job role should be valid text.',
+            'job_role.*.max' => 'Job role can’t exceed 255 characters.',
 
             'organization.*.required' => 'Please provide the organization name.',
-            'organization.*.string' => 'Organization name must be a valid string.',
+            'organization.*.string' => 'Organization must be valid text.',
             'organization.*.max' => 'Organization name can’t exceed 255 characters.',
 
-            // Start Date
-            'starts_from.*.required' => 'Please select the start date for each experience.',
-            'starts_from.*.date' => 'The start date must be in a valid format (e.g., YYYY-MM-DD).',
+            'starts_from.*.required' => 'Please select start date.',
+            'starts_from.*.date' => 'Start date must be valid format (YYYY-MM-DD).',
 
-            // End Date
-            'end_to.*.required' => 'Please select the end date for each experience.',
-            'end_to.*.date' => 'The end date must be in a valid format (e.g., YYYY-MM-DD).',
-            'end_to.*.after_or_equal' => 'The end date must be the same as or after the start date.',
+            'end_to.*.nullable' => 'End date is optional if currently working.',
+            'end_to.*.date' => 'End date must be a valid date.',
 
-            'currently_working.array' => 'Currently working selection must be in a valid format.',
+            'currently_working.array' => 'Currently working selection must be valid.',
         ]);
 
+        // Ensure only one entry is marked as "currently working"
+        if ($request->filled('currently_working') && count($request->currently_working) > 1) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => ['currently_working' => ['Only one job can be marked as currently working.']]
+            ], 422);
+        }
 
         // Manual check for end date >= start date
-        foreach ($request->end_to as $index => $end) {
-            if (isset($request->starts_from[$index]) && $end < $request->starts_from[$index]) {
-                return back()->withErrors([
-                    "end_to.$index" => "End date should not be earlier than the start date."
-                ])->withInput();
+        foreach ($request->end_to ?? [] as $index => $end) {
+            $start = $request->starts_from[$index] ?? null;
+            if ($end && $start && $end < $start) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => ["end_to.$index" => ["End date should not be earlier than start date."]]
+                ], 422);
             }
         }
 
-
+        // Delete removed work experiences
         $workIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
             ->where('user_type', 'jobseeker')
@@ -905,8 +911,11 @@ class JobseekerController extends Controller
             ->toArray();
 
         $toDelete = array_diff($existingIds, $workIds);
-        WorkExperience::whereIn('id', $toDelete)->delete();
+        if (!empty($toDelete)) {
+            WorkExperience::whereIn('id', $toDelete)->delete();
+        }
 
+        // Save or update work experiences
         foreach ($request->input('job_role', []) as $i => $role) {
             $currentlyWorking = in_array($i, $request->input('currently_working', []));
             $endToValue = $currentlyWorking ? 'work here' : ($request->end_to[$i] ?? null);
@@ -927,9 +936,12 @@ class JobseekerController extends Controller
             }
         }
 
-        return response()->json(['status' => 'success', 'message' => 'Work Experience information saved successfully!']);
-
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Work Experience information saved successfully!'
+        ]);
     }
+
 
 
     public function updateSkillsInfo(Request $request)

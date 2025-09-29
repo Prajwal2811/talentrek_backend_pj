@@ -243,7 +243,7 @@ class CoursePurchaseController extends Controller
                 'training_type'   => $paymentRequest->training_type,
                 'session_type'    => $paymentRequest->training_type, // adjust if different session_type logic
                 'batch_id'        => $paymentRequest->batch_id,
-                'purchase_for'    => 'course',
+                'purchase_for'    => 'individual',
                 'payment_id'      => $paymentHistory->id,
                 'batchStatus'     => 'active',
                 'status'          => 'active',
@@ -574,67 +574,67 @@ class CoursePurchaseController extends Controller
         $mainJobseeker = Jobseekers::find($payment->jobseeker_id);
 
         // Send email to main jobseeker
-        if ($mainJobseeker) {
-            $teamEmails = implode(', ', array_map(fn($m) => $m->email, $teamMembers));
-            Mail::html('
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Team Course Purchase Confirmation</title>
-                    <style>
-                        body { font-family: Arial,sans-serif; background:#f4f6f9; margin:0; padding:20px; color:#333; }
-                        .container { background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-                        .footer { text-align:center; font-size:12px; color:#888; margin-top:20px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h2>Team Course Purchase Successful</h2>
-                        <p>Hello <strong>' . e($mainJobseeker->email) . '</strong>,</p>
-                        <p>You have successfully purchased the course "<strong>' . e($purchase->material->name ?? 'Course') . '</strong>" for your team members:</p>
-                        <p>' . $teamEmails . '</p>
-                        <p>Thank you for using Talentrek!</p>
-                    </div>
-                    <div class="footer">
-                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-                    </div>
-                </body>
-                </html>
-            ');
-        }
+        // if ($mainJobseeker) {
+        //     $teamEmails = implode(', ', array_map(fn($m) => $m->email, $teamMembers));
+        //     Mail::html('
+        //         <!DOCTYPE html>
+        //         <html lang="en">
+        //         <head>
+        //             <meta charset="UTF-8">
+        //             <title>Team Course Purchase Confirmation</title>
+        //             <style>
+        //                 body { font-family: Arial,sans-serif; background:#f4f6f9; margin:0; padding:20px; color:#333; }
+        //                 .container { background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+        //                 .footer { text-align:center; font-size:12px; color:#888; margin-top:20px; }
+        //             </style>
+        //         </head>
+        //         <body>
+        //             <div class="container">
+        //                 <h2>Team Course Purchase Successful</h2>
+        //                 <p>Hello <strong>' . e($mainJobseeker->email) . '</strong>,</p>
+        //                 <p>You have successfully purchased the course "<strong>' . e($purchase->material->name ?? 'Course') . '</strong>" for your team members:</p>
+        //                 <p>' . $teamEmails . '</p>
+        //                 <p>Thank you for using Talentrek!</p>
+        //             </div>
+        //             <div class="footer">
+        //                 &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+        //             </div>
+        //         </body>
+        //         </html>
+        //     ');
+        // }
 
-        // Send email to each team member
-        foreach ($teamMembers as $member) {
-            Mail::html('
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Team Course Notification</title>
-                    <style>
-                        body { font-family: Arial,sans-serif; background:#f4f6f9; margin:0; padding:20px; color:#333; }
-                        .container { background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-                        .footer { text-align:center; font-size:12px; color:#888; margin-top:20px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h2>Course Assigned to You</h2>
-                        <p>Hello <strong>' . e($member->email) . '</strong>,</p>
-                        <p>You have been assigned the course "<strong>' . e($purchase->material->name ?? 'Course') . '</strong>" by <strong>' . e($mainJobseeker->email) . '</strong>.</p>
-                        <p>Thank you for joining the session!</p>
-                    </div>
-                    <div class="footer">
-                        &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-                    </div>
-                </body>
-                </html>
-            ', function($message) use ($member) {
-                $message->to($member->email)
-                        ->subject('You have been assigned a Team Course!');
-            });
-        }
+        // // Send email to each team member
+        // foreach ($teamMembers as $member) {
+        //     Mail::html('
+        //         <!DOCTYPE html>
+        //         <html lang="en">
+        //         <head>
+        //             <meta charset="UTF-8">
+        //             <title>Team Course Notification</title>
+        //             <style>
+        //                 body { font-family: Arial,sans-serif; background:#f4f6f9; margin:0; padding:20px; color:#333; }
+        //                 .container { background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+        //                 .footer { text-align:center; font-size:12px; color:#888; margin-top:20px; }
+        //             </style>
+        //         </head>
+        //         <body>
+        //             <div class="container">
+        //                 <h2>Course Assigned to You</h2>
+        //                 <p>Hello <strong>' . e($member->email) . '</strong>,</p>
+        //                 <p>You have been assigned the course "<strong>' . e($purchase->material->name ?? 'Course') . '</strong>" by <strong>' . e($mainJobseeker->email) . '</strong>.</p>
+        //                 <p>Thank you for joining the session!</p>
+        //             </div>
+        //             <div class="footer">
+        //                 &copy; ' . date('Y') . ' Talentrek. All rights reserved.
+        //             </div>
+        //         </body>
+        //         </html>
+        //     ', function($message) use ($member) {
+        //         $message->to($member->email)
+        //                 ->subject('You have been assigned a Team Course!');
+        //     });
+        // }
 
         // Create payment history for main jobseeker
         PaymentHistory::create([

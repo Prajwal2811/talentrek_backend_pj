@@ -431,19 +431,26 @@
                                                         @else
                                                             <div class="row">
                                                                 @foreach($additioninfos as $info)
-                                                                    @if($info->doc_type == 'resume')
+                                                                    @if($info->doc_type == 'mentor_resume')
                                                                         <div class="col-md-12 form-group d-flex align-items-center">
                                                                             <label class="w-100">Uploaded Resume</label>
                                                                             <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                             <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                         </div>
-                                                                    @elseif($info->doc_type == 'profile_picture')
+                                                                    @elseif($info->doc_type == 'mentor_profile_picture')
                                                                         <div class="col-md-12 form-group d-flex align-items-center">
                                                                             <label class="w-100">Uploaded Profile Picture</label>
                                                                             <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                             <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                         </div>
+                                                                    @elseif($info->doc_type == 'mentor_training_certificate')
+                                                                        <div class="col-md-12 form-group d-flex align-items-center">
+                                                                            <label class="w-100">Uploaded Training Certificate</label>
+                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                        </div>
                                                                     @endif
+
                                                                 @endforeach
                                                             </div>
                                                         @endif
