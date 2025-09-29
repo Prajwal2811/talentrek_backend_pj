@@ -254,6 +254,17 @@
                                                             class="w-full border rounded px-3 py-2"
                                                             {{ $recruiterRole === 'sub_recruiter' && $r->id !== $recruiterId ? 'readonly' : '' }} />
                                                     </div>
+                                                    <div>
+                                                        <label class="block mb-1 text-sm font-medium mt-3">Gender <span style="color: red; font-size: 17px;">*</span></label>
+                                                        <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
+                                                            <option value="">Select Gender</option>
+                                                            <option value="Male" {{ old('gender', $mentor->gender ?? '') == 'Male' ? 'selected' : '' }}>Male</option>
+                                                            <option value="Female" {{ old('gender', $mentor->gender ?? '') == 'Female' ? 'selected' : '' }}>Female</option>
+                                                        </select>
+                                                        @error('gender')
+                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
 
                                                     <div>
                                                         <label class="block mb-1 font-medium">{{ langLabel('national_id') }} <span class="text-red-600">*</span></label>

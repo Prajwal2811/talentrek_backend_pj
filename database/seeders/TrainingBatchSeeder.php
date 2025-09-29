@@ -12,7 +12,7 @@ class TrainingBatchSeeder extends Seeder
    public function run(): void
     {
         $trainerId = 1;
-        $trainingMaterialId = 1;
+        $trainingMaterialId = 2;
 
         DB::table('training_batches')->insert([
             [

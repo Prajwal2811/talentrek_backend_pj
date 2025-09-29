@@ -66,10 +66,10 @@ class BookingSession extends Model
     //     return $this->belongsTo(BookingSlot::class);
     // }
 
-    public function user()
-    {
-        return $this->morphTo(__FUNCTION__, 'user_type', 'user_id');
-    }
+    // public function user()
+    // {
+    //     return $this->morphTo(__FUNCTION__, 'user_type', 'user_id');
+    // }
 
     public function bookingSlot()
     {

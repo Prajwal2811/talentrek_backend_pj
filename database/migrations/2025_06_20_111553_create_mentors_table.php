@@ -18,9 +18,11 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->string('national_id')->unique()->nullable();
+            $table->string('gender')->nullable();
             $table->string('phone_code')->nullable();       // e.g., +91, +1
             $table->string('phone_number')->nullable();     // e.g., 9876543210
             $table->date('date_of_birth')->nullable();      // e.g., 1985-12-20
+            $table->date('gender')->nullable();      // e.g., 1985-12-20
             $table->string('city')->nullable();         // e.g., city or state
             $table->string('state')->nullable();         // e.g., city or state
             $table->string('address')->nullable();

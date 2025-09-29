@@ -362,6 +362,25 @@ class SessionBookingController extends Controller
             if ($jobseeker) {
                 Auth::guard('jobseeker')->login($jobseeker); 
             }
+
+            // 💰 Save PaymentHistory
+            PaymentHistory::create([
+                'user_type'      => 'jobseeker',
+                'user_id'        => $paymentRequest->jobseeker_id,
+                'receiver_type'  => 'mentor', // or 'trainer' based on your logic
+                'receiver_id'    => $paymentRequest->user_id,
+                'payment_for'    => 'booking_slot',
+                'amount_paid'    => $paymentRequest->total_amount,
+                'tax'            => $paymentRequest->taxed_amount ?? 0,
+                'applied_coupon' => $paymentRequest->coupon_code,
+                'payment_status' => 'completed',
+                'transaction_id' => $paymentRequest->transaction_id,
+                'track_id'       => $paymentRequest->track_id,
+                'order_id'       => 'ORD-' . $paymentRequest->jobseeker_id . '-' . $paymentRequest->booking_slot_id . '-' . now()->format('YmdHi'),
+                'currency'       => 'SAR',
+                'payment_method' => $paymentRequest->payment_gateway,
+                'paid_at'        => now(),
+            ]);
         }
 
         return redirect()->route('jobseeker.profile')

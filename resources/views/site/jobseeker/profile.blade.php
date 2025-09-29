@@ -40,18 +40,7 @@ $skills = $user->skills->first();
         </div>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        @if(session('success'))
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: "{{ session('success') }}",
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    });
-                });
-            </script>
-        @endif
+        
         @include('admin.errors')
         <main class="w-11/12 mx-auto py-8" x-data="{ tab: 'personal' }">
             <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -714,18 +703,13 @@ $skills = $user->skills->first();
                                                     </div>
 
                                                     <!-- End To & Checkbox -->
-                                                   @php
+                                                    @php
                                                         $isWorking = old('currently_working') ? in_array($i, old('currently_working', [])) :
                                                             (isset($data->end_to) && $data->end_to === 'work here');
                                                         $defaultDate = old("end_to.$i", isset($data->end_to) && $data->end_to !== 'work here' ? \Carbon\Carbon::parse($data->end_to)->format('Y-m-d') : '');
                                                     @endphp
 
-                                                    <div x-data="{ 
-                                                            working: {{ $isWorking ? 'true' : 'false' }}, 
-                                                            endDate: '{{ $defaultDate }}', 
-                                                            defaultDate: '{{ $defaultDate }}'
-                                                        }"
-                                                    >
+                                                    <div class="end-date-container">
                                                         <label class="block text-sm font-medium mb-1">
                                                             To <span style="color: red; font-size: 17px;">*</span>
                                                         </label>
@@ -734,8 +718,9 @@ $skills = $user->skills->first();
                                                             type="date" 
                                                             name="end_to[]" 
                                                             class="datepicker-end w-full border rounded px-3 py-2"
-                                                            x-bind:disabled="working"
-                                                            x-model="endDate"
+                                                            value="{{ $defaultDate }}"
+                                                            data-default="{{ $defaultDate }}"
+                                                            {{ $isWorking ? 'disabled' : '' }}
                                                             max="{{ date('Y-m-d') }}"
                                                         />
 
@@ -744,18 +729,16 @@ $skills = $user->skills->first();
                                                                 type="checkbox" 
                                                                 name="currently_working[]" 
                                                                 value="{{ $i }}"
-                                                                x-model="working"
-                                                                x-on:change="if (working) { endDate = '' } else { endDate = defaultDate }"
+                                                                {{ $isWorking ? 'checked' : '' }}
+                                                                class="currently-working-checkbox"
                                                             />
                                                             <span>I currently work here</span>
                                                         </label>
                                                     </div>
 
-
-
                                                     <!-- Remove Button -->
                                                     <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                            style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
+                                                        style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
                                                 </div>
                                             @endfor
                                         </div>
@@ -763,6 +746,11 @@ $skills = $user->skills->first();
                                         <!-- Add Button -->
                                         <div class="col-span-2">
                                             <button type="button" id="add-work" class="text-green-600 text-sm">+ {{ langLabel('add_experience') }}</button>
+                                        </div>
+
+                                        <!-- Success Message -->
+                                        <div id="work-success" class="p-3 bg-green-100 text-green-800 rounded mt-2" style="display:none;">
+                                            <span class="message-text"></span>
                                         </div>
 
                                         <!-- Submit Buttons -->
@@ -775,46 +763,63 @@ $skills = $user->skills->first();
                                     </div>
                                 </form>
 
-                                <!-- JS Script for Work Experience -->
                                 <script>
                                     const workContainer = document.getElementById('work-container');
                                     const addWorkBtn = document.getElementById('add-work');
 
+                                    // Initialize checkbox logic for an entry
+                                    function initWorkEntry(entry) {
+                                        const checkbox = entry.querySelector('.currently-working-checkbox');
+                                        const endInput = entry.querySelector('.datepicker-end');
+                                        const defaultDate = endInput.dataset.default || '';
+
+                                        endInput.dataset.defaultDate = defaultDate;
+
+                                        checkbox.addEventListener('change', () => {
+                                            if (checkbox.checked) {
+                                                // Uncheck all other checkboxes
+                                                workContainer.querySelectorAll('.currently-working-checkbox').forEach(cb => {
+                                                    if (cb !== checkbox) {
+                                                        cb.checked = false;
+                                                        const otherEnd = cb.closest('.work-entry').querySelector('.datepicker-end');
+                                                        otherEnd.disabled = false;
+                                                        otherEnd.value = otherEnd.dataset.defaultDate;
+                                                    }
+                                                });
+
+                                                endInput.value = '';
+                                                endInput.disabled = true;
+                                            } else {
+                                                endInput.disabled = false;
+                                                endInput.value = endInput.dataset.defaultDate;
+                                            }
+                                        });
+                                    }
+
+                                    // Initialize existing entries
+                                    workContainer.querySelectorAll('.work-entry').forEach(initWorkEntry);
+
+                                    // Add new work entry
                                     addWorkBtn.addEventListener('click', () => {
                                         const firstEntry = workContainer.querySelector('.work-entry');
                                         const clone = firstEntry.cloneNode(true);
 
                                         clone.querySelectorAll('input').forEach(input => {
-                                            if (input.type === 'hidden') {
-                                                input.remove();
-                                            } else if (input.type === 'checkbox') {
-                                                input.checked = false;
-
-                                                const xDataContainer = input.closest('[x-data]');
-                                                if (xDataContainer && xDataContainer.__x) {
-                                                    xDataContainer.__x.$data.working = false;
-                                                }
-                                            } else {
+                                            if (input.type === 'hidden') input.remove();
+                                            else if (input.type === 'checkbox') input.checked = false;
+                                            else {
                                                 input.value = '';
-                                                input.removeAttribute('disabled'); // Make sure input is editable
+                                                input.disabled = false;
                                             }
                                         });
 
-                                        // ✅ Specifically clear end_to[] input value (just in case)
-                                        const endToInput = clone.querySelector('.datepicker-end');
-                                        if (endToInput) {
-                                            endToInput.value = '';
-                                        }
-
-                                        clone.querySelectorAll('p.text-red-600').forEach(err => err.remove());
                                         clone.querySelector('.remove-work').style.display = 'block';
 
                                         workContainer.appendChild(clone);
-                                        Alpine.initTree(clone); // Reinit Alpine.js
+                                        initWorkEntry(clone); // initialize checkbox logic
                                     });
 
-
-
+                                    // Remove work entry
                                     workContainer.addEventListener('click', e => {
                                         if (e.target.classList.contains('remove-work')) {
                                             const entry = e.target.closest('.work-entry');
@@ -822,11 +827,12 @@ $skills = $user->skills->first();
                                         }
                                     });
 
+                                    // Save work info (AJAX)
                                     document.getElementById('save-work-info').addEventListener('click', function () {
                                         const form = document.getElementById('work-info-form');
                                         const formData = new FormData(form);
                                         const successBox = document.getElementById('work-success');
-                                        const successText = successBox.querySelector('.message-text');
+                                        const successText = successBox?.querySelector('.message-text');
 
                                         // Clear previous errors
                                         form.querySelectorAll('.text-red-600').forEach(e => e.remove());
@@ -844,13 +850,14 @@ $skills = $user->skills->first();
                                             return response.json();
                                         })
                                         .then(data => {
-                                            successText.textContent = data.message;
-                                            successBox.style.display = 'block';
-                                            setTimeout(() => {
-                                                successBox.style.display = 'none';
-                                                successText.textContent = '';
-                                            }, 3000);
-
+                                            if (successBox && successText) {
+                                                successText.textContent = data.message;
+                                                successBox.style.display = 'block';
+                                                setTimeout(() => {
+                                                    successBox.style.display = 'none';
+                                                    successText.textContent = '';
+                                                }, 3000);
+                                            }
                                             if (typeof nextTab === "function") nextTab();
                                         })
                                         .catch(error => {
@@ -859,11 +866,9 @@ $skills = $user->skills->first();
                                                 const [baseField, index] = fieldName.split('.');
                                                 const inputList = form.querySelectorAll(`[name="${baseField}[]"]`);
                                                 const input = inputList[parseInt(index)];
-
                                                 if (input) {
                                                     let existingError = input.parentNode.querySelector('.text-red-600');
                                                     if (existingError) existingError.remove();
-
                                                     const errorElem = document.createElement('p');
                                                     errorElem.className = 'text-red-600 text-sm mt-1';
                                                     errorElem.textContent = errors[fieldName][0];
@@ -877,9 +882,10 @@ $skills = $user->skills->first();
                                                 }
                                             });
                                         });
-
                                     });
                                 </script>
+
+
 
 
                             <!-- Skills Success Message -->
@@ -1235,133 +1241,167 @@ $skills = $user->skills->first();
                                         });
                                     });
                                 </script>
-
-
-
-
-
-
-
                             </div>
-                            <!-- <div class="flex justify-end gap-4 mt-6">
-                                <button 
-                                    class="border rounded px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                                    @click="nextTab"
-                                    x-show="profileTab !== 'additional'"
-                                >
-                                    Next
-                                </button>
-                                <button class="bg-blue-700 text-white px-6 py-2 rounded text-sm hover:bg-blue-800">Save</button>
-                            </div> -->
                         </div>
 
 
-                        @php
-                            use App\Models\Setting;
-                            use App\Models\JobseekerCartItem;
+                            @php
+                                use App\Models\Setting;
+                                use App\Models\JobseekerCartItem;
 
-                            $cartItems = JobseekerCartItem::with([
-                                'material.reviews',
-                                'material.profilePicture'
-                            ])
-                            ->where('jobseeker_id', auth('jobseeker')->id())
-                            ->get();
+                                $cartItems = JobseekerCartItem::with([
+                                    'material.reviews',
+                                    'material.profilePicture'
+                                ])
+                                ->where('jobseeker_id', auth('jobseeker')->id())
+                                ->get();
 
-                            $taxation = Setting::first();
-                            $taxRate = floatval($taxation->trainingMaterialTax ?? 0);
+                                $taxation = Setting::first();
+                                $taxRate = floatval($taxation->trainingMaterialTax ?? 0);
 
-                            $courseTotal = 0.0;
-                            $savedTotal = 0.0;
+                                $courseTotal = 0.0;
+                                $savedTotal = 0.0;
+                                $hasEndedBatch = false;
 
-                            foreach ($cartItems as $item) {
-                                $material = $item->material;
-                                $actualPrice = floatval($material->training_price ?? 0);
-                                $offerPrice = floatval($material->training_offer_price ?? $actualPrice);
-                                $courseTotal += $offerPrice;
-                                $savedTotal += ($actualPrice - $offerPrice);
-                            }
+                                foreach ($cartItems as $item) {
+                                    $material = $item->material;
+                                    $actualPrice = floatval($material->training_price ?? 0);
+                                    $offerPrice = floatval($material->training_offer_price ?? $actualPrice);
+                                    $courseTotal += $offerPrice;
+                                    $savedTotal += ($actualPrice - $offerPrice);
 
-                            $tax = round($courseTotal * ($taxRate / 100), 2);
-                            $total = round($courseTotal + $tax, 2);
-                        @endphp
+                                    $batchId = $item->batch_id;
+                                    $selectedBatch = \App\Models\TrainingBatch::where('training_material_id', $item->material_id)
+                                                        ->where('id', $batchId)
+                                                        ->first();
+
+                                    if($selectedBatch) {
+                                        $end = isset($selectedBatch->end_date) ? \Carbon\Carbon::parse($selectedBatch->end_date) : \Carbon\Carbon::parse($selectedBatch->start_date);
+                                        if($end->isPast()) $hasEndedBatch = true;
+                                    }
+                                }
+
+                                $tax = round($courseTotal * ($taxRate / 100), 2);
+                                $total = round($courseTotal + $tax, 2);
+                            @endphp
 
                             <div x-data="{ tab: 'cart' }">
                                 <div x-show="tab === 'cart'" x-cloak>
                                     <h2 class="text-xl font-semibold mb-4">My Cart</h2>
-                                    <form accept="multipart/form-data" action="{{ route('jobseeker.purchase-course') }}" method="POST">
+                                    <form action="{{ route('jobseeker.cart-purchase-course') }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                             <!-- Left: Course List -->
                                             <div class="lg:col-span-2 space-y-4">
                                                 @forelse($cartItems as $item)
-                                                    @php $material = $item->material; @endphp
-                                                    <!-- Cart item hidden inputs -->
-                                                    <input type="text" name="items[0][material_id]" value="{{ $material->id }}">
-                                                    <input type="text" name="items[0][training_type]" value="{{ $material->training_type }}">
-                                                    <input type="text" name="items[0][batch_id]" value="">
-                                                    <input type="text" name="items[0][offer_price]" value="{{ $material->training_offer_price }}">
-                                                    <input type="text" name="items[0][tax_rate]" value="{{ $taxRate }}">
-                                                    <input type="text" name="items[0][coupon_code]" value="">
-                                                    <input type="text" name="items[0][coupon_type]" value="">
-                                                    <input type="text" name="items[0][coupon_amount]" value="0">
-                                                    <input type="text" name="user_id" value="{{ auth('jobseeker')->user()->id }}">
-                                                    <input type="text" name="buy_type" value="buyNow">
+                                                    @php 
+                                                        $material = $item->material; 
+                                                        $batchId = $item->batch_id;
+                                                        $selectedBatch = \App\Models\TrainingBatch::where('training_material_id', $item->material_id)
+                                                                            ->where('id', $batchId)
+                                                                            ->first();
 
-                                                    <div class="cart-item flex border rounded-lg p-4 gap-4">
-                                                        <!-- Image and Remove -->
-                                                        <div class="flex flex-col items-start gap-2">
-                                                            <img src="{{ $material->thumbnail_file_path }}" alt="Course"
-                                                                class="w-48 h-48 object-cover rounded" />
-                                                            <button type="button" class="text-red-500 text-sm hover:underline remove-item"
-                                                                data-id="{{ $item->id }}">Remove</button>
-                                                        </div>
+                                                        if($selectedBatch) {
+                                                            $start = \Carbon\Carbon::parse($selectedBatch->start_date);
+                                                            $end = isset($selectedBatch->end_date) ? \Carbon\Carbon::parse($selectedBatch->end_date) : $start;
+                                                            $strength = $selectedBatch->strength;
+                                                            $enrolled = \App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $selectedBatch->id)
+                                                                            ->where('material_id', $item->material_id)
+                                                                            ->count();
+                                                            $availableSeats = $strength - $enrolled;
+                                                            $days = is_array(json_decode($selectedBatch->days)) ? implode(', ', json_decode($selectedBatch->days)) : $selectedBatch->days;
+                                                            $started = $start->isPast() && !$end->isPast();
+                                                            $ended = $end->isPast();
+                                                        }
+                                                    @endphp
 
-                                                        <!-- Course Info -->
-                                                        <div class="flex-1">
-                                                            <h4 class="font-semibold text-base">{{ $material->training_title }}</h4>
-                                                            <p class="text-sm text-gray-600 mt-1">
-                                                                {{ Str::limit($material->training_sub_title, 150) }}
-                                                            </p>
+                                                   <!-- Hidden Inputs for Cart Submission -->
+                                                    <input type="hidden" name="material_ids[]" value="{{ $material->id }}">
+                                                    <input type="hidden" name="batch_ids[]" value="{{ $selectedBatch->id ?? '' }}">
+                                                    <input type="hidden" name="training_types[]" value="{{ $material->training_type }}">
+                                                    <input type="hidden" name="offer_prices[]" value="{{ $material->training_offer_price }}">
+                                                    <input type="hidden" name="tax_rates[]" value="{{ $taxRate }}">
+                                                    <input type="hidden" name="coupon_codes[]" value="">
+                                                    <input type="hidden" name="coupon_types[]" value="">
+                                                    <input type="hidden" name="coupon_amounts[]" value="0">
 
-                                                            <div class="flex items-center text-yellow-500 text-sm mt-1">
-                                                                @php
-                                                                    $reviews = $material->reviews;
-                                                                    $rating = $reviews->avg('ratings') ?? 0;
-                                                                    $ratingRounded = round($rating);
-                                                                    $reviewCount = $reviews->count();
-                                                                @endphp
+                                                    <div class="cart-item flex flex-col border rounded-lg p-4 gap-4">
+                                                        <div class="flex gap-4">
+                                                            <!-- Image & Remove Button -->
+                                                            <div class="flex flex-col items-start gap-2 w-48">
+                                                                <img src="{{ $material->thumbnail_file_path }}" alt="Course" class="w-48 h-48 object-cover rounded" />
+                                                                <button type="button" class="text-red-500 text-sm hover:underline mt-2 remove-item" data-id="{{ $item->id }}">
+                                                                    Remove
+                                                                </button>
+                                                            </div>
 
-                                                                @for ($i = 1; $i <= 5; $i++)
-                                                                    @if ($i <= $ratingRounded)
-                                                                        ★
-                                                                    @else
-                                                                        ☆
+                                                            <!-- Course Info -->
+                                                            <div class="flex-1 space-y-3">
+                                                                <h4 class="font-semibold text-base">{{ $material->training_title }}</h4>
+                                                                <p class="text-sm text-gray-600">{{ Str::limit($material->training_sub_title, 150) }}</p>
+
+                                                                <!-- Rating -->
+                                                                <div class="flex items-center text-yellow-500 text-sm">
+                                                                    @php
+                                                                        $reviews = $material->reviews;
+                                                                        $rating = $reviews->avg('ratings') ?? 0;
+                                                                        $ratingRounded = round($rating);
+                                                                        $reviewCount = $reviews->count();
+                                                                    @endphp
+                                                                    @for ($i = 1; $i <= 5; $i++)
+                                                                        {!! $i <= $ratingRounded ? '★' : '☆' !!}
+                                                                    @endfor
+                                                                    <span class="ml-2 text-gray-500 text-xs">({{ number_format($rating,1) }}/5 — {{ $reviewCount }} reviews)</span>
+                                                                </div>
+
+                                                                <!-- Price -->
+                                                                <div class="flex items-center gap-2 mt-2">
+                                                                    @if(($material->training_price ?? 0) > ($material->training_offer_price ?? 0))
+                                                                        <span class="line-through text-sm text-gray-400">SAR {{ number_format($material->training_price,2) }}</span>
                                                                     @endif
-                                                                @endfor
-
-                                                                <span class="ml-2 text-gray-500 text-xs">
-                                                                    ({{ number_format($rating, 1) }}/5 — {{ $reviewCount }} reviews)
-                                                                </span>
+                                                                    <span class="text-base font-semibold text-gray-800">SAR {{ number_format($material->training_offer_price ?? $material->training_price,2) }}</span>
+                                                                </div>
                                                             </div>
-
-                                                            <div class="flex items-center gap-2 mt-2">
-                                                                @if(($material->training_price ?? 0) > ($material->training_offer_price ?? 0))
-                                                                    <span class="line-through text-sm text-gray-400">
-                                                                        SAR {{ number_format($material->training_price, 2) }}
-                                                                    </span>
-                                                                @endif
-                                                                <span class="text-base font-semibold text-gray-800">
-                                                                    SAR {{ number_format($material->training_offer_price ?? $material->training_price, 2) }}
-                                                                </span>
-                                                            </div>
-
-                                                            <!-- Hidden Inputs for this item -->
-                                                            <input type="hidden" name="materials[{{ $item->id }}][id]" value="{{ $material->id }}">
-                                                            <input type="hidden" name="materials[{{ $item->id }}][type]" value="{{ $material->training_type }}">
                                                         </div>
+
+                                                        <!-- Selected Batch -->
+                                                        @if(isset($selectedBatch))
+                                                            <div class="border rounded-lg p-4 bg-white shadow-md w-full relative">
+                                                                @if($ended)
+                                                                    <span class="absolute top-2 right-2 bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">Ended</span>
+                                                                @elseif($started)
+                                                                    <span class="absolute top-2 right-2 bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded">Ongoing</span>
+                                                                @else
+                                                                    <span class="absolute top-2 right-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded">Upcoming</span>
+                                                                @endif
+
+                                                                <h4 class="font-semibold text-gray-800">{{ $selectedBatch->batch_no }}</h4>
+                                                                <div class="grid grid-cols-2 gap-4 mt-2">
+                                                                    <div>
+                                                                        <p class="text-gray-600 text-sm">
+                                                                            <strong>Start:</strong> {{ $start->format('d M Y') }} <br>
+                                                                            <strong>End:</strong> {{ $end->format('d M Y') }} <br>
+                                                                            <strong>Timing:</strong> {{ \Carbon\Carbon::parse($selectedBatch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($selectedBatch->end_timing)->format('h:i A') }}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p class="text-gray-600 text-sm">
+                                                                            <strong>Duration:</strong> {{ $selectedBatch->duration }} <br>
+                                                                            <strong>Days:</strong> {{ $days }} <br>
+                                                                            <strong>Seats Left:</strong>
+                                                                            @if($availableSeats <= 0)
+                                                                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Full</span>
+                                                                            @else
+                                                                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{{ $availableSeats }}</span>
+                                                                            @endif
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 @empty
-                                                    <p class="text-gray-500">Your cart is empty.</p>
+                                                    <p class="text-gray-500 text-center">Your cart is empty.</p>
                                                 @endforelse
                                             </div>
 
@@ -1371,14 +1411,11 @@ $skills = $user->skills->first();
                                                 <div>
                                                     <h3 class="text-sm font-medium mb-2">{{ langLabel('apply_promocode') }}:</h3>
                                                     <div class="flex space-x-2">
-                                                        <input type="text" id="coupon_code" placeholder="Enter promocode for discount"
-                                                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                                                        <button type="button" id="apply_coupon"
-                                                            class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
+                                                        <input type="text" id="coupon_code" placeholder="Enter promocode for discount" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                                        <button type="button" id="apply_coupon" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">{{ langLabel('apply') }}</button>
                                                     </div>
                                                     <small id="coupon_message" class="text-red-500 mt-1 block"></small>
 
-                                                    <!-- Hidden numeric values for JS -->
                                                     <input type="hidden" id="original_price" value="{{ number_format($courseTotal, 2, '.', '') }}">
                                                     <input type="hidden" id="tax_rate" value="{{ number_format($taxRate, 2, '.', '') }}">
                                                     <input type="hidden" id="saved_total" value="{{ number_format($savedTotal, 2, '.', '') }}">
@@ -1416,16 +1453,25 @@ $skills = $user->skills->first();
                                                         <span data-billing="total">SAR {{ number_format($total, 2) }}</span>
                                                     </div>
 
-                                                    <input type="hidden" name="amount_paid" value="{{ number_format($total, 2, '.', '') }}">
+                                                    <input type="hidden" name="amount_paid" value="{{ number_format($total, 2, '.', '') }}" id="input_total">
 
                                                     @auth('jobseeker')
-                                                        <button type="submit"
-                                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                                        <button 
+                                                            type="submit" 
+                                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium" 
+                                                            id="checkoutBtn"
+                                                            @if($hasEndedBatch) disabled @endif
+                                                        >
                                                             {{ langLabel('proceed_checkout') }}
                                                         </button>
+
+                                                        @if($hasEndedBatch)
+                                                            <p class="text-red-500 text-sm mt-2">
+                                                                ⚠️ One or more batches in your cart have already ended. Please remove them to proceed.
+                                                            </p>
+                                                        @endif
                                                     @else
-                                                        <div class="alert alert-danger alert-dismissible fade show mt-4 text-center" role="alert"
-                                                            style="text-align: justify;">
+                                                        <div class="alert alert-danger text-center mt-4">
                                                             <strong>Please log in as a Jobseeker</strong> to purchase a course.
                                                         </div>
                                                     @endauth
@@ -1436,8 +1482,11 @@ $skills = $user->skills->first();
                                 </div>
                             </div>
 
+                            <!-- Alpine.js & jQuery -->
                             <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+                            <!-- Coupon JS -->
                             <script>
                             document.getElementById('apply_coupon').addEventListener('click', async function () {
                                 const code = document.getElementById('coupon_code').value.trim();
@@ -1445,6 +1494,7 @@ $skills = $user->skills->first();
                                 const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
                                 const originalSaved = parseFloat(document.getElementById('saved_total').value) || 0;
                                 const msgEl = document.getElementById('coupon_message');
+                                const inputTotal = document.getElementById('input_total');
 
                                 msgEl.textContent = '';
                                 msgEl.classList.remove('text-green-500', 'text-red-500');
@@ -1464,7 +1514,6 @@ $skills = $user->skills->first();
                                         },
                                         body: JSON.stringify({ code: code })
                                     });
-
                                     const data = await res.json();
 
                                     if (!data.success) {
@@ -1474,18 +1523,19 @@ $skills = $user->skills->first();
                                     }
 
                                     let discount = 0;
-                                    if (data.discount_type === 'fixed') {
-                                        discount = parseFloat(data.discount_value) || 0;
-                                    } else if (data.discount_type === 'percentage') {
-                                        discount = originalPrice * (parseFloat(data.discount_value || 0) / 100);
+                                    if (data.discount_type === 'fixed') discount = parseFloat(data.discount_value) || 0;
+                                    else if (data.discount_type === 'percentage') discount = originalPrice * (parseFloat(data.discount_value || 0)/100);
+
+                                    // Reject if discount >= original price
+                                    if (discount >= originalPrice) {
+                                        msgEl.textContent = "This coupon is not valid (discount cannot be 100% or more).";
+                                        msgEl.classList.add('text-red-500');
+                                        return;
                                     }
 
-                                    discount = Math.min(discount, originalPrice - 0.01); // prevent 100% discount
-                                    discount = Math.round(discount * 100) / 100;
-
-                                    const discountedSubtotal = Math.round((originalPrice - discount) * 100) / 100;
-                                    const tax = Math.round((discountedSubtotal * (taxRate / 100)) * 100) / 100;
-                                    const total = Math.round((discountedSubtotal + tax) * 100) / 100;
+                                    const discountedPrice = originalPrice - discount;
+                                    const tax = discountedPrice * (taxRate/100);
+                                    const total = discountedPrice + tax;
 
                                     document.querySelector('[data-billing="course_total"]').textContent = `SAR ${originalPrice.toFixed(2)}`;
                                     document.querySelector('[data-billing="coupon_discount"]').textContent = `- SAR ${discount.toFixed(2)}`;
@@ -1494,17 +1544,15 @@ $skills = $user->skills->first();
                                     document.querySelector('[data-billing="saved_amount"]').textContent = `SAR ${(originalSaved + discount).toFixed(2)}`;
 
                                     document.getElementById('coupon_row').classList.remove('hidden');
-
                                     document.getElementById("coupon_type").value = data.discount_type;
                                     document.getElementById("coupon_code_hidden").value = code;
                                     document.getElementById("coupon_amount").value = discount.toFixed(2);
-                                    document.querySelector('input[name="amount_paid"]').value = total.toFixed(2);
+                                    if(inputTotal) inputTotal.value = total.toFixed(2);
 
                                     const discountMsg = data.discount_type === 'fixed' ? `SAR ${discount.toFixed(2)} off` : `${parseFloat(data.discount_value).toFixed(2)}% off`;
                                     msgEl.textContent = `Coupon applied: ${discountMsg}`;
                                     msgEl.classList.add('text-green-500');
-
-                                } catch (err) {
+                                } catch(err) {
                                     console.error(err);
                                     msgEl.textContent = "An error occurred while applying the coupon. Please try again.";
                                     msgEl.classList.add('text-red-500');
@@ -1512,45 +1560,24 @@ $skills = $user->skills->first();
                             });
                             </script>
 
-
-
-
-                        <!-- Remove Confirmation Modal -->
-                       <!-- Remove Confirmation Modal -->
-                        <div id="removeConfirmModal" class="fixed top-20 left-0 right-0 flex justify-center z-50 hidden">
-                            <div class="bg-white border border-gray-300 rounded-lg shadow-lg p-6 w-full max-w-md">
-                                <h2 class="text-lg font-semibold mb-4">Confirm Removal</h2>
-                                <p class="text-sm text-gray-600">Are you sure you want to remove this item from your cart?</p>
-                                <div class="flex justify-end mt-6 space-x-3">
-                                    <button id="cancelRemove" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
-                                    <button id="confirmRemove" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Remove</button>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                        <script>
+                            <!-- Remove Item JS -->
+                            <script>
                             $(document).ready(function () {
                                 let itemToRemoveId = null;
                                 let $clickedButton = null;
 
-                                // Remove button click
                                 $('.remove-item').on('click', function () {
                                     itemToRemoveId = $(this).data('id');
                                     $clickedButton = $(this);
                                     $('#removeConfirmModal').removeClass('hidden');
                                 });
 
-                                // Cancel button
                                 $('#cancelRemove').on('click', function () {
                                     itemToRemoveId = null;
                                     $clickedButton = null;
                                     $('#removeConfirmModal').addClass('hidden');
                                 });
 
-                                // Confirm remove
                                 $('#confirmRemove').on('click', function () {
                                     if (!itemToRemoveId) return;
 
@@ -1562,13 +1589,8 @@ $skills = $user->skills->first();
                                         },
                                         success: function (response) {
                                             if (response.status === 'success') {
-                                                // modal close
                                                 $('#removeConfirmModal').addClass('hidden');
-
-                                                // set cart tab in localStorage
                                                 localStorage.setItem('activeTab', 'cart');
-
-                                                // reload page
                                                 location.reload();
                                             } else {
                                                 alert(response.message || 'Remove failed');
@@ -1580,32 +1602,44 @@ $skills = $user->skills->first();
                                     });
                                 });
 
-                                //  On page load, restore active tab from localStorage
                                 if (localStorage.getItem('activeTab')) {
                                     document.addEventListener("alpine:init", () => {
-                                        Alpine.store('tabs', {
-                                            active: localStorage.getItem('activeTab')
-                                        });
+                                        Alpine.store('tabs', { active: localStorage.getItem('activeTab') });
                                     });
                                     localStorage.removeItem('activeTab');
                                 }
                             });
-                        </script>
+                            </script>
 
-
-
-
-
-
-
-
-
-
+                            <!-- Remove Confirmation Modal -->
+                            <div id="removeConfirmModal" class="fixed top-20 left-0 right-0 flex justify-center z-50 hidden">
+                                <div class="bg-white border border-gray-300 rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
+                                    <h3 class="text-lg font-semibold mb-4">Confirm Remove</h3>
+                                    <p class="text-gray-600 mb-4">Are you sure you want to remove this item from your cart?</p>
+                                    <div class="flex justify-center gap-4">
+                                        <button id="confirmRemove" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Yes, Remove</button>
+                                        <button id="cancelRemove" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
                         @php
-                            $courses = App\Models\JobseekerTrainingMaterialPurchase::select('training_batches.*','jobseeker_training_material_purchases.*','jobseeker_training_material_purchases.id as purchase_id')->with(['material.reviews'])
-                                                        ->where('jobseeker_id', auth()->user()->id)
-                                                        ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
-                                                        ->get();
+                            $courses = App\Models\JobseekerTrainingMaterialPurchase::select(
+                                        'training_batches.*',
+                                        'jobseeker_training_material_purchases.*',
+                                        'jobseeker_training_material_purchases.id as purchase_id',
+                                        'team_course_members.id as team_member_id' // optional, if you want info from team
+                                    )
+                                    ->with(['material.reviews'])
+                                    ->where('jobseeker_training_material_purchases.jobseeker_id', auth()->user()->id)
+                                    // join training batches
+                                    ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
+                                    // left join team_course_members for the same jobseeker
+                                    ->leftJoin('team_course_members', function($join) {
+                                        $join->on('team_course_members.training_material_purchases_id', '=', 'jobseeker_training_material_purchases.id')
+                                            ->where('team_course_members.jobseeker_id', '=', auth()->user()->id);
+                                    })
+                                    ->get();
+
                            
                             $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
                             ->where('user_id', auth()->user()->id)
@@ -2456,6 +2490,8 @@ $(document).ready(function () {
         });
     });
 </script>
+
+
 
 
 

@@ -53,7 +53,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
 
 use App\Models\JobseekerTrainingAssessmentTime;
-
+use App\Models\Resume;
 
 
 class JobseekerController extends Controller
@@ -245,12 +245,12 @@ class JobseekerController extends Controller
             'skills' => 'required|string',
             'interest' => 'required|string',
             'job_category' => 'required|string|max:255',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
 
             // Files
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
 
         ], [
 
@@ -302,11 +302,11 @@ class JobseekerController extends Controller
             'resume.required' => 'Please upload your resume.',
             'resume.file' => 'Resume must be a valid file.',
             'resume.mimes' => 'Resume must be a PDF, DOC, or DOCX file.',
-            'resume.max' => 'Resume must not be larger than 5MB.',
+            'resume.max' => 'Resume must not be larger than 2MB.',
             'profile_picture.required' => 'Please upload your profile picture.',
             'profile_picture.image' => 'Profile picture must be an image.',
             'profile_picture.mimes' => 'Profile picture must be in JPG, JPEG, or PNG format.',
-            'profile_picture.max' => 'Profile picture must not be larger than 2MB.',
+            'profile_picture.max' => 'Profile picture must not be larger than 1MB.',
         ]);
 
 
@@ -613,7 +613,7 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // ✅ Check admin_status
+        //  Check admin_status
         if ($jobseeker->admin_status === 'superadmin_reject' || $jobseeker->admin_status === 'rejected') {
             session()->flash('error', 'Your account has been rejected by administrator.');
             return back()->withInput($request->only('email'));
@@ -624,7 +624,7 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // ✅ Check registration completion
+        // Check registration completion
         if ($jobseeker->is_registered == 0) {
             session([
                 'jobseeker_id'  => $jobseeker->id,
@@ -640,9 +640,9 @@ class JobseekerController extends Controller
                 ]);
         }
 
-        // ✅ Attempt login only if all checks pass
+        //  Attempt login only if all checks pass
         if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect()->route('jobseeker.profile');
+            return redirect()->route('jobseeker.profile')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
@@ -864,40 +864,46 @@ class JobseekerController extends Controller
             'job_role.*' => 'required|string|max:255',
             'organization.*' => 'required|string|max:255',
             'starts_from.*' => 'required|date',
-            'end_to.*' => 'required|date|after_or_equal:starts_from.*',
+            'end_to.*' => 'nullable|date',
             'currently_working' => 'array',
         ], [
             'job_role.*.required' => 'Please enter your job role.',
-            'job_role.*.string' => 'Job role should be a valid text.',
-            'job_role.*.max' => 'Job role can’t be more than 255 characters.',
+            'job_role.*.string' => 'Job role should be valid text.',
+            'job_role.*.max' => 'Job role can’t exceed 255 characters.',
 
             'organization.*.required' => 'Please provide the organization name.',
-            'organization.*.string' => 'Organization name must be a valid string.',
+            'organization.*.string' => 'Organization must be valid text.',
             'organization.*.max' => 'Organization name can’t exceed 255 characters.',
 
-            // Start Date
-            'starts_from.*.required' => 'Please select the start date for each experience.',
-            'starts_from.*.date' => 'The start date must be in a valid format (e.g., YYYY-MM-DD).',
+            'starts_from.*.required' => 'Please select start date.',
+            'starts_from.*.date' => 'Start date must be valid format (YYYY-MM-DD).',
 
-            // End Date
-            'end_to.*.required' => 'Please select the end date for each experience.',
-            'end_to.*.date' => 'The end date must be in a valid format (e.g., YYYY-MM-DD).',
-            'end_to.*.after_or_equal' => 'The end date must be the same as or after the start date.',
+            'end_to.*.nullable' => 'End date is optional if currently working.',
+            'end_to.*.date' => 'End date must be a valid date.',
 
-            'currently_working.array' => 'Currently working selection must be in a valid format.',
+            'currently_working.array' => 'Currently working selection must be valid.',
         ]);
 
+        // Ensure only one entry is marked as "currently working"
+        if ($request->filled('currently_working') && count($request->currently_working) > 1) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => ['currently_working' => ['Only one job can be marked as currently working.']]
+            ], 422);
+        }
 
         // Manual check for end date >= start date
-        foreach ($request->end_to as $index => $end) {
-            if (isset($request->starts_from[$index]) && $end < $request->starts_from[$index]) {
-                return back()->withErrors([
-                    "end_to.$index" => "End date should not be earlier than the start date."
-                ])->withInput();
+        foreach ($request->end_to ?? [] as $index => $end) {
+            $start = $request->starts_from[$index] ?? null;
+            if ($end && $start && $end < $start) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => ["end_to.$index" => ["End date should not be earlier than start date."]]
+                ], 422);
             }
         }
 
-
+        // Delete removed work experiences
         $workIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
             ->where('user_type', 'jobseeker')
@@ -905,8 +911,11 @@ class JobseekerController extends Controller
             ->toArray();
 
         $toDelete = array_diff($existingIds, $workIds);
-        WorkExperience::whereIn('id', $toDelete)->delete();
+        if (!empty($toDelete)) {
+            WorkExperience::whereIn('id', $toDelete)->delete();
+        }
 
+        // Save or update work experiences
         foreach ($request->input('job_role', []) as $i => $role) {
             $currentlyWorking = in_array($i, $request->input('currently_working', []));
             $endToValue = $currentlyWorking ? 'work here' : ($request->end_to[$i] ?? null);
@@ -927,9 +936,12 @@ class JobseekerController extends Controller
             }
         }
 
-        return response()->json(['status' => 'success', 'message' => 'Work Experience information saved successfully!']);
-
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Work Experience information saved successfully!'
+        ]);
     }
+
 
 
     public function updateSkillsInfo(Request $request)
@@ -941,8 +953,8 @@ class JobseekerController extends Controller
             'skills' => 'required|string',
             'interest' => 'required|string',
             'job_category' => 'required|string|max:255',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
         ], [
             // Skills
             'skills.required' => 'Please enter your skills.',
@@ -2290,18 +2302,26 @@ class JobseekerController extends Controller
             return response()->json(['message' => 'Invalid material ID.'], 400);
         }
 
+        // Make sure batch_id is provided
+        $batchId = $request->input('batch_id');
+        if (!$batchId) {
+            return response()->json(['message' => 'Please select a batch before adding to cart.'], 400);
+        }
+
         $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
             ->where('material_id', $id)
+            ->where('batch_id', $batchId)
             ->exists();
 
         if ($exists) {
-            return response()->json(['message' => 'Item is already in your cart.'], 200);
+            return response()->json(['message' => 'Item with this batch is already in your cart.'], 200);
         }
 
         JobseekerCartItem::create([
             'jobseeker_id' => $jobseekerId,
             'trainer_id' => $material->trainer_id,
             'material_id' => $id,
+            'batch_id' => $batchId,
             'status' => 'pending',
         ]);
 
@@ -3606,5 +3626,24 @@ public function submitReview(Request $request)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', "attachment; filename=Certificate-{$user->name}.pdf");
     }
+
+    public function downloadCvTemplate($id)
+    {
+        
+        $resume = Resume::find($id);
+
+        if (!$resume || empty($resume->resume_file_path)) {
+            return back()->with('error', 'CV template not found.');
+        }
+
+        $filePath = public_path($resume->resume_file_path);
+
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File does not exist on server.');
+        }
+
+        return response()->download($filePath, $resume->resume_file);
+    }
+
 
 }

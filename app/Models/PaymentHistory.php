@@ -25,6 +25,7 @@ class PaymentHistory extends Model
         'currency',
         'payment_method',
         'paid_at',
+        'applied_coupon'
     ];
 
 

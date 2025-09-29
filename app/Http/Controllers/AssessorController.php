@@ -127,7 +127,7 @@ class AssessorController extends Controller
 
                     <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-                    <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+                    <p>You can now start exploring job opportunities, connect with assessors, and grow your career.</p>
 
                     <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
@@ -451,9 +451,24 @@ class AssessorController extends Controller
             return back()->withInput($request->only('email'));
         }
 
+        if ($assessor->is_registered == 0) {
+            session([
+                'assessor_id'  => $assessor->id,
+                'email'         => $assessor->email,
+                'phone_number'  => $assessor->phone_number,
+            ]);
+
+            return redirect()->route('assessor.registration')
+                ->with([
+                    'info'  => 'Please complete your registration.',
+                    'email' => session('email'),
+                    'phone' => session('phone_number'),
+                ]);
+        }
+
         // ✅ Now attempt login only if status is active and admin_status is approved
         if (Auth::guard('assessor')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect()->route('assessor.dashboard');
+            return redirect()->route('assessor.dashboard')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
@@ -600,6 +615,7 @@ class AssessorController extends Controller
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
+            'gender' => 'required|string|in:Male,Female,Other',
             'national_id' => [
                 'required',
                 'min:10',
@@ -627,8 +643,8 @@ class AssessorController extends Controller
             'training_skills' => 'required|string',
             'area_of_interest' => 'required|string',
             'job_category' => 'required|string',
-            'website_link' => 'nullable|url',
-            'portfolio_link' => 'nullable|url',
+            'website_link' => 'required|url',
+            'portfolio_link' => 'required|url',
 
             'resume' => 'required|file|mimes:pdf|max:2048',
             'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
@@ -647,6 +663,8 @@ class AssessorController extends Controller
             'per_slot_price.required' => 'Please enter your per slot price.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
+            'gender.required' => 'Please select your gender.',
+            'gender.in' => 'Gender must be Male, Female, or Other.',
 
             'high_education.*.required' => 'Please enter your highest education.',
             'institution.*.required' => 'Please enter the institution name.',
@@ -679,6 +697,7 @@ class AssessorController extends Controller
         $assessor->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone_number'],
             'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
@@ -823,7 +842,7 @@ class AssessorController extends Controller
 
                     <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
-                    <p>You can now start exploring job opportunities, connect with recruiters, and grow your career.</p>
+                    <p>You can now start exploring job opportunities, connect with assessors, and grow your career.</p>
 
                     <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
 
@@ -924,12 +943,14 @@ class AssessorController extends Controller
             'pin_code' => 'required|digits:5',
             'about_assessor' => 'nullable|string',
             'per_slot_price' => 'required',
+            'gender' => 'required|string|in:Male,Female,Other',
             
         ]);
 
         $assessor->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
@@ -1094,7 +1115,7 @@ class AssessorController extends Controller
 
         $validated = $request->validate([
             'resume' => 'nullable|file|mimes:pdf|max:2048',
-            'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:1024',
+            'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'training_certificate' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 

@@ -17,36 +17,36 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  * allows your team to easily build robust real-time web applications.
  */
 
-import Echo from 'laravel-echo';
+// import Echo from 'laravel-echo';
 
+// import Pusher from 'pusher-js';
+// window.Pusher = Pusher;
+
+// window.Echo = new Echo({
+//     broadcaster: 'pusher',
+//     key: import.meta.env.VITE_PUSHER_APP_KEY,
+//     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+//     forceTLS: true
+// });
+
+
+
+import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+
 window.Pusher = Pusher;
 
 window.Echo = new Echo({
     broadcaster: 'pusher',
     key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    forceTLS: true
+    wsHost: window.location.hostname,
+    wsPort: 6001,
+    wssPort: 6001,
+    forceTLS: false,   
+    encrypted: false,
+    disableStats: true,
+    enabledTransports: ['ws', 'wss'],
 });
-
-
-
-//import Echo from 'laravel-echo';
-
-// window.Pusher = require('pusher-js');
-
-// window.Echo = new Echo({
-//     broadcaster: 'pusher',
-//     // key: import.meta.env.VITE_PUSHER_APP_KEY, // or use directly like 'your-app-key'
-//     key: 'local',
-//     wsHost: window.location.hostname,
-//     wsPort: 6001,
-//     wssPort: 6001,
-//     forceTLS: false,
-//     encrypted: true,
-//     disableStats: true,
-//     enabledTransports: ['ws', 'wss'],
-// });
 
 // Check connection status
 window.Echo.connector.pusher.connection.bind('connected', () => {

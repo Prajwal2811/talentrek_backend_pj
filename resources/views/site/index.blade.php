@@ -15,6 +15,7 @@
         // Fetch materials for each trainer
         $trainer->materials = DB::table('training_materials')
             ->where('trainer_id', $trainer->id)
+            ->where('admin_status', 'superadmin_approved')
             ->get();
 
         foreach ($trainer->materials as $material) {
@@ -546,7 +547,7 @@
         background-color: rgba(219, 234, 254, var(--tw-bg-opacity));
         color: black;
         align-self: flex-end;
-        text-align: left;
+        text-align: right;
         border-top-left-radius: 0;
     }
 
@@ -867,8 +868,8 @@
                     const currentUserId = {{ auth()->guard('jobseeker')->id() }};
                     const currentUserType = 'jobseeker';
 
-                    // ---------------------- Web Real-time Listening ----------------------
-                    Echo.private(`chat.${currentUserType}.${currentUserId}`)
+                    // ---------------------- Real-time Listening ----------------------
+                    Echo.channel('chat.jobseeker')
                         .error((err) => console.error('Subscription error:', err))
                         .listen('.message.sent', (e) => {
                             // Ignore own messages

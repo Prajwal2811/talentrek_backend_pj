@@ -24,7 +24,7 @@ class JobseekerTrainingMaterialPurchasePaymentRequest extends Model
         'training_type',
         'transaction_id',
         'payment_status',
-        'tax',
+        'taxed_amount',
         'amount',
         'amount_paid',
         'currency',
@@ -37,7 +37,7 @@ class JobseekerTrainingMaterialPurchasePaymentRequest extends Model
     // Casts for automatic conversion
     protected $casts = [
         'request_payload' => 'array',
-        'tax' => 'decimal:2',
+        'taxed_amount' => 'decimal:2',
         'amount' => 'decimal:2',
         'amount_paid' => 'decimal:2',
     ];

@@ -31,6 +31,14 @@ class VerifyCsrfToken extends Middleware
         'course/payment/failure',
 
 
+        'team/course/payment/success',
+        'team/course/payment/failure',
+
+
+        'cart/course/payment/success',
+        'cart/course/payment/failure',
+
+
         'purchase-session/payment/success',
         'purchase-session/payment/failure'
 

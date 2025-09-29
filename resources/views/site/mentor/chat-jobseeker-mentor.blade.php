@@ -212,7 +212,7 @@
                                                 this.receiveMessage(e);
                                             }
                                         });
-                                },
+                                },     
 
                                 openChat(contact) {
                                     this.activeContact = { ...contact, messages: [] };

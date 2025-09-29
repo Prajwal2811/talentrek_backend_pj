@@ -96,9 +96,24 @@
                             <div class="mb-2">
                                 <input id="sectionTitle" name="content_sections[0][title]" type="text" placeholder="{{ langLabel('section_title') }}" class="w-full border rounded-md p-2" />
                             </div>
-                            <div class="mb-2">
-                                <textarea id="contentText" name="content_sections[0][description]" placeholder="{{ langLabel('contents') }}" class="w-full border rounded-md p-2"></textarea>
+                           <div class="mb-2">
+                                <textarea id="contentText" name="content_sections[0][description]" placeholder="{{ langLabel('contents') }}">
+                                    {{ old('content_sections.0.description') }}
+                                </textarea>
+                                @error('content_sections.0.description')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
+
+                            <!-- Rich Text Editor CSS & JS (include only once in your blade if not already loaded) -->
+                            <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
+                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
+                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+
+                            <script>
+                                var contentEditor = new RichTextEditor("#contentText");
+                            </script>
+
                             <button id="addContentBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">{{ langLabel('add_content') }}</button>
                         </div>
 

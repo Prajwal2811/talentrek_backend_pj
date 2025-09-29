@@ -54,10 +54,38 @@
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <h2 class="mb-0">Resume Template CV</h2>
+
+                                                @if(!empty($resume->resume_file_path))
+                                                    <a href="{{ asset($resume->resume_file_path) }}" 
+                                                    target="_blank" 
+                                                    class="btn btn-secondary btn-sm"
+                                                    style="font-size: 12px; padding: 3px 10px; border-radius: 6px;">
+                                                        View Resume Template CV
+                                                    </a>
+                                                @endif
+                                            </div>
+
+
+
+
+
+                                            <div class="form-group c_form_group col-md-12 mt-3">
+                                                <label for="resume_file">Upload Resume File (PDF/DOC/DOCX)</label>
+                                                <input type="file" class="form-control" name="resume_file" id="resume_file" 
+                                                    accept=".pdf,.doc,.docx">
+                                                @error('resume_file') 
+                                                    <small class="text-danger">{{ $message }}</small> 
+                                                @enderror
+                                            </div>
+                                            
                                             <div class="col-md-12 mt-3">
                                                 <button type="submit" class="btn btn-primary theme-bg">Save Files</button>
                                             </div>
                                         </div>
+                                          <!-- File Upload -->
+                                        
                                     </form>
 
                                     

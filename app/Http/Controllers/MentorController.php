@@ -440,6 +440,7 @@ class MentorController extends Controller
             'address' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'pin_code' => 'required|digits:5',
+            'gender' => 'required|string|in:Male,Female,Other',
             'national_id' => [
                 'required',
                 'min:10',
@@ -470,9 +471,9 @@ class MentorController extends Controller
             'website_link' => 'required|url',
             'portfolio_link' => 'required|url',
 
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+            'training_certificate' => 'required|file|mimes:pdf,doc,docx|max:2048',
         ],[
             // ✅ Custom messages
             'name.required' => 'Please enter your full name.',
@@ -487,6 +488,8 @@ class MentorController extends Controller
             'per_slot_price.required' => 'Please enter your per slot price.',
             'national_id.required' => 'Please enter your national ID.',
             'national_id.min' => 'National ID must be at least 10 characters.',
+            'gender.required' => 'Please select your gender.',
+            'gender.in' => 'Gender must be Male, Female, or Other.',
 
             'high_education.*.required' => 'Please enter your highest education.',
             'institution.*.required' => 'Please enter the institution name.',
@@ -518,6 +521,7 @@ class MentorController extends Controller
         $mentor->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone_number'],
             'phone_code' => $validated['phone_code'],
             'date_of_birth' => $validated['dob'],
@@ -740,9 +744,25 @@ class MentorController extends Controller
             return back()->withInput($request->only('email'));
         }
 
+        // Check registration completion
+        if ($mentor->is_registered == 0) {
+            session([
+                'mentor_id'  => $mentor->id,
+                'email'         => $mentor->email,
+                'phone_number'  => $mentor->phone_number,
+            ]);
+
+            return redirect()->route('mentor.registration')
+                ->with([
+                    'info'  => 'Please complete your registration.',
+                    'email' => session('email'),
+                    'phone' => session('phone_number'),
+                ]);
+        }
+
         // ✅ Attempt login only if status = active and admin_status = approved
         if (Auth::guard('mentor')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect()->route('mentor.dashboard');
+            return redirect()->route('mentor.dashboard')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
@@ -842,7 +862,7 @@ class MentorController extends Controller
                 ];
             });
         // echo "<pre>";    
-        // print_r($cancelled);exit; 
+        // print_r($sessions['pending']);exit; 
 
         
 
@@ -1212,6 +1232,7 @@ class MentorController extends Controller
         $validated = $request->validate([
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
             'email' => 'required|email|unique:mentors,email,' . $mentor->id,
+            'gender' => 'required|string|in:Male,Female,Other',
             'phone' => 'required|digits:9',
             'dob' => 'required|date',
             'national_id' => 'required|string|max:15',
@@ -1227,6 +1248,7 @@ class MentorController extends Controller
         $mentor->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'gender' => $validated['gender'],
             'phone_number' => $validated['phone'],
             'date_of_birth' => $validated['dob'] ?? null,
             'national_id' => $validated['national_id'] ?? null,
@@ -1387,9 +1409,9 @@ class MentorController extends Controller
         $userId = auth()->id();
 
         $validated = $request->validate([
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
             'profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'training_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         $documentTypes = [

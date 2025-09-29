@@ -231,14 +231,15 @@
                                 <div id="step-2" class="step hidden">
                                         <div>
                                             <h2 class="font-semibold mb-2">{{ langLabel('recruiter_details') }}:</h2>
+                                            
+                                            <div>
+                                                <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_name') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_name') }}" value="{{old('name')}}" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')"/>
+                                                @error('name')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_name') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="name" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters_name') }}" value="{{old('name')}}" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')"/>
-                                                    @error('name')
-                                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-                                                </div>
                                                 <div>
                                                     <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('recruiters_email') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <input type="email" name="email" class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_recruiters') }}"  value="{{ old('email', $email) }}" readonly/>
@@ -246,10 +247,23 @@
                                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
-                                            </div>
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                                                 <div>
-                                                    <label class="block mb-1 text-sm font-medium mt-4">{{ langLabel('recruiters_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('gender') }} <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <select name="gender" id="gender" class="w-full border rounded-md p-2 mt-1">
+                                                        <option value="">{{ langLabel('select_gender') }}</option>
+                                                        <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>{{ langLabel('male') }}
+                                                        </option>
+                                                        <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>
+                                                            {{ langLabel('female') }}</option>
+                                                    </select>
+                                                    @error('gender')
+                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-1">
+                                                <div>
+                                                    <label class="block mb-1 text-sm font-medium mt-1">{{ langLabel('recruiters_phone_number') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex">
                                                     <select class="w-1/3 border rounded-l-md p-2 mt-1" name="phone_code">
                                                         <option value="+966">+966</option>
@@ -275,11 +289,11 @@
                                                 </div>
 
 
-                                                <div>
+                                                <div class="mt-1">
                                                     <label class="block mb-1 text-sm font-medium">{{ langLabel('national_id_number') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <span class="text-xs text-blue-600">
+                                                    <!-- <span class="text-xs text-blue-600">
                                                         National ID should start with 1 for male and 2 for female.
-                                                    </span>
+                                                    </span> -->
                                                     <input 
                                                         type="text" 
                                                         name="national_id" 
@@ -289,11 +303,8 @@
                                                         value="{{ old('national_id') }}" 
                                                         maxlength="15"
                                                         pattern="^[1-2][0-9]{14}$"
-                                                        oninput="
-                                                            this.value = this.value.replace(/[^0-9]/g, ''); 
-                                                            if(this.value.length > 15) this.value = this.value.slice(0,15);
-                                                            if(this.value.length > 0 && !/^[12]/.test(this.value)) this.value = '';
-                                                        "
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 15);" 
+                                                        
                                                         required
                                                     />
                                                     @error('national_id')
@@ -400,104 +411,136 @@
     <script src="{{ asset('asset/js/switcher.js') }}"></script>
 
 
-    <!-- jQuery Validate -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<!-- jQuery Validate -->
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 
-    <!-- all step field click on next button-->
-    <script>
-        $(document).ready(function () {
-            const form = $('#multiStepForm');
+<!-- all step field click on next button-->
+<script>
+    $(document).ready(function () {
+        const form = $('#multiStepForm');
 
-            // Initialize validation
-            form.validate({
-                ignore: [],
-                rules: {
-                    // Step 1
-                    company_name: "required",
-                    company_website: "required",
-                    company_city: "required",
-                    company_address: "required",
-                    business_email: "required",
-                    company_phone_number: "required",
-                    no_of_employee: "required",
-                    industry_type: "required",
-                    registration_number: "required",
+        // Initialize validation
+        form.validate({
+            ignore: [],
+            rules: {
+                // Step 1
+                company_name: "required",
+                company_website: "required",
+                company_city: "required",
+                company_address: "required",
+                business_email: "required",
+                company_phone_number: "required",
+                no_of_employee: "required",
+                industry_type: "required",
+                registration_number: "required",
 
-                    // Step 2
-                    name: "required",
-                    email: "required",
-                    phone_number: "required",
-                    national_id: "required",
-                    company_profile: "required",
-                    registration_documents: "required"
-                },
-                messages: {
-                    // Step 1
-                    company_name: "Company name is required",
-                    company_website: "Company website is required",
-                    company_city: "Company city is required",
-                    company_address: "Company address is required",
-                    business_email: "Business email is required",
-                    company_phone_number: "Company phone number is required",
-                    no_of_employee: "Number of employees is required",
-                    industry_type: "Industry type is required",
-                    registration_number: "Registration number is required",
+                // Step 2
+                name: "required",
+                email: "required",
+                phone_number: "required",
+                national_id: "required",
+                company_profile: "required",
+                registration_documents: "required"
+            },
+            messages: {
+                // Step 1
+                company_name: "Company name is required",
+                company_website: "Company website is required",
+                company_city: "Company city is required",
+                company_address: "Company address is required",
+                business_email: "Business email is required",
+                company_phone_number: "Company phone number is required",
+                no_of_employee: "Number of employees is required",
+                industry_type: "Industry type is required",
+                registration_number: "Registration number is required",
 
-                    // Step 2
-                    name: "Recruiter's name is required",
-                    email: "Recruiter's email is required",
-                    phone_number: "Recruiter's phone number is required",
-                    national_id: "National ID is required",
-                    company_profile: "Upload company profile",
-                    registration_documents: "Upload registration documents"
-                },
-                errorElement: 'p',
-                errorPlacement: function (error, element) {
-                    error.addClass('text-red-600 text-sm mt-1');
-                    error.insertAfter(element);
-                }
-            });
-
-            // Step show function with validation
-            window.showStep = function (step, validate = true) {
-                const currentStep = $('.step:visible');
-                let valid = true;
-
-                  // Run validation only if it's "Next"
-                if (validate) {
-                    currentStep.find('input, select, textarea').each(function () {
-                        if (!$(this).valid()) {
-                            valid = false;
-                        }
-                    });
-                    if (!valid) return;
-                }
-
-                // Hide all steps and show current step
-                for (let i = 1; i <= 2; i++) {
-                    $(`#step-${i}`).addClass('hidden');
-                    $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white border-blue-600');
-                    $(`#step-${i}-circle`).addClass('bg-white text-blue-600');
-                }
-
-                $(`#step-${step}`).removeClass('hidden');
-                $(`#step-${step}-circle`).addClass('bg-blue-600 text-white border-blue-600');
-                $(`#step-${step}-circle`).removeClass('bg-white text-blue-600');
-            };
-
-            // Handle next button click
-            $('.next-btn').on('click', function () {
-                const nextStep = parseInt($(this).data('next-step'));
-                showStep(nextStep);
-            });
-
-            // Handle previous button click (optional)
-            $('.prev-btn').on('click', function () {
-                const prevStep = parseInt($(this).data('prev-step'));
-                showStep(prevStep);
-            });
-
+                // Step 2
+                name: "Recruiter's name is required",
+                email: "Recruiter's email is required",
+                phone_number: "Recruiter's phone number is required",
+                national_id: "National ID is required",
+                company_profile: "Upload company profile",
+                registration_documents: "Upload registration documents"
+            },
+            errorElement: 'p',
+            errorPlacement: function (error, element) {
+                error.addClass('text-red-600 text-sm mt-1');
+                error.insertAfter(element);
+            }
         });
-    </script>
+
+        // Step show function with validation
+        window.showStep = function (step, validate = true) {
+            const currentStep = $('.step:visible');
+            let valid = true;
+
+                // Run validation only if it's "Next"
+            if (validate) {
+                currentStep.find('input, select, textarea').each(function () {
+                    if (!$(this).valid()) {
+                        valid = false;
+                    }
+                });
+                if (!valid) return;
+            }
+
+            // Hide all steps and show current step
+            for (let i = 1; i <= 2; i++) {
+                $(`#step-${i}`).addClass('hidden');
+                $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white border-blue-600');
+                $(`#step-${i}-circle`).addClass('bg-white text-blue-600');
+            }
+
+            $(`#step-${step}`).removeClass('hidden');
+            $(`#step-${step}-circle`).addClass('bg-blue-600 text-white border-blue-600');
+            $(`#step-${step}-circle`).removeClass('bg-white text-blue-600');
+        };
+
+        // Handle next button click
+        $('.next-btn').on('click', function () {
+            const nextStep = parseInt($(this).data('next-step'));
+            showStep(nextStep);
+        });
+
+        // Handle previous button click (optional)
+        $('.prev-btn').on('click', function () {
+            const prevStep = parseInt($(this).data('prev-step'));
+            showStep(prevStep);
+        });
+
+    });
+</script>
+    <!-- Natioanl id and gender logic code -->
+<script>
+    $(document).ready(function () {
+        function validateNationalIdInput() {
+            const gender = $('#gender').val();
+            const value = $('#national_id').val();
+
+            if (gender === 'Male') {
+                if (value && !value.startsWith('1')) {
+                    $('#national_id').val('');
+                }
+            } else if (gender === 'Female') {
+                if (value && !value.startsWith('2')) {
+                    $('#national_id').val('');
+                }
+            }
+        }
+
+        $('#gender').on('change', function () {
+            const selectedGender = $(this).val();
+
+            // Clear National ID field when gender is changed
+            $('#national_id').val('');
+
+            // Attach input event for validation
+            $('#national_id').off('input').on('input', function () {
+                validateNationalIdInput();
+            });
+        });
+    });
+</script>
+
 </body>
 </html>
