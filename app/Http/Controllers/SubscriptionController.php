@@ -128,6 +128,7 @@ class SubscriptionController extends Controller
 
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
+        // echo "<pre>"; print_r($data); die;
 
         if ($result) {
             [$paymentId, $paymentUrl] = explode(":", $result, 2);
