@@ -17,9 +17,10 @@
         // Fetch materials for each trainer
         $trainer->materials = DB::table('training_materials')
             ->where('trainer_id', $trainer->id)
+            ->where('admin_status','superadmin_approved')
             ->get();
-        //     echo "<pre>";
-        // print_r($trainer->materials);exit;
+            //echo "<pre>";
+        //dd($trainer->materials);exit;
         foreach ($trainer->materials as $material) {
             // Fetch documents for each material
             $material->documents = DB::table('training_materials_documents')
@@ -115,7 +116,8 @@
 
                         $trainers = Trainers::with('materials')->get();
                         $categories = TrainingCategory::all();
-                        $materials = TrainingMaterial::all();
+                        $materials = TrainingMaterial::where('admin_status', 'superadmin_approved')->get();
+
                     @endphp
 
                     <!-- Course Topic -->
