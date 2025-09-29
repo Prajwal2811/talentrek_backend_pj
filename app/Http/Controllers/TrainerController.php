@@ -1219,11 +1219,6 @@ class TrainerController extends Controller
         $trainer = auth()->user();
 
 
-
-
-
-
-
         // Validate input
 
 
