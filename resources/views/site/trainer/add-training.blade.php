@@ -11,9 +11,7 @@
         </div>
     </div>
 
-	 @if($trainerNeedsSubscription)
-        @include('site.trainer.subscription.index')
-    @endif
+	 
     
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">

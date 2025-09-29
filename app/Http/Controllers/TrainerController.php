@@ -1153,7 +1153,28 @@ class TrainerController extends Controller
 
 
 
+    public function createZoomMeeting($topic, $startTime)
+    {
+        $token = getAccessToken();
+        if (!$token) {
+            return ['error' => 'Failed to fetch access token'];
+        }
+        $email = env('ZOOM_USER_EMAIL');
+        $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
+            'topic' => $topic,
+            'type' => 2,
+            'start_time' => $startTime,
+            'duration' => 30,
+            'timezone' => 'Asia/Kolkata',
+            'settings' => [
+                'host_video' => true,
+                'participant_video' => true,
+                'join_before_host' => false,
+            ],
+        ]);
 
+        return $response->json();
+    }
 
     public function createZoomMeeting($topic, $startTime)
 
@@ -1450,45 +1471,56 @@ class TrainerController extends Controller
 
                 // $zoom = new ZoomService();
 
+                if($request->training_category == 'online'){
+
+                    $startTime = $section['batch_date'] . ' ' . $section['start_time'];
+
+               
+                    $zoomMeeting = $this->createZoomMeeting("Batch #{$section['batch_no']}", $startTime);
 
 
+                    DB::table('training_batches')->insert([
+
+                    'trainer_id'           => $trainer->id,
 
 
+                    'training_material_id' => $trainingId,
 
+                    'batch_no'             => $section['batch_no'],
 
-                $startTime = $section['batch_date'] . ' ' . $section['start_time'];
+                    'start_date'           => $section['batch_date'],
 
+                    'end_date'             => $section['end_date'],
 
+                    'start_timing'         => $section['start_time'],
 
+                    'end_timing'           => $section['end_time'],
 
+                    'duration'             => $section['duration'],
 
-                $zoomMeeting = $this->createZoomMeeting("Batch #{$section['batch_no']}", $startTime);
+                    'strength'             => $section['strength'],
 
-              	
+                      'days'                 => json_encode(json_decode($section['days'], true)), // convert from stringified JSON
 
-                //print_r($zoomMeeting);exit;
+                    'zoom_start_url'       => $zoomMeeting['start_url'],
 
-                // $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
+                    'zoom_join_url'        => $zoomMeeting['join_url'],
 
+                    'created_at'           => now(),
 
+                    'updated_at'           => now(),
 
-                // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
+                    ]);
 
+                    $trainerDetails = Trainers::where('id', $trainer->id)->first();
+                    $emails = $trainerDetails->email;
 
-
-                //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
-
-
-
-                // }
-
-
-
-
-
-
-
-                DB::table('training_batches')->insert([
+                    Mail::raw("Join Zoom Meeting: " . $zoomMeeting['join_url'], function($message) use ($emails) {
+                        $message->to($emails)
+                                ->subject('Zoom Meeting Invitation');
+                    });
+                }else{
+                    DB::table('training_batches')->insert([
 
 
 
@@ -1531,24 +1563,23 @@ class TrainerController extends Controller
                     'days'                 => json_encode(json_decode($section['days'], true)), // convert from stringified JSON
 
 
-
-                    'zoom_start_url'       => $zoomMeeting['start_url'],
-
-
-
-                    'zoom_join_url'        => $zoomMeeting['join_url'],
-
-
-
                     'created_at'           => now(),
 
 
 
                     'updated_at'           => now(),
 
+                    ]);
+                }
+                //print_r($zoomMeeting);exit;
+                // $zoomMeeting = $zoom->createMeeting("Batch #{$section['batch_no']}", $startTime);
 
+                // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
 
-                ]);
+                //     throw new \Exception("Zoom creation failed for batch {$section['batch_no']}");
+
+                // }
+
 
 
 
@@ -2406,7 +2437,7 @@ class TrainerController extends Controller
 
     //             // $zoomMeeting = $zoom->createMeeting("Batch #{$batch['batch_no']}", $startTime);
 
-
+            $zoomMeeting = $this->createZoomMeeting("Batch #{$batch['batch_no']}", $startTime);
 
     //             // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
 

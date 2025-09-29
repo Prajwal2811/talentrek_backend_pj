@@ -1964,14 +1964,12 @@ class JobseekerController extends Controller
                     'zoom_join_url' => $zoomMeeting['join_url'],
                 ]);
                 $jobseekerDetails = Jobseekers::where('id', $jobseeker->id)->first();
-                $emails = [$jobseekerDetails->email];
+                $emails = $jobseekerDetails->email;
 
-                foreach ($emails as $email) {
-                    Mail::raw("Join Zoom Meeting: $joinUrl", function($message) use ($email) {
-                        $message->to($email)
-                                ->subject('Zoom Meeting Invitation');
-                    });
-                }
+                Mail::raw("Join Zoom Meeting: " . $zoomMeeting['join_url'], function($message) use ($emails) {
+                    $message->to($emails)
+                            ->subject('Zoom Meeting Invitation');
+                });
             } else {
                 \Log::error('Zoom creation failed for mentorship booking', [
                     'jobseeker_id' => $jobseeker->id,
