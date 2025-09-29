@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingZoomLinkToJobseeker;
 use App\Mail\BookingZoomLinkToMentor;
-
+use Illuminate\Support\Facades\Http;
 
 
 class SessionBookingController extends Controller
@@ -196,6 +196,29 @@ class SessionBookingController extends Controller
     }
 
   
+    public function createZoomMeeting($topic, $startTime)
+    {
+        $token = getAccessToken();
+        if (!$token) {
+            return ['error' => 'Failed to fetch access token'];
+        }
+        $email = env('ZOOM_USER_EMAIL');
+        $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
+            'topic' => $topic,
+            'type' => 2,
+            'start_time' => $startTime,
+            'duration' => 30,
+            'timezone' => 'Asia/Kolkata',
+            'settings' => [
+                'host_video' => true,
+                'participant_video' => true,
+                'join_before_host' => false,
+            ],
+        ]);
+
+        return $response->json();
+    }
+
     public function successBooking(Request $request)
     {
         $config = config('neoleap');
@@ -262,7 +285,8 @@ class SessionBookingController extends Controller
                 $dateOnly = \Carbon\Carbon::parse($booking->slot_date)->format('Y-m-d');
                 $startTime = $dateOnly . ' ' . explode(' - ', $booking->slot_time)[0];
 
-                $zoomMeeting = $zoom->createMeeting("Consultation with #{$booking->jobseeker_id}", $startTime);
+                $zoomMeeting = $this->createZoomMeeting("Consultation with #{$booking->jobseeker_id}", $startTime);
+                //$zoomMeeting = $zoom->createMeeting("Consultation with #{$booking->jobseeker_id}", $startTime);
 
                 if ($zoomMeeting) {
                     $booking->update([
@@ -272,12 +296,50 @@ class SessionBookingController extends Controller
                     ]);
 
                     // Send email to Jobseeker
-                    Mail::to($booking->jobseeker->email)->send(new BookingZoomLinkToJobseeker($booking));
+                    //Mail::to($booking->jobseeker->email)->send(new BookingZoomLinkToJobseeker($booking));
 
+                    $emails = $booking->jobseeker->email;
+
+                    Mail::raw("Join Zoom Meeting: " . $zoomMeeting['join_url'], function($message) use ($emails) {
+                        $message->to($emails)
+                                ->subject('Zoom Meeting Invitation');
+                    });
                     // Send email to Mentor/Coach
-                    $mentor = Mentors::find($booking->user_id); // adjust based on user_type
-                    if ($mentor) {
-                        Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                    if($paymentRequest->user_type == 'mentor'){
+                        $mentor = Mentors::find($booking->user_id); // adjust based on user_type
+                        
+                        if ($mentor) {
+                            $mentorEmail = $mentor->email;
+                            //Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                            Mail::raw("Join Zoom Meeting: " . $zoomMeeting['start_url'], function($message) use ($mentorEmail) {
+                                $message->to($mentorEmail)
+                                        ->subject('Zoom Meeting Invitation');
+                            });
+                        }
+                    }
+                    if($paymentRequest->user_type == 'coach'){
+                        $coach = Coach::find($booking->user_id); // adjust based on user_type
+                        if ($coach) {
+                            //Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                            $coachEmail = $coach->email;
+                            //Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                            Mail::raw("Join Zoom Meeting: " . $zoomMeeting['start_url'], function($message) use ($coachEmail) {
+                                $message->to($coachEmail)
+                                        ->subject('Zoom Meeting Invitation');
+                            });
+                        }
+                    }
+                    if($paymentRequest->user_type == 'assessor'){
+                        $assessor = Assessors::find($booking->user_id); // adjust based on user_type
+                        if ($assessor) {
+                            //Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                            $assessorEmail = $assessor->email;
+                            //Mail::to($mentor->email)->send(new BookingZoomLinkToMentor($booking));
+                            Mail::raw("Join Zoom Meeting: " . $zoomMeeting['start_url'], function($message) use ($assessorEmail) {
+                                $message->to($assessorEmail)
+                                        ->subject('Zoom Meeting Invitation');
+                            });
+                        }
                     }
 
                 } else {
