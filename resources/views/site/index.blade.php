@@ -15,6 +15,7 @@
         // Fetch materials for each trainer
         $trainer->materials = DB::table('training_materials')
             ->where('trainer_id', $trainer->id)
+            ->where('admin_status', 'superadmin_approved')
             ->get();
 
         foreach ($trainer->materials as $material) {

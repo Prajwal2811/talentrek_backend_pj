@@ -211,6 +211,11 @@ if(auth('jobseeker')->check()){
                         <p class="text-sm text-gray-600">{{ langLabel('user_reviews') }}</p>
                     </section>
 
+
+
+                                    
+
+
                     <!-- Tab JS -->
                     <script>
                         document.querySelectorAll('.tab-link').forEach(button => {
