@@ -1623,29 +1623,33 @@ $skills = $user->skills->first();
                                 </div>
                             </div>
                         @php
-                            $courses = App\Models\JobseekerTrainingMaterialPurchase::select(
-                                        'training_batches.*',
-                                        'jobseeker_training_material_purchases.*',
-                                        'jobseeker_training_material_purchases.id as purchase_id',
-                                        'team_course_members.id as team_member_id' // optional, if you want info from team
-                                    )
-                                    ->with(['material.reviews'])
-                                    ->where('jobseeker_training_material_purchases.jobseeker_id', auth()->user()->id)
-                                    // join training batches
-                                    ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
-                                    // left join team_course_members for the same jobseeker
-                                    ->leftJoin('team_course_members', function($join) {
-                                        $join->on('team_course_members.training_material_purchases_id', '=', 'jobseeker_training_material_purchases.id')
-                                            ->where('team_course_members.jobseeker_id', '=', auth()->user()->id);
-                                    })
-                                    ->get();
+                            use App\Models\JobseekerTrainingMaterialPurchase;
 
-                           
+                            $courses = JobseekerTrainingMaterialPurchase::select(
+                                    'training_batches.*',
+                                    'jobseeker_training_material_purchases.*',
+                                    'jobseeker_training_material_purchases.id as purchase_id',
+                                    'team_course_members.id as team_member_id'
+                                )
+                                ->with(['material.reviews'])
+                                ->join('training_batches', 'training_batches.training_material_id', '=', 'jobseeker_training_material_purchases.material_id')
+                                ->leftJoin('team_course_members', function($join) {
+                                    $join->on('team_course_members.training_material_purchases_id', '=', 'jobseeker_training_material_purchases.id');
+                                })
+                                ->where(function($query) {
+                                    $query->where('jobseeker_training_material_purchases.jobseeker_id', auth()->id())
+                                        ->orWhere('team_course_members.jobseeker_id', auth()->id());
+                                })
+                                ->get();
+
+
+                            // Optional: fetch trainer image for main purchaser or member
                             $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
-                            ->where('user_id', auth()->user()->id)
-                            ->first();
-                                                                 
-                        @endphp
+                                ->where('user_id', auth()->id())
+                                ->first();
+                            @endphp
+
+
                         <!-- Training Tab -->
                         <div x-show="tab === 'training'" x-cloak>
                             <h2 class="text-xl font-semibold mb-4">Training</h2>

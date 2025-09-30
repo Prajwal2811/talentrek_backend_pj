@@ -528,18 +528,21 @@ class CoursePurchaseController extends Controller
             ]
         );
 
-        // Fetch team/corporate emails
-        $corporateEmails = CorporatesEmailIds::where('track_id', $data['trackId'])->first();
-        $teamMembers = [];
-
-        if ($corporateEmails) {
-            $savedEmails = $corporateEmails->corporatesEmailIds ?? [];
-            $corporateEmails->update(['successPaymentId' => $purchase->id]);
+        /**
+         * ===============================
+         * CORPORATE EMAIL FLOW
+         * ===============================
+         */
+        $corporates = CorporatesEmailIds::where('track_id', $data['trackId'])->first();
+        if ($corporates) {
+            $savedEmails = $corporates->corporatesEmailIds ?? [];
+            $corporates->update(['successPaymentId' => $purchase->id]);
 
             foreach ($savedEmails as $memberEmail) {
                 if (empty($memberEmail)) continue;
 
-                $teamMember = Jobseekers::firstOrCreate(
+                // Check if jobseeker already exists
+                $jobseeker = Jobseekers::firstOrCreate(
                     ['email' => $memberEmail],
                     [
                         'password' => bcrypt(explode('@', $memberEmail)[0] . '@talentrek'),
@@ -548,93 +551,38 @@ class CoursePurchaseController extends Controller
                     ]
                 );
 
-                TeamCourseMember::updateOrCreate(
+                // Save a separate purchase record for this team member
+                JobseekerTrainingMaterialPurchase::firstOrCreate(
                     [
-                        'main_jobseeker_id'              => $payment->jobseeker_id,
-                        'jobseeker_id'                   => $teamMember->id,
-                        'training_material_purchases_id' => $purchase->id,
-                        'material_id'                    => $payment->material_id,
+                        'jobseeker_id' => $jobseeker->id,
+                        'material_id'  => $payment->material_id,
+                        'batch_id'     => $payment->batch_id,
+                        'purchase_for' => 'team',
                     ],
                     [
-                        'trainer_id'       => $payment->trainer_id ?? 1,
+                        'purchased_by'     => $payment->jobseeker_id,
+                        'trainer_id'       => $payment->trainer_id,
                         'training_type'    => $payment->training_type,
-                        'session_type'     => 'team',
-                        'batch_id'         => $payment->batch_id ?? 0,
+                        'session_type'     => 'online',
+                        'batchStatus'      => 'active',
+                        'status'           => 'active',
+                        'tax_percentage'   => $payment->taxed_amount ?? 0,
+                        'taxed_amount'     => $payment->tax,
+                        'amount_paid'      => $payment->amount_paid,
+                        'coupon_type'      => $payment->coupon_type,
+                        'coupon_code'      => $payment->coupon_code,
+                        'coupon_amount'    => $payment->coupon_amount,
+                        'order_id'         => 'ORD-' . $jobseeker->id . '-' . $payment->material_id . '-' . now()->format('YmdHi'),
+                        'track_id'         => $payment->track_id . '-' . $jobseeker->id, // unique per member
                         'transaction_id'   => $payment->transaction_id,
                         'payment_status'   => 'success',
-                        'track_id'         => $payment->track_id,
-                        'email'            => $memberEmail,
+                        'response_payload' => json_encode($data),
+                        'member_count'     => 1,
                     ]
                 );
-
-                $teamMembers[] = $teamMember;
             }
+
         }
-
-        $mainJobseeker = Jobseekers::find($payment->jobseeker_id);
-
-        // Send email to main jobseeker
-        // if ($mainJobseeker) {
-        //     $teamEmails = implode(', ', array_map(fn($m) => $m->email, $teamMembers));
-        //     Mail::html('
-        //         <!DOCTYPE html>
-        //         <html lang="en">
-        //         <head>
-        //             <meta charset="UTF-8">
-        //             <title>Team Course Purchase Confirmation</title>
-        //             <style>
-        //                 body { font-family: Arial,sans-serif; background:#f4f6f9; margin:0; padding:20px; color:#333; }
-        //                 .container { background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-        //                 .footer { text-align:center; font-size:12px; color:#888; margin-top:20px; }
-        //             </style>
-        //         </head>
-        //         <body>
-        //             <div class="container">
-        //                 <h2>Team Course Purchase Successful</h2>
-        //                 <p>Hello <strong>' . e($mainJobseeker->email) . '</strong>,</p>
-        //                 <p>You have successfully purchased the course "<strong>' . e($purchase->material->name ?? 'Course') . '</strong>" for your team members:</p>
-        //                 <p>' . $teamEmails . '</p>
-        //                 <p>Thank you for using Talentrek!</p>
-        //             </div>
-        //             <div class="footer">
-        //                 &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-        //             </div>
-        //         </body>
-        //         </html>
-        //     ');
-        // }
-
-        // // Send email to each team member
-        // foreach ($teamMembers as $member) {
-        //     Mail::html('
-        //         <!DOCTYPE html>
-        //         <html lang="en">
-        //         <head>
-        //             <meta charset="UTF-8">
-        //             <title>Team Course Notification</title>
-        //             <style>
-        //                 body { font-family: Arial,sans-serif; background:#f4f6f9; margin:0; padding:20px; color:#333; }
-        //                 .container { background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-        //                 .footer { text-align:center; font-size:12px; color:#888; margin-top:20px; }
-        //             </style>
-        //         </head>
-        //         <body>
-        //             <div class="container">
-        //                 <h2>Course Assigned to You</h2>
-        //                 <p>Hello <strong>' . e($member->email) . '</strong>,</p>
-        //                 <p>You have been assigned the course "<strong>' . e($purchase->material->name ?? 'Course') . '</strong>" by <strong>' . e($mainJobseeker->email) . '</strong>.</p>
-        //                 <p>Thank you for joining the session!</p>
-        //             </div>
-        //             <div class="footer">
-        //                 &copy; ' . date('Y') . ' Talentrek. All rights reserved.
-        //             </div>
-        //         </body>
-        //         </html>
-        //     ', function($message) use ($member) {
-        //         $message->to($member->email)
-        //                 ->subject('You have been assigned a Team Course!');
-        //     });
-        // }
 
         // Create payment history for main jobseeker
         PaymentHistory::create([
@@ -656,12 +604,15 @@ class CoursePurchaseController extends Controller
         ]);
 
         // Auto-login main jobseeker
+        $mainJobseeker = Jobseekers::find($payment->jobseeker_id);
         if ($mainJobseeker) {
             Auth::guard('jobseeker')->login($mainJobseeker);
         }
 
-        return redirect()->route('jobseeker.profile')->with('success', 'Team course purchased successfully and emails sent!');
+        return redirect()->route('jobseeker.profile')->with('success', 'Team course purchased successfully!');
     }
+
+
 
 
 

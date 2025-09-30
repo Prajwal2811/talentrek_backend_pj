@@ -17,6 +17,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'training_sub_title' => 'HTML, CSS, JavaScript, PHP, and Laravel',
                     'training_descriptions' => "- Learn HTML, CSS, JavaScript, PHP, and Laravel\n- Build full-stack responsive web applications\n- Master both frontend and backend development\n- Work on real-world projects for hands-on experience",
                     'training_category' => 'Technical',
+                    'admin_status'  => 'superadmin_approved',
                     'training_price' => 799.00,
                     'training_offer_price' => 500.00,
                     'thumbnail_file_path' => 'uploads/thumbnails/fullstack.jpg',
@@ -39,6 +40,8 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_name' => 'time-mgmt.jpg',
                     'training_objective' => 'Learn effective time-blocking and prioritization.',
                     'session_type' => 'Pre-recorded',
+                    'admin_status'  => 'superadmin_approved',
+
                     'created_at' => now(),
                     'updated_at' => now()
                 ],
@@ -54,6 +57,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/excel.jpg',
                     'thumbnail_file_name' => 'excel.jpg',
                     'training_objective' => 'Use Excel for financial and business data insights.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Live',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -70,6 +74,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/design-thinking.jpg',
                     'thumbnail_file_name' => 'design-thinking.jpg',
                     'training_objective' => 'Apply human-centered design to real-world issues.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Pre-recorded',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -86,6 +91,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/communication.jpg',
                     'thumbnail_file_name' => 'communication.jpg',
                     'training_objective' => 'Improve cross-functional and team communication.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Live',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -102,6 +108,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/cybersecurity.jpg',
                     'thumbnail_file_name' => 'cybersecurity.jpg',
                     'training_objective' => 'Understand and mitigate digital threats.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Live',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -118,6 +125,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/creative-writing.jpg',
                     'thumbnail_file_name' => 'creative-writing.jpg',
                     'training_objective' => 'Build your first short story with confidence.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Pre-recorded',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -134,6 +142,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/agile.jpg',
                     'thumbnail_file_name' => 'agile.jpg',
                     'training_objective' => 'Run effective sprints and deliver value.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Live',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -150,6 +159,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/digital-marketing.jpg',
                     'thumbnail_file_name' => 'digital-marketing.jpg',
                     'training_objective' => 'Create and manage online campaigns effectively.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Pre-recorded',
                     'created_at' => now(),
                     'updated_at' => now()
@@ -166,6 +176,7 @@ class TrainingMaterialsTableSeeder extends Seeder
                     'thumbnail_file_path' => 'uploads/thumbnails/machine-learning.jpg',
                     'thumbnail_file_name' => 'machine-learning.jpg',
                     'training_objective' => 'Build and deploy ML models using Python.',
+                    'admin_status'  => 'superadmin_approved',
                     'session_type' => 'Live',
                     'created_at' => now(),
                     'updated_at' => now()
