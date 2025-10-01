@@ -1176,49 +1176,7 @@ class TrainerController extends Controller
         return $response->json();
     }
 
-    public function createZoomMeeting($topic, $startTime)
-
-    {
-
-        $token = getAccessToken();
-
-        if (!$token) {
-
-            return ['error' => 'Failed to fetch access token'];
-
-        }
-
-        $email = env('ZOOM_USER_EMAIL');
-
-        $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
-
-            'topic' => $topic,
-
-            'type' => 2,
-
-            'start_time' => $startTime,
-
-            'duration' => 30,
-
-            'timezone' => 'Asia/Kolkata',
-
-            'settings' => [
-
-                'host_video' => true,
-
-                'participant_video' => true,
-
-                'join_before_host' => false,
-
-            ],
-
-        ]);
-
-
-
-        return $response->json();
-
-    }
+    
 
 
 
@@ -2437,7 +2395,7 @@ class TrainerController extends Controller
 
     //             // $zoomMeeting = $zoom->createMeeting("Batch #{$batch['batch_no']}", $startTime);
 
-            $zoomMeeting = $this->createZoomMeeting("Batch #{$batch['batch_no']}", $startTime);
+                   // $zoomMeeting = $this->createZoomMeeting("Batch #{$batch['batch_no']}", $startTime);
 
     //             // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
 
