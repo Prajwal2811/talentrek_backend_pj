@@ -51,7 +51,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
-
+use Illuminate\Support\Facades\Http;
 use DB;
 class AdminController extends Controller
 {
@@ -908,6 +908,29 @@ class AdminController extends Controller
         return view('admin.recruiter.shortlisted-jobseekers', compact('shortlistJobseekers'));
     }
 
+    public function createZoomMeeting($topic, $startTime)
+    {
+        $token = getAccessToken();
+        if (!$token) {
+            return ['error' => 'Failed to fetch access token'];
+        }
+        $email = env('ZOOM_USER_EMAIL');
+        $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
+            'topic' => $topic,
+            'type' => 2,
+            'start_time' => $startTime,
+            'duration' => 30,
+            'timezone' => 'Asia/Kolkata',
+            'settings' => [
+                'host_video' => true,
+                'participant_video' => true,
+                'join_before_host' => false,
+            ],
+        ]);
+
+        return $response->json();
+    }
+
     public function updateStatusForShortlist(Request $request)
     {
         $rules = [
@@ -948,7 +971,7 @@ class AdminController extends Controller
                         $zoom = new ZoomService();
                         $startTime = $request->interview_date . ' ' . $request->interview_time;
 
-                        $zoomMeeting = $zoom->createMeeting("Interview with #{$jobseeker->id}", $startTime);
+                        $zoomMeeting = $this->createZoomMeeting("Interview with #{$jobseeker->id}", $startTime);
 
                         if ($zoomMeeting) {
                             $jobseeker->zoom_start_url = $zoomMeeting['start_url'];
@@ -1673,7 +1696,7 @@ class AdminController extends Controller
         $trainer->save();
 
         // Log the update
-        Log::info('Rrainer admin status updated', [
+        Log::info('Trainer admin status updated', [
             'trainer' => [
                 'id' => $trainer->id,
                 'name' => $trainer->name,

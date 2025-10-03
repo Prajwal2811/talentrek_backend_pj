@@ -187,7 +187,7 @@
 
                                     @elseif($status !== 'expired' && $status !== 'cancelled')
                                         <!-- Update Status Form -->
-                                        <form action="{{ route('recruiter.interview.updateStatus') }}" method="POST" class="flex items-center space-x-2">
+                                        <!-- <form action="{{ route('recruiter.interview.updateStatus') }}" method="POST" class="flex items-center space-x-2">
                                             @csrf
                                             <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
 
@@ -205,15 +205,23 @@
                                             <button type="submit" class="bg-gray-700 text-white text-xs px-2 py-1 rounded">
                                                 {{ langLabel('save') }}
                                             </button>
-                                        </form>
+                                        </form> -->
 
                                         <!-- Join Button -->
-                                        <a href="{{ !$joinDisabled && $isApproved ? $scheduled_jobseeker->zoom_join_url : '#' }}"
+                                        <!-- <a href="{{ !$joinDisabled && $isApproved ? $scheduled_jobseeker->zoom_join_url : '#' }}"
                                         target="_blank"
                                         class="text-white text-xs px-2 py-1 rounded inline-block 
                                                 {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
                                         {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
                                         {{ langLabel('join') }}
+                                        </a> -->
+
+                                        <a href="{{ !$joinDisabled && $isApproved ? $scheduled_jobseeker->zoom_start_url : '#' }}"
+                                            target="_blank"
+                                            class="text-white text-lg px-2 py-1 rounded-lg inline-block
+                                                    {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
+                                            {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
+                                            {{ langLabel('join') }}
                                         </a>
                                     @endif
                                 </div>

@@ -67,71 +67,7 @@
     @endif
 
 
-    @php
-        use Carbon\Carbon;
-        use App\Models\TrainingBatch;
-        use App\Models\JobseekerTrainingMaterialPurchase;
-        use App\Models\JobseekerAssessmentStatus;
-
-        $existOrNot = false;
-        $enableJoin = false;
-        $showAssessment = false;
-        $batch = null;
-        $assessmentStatus = null;
-        $now = Carbon::now();
-
-        if(auth('jobseeker')->check()){
-            $jobseekerId = auth('jobseeker')->id();
-
-            // Check if the course is purchased
-            $purchase = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobseekerId)
-                ->where('material_id', $material->id)
-                ->first();
-
-            if($purchase){
-                $existOrNot = true;
-
-                if($purchase->batch_id){
-                    $batch = TrainingBatch::find($purchase->batch_id);
-
-                    if($batch){
-                        $batchDays = json_decode($batch->days, true) ?? [];
-                        $dayName = $now->format('l');
-
-                        $startDate = Carbon::parse($batch->start_date)->startOfDay();
-                        $endDate = $batch->end_date ? Carbon::parse($batch->end_date)->endOfDay() : $startDate;
-
-                        $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
-                        $endTime = Carbon::parse($batch->end_timing);
-
-                        if($endTime->lessThan($startTime)){
-                            $endTime->addDay();
-                        }
-
-                        $startDateTime = Carbon::parse($now->format('Y-m-d').' '.$startTime->format('H:i:s'));
-                        $endDateTime = Carbon::parse($now->format('Y-m-d').' '.$endTime->format('H:i:s'));
-
-                        if($now->between($startDate, $endDate) && in_array($dayName, $batchDays)){
-                            if($now->between($startDateTime, $endDateTime)){
-                                $enableJoin = true;
-                            }
-                        }
-
-                        $isPastBatch = $now->greaterThan($endDate);
-                        $isEndDayAndTimeOver = $now->isSameDay($endDate) && $now->greaterThan($endDateTime);
-                        $showAssessment = $isPastBatch || $isEndDayAndTimeOver;
-                    }
-                }
-
-                // Fetch assessment status
-                $assessmentStatus = JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
-                    ->where('material_id', $material->id)
-                    ->latest()
-                    ->first();
-            }
-        }
-    @endphp
-
+  
 
 
     <main class="w-11/12 mx-auto py-8">
@@ -552,34 +488,325 @@
                         </div>
                     </div>
 
-                    {{-- Buy Button --}}
-                    @if(!$existOrNot)
-                        <a href="{{ route('buy-course', ['id' => $material->id]) }}">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                {{ langLabel('buy_course') }}
-                            </button>
-                        </a>
-                    @endif
+                        @php
 
-                    {{-- Buy for Team --}}
-                    <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                            {{ langLabel('buy_team') }}
-                        </button>
-                    </a>
+                            use Carbon\Carbon;
 
-                    {{-- Add to Cart --}}
-                    @if(!$existOrNot)
-                        @if(!in_array($material->id, $cartItems))
-                            <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
-                                data-id="{{ $material->id }}">{{ langLabel('add_cart') }}</button>
-                        @else
-                            <a href="{{ route('jobseeker.profile') }}" onclick="localStorage.setItem('activeTab','cart')"
-                                class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
-                                {{ langLabel('go_cart') }}
+                            use App\Models\JobseekerTrainingMaterialPurchase;
+
+                            use App\Models\TrainingBatch;
+
+                            use App\Models\JobseekerAssessmentStatus;
+
+
+
+                            $existOrNot = false;
+
+                            $enableJoin = false;
+
+                            $showAssessment = false;
+
+                            $now = Carbon::now();
+
+                            $batch = null;
+
+                            $assessmentStatus = null;
+
+
+
+                            if (auth('jobseeker')->check()) {
+
+                                $jobseekerId = auth('jobseeker')->id();
+
+
+
+                                // Check purchase
+
+                                $purchase = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobseekerId)
+
+                                    ->where('material_id', $material->id)
+
+                                    ->first();
+
+
+
+                                if ($purchase) {
+
+                                    $existOrNot = true;
+
+
+
+                                    if ($purchase->batch_id) {
+
+                                        $batch = TrainingBatch::find($purchase->batch_id);
+
+
+
+                                        if ($batch) {
+
+                                            $batchDays = json_decode($batch->days, true) ?? [];
+
+                                            $dayName   = $now->format('l');
+
+
+
+                                            $startDate = Carbon::parse($batch->start_date)->startOfDay();
+
+                                            $endDate   = $batch->end_date ? Carbon::parse($batch->end_date)->endOfDay() : $startDate;
+
+
+
+                                            // timings
+
+                                            $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
+
+                                            $endTime   = Carbon::parse($batch->end_timing);
+
+
+
+                                            if ($endTime->lessThan($startTime)) {
+
+                                                $endTime->addDay();
+
+                                            }
+
+
+
+                                            $startDateTime = Carbon::parse($now->format('Y-m-d') . ' ' . $startTime->format('H:i:s'));
+
+                                            $endDateTime   = Carbon::parse($now->format('Y-m-d') . ' ' . $endTime->format('H:i:s'));
+
+
+
+                                            // check if batch is live today
+
+                                            if ($now->between($startDate, $endDate) && in_array($dayName, $batchDays)) {
+
+                                                if ($now->between($startDateTime, $endDateTime)) {
+
+                                                    $enableJoin = true;
+
+                                                }
+
+                                            }
+
+
+
+                                            // Assessment condition
+
+                                            $isPastBatch = $now->greaterThan($endDate); 
+
+                                            $isEndDayAndTimeOver = $now->isSameDay($endDate) && $now->greaterThan($endDateTime);
+
+
+
+                                            $showAssessment = $isPastBatch || $isEndDayAndTimeOver;
+
+                                        }
+
+                                    }
+
+
+
+                                    // Fetch assessment status
+
+                                    $assessmentStatus = JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
+
+                                        ->where('material_id', $material->id)
+
+                                        ->latest()
+
+                                        ->first();
+
+                                }
+
+                            }
+
+                        @endphp
+
+
+
+
+
+                        {{-- Buy Button --}}
+
+                        @if(!$existOrNot)
+
+                            <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                    Buy course
+
+                                </button>
+
                             </a>
+
                         @endif
-                    @endif
+
+
+
+
+
+                        {{-- Join / Visit / Assessment --}}
+
+                        @if($existOrNot && $batch)
+
+                            @if($showAssessment)
+
+                                {{-- Assessment Buttons --}}
+
+                                @if($assessmentStatus)
+
+                                    @if($assessmentStatus->submitted == 1)
+
+                                        {{-- Certificate Download --}}
+
+                                        <a href="{{ route('download.certificate', $material->id) }}">
+
+                                            <button class="flex items-center justify-center gap-2 bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3 hover:bg-green-700 transition">
+
+                                                <i class="fas fa-download"></i>
+
+                                                <span>Download Training Certificate</span>
+
+                                            </button>
+
+                                        </a>
+
+                                    @else
+
+                                        {{-- Re-Assessment --}}
+
+                                        <a href="#">
+
+                                            <button class="bg-yellow-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                                Re-Assessment
+
+                                            </button>
+
+                                        </a>
+
+                                    @endif
+
+                                @else
+
+                                    {{-- Start First Assessment --}}
+
+                                    <a href="{{ route('assessment.view', $material->id) }}">
+                                        <button class="bg-red-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                            Start Assessment
+                                        </button>
+                                    </a>
+
+                                @endif
+
+                            @else
+
+                                {{-- Normal Join / Visit --}}
+
+                                @if($material->training_type == 'online')
+
+                                    @if($enableJoin)
+
+                                        <a href="{{ $batch->zoom_join_url }}">
+
+                                            <button class="bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                                Join
+
+                                            </button>
+
+                                        </a>
+
+                                    @else
+
+                                        <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+
+                                            Join (Not Available Yet)
+
+                                        </button>
+
+                                    @endif
+
+                                @elseif($material->training_type == 'classroom')
+
+                                    @if($enableJoin)
+
+                                        <a href="{{ $batch->location ?: '#' }}">
+
+                                            <button class="bg-purple-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                                Visit
+
+                                            </button>
+
+                                        </a>
+
+                                    @else
+
+                                        <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+
+                                            Visit (Not Available Yet)
+
+                                        </button>
+
+                                    @endif
+
+                                @endif
+
+                            @endif
+
+                        @endif
+
+
+
+
+
+                        {{-- Buy for Team --}}
+
+                        <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
+
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+
+                                Buy for Team
+
+                            </button>
+
+                        </a>
+
+
+
+                        {{-- Add to Cart / Go to Cart --}}
+
+                        @if(!$existOrNot)
+
+                            @if(!in_array($material->id, $cartItems))
+
+                                <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
+
+                                    data-id="{{ $material->id }}">
+
+                                    Add to Cart
+
+                                </button>
+
+                            @else
+
+                                <a href="{{ route('jobseeker.profile') }}" 
+
+                                onclick="localStorage.setItem('activeTab','cart')"
+
+                                class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
+
+                                    Go to Cart
+
+                                </a>
+
+                            @endif
+
+                        @endif
                 </div>
             </aside>
         

@@ -1507,6 +1507,7 @@ class JobseekerController extends Controller
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
             ->where('reviews.user_type', 'mentor')
+            ->where('reviews.user_id', $id)
             ->select(
                 'reviews.*',
                 'jobseekers.name as jobseeker_name'
@@ -2040,7 +2041,7 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $this->createZoomMeeting("Assessment with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -2117,7 +2118,7 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Coaching with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $this->createZoomMeeting("Coaching with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([

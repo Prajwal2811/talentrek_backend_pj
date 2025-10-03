@@ -537,7 +537,7 @@ class TrainerController extends Controller
                 'pin_code' => $validated['pin_code'],
                 'national_id' => $validated['national_id'],
                 'is_registered' => 1,
-                'is_registered' => 'active'
+                
             ]);
 
             // Save education
@@ -941,7 +941,7 @@ class TrainerController extends Controller
 
             'content_sections.*.description' => 'required|string',
 
-            'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
+            'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:512000',
 
             'content_sections.*.file_duration' => 'required|string|max:255',
 
@@ -3116,7 +3116,8 @@ class TrainerController extends Controller
             ->orderBy('b.start_timing', 'asc')
             ->get();
 
-
+        $trainingCourses = TrainingMaterial::where('trainer_id', $trainerId)->count();
+        $coursePurchasesCount = $coursePurchasesJobseekers->count();         
         // echo "<pre>";
         // print_r($batches);
         // exit;
@@ -3126,7 +3127,9 @@ class TrainerController extends Controller
 
         return view('site.trainer.trainer-dashboard', [
             'jobseekersData' => $coursePurchasesJobseekers,
-            'batches' => $batches
+            'batches' => $batches,
+            'trainingCourses' => $trainingCourses,
+            'coursePurchasesCount' => $coursePurchasesCount,
         ]);
      
     }
