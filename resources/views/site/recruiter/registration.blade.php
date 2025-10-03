@@ -334,7 +334,8 @@
                                                 <div class="flex flex-col gap-2">
                                                     <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_registration_documents') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
-                                                        <input type="file" name="registration_documents" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple />
+                                                        <!-- <input type="file" name="registration_documents" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple /> -->
+                                                        <input type="file" name="registration_documents[]" accept=".doc, .docx, .pdf" class="w-full border rounded-md p-2" multiple />
                                                     </div>
                                                     @if ($errors->has('registration_documents'))
                                                         @foreach ($errors->get('registration_documents') as $message)

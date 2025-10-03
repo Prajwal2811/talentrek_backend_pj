@@ -300,7 +300,7 @@
                 <script>
                     function courseFilter() {
                         return {
-                            allCourses: @json($materials), // Laravel se sab data aa gaya
+                            allCourses: @json($materials), 
                             filteredCourses: [],
                             search: '',
                             selectedCategories: [],

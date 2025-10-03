@@ -31,8 +31,7 @@
 
 
                 <!-- Stat Cards -->
-                <div class="grid grid-cols-12 gap-4 mb-6">
-                    <!-- First two cards side by side in col-span-6 -->
+                <!-- <div class="grid grid-cols-12 gap-4 mb-6">
                     <div class="col-span-6 grid grid-cols-2 gap-4">
                         <div class="bg-white p-4 rounded-lg shadow text-sm">
                             <p class="text-gray-700">{{ langLabel('total_courses') }}</p>
@@ -44,7 +43,6 @@
                         </div>
                     </div>
 
-                    <!-- Third card with counts inline (col-span-6) -->
                     <div class="col-span-6">
                         <div class="bg-white p-4 rounded-lg shadow text-sm flex justify-between items-start">
                             <div>
@@ -57,6 +55,33 @@
                             </div>
                         </div>
                     </div>
+                </div> -->
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    
+                    <!-- First card -->
+                    <div class="bg-white p-4 rounded-lg shadow text-sm">
+                        <p class="text-gray-700">{{ langLabel('total_courses') }}</p>
+                        <h3 class="text-3xl font-semibold mt-1">{{$trainingCourses}}</h3>
+                    </div>
+
+                    <!-- Second card -->
+                    <div class="bg-white p-4 rounded-lg shadow text-sm">
+                        <p class="text-gray-700">{{ langLabel('enrolled_jobseekers') }}</p>
+                        <h3 class="text-3xl font-semibold mt-1">{{$coursePurchasesCount}}</h3>
+                    </div>
+
+                    <!-- Third card -->
+                    <div class="bg-white p-4 rounded-lg shadow text-sm flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-700">{{ langLabel('total_upcoming_batches') }}</p>
+                            <h3 class="text-3xl font-semibold mt-1">5</h3>
+                        </div>
+                        <div class="mt-6 space-x-4 text-sm mt-5">
+                            <!-- Optional space for status or other info -->
+                        </div>
+                    </div>
+
                 </div>
 
                 <script>
@@ -102,7 +127,11 @@
                                             {{ langLabel('batch') }}: <span x-text="session.batch"></span>
                                         </p>
                                     </div>
-                                    <button class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">{{ langLabel('join') }}</button>
+                                    <!-- Button with Zoom URL -->
+                                    <a :href="session.zoom_url" target="_blank"
+                                        class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">
+                                        {{ langLabel('join') }}
+                                    </a>
                                 </div>
                             </template>
                         </div>
@@ -122,7 +151,8 @@
                                 title: session.training_name ?? 'No Title',
                                 time: formatTime(session.start_timing ?? '00:00:00'),
                                 batch: session.batch_no ?? 'Batch N/A',
-                                training_level: session.training_level ?? 'Level N/A'
+                                training_level: session.training_level ?? 'Level N/A',
+                                zoom_url: session.zoom_start_url ?? '#'
                             })),
                             visibleSessions: [],
                             limit: 5,

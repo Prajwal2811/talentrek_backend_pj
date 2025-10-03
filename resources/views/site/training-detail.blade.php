@@ -67,347 +67,863 @@
     @endif
 
 
-    @php
-use Carbon\Carbon;
-use App\Models\TrainingBatch;
-use App\Models\JobseekerTrainingMaterialPurchase;
-use App\Models\JobseekerAssessmentStatus;
-
-$existOrNot = false;
-$enableJoin = false;
-$showAssessment = false;
-$batch = null;
-$assessmentStatus = null;
-$now = Carbon::now();
-
-if(auth('jobseeker')->check()){
-    $jobseekerId = auth('jobseeker')->id();
-
-    // Check if the course is purchased
-    $purchase = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobseekerId)
-        ->where('material_id', $material->id)
-        ->first();
-
-    if($purchase){
-        $existOrNot = true;
-
-        if($purchase->batch_id){
-            $batch = TrainingBatch::find($purchase->batch_id);
-
-            if($batch){
-                $batchDays = json_decode($batch->days, true) ?? [];
-                $dayName = $now->format('l');
-
-                $startDate = Carbon::parse($batch->start_date)->startOfDay();
-                $endDate = $batch->end_date ? Carbon::parse($batch->end_date)->endOfDay() : $startDate;
-
-                $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
-                $endTime = Carbon::parse($batch->end_timing);
-
-                if($endTime->lessThan($startTime)){
-                    $endTime->addDay();
-                }
-
-                $startDateTime = Carbon::parse($now->format('Y-m-d').' '.$startTime->format('H:i:s'));
-                $endDateTime = Carbon::parse($now->format('Y-m-d').' '.$endTime->format('H:i:s'));
-
-                if($now->between($startDate, $endDate) && in_array($dayName, $batchDays)){
-                    if($now->between($startDateTime, $endDateTime)){
-                        $enableJoin = true;
-                    }
-                }
-
-                $isPastBatch = $now->greaterThan($endDate);
-                $isEndDayAndTimeOver = $now->isSameDay($endDate) && $now->greaterThan($endDateTime);
-                $showAssessment = $isPastBatch || $isEndDayAndTimeOver;
-            }
-        }
-
-        // Fetch assessment status
-        $assessmentStatus = JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
-            ->where('material_id', $material->id)
-            ->latest()
-            ->first();
-    }
-}
-@endphp
+  
 
 
+    <main class="w-11/12 mx-auto py-8">
+        @include('admin.errors')
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
 
-        <main class="w-11/12 mx-auto py-8">
-            @include('admin.errors')
-            <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+            <!-- Left/Main Content -->
+            <div class="flex-1">
+                <!-- Title -->
+                <h1 class="text-2xl font-semibold text-gray-900 mb-1">
+                    {{ $material->training_title ?? 'N/A' }}
+                </h1>
+                <p class="text-sm text-gray-600 mb-3">{{ $material->training_sub_title ?? '' }}</p>
 
-                <!-- Left/Main Content -->
-                <div class="flex-1">
-                    <!-- Title -->
-                    <h1 class="text-2xl font-semibold text-gray-900 mb-1">
-                        {{ $material->training_title ?? 'N/A' }}
-                    </h1>
-                    <p class="text-sm text-gray-600 mb-3">{{ $material->training_sub_title ?? '' }}</p>
+                <!-- Ratings and Meta -->
+                <div class="flex items-center text-sm text-gray-600 mb-6 flex-wrap gap-2">
+                    <div class="flex items-center text-yellow-500">
+                        @for ($i = 1; $i <= 5; $i++)
+                            {{ $i <= floor($average) ? '★' : '☆' }}
+                        @endfor
+                    </div>
+                    <span>({{ $average }}/5)</span> 
+                    <span>{{ langLabel('rating') }}</span>
+                    <span class="mx-2">|</span>
 
-                    <!-- Ratings and Meta -->
-                    <div class="flex items-center text-sm text-gray-600 mb-6 flex-wrap gap-2">
-                        <div class="flex items-center text-yellow-500">
-                            @for ($i = 1; $i <= 5; $i++)
-                                {{ $i <= floor($average) ? '★' : '☆' }}
-                            @endfor
-                        </div>
-                        <span>({{ $average }}/5)</span>
-                        <span>{{ langLabel('rating') }}</span>
-                        <span class="mx-2">|</span>
-
-                        <!-- Trainer -->
-                        <div class="flex items-center gap-2">
-                            <img src="{{ $material->user_profile }}" alt="Trainer Image"
-                                class="w-10 h-10 rounded-full object-cover">
-                            <span class="font-semibold">{{ $material->user_name }}</span>
-                        </div>
-
-                        <span class="mx-2">|</span>
-
-                        <!-- Lessons and Hours -->
-                        @if(strtolower($material->training_type) === 'recorded' && isset($material->documents) && count($material->documents) > 0)
-                            <span>📘 {{ count($material->documents) }} {{ langLabel('lessons') }}</span>
-                            <span>⏱️
-                                @php
-                                    $totalHours = 0;
-                                    foreach ($material->batches as $batch) {
-                                        $start = strtotime($batch->start_timing);
-                                        $end = strtotime($batch->end_timing);
-                                        $totalHours += ($end - $start) / 3600;
-                                    }
-                                @endphp
-                                {{ number_format($totalHours, 1) }} hrs
-                            </span>
-                        @endif
-
-                        <span>📈 {{ ucfirst($material->training_level ?? langLabel('beginner')) }}</span>
-                        <span>🎥 {{ ucfirst($material->session_type ?? langLabel('recorded')) }}</span>
+                    <!-- Trainer -->
+                    <div class="flex items-center gap-2">
+                        <img src="{{ $material->user_profile }}" alt="Trainer Image"
+                            class="w-10 h-10 rounded-full object-cover">
+                        <span class="font-semibold">{{ $material->user_name }}</span>
                     </div>
 
-                    <!-- Tabs -->
-                    <div class="flex gap-6 border-b mb-6 text-sm font-medium">
-                        @if ($material->training_type !== 'online')
-                            <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent"
-                                data-tab="content">{{ langLabel('training_content') }}</button>
-                        @endif
+                    <span class="mx-2">|</span>
+
+                    <!-- Lessons and Hours -->
+                    @if(strtolower($material->training_type) === 'recorded' && isset($material->documents) && count($material->documents) > 0)
+                        <span>📘 {{ count($material->documents) }} {{ langLabel('lessons') }}</span>
+                        <span>⏱️
+                            @php
+                                $totalHours = 0;
+                                foreach ($material->batches as $batch) {
+                                    $start = strtotime($batch->start_timing);
+                                    $end = strtotime($batch->end_timing);
+                                    $totalHours += ($end - $start) / 3600;
+                                }
+                            @endphp
+                            {{ number_format($totalHours, 1) }} hrs
+                        </span>
+                    @endif
+
+                    <span>📈 {{ ucfirst($material->training_level ?? langLabel('beginner')) }}</span>
+                    <span>🎥 {{ ucfirst($material->session_type ?? langLabel('recorded')) }}</span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-6 border-b mb-6 text-sm font-medium">
+                    @if ($material->training_type !== 'online')
                         <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent"
-                            data-tab="reviews">{{ langLabel('reviews') }}</button>
-                    </div>
+                            data-tab="content">{{ langLabel('training_content') }}</button>
+                    @endif
+                    <button class="tab-link pb-2 text-gray-600 hover:text-blue-600 border-b-2 border-transparent"
+                        data-tab="reviews">{{ langLabel('reviews') }}</button>
+                </div>
 
-                    <!-- Tab Contents -->
-                    <section class="mb-6 tab-content hidden" data-tab-content="content">
-                        <h2 class="text-lg font-semibold mb-2">{{ langLabel('training_content') }}</h2>
-                        <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
-                            @foreach($material->documents as $index => $doc)
-                                <li><strong>Lesson {{ $index + 1 }}:</strong> {{ $doc->description }}</li>
-                            @endforeach
-                        </ul>
-                    </section>
+                <!-- Tab Contents -->
+                <section class="mb-6 tab-content hidden" data-tab-content="content">
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('training_content') }}</h2>
+                    <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                        @foreach($material->documents as $index => $doc)
+                            <li><strong>Lesson {{ $index + 1 }}:</strong> {{ $doc->description }}</li>
+                        @endforeach
+                    </ul>
+                </section>
 
-                    <section class="mb-6 tab-content" data-tab-content="reviews">
-                        <h2 class="text-lg font-semibold mb-2">{{ langLabel('reviews') }}</h2>
-                        <p class="text-sm text-gray-600">{{ langLabel('user_reviews') }}</p>
-                    </section>
-
-
-
-                                    
+                <section class="mb-6 tab-content" data-tab-content="reviews">
+                    <h2 class="text-lg font-semibold mb-2">{{ langLabel('reviews') }}</h2>
+                    <p class="text-sm text-gray-600">{{ langLabel('user_reviews') }}</p>
+                </section>
 
 
-                    <!-- Tab JS -->
-                    <script>
-                        document.querySelectorAll('.tab-link').forEach(button => {
-                            button.addEventListener('click', () => {
-                                const tab = button.dataset.tab;
 
-                                document.querySelectorAll('.tab-link').forEach(btn => {
-                                    btn.classList.remove('text-blue-600', 'border-blue-600', 'active-tab');
-                                    btn.classList.add('text-gray-600');
-                                });
-                                button.classList.remove('text-gray-600');
-                                button.classList.add('text-blue-600', 'border-blue-600', 'active-tab');
+                                
 
-                                document.querySelectorAll('.tab-content').forEach(content => {
-                                    content.classList.add('hidden');
-                                });
-                                document.querySelector(`[data-tab-content="${tab}"]`).classList.remove('hidden');
-                            });
+
+            <!-- Tab JS -->
+            <script>
+                document.querySelectorAll('.tab-link').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tab = button.dataset.tab;
+
+                        document.querySelectorAll('.tab-link').forEach(btn => {
+                            btn.classList.remove('text-blue-600', 'border-blue-600', 'active-tab');
+                            btn.classList.add('text-gray-600');
                         });
-                    </script>
-                </div>
+                        button.classList.remove('text-gray-600');
+                        button.classList.add('text-blue-600', 'border-blue-600', 'active-tab');
 
-                <!-- Sidebar -->
-                <aside class="w-full lg:w-1/3 lg:sticky top-12 self-start">
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border p-4">
-                        <img src="{{ asset($material->thumbnail_file_path ?? 'asset/images/gallery/pic-4.png') }}"
-                            alt="Course Thumbnail" class="rounded-lg w-full h-48 object-cover mb-4">
-
-                        <ul class="text-sm text-gray-600 mb-4 space-y-2">
-                            @if(strtolower($material->training_type) === 'recorded')
-                                <li>📘 {{ count($material->documents) }} {{ langLabel('lessons') }}</li>
-                                <li>⏱️ {{ number_format($totalHours, 1) }} hrs</li>
-                            @endif
-                            <li>📈 {{ ucfirst($material->training_level ?? langLabel('beginner')) }}</li>
-                        </ul>
-
-                        <!-- Price -->
-                        <div class="mb-4 flex items-center justify-between">
-                            <p class="text-sm text-gray-500 font-bold">{{ langLabel('price') }}</p>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-400 line-through">
-                                    SAR {{ number_format($material->training_price ?? 0, 0) }}
-                                </span>
-                                <span class="text-xl font-bold text-black">
-                                    SAR {{ number_format($material->training_offer_price ?? 0, 0) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        {{-- Buy Button --}}
-                        @if(!$existOrNot)
-                            <a href="{{ route('buy-course', ['id' => $material->id]) }}">
-                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-                                    {{ langLabel('buy_course') }}
-                                </button>
-                            </a>
-                        @endif
-
-                        {{-- Buy for Team --}}
-                        <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-                                {{ langLabel('buy_team') }}
-                            </button>
-                        </a>
-
-                        {{-- Add to Cart --}}
-                        @if(!$existOrNot)
-                            @if(!in_array($material->id, $cartItems))
-                                <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
-                                    data-id="{{ $material->id }}">{{ langLabel('add_cart') }}</button>
-                            @else
-                                <a href="{{ route('jobseeker.profile') }}" onclick="localStorage.setItem('activeTab','cart')"
-                                    class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
-                                    {{ langLabel('go_cart') }}
-                                </a>
-                            @endif
-                        @endif
-                    </aside>
-                </div>
-
-                <!-- Batch Selection Modal -->
-                <div id="batch-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
-                    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl mx-auto">
-                        <h3 class="text-lg font-semibold mb-4">{{ langLabel('select_batch') }}</h3>
-
-                        <div class="grid grid-cols-1 gap-4 max-h-[70vh] overflow-y-auto">
-                            @forelse($material->batches as $batch)
-                                @php
-                                    $start = \Carbon\Carbon::parse($batch->start_date);
-                                    $end = isset($batch->end_date) ? \Carbon\Carbon::parse($batch->end_date) : $start;
-                                    $ended = $end->isPast();
-                                    $started = $start->isPast() && !$ended;
-                                    $strength = $batch->strength;
-                                    $enrolled = \App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
-                                                    ->where('material_id', $material->id)
-                                                    ->count();
-                                    $availableSeats = $strength - $enrolled;
-                                    $isFull = $availableSeats <= 0;
-                                    $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days;
-                                @endphp
-
-                                <div class="border rounded-lg p-4 flex justify-between items-center cursor-pointer hover:shadow-lg transition relative {{ $ended || $isFull ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white' }}"
-                                    onclick="{{ ($ended || $isFull) ? '' : 'selectBatch('.$batch->id.')' }}">
-                                    <div class="flex items-center space-x-4">
-                                        <input type="radio" name="batch_id" value="{{ $batch->id }}" id="batch-radio-{{ $batch->id }}" class="form-radio h-5 w-5 text-blue-600" {{ ($ended || $isFull)?'disabled':'' }}>
-                                        <div>
-                                            <h4 class="font-semibold text-gray-800">{{ $batch->batch_no }}</h4>
-                                            <p class="text-gray-500 text-sm">
-                                                Start: {{ $start->format('d M Y') }} <br>
-                                                End: {{ $end->format('d M Y') }} <br>
-                                                Timing: {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="text-right space-y-1">
-                                        @if($ended)
-                                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Batch Ended</span>
-                                        @elseif($started)
-                                            <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">Batch Started</span>
-                                        @elseif($isFull)
-                                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Full</span>
-                                        @else
-                                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{{ $availableSeats }} Seats Left</span>
-                                        @endif
-                                        <p class="text-gray-600 text-sm">Duration: {{ $batch->duration }}</p>
-                                        <p class="text-gray-600 text-sm">Days: {{ $days }}</p>
-                                    </div>
-                                </div>
-                            @empty
-                                <p class="text-gray-500 text-center">No batches available</p>
-                            @endforelse
-                        </div>
-
-                        <div class="flex justify-end gap-2 mt-4">
-                            <button id="cancel-batch" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">
-                                {{ langLabel('cancel') }}
-                            </button>
-                            <button id="confirm-batch" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-                                {{ langLabel('add_cart') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-        </main>
-
-        <!-- jQuery -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            let selectedMaterialId = null;
-
-            function selectBatch(batchId) {
-                $('#batch-radio-' + batchId).prop('checked', true);
-            }
-
-            $(document).ready(function () {
-                $('.add-to-cart-btn').on('click', function () {
-                    selectedMaterialId = $(this).data('id');
-                    $('#batch-modal').fadeIn().css('display','flex');
-                });
-
-                $('#cancel-batch').on('click', function () {
-                    $('#batch-modal').fadeOut();
-                });
-
-                $('#confirm-batch').on('click', function () {
-                    const batchId = $('input[name="batch_id"]:checked').val();
-                    if (!batchId) {
-                        alert('{{ langLabel("please_select_batch") }}');
-                        return;
-                    }
-
-                    $.ajax({
-                        url: "{{ route('jobseeker.addtocart', ['id' => '__id__']) }}".replace('__id__', selectedMaterialId),
-                        type: "POST",
-                        data: {_token: '{{ csrf_token() }}', batch_id: batchId},
-                        success: function () {
-                            $('#batch-modal').fadeOut();
-
-                            const button = $('.add-to-cart-btn[data-id="'+selectedMaterialId+'"]');
-                            button
-                                .removeClass('add-to-cart-btn border-blue-600 text-blue-600 hover:bg-blue-50')
-                                .addClass('bg-orange-500 text-white')
-                                .text('{{ langLabel("go_cart") }}')
-                                .off('click')
-                                .on('click', function () { window.location.href = "{{ route('jobseeker.profile') }}"; });
-                        },
-                        error: function () { alert('Something went wrong. Please try again!'); }
+                        document.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.add('hidden');
+                        });
+                        document.querySelector(`[data-tab-content="${tab}"]`).classList.remove('hidden');
                     });
                 });
+            </script>
+
+            <script src="//unpkg.com/alpinejs" defer></script>
+             
+                @php
+                    //use App\Models\JobseekerTrainingMaterialPurchase;
+
+                    $userId = auth('jobseeker')->id();
+                    $courseId = $material->id;
+
+                    // Check if the jobseeker purchased this material
+                    $isCourseBuy = App\Models\JobseekerTrainingMaterialPurchase::where('jobseeker_id', $userId)
+                        ->where('material_id', $courseId)
+                        ->exists();
+                @endphp
+
+                @if($material->training_type !== 'online')
+                    <h2 class="text-lg font-bold mb-4">E learning</h2>
+                @endif
+
+                <div x-data="videoModal(@json($isCourseBuy))" class="relative">
+                    <!-- Grid of Videos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        @foreach ($material->documents as $key => $doc)
+                            <div 
+                                class="bg-white shadow rounded overflow-hidden cursor-pointer"
+                                @click="openVideo('{{ $doc->file_path }}')"
+                            >
+                                <div class="relative">
+                                    <img src="https://img.icons8.com/ios-filled/100/000000/video.png"
+                                        alt="Video Preview"
+                                        class="w-full h-40 object-cover bg-gray-200" />
+
+                                    <!-- Play Button Overlay -->
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="bg-black bg-opacity-50 rounded-full p-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                                class="h-8 w-8 text-white" 
+                                                fill="none" 
+                                                viewBox="0 0 24 24" 
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M14.752 11.168l-6.518-3.896A1 1 0 007 8.104v7.792a1 1 0 001.234.97l6.518-1.696A1 1 0 0015 14.168V12a1 1 0 00-.248-.832z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 text-center text-sm font-medium">
+                                    {{ $doc->training_title }} - Chapter {{ $key + 1 }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Draggable Video Modal -->
+                    <div 
+                        x-show="activeVideo"
+                        x-cloak
+                        :style="`top: ${posY}px; left: ${posX}px;`"
+                        @mousedown.stop="dragging = true; offsetX = $event.clientX - posX; offsetY = $event.clientY - posY"
+                        @mousemove.window="if(dragging){ posX = $event.clientX - offsetX; posY = $event.clientY - offsetY }"
+                        @mouseup.window="dragging = false"
+                        class="fixed z-50 w-96 bg-white rounded-lg shadow-lg border border-gray-300"
+                    >
+                        <div class="flex justify-between items-center bg-gray-100 p-2 cursor-move">
+                            <span class="font-medium">Video Player</span>
+                            <button @click="closeVideo" class="text-red-500 font-bold">✕</button>
+                        </div>
+
+                        <video 
+                            x-ref="videoPlayer" 
+                            x-bind:src="activeVideo" 
+                            controls 
+                            autoplay 
+                            controlsList="nodownload" 
+                            oncontextmenu="return false;" 
+                            class="w-full rounded-b-lg"
+                            @loadedmetadata="
+                                const lastTime = localStorage.getItem(activeVideo);
+                                if(lastTime){ $refs.videoPlayer.currentTime = parseFloat(lastTime); }
+                            "
+                            @timeupdate.debounce.500="
+                                localStorage.setItem(activeVideo, $refs.videoPlayer.currentTime);
+                            "
+                        ></video>
+                    </div>
+
+                    <!-- Purchase Popup -->
+                    <div x-show="showPopup" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Purchase Required</h3>
+                            <p class="text-sm text-gray-600 mb-6">
+                                You must purchase this course to view the videos.
+                            </p>
+                            <div class="flex justify-center gap-4">
+                                <button @click="showPopup = false"
+                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                function videoModal(isPurchased) {
+                    return {
+                        activeVideo: null,
+                        showPopup: false,
+                        posX: 100,
+                        posY: 100,
+                        dragging: false,
+                        offsetX: 0,
+                        offsetY: 0,
+                        openVideo(video) {
+                            if(isPurchased){
+                                this.activeVideo = video;
+                                this.$nextTick(() => { this.$refs.videoPlayer.play(); });
+                            } else {
+                                this.showPopup = true;
+                            }
+                        },
+                        closeVideo() {
+                            if(this.$refs.videoPlayer){
+                                this.$refs.videoPlayer.pause();
+                                this.$refs.videoPlayer.currentTime = 0;
+                            }
+                            this.activeVideo = null;
+                        }
+                    }
+                }
+                </script>
+
+                <style>
+                [x-cloak] { display: none !important; }
+                </style>
+
+
+
+
+              <!-- Reviews -->
+              <section class="tab-content mt-5" data-tab-content="reviews">
+                <h2 class="text-2xl font-bold mb-6">Reviews</h2>
+
+                <!-- Rating Summary -->
+                <div class="flex mb-8 space-x-8">
+                  <!-- Average Rating Box -->
+                  <div class="bg-gray-100 p-6 rounded-md w-48 text-center">
+                    <div class="text-5xl font-extrabold text-black-500 leading-tight">{{ $average }}</div>
+                     <div class="text-xl text-black-300 text-gray-600 mt-1">Overall rating</div>
+                  </div>
+
+                  <!-- Star Rating Breakdown (no 5/4/3/2/1 text) -->
+                  <div class="flex-1 bg-blue-50 p-6 rounded-md space-y-3">
+                    @foreach([5, 4, 3, 2, 1] as $star)
+                      <div class="flex items-center space-x-4">
+                        <div class="w-full bg-blue-100 h-2 rounded relative">
+                          <div class="absolute top-0 left-0 h-2 bg-orange-500 rounded" style="width: {{ $ratingsPercent[$star] }}%;"></div>
+                        </div>
+                        <div class="w-12 text-right text-sm text-gray-600">{{ $ratingsPercent[$star] }}%</div>
+                      </div>
+                    @endforeach
+                  </div>
+                </div>
+
+                <!-- Write Review Box -->
+                <div class="mb-6">
+                  <h3 class="text-lg font-semibold mb-2">Write a review:</h3>
+                  <textarea id="review-text" rows="4" placeholder="Write here . . ." class="w-full border border-gray-300 p-3 rounded mb-2 text-sm"></textarea>
+
+                  <div class="flex items-center justify-between">
+                    <div id="star-rating" class="text-orange-500 text-2xl cursor-pointer space-x-1">
+                      @for ($i = 1; $i <= 5; $i++)
+                        <span class="star" data-value="{{ $i }}">☆</span>
+                      @endfor
+                    </div>
+
+                    <button id="submit-review" class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded text-sm">
+                      Submit Review
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Review List -->
+                <div class="space-y-4" id="review-list">
+                  @foreach ($reviews as $review)
+                    <div class="border p-4 rounded shadow-sm bg-white">
+                      <p class="text-sm font-semibold">{{ $review->jobseeker_name }}</p>
+                      <p class="text-yellow-400 text-sm">
+                        @for ($i = 1; $i <= 5; $i++)
+                          {{ $i <= $review->ratings ? '★' : '☆' }}
+                        @endfor
+                      </p>
+                      <p class="text-sm text-gray-700">{{ $review->reviews }}</p>
+                    </div>
+                  @endforeach
+                </div>
+              </section>
+
+              <!-- JavaScript (Inline or External) -->
+              <script>
+                let selectedRating = 0;
+
+                // Star click handler
+                document.querySelectorAll('.star').forEach(star => {
+                    star.addEventListener('click', function () {
+                    selectedRating = parseInt(this.dataset.value);
+                    highlightStars(selectedRating);
+                    });
+                });
+
+                function highlightStars(count) {
+                    document.querySelectorAll('.star').forEach((star, index) => {
+                    star.textContent = index < count ? '★' : '☆';
+                    });
+                }
+
+                // Submit review via AJAX
+                const submitButton = document.getElementById('submit-review');
+                submitButton.addEventListener('click', function () {
+                    const reviewText = document.getElementById('review-text').value;
+                    if (!reviewText || selectedRating === 0) {
+                    alert('Please write a review and select a rating.');
+                    return;
+                    }
+
+                    fetch("{{ route('submit.review') }}", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        user_type: '{{ $userType }}',     // dynamically passed from controller
+                        user_id: '{{ $userId }}',         // trainer/mentor/etc ID
+                        material_id: '{{ $material->id ?? '' }}',
+                        reviews: reviewText,
+                        ratings: selectedRating
+                    })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                    if (data.success) {
+                        document.getElementById('review-text').value = '';
+                        selectedRating = 0;
+                        highlightStars(0);
+                        location.reload();
+                        const newReview = `
+                        <div class="border p-4 rounded shadow-sm bg-white">
+                            <p class="text-sm font-semibold">${data.review.jobseeker_name}</p>
+                            <p class="text-yellow-400 text-sm">
+                            ${'★'.repeat(data.review.ratings)}${'☆'.repeat(5 - data.review.ratings)}
+                            </p>
+                            <p class="text-sm text-gray-700">${data.review.reviews}</p>
+                        </div>
+                        `;
+                        document.getElementById('review-list').insertAdjacentHTML('afterbegin', newReview);
+                    }
+                    });
+                });
+              </script>
+      
+
+              <script>
+                document.querySelectorAll('.tab-link').forEach(button => {
+                  button.addEventListener('click', () => {
+                    // Remove active styles from all tabs
+                    document.querySelectorAll('.tab-link').forEach(btn => {
+                      btn.classList.remove('text-blue-600', 'border-blue-600', 'active-tab');
+                      btn.classList.add('text-gray-600', 'border-transparent');
+                    });
+
+                    // Add active style to clicked tab
+                    button.classList.add('text-blue-600', 'border-blue-600', 'active-tab');
+                    button.classList.remove('text-gray-600');
+
+                    // Scroll to target section
+                    const tab = button.getAttribute('data-tab');
+                    const targetSection = document.querySelector(`[data-tab-content="${tab}"]`);
+                    if (targetSection) {
+                      targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  });
+                });
+              </script>
+
+
+
+
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="w-full lg:w-1/3 lg:sticky top-12 self-start">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border p-4">
+                    <img src="{{ asset($material->thumbnail_file_path ?? 'asset/images/gallery/pic-4.png') }}"
+                        alt="Course Thumbnail" class="rounded-lg w-full h-48 object-cover mb-4">
+
+                    <ul class="text-sm text-gray-600 mb-4 space-y-2">
+                        @if(strtolower($material->training_type) === 'recorded')
+                            <li>📘 {{ count($material->documents) }} {{ langLabel('lessons') }}</li>
+                            <li>⏱️ {{ number_format($totalHours, 1) }} hrs</li>
+                        @endif
+                        <li>📈 {{ ucfirst($material->training_level ?? langLabel('beginner')) }}</li>
+                    </ul>
+
+                    <!-- Price -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <p class="text-sm text-gray-500 font-bold">{{ langLabel('price') }}</p>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-gray-400 line-through">
+                                SAR {{ number_format($material->training_price ?? 0, 0) }}
+                            </span>
+                            <span class="text-xl font-bold text-black">
+                                SAR {{ number_format($material->training_offer_price ?? 0, 0) }}
+                            </span>
+                        </div>
+                    </div>
+
+                        @php
+
+                            use Carbon\Carbon;
+
+                            use App\Models\JobseekerTrainingMaterialPurchase;
+
+                            use App\Models\TrainingBatch;
+
+                            use App\Models\JobseekerAssessmentStatus;
+
+
+
+                            $existOrNot = false;
+
+                            $enableJoin = false;
+
+                            $showAssessment = false;
+
+                            $now = Carbon::now();
+
+                            $batch = null;
+
+                            $assessmentStatus = null;
+
+
+
+                            if (auth('jobseeker')->check()) {
+
+                                $jobseekerId = auth('jobseeker')->id();
+
+
+
+                                // Check purchase
+
+                                $purchase = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobseekerId)
+
+                                    ->where('material_id', $material->id)
+
+                                    ->first();
+
+
+
+                                if ($purchase) {
+
+                                    $existOrNot = true;
+
+
+
+                                    if ($purchase->batch_id) {
+
+                                        $batch = TrainingBatch::find($purchase->batch_id);
+
+
+
+                                        if ($batch) {
+
+                                            $batchDays = json_decode($batch->days, true) ?? [];
+
+                                            $dayName   = $now->format('l');
+
+
+
+                                            $startDate = Carbon::parse($batch->start_date)->startOfDay();
+
+                                            $endDate   = $batch->end_date ? Carbon::parse($batch->end_date)->endOfDay() : $startDate;
+
+
+
+                                            // timings
+
+                                            $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
+
+                                            $endTime   = Carbon::parse($batch->end_timing);
+
+
+
+                                            if ($endTime->lessThan($startTime)) {
+
+                                                $endTime->addDay();
+
+                                            }
+
+
+
+                                            $startDateTime = Carbon::parse($now->format('Y-m-d') . ' ' . $startTime->format('H:i:s'));
+
+                                            $endDateTime   = Carbon::parse($now->format('Y-m-d') . ' ' . $endTime->format('H:i:s'));
+
+
+
+                                            // check if batch is live today
+
+                                            if ($now->between($startDate, $endDate) && in_array($dayName, $batchDays)) {
+
+                                                if ($now->between($startDateTime, $endDateTime)) {
+
+                                                    $enableJoin = true;
+
+                                                }
+
+                                            }
+
+
+
+                                            // Assessment condition
+
+                                            $isPastBatch = $now->greaterThan($endDate); 
+
+                                            $isEndDayAndTimeOver = $now->isSameDay($endDate) && $now->greaterThan($endDateTime);
+
+
+
+                                            $showAssessment = $isPastBatch || $isEndDayAndTimeOver;
+
+                                        }
+
+                                    }
+
+
+
+                                    // Fetch assessment status
+
+                                    $assessmentStatus = JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
+
+                                        ->where('material_id', $material->id)
+
+                                        ->latest()
+
+                                        ->first();
+
+                                }
+
+                            }
+
+                        @endphp
+
+
+
+
+
+                        {{-- Buy Button --}}
+
+                        @if(!$existOrNot)
+
+                            <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                    Buy course
+
+                                </button>
+
+                            </a>
+
+                        @endif
+
+
+
+
+
+                        {{-- Join / Visit / Assessment --}}
+
+                        @if($existOrNot && $batch)
+
+                            @if($showAssessment)
+
+                                {{-- Assessment Buttons --}}
+
+                                @if($assessmentStatus)
+
+                                    @if($assessmentStatus->submitted == 1)
+
+                                        {{-- Certificate Download --}}
+
+                                        <a href="{{ route('download.certificate', $material->id) }}">
+
+                                            <button class="flex items-center justify-center gap-2 bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3 hover:bg-green-700 transition">
+
+                                                <i class="fas fa-download"></i>
+
+                                                <span>Download Training Certificate</span>
+
+                                            </button>
+
+                                        </a>
+
+                                    @else
+
+                                        {{-- Re-Assessment --}}
+
+                                        <a href="#">
+
+                                            <button class="bg-yellow-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                                Re-Assessment
+
+                                            </button>
+
+                                        </a>
+
+                                    @endif
+
+                                @else
+
+                                    {{-- Start First Assessment --}}
+
+                                    <a href="{{ route('assessment.view', $material->id) }}">
+                                        <button class="bg-red-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                            Start Assessment
+                                        </button>
+                                    </a>
+
+                                @endif
+
+                            @else
+
+                                {{-- Normal Join / Visit --}}
+
+                                @if($material->training_type == 'online')
+
+                                    @if($enableJoin)
+
+                                        <a href="{{ $batch->zoom_join_url }}">
+
+                                            <button class="bg-green-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                                Join
+
+                                            </button>
+
+                                        </a>
+
+                                    @else
+
+                                        <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+
+                                            Join (Not Available Yet)
+
+                                        </button>
+
+                                    @endif
+
+                                @elseif($material->training_type == 'classroom')
+
+                                    @if($enableJoin)
+
+                                        <a href="{{ $batch->location ?: '#' }}">
+
+                                            <button class="bg-purple-600 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+
+                                                Visit
+
+                                            </button>
+
+                                        </a>
+
+                                    @else
+
+                                        <button class="bg-gray-400 text-white w-full py-2 rounded mb-2 font-medium mt-3" disabled>
+
+                                            Visit (Not Available Yet)
+
+                                        </button>
+
+                                    @endif
+
+                                @endif
+
+                            @endif
+
+                        @endif
+
+
+
+
+
+                        {{-- Buy for Team --}}
+
+                        <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
+
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+
+                                Buy for Team
+
+                            </button>
+
+                        </a>
+
+
+
+                        {{-- Add to Cart / Go to Cart --}}
+
+                        @if(!$existOrNot)
+
+                            @if(!in_array($material->id, $cartItems))
+
+                                <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
+
+                                    data-id="{{ $material->id }}">
+
+                                    Add to Cart
+
+                                </button>
+
+                            @else
+
+                                <a href="{{ route('jobseeker.profile') }}" 
+
+                                onclick="localStorage.setItem('activeTab','cart')"
+
+                                class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
+
+                                    Go to Cart
+
+                                </a>
+
+                            @endif
+
+                        @endif
+                </div>
+            </aside>
+        
+
+            <!-- Batch Selection Modal -->
+            <div id="batch-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl mx-auto">
+                    <h3 class="text-lg font-semibold mb-4">{{ langLabel('select_batch') }}</h3>
+
+                    <div class="grid grid-cols-1 gap-4 max-h-[70vh] overflow-y-auto">
+                        @forelse($material->batches as $batch)
+                            @php
+                                $start = \Carbon\Carbon::parse($batch->start_date);
+                                $end = isset($batch->end_date) ? \Carbon\Carbon::parse($batch->end_date) : $start;
+                                $ended = $end->isPast();
+                                $started = $start->isPast() && !$ended;
+                                $strength = $batch->strength;
+                                $enrolled = \App\Models\JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                                                ->where('material_id', $material->id)
+                                                ->count();
+                                $availableSeats = $strength - $enrolled;
+                                $isFull = $availableSeats <= 0;
+                                $days = is_array(json_decode($batch->days)) ? implode(', ', json_decode($batch->days)) : $batch->days;
+                            @endphp
+
+                            <div class="border rounded-lg p-4 flex justify-between items-center cursor-pointer hover:shadow-lg transition relative {{ $ended || $isFull ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white' }}"
+                                onclick="{{ ($ended || $isFull) ? '' : 'selectBatch('.$batch->id.')' }}">
+                                <div class="flex items-center space-x-4">
+                                    <input type="radio" name="batch_id" value="{{ $batch->id }}" id="batch-radio-{{ $batch->id }}" class="form-radio h-5 w-5 text-blue-600" {{ ($ended || $isFull)?'disabled':'' }}>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">{{ $batch->batch_no }}</h4>
+                                        <p class="text-gray-500 text-sm">
+                                            Start: {{ $start->format('d M Y') }} <br>
+                                            End: {{ $end->format('d M Y') }} <br>
+                                            Timing: {{ \Carbon\Carbon::parse($batch->start_timing)->format('h:i A') }} - {{ \Carbon\Carbon::parse($batch->end_timing)->format('h:i A') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="text-right space-y-1">
+                                    @if($ended)
+                                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Batch Ended</span>
+                                    @elseif($started)
+                                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">Batch Started</span>
+                                    @elseif($isFull)
+                                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Full</span>
+                                    @else
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{{ $availableSeats }} Seats Left</span>
+                                    @endif
+                                    <p class="text-gray-600 text-sm">Duration: {{ $batch->duration }}</p>
+                                    <p class="text-gray-600 text-sm">Days: {{ $days }}</p>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-gray-500 text-center">No batches available</p>
+                        @endforelse
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button id="cancel-batch" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">
+                            {{ langLabel('cancel') }}
+                        </button>
+                        <button id="confirm-batch" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+                            {{ langLabel('add_cart') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </main>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let selectedMaterialId = null;
+
+        function selectBatch(batchId) {
+            $('#batch-radio-' + batchId).prop('checked', true);
+        }
+
+        $(document).ready(function () {
+            $('.add-to-cart-btn').on('click', function () {
+                selectedMaterialId = $(this).data('id');
+                $('#batch-modal').fadeIn().css('display','flex');
             });
-        </script>
+
+            $('#cancel-batch').on('click', function () {
+                $('#batch-modal').fadeOut();
+            });
+
+            $('#confirm-batch').on('click', function () {
+                const batchId = $('input[name="batch_id"]:checked').val();
+                if (!batchId) {
+                    alert('{{ langLabel("please_select_batch") }}');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('jobseeker.addtocart', ['id' => '__id__']) }}".replace('__id__', selectedMaterialId),
+                    type: "POST",
+                    data: {_token: '{{ csrf_token() }}', batch_id: batchId},
+                    success: function () {
+                        $('#batch-modal').fadeOut();
+
+                        const button = $('.add-to-cart-btn[data-id="'+selectedMaterialId+'"]');
+                        button
+                            .removeClass('add-to-cart-btn border-blue-600 text-blue-600 hover:bg-blue-50')
+                            .addClass('bg-orange-500 text-white')
+                            .text('{{ langLabel("go_cart") }}')
+                            .off('click')
+                            .on('click', function () { window.location.href = "{{ route('jobseeker.profile') }}"; });
+                    },
+                    error: function () { alert('Something went wrong. Please try again!'); }
+                });
+            });
+        });
+    </script>
 
 
 
