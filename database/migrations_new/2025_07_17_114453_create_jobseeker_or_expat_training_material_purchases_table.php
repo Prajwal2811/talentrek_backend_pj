@@ -13,15 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('jobseeker_training_material_purchases_payment_record', function (Blueprint $table) {
+        Schema::create('jobseeker_or_expat_training_material_purchases', function (Blueprint $table) {
             $table->id();
 
             // Foreign keys
-            $table->string('jobseeker_id')->nullable();
-            $table->string('trainer_id')->nullable();
-            $table->string('material_id')->nullable();
+            $table->integer('jobseeker_or_expat_id')->nullable();
+            $table->enum('role', ['jobseeker', 'expat'])->nullable();
+            $table->integer('trainer_id')->nullable();
+            $table->integer('material_id')->nullable();
+            $table->integer('purchased_by')->nullable();
 
-            
             // Nullable enum types
             $table->enum('training_type', ['online', 'classroom', 'recorded'])->nullable();
             $table->enum('session_type', ['online', 'classroom'])->nullable();
@@ -42,7 +43,7 @@ return new class extends Migration
             // Billing fields
             $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
             $table->string('taxed_amount')->nullable(); 
-            $table->decimal('amount_paid', 10, 2);
+            $table->decimal('amount_paid', 10, 2)->nullable();
 
 
             $table->string('coupon_type')->nullable();         // CAPTURED, DECLINED, etc.
@@ -51,7 +52,7 @@ return new class extends Migration
             $table->string('order_id')->nullable();         // CAPTURED, DECLINED, etc.
 
 
-            $table->string('track_id', length: 50)->comment('Unique booking reference number');
+            $table->string('track_id', length: 50)->nullable()->comment('Unique booking reference number');
             $table->unique('track_id', 'booking_track_id_unique');
             $table->string('transaction_id', 191)->nullable()->comment('from payment provider');
             $table->enum('payment_status', ['pending', 'success', 'failed', 'refunded'])->default('pending');
@@ -63,6 +64,8 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+
     }
 
     /**
@@ -72,6 +75,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('jobseeker_training_material_purchases_payment_record');
+        Schema::dropIfExists('jobseeker_training_material_purchases');
     }
 };
+

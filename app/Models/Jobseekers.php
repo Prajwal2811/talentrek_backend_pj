@@ -85,19 +85,24 @@ class Jobseekers extends Authenticatable
     }
 
 
-    public function getTotalExperienceAttribute()
+   public function getTotalExperienceAttribute()
     {
         $totalDays = 0;
 
         foreach ($this->experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            // Handle ongoing jobs
+            $end = $exp->end_to && strtolower($exp->end_to) !== 'work here' && strtolower($exp->end_to) !== 'present'
+                ? Carbon::parse($exp->end_to)
+                : now();
+
             $totalDays += $start->diffInDays($end);
         }
 
         $years = floor($totalDays / 365);
         $months = floor(($totalDays % 365) / 30);
-        $days = $totalDays % 30;
+        // $days = $totalDays % 30; // optional
 
         return "$years years, $months months";
     }

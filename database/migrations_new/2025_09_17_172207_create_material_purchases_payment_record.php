@@ -13,11 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('jobseeker_training_material_purchases_payment_record', function (Blueprint $table) {
+        Schema::create('material_purchases_payment_record', function (Blueprint $table) {
             $table->id();
 
             // Foreign keys
-            $table->string('jobseeker_id')->nullable();
+            $table->string('jobseeker_or_expat_id')->nullable();
+            $table->enum('role', ['jobseeker', 'expat'])->nullable();
+
             $table->string('trainer_id')->nullable();
             $table->string('material_id')->nullable();
 
@@ -72,6 +74,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('jobseeker_training_material_purchases_payment_record');
+        Schema::dropIfExists('material_purchases_payment_record');
     }
 };

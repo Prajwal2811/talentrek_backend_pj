@@ -13,11 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('jobseeker_training_material_purchases_payment_request', function (Blueprint $table) {
+        Schema::create('material_purchases_payment_request', function (Blueprint $table) {
             $table->bigIncrements('id');
 
             // Foreign keys (not enforced yet)
-            $table->unsignedBigInteger('jobseeker_id');
+            $table->unsignedBigInteger('jobseeker_or_expat_id');
+            $table->enum('role', ['jobseeker', 'expat'])->nullable();
+
             $table->unsignedBigInteger('trainer_id')->nullable();
             $table->unsignedBigInteger('material_id')->nullable();
             $table->unsignedBigInteger('batch_id')->nullable();
@@ -65,7 +67,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('jobseeker_training_material_purchases_payment_request');
+        Schema::dropIfExists('material_purchases_payment_request');
     }
 
 };

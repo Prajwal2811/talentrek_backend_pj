@@ -102,7 +102,7 @@
                                             <!-- Profile Image & Name -->
                                             <div class="flex items-center space-x-4 w-1/3">
                                                 <img 
-                                                    src="{{ $shortlisted_jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
+                                                    src="{{ $shortlisted_jobseeker->profile_image }}" 
                                                     class="w-12 h-12 rounded-full object-cover blur-sm" 
                                                     alt="{{ $shortlisted_jobseeker->name }}"
                                                 />
@@ -137,7 +137,7 @@
                                                 @php
                                                     $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'superadmin_approved';
                                                     $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? '') === 'yes';
-                                                    $jobseekerId = $shortlisted_jobseeker->id;
+                                                    $jobseekerId = $shortlisted_jobseeker->jobseeker_id;
                                                 @endphp
 
                                                 <!-- Status Label -->
@@ -156,14 +156,12 @@
                                                 </a>
 
                                                 <!-- Interview Request Button -->
-                                                @if ($interviewRequested || !$isApproved)
-                                                    {{-- Show as badge when disabled --}}
+                                                {{-- @if ($interviewRequested || !$isApproved)
                                                     <span class="inline-block text-white text-xs px-2 py-1 rounded 
                                                                 {{ $interviewRequested ? 'bg-gray-400' : 'bg-gray-600' }}">
                                                         {{ $interviewRequested ? langLabel('interview_requested') : langLabel('not_approved') }}
                                                     </span>
                                                 @else
-                                                    {{-- Show as clickable button when enabled --}}
                                                     <button
                                                         id="interview-btn-{{ $jobseekerId }}"
                                                         onclick="confirmInterviewRequest({{ $jobseekerId }}, true, false)"
@@ -171,7 +169,7 @@
                                                     >
                                                         {{ langLabel('interview_request') }}
                                                     </button>
-                                                @endif
+                                                @endif --}}
 
                                             </div>
                                         </div>

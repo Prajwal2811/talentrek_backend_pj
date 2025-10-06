@@ -225,6 +225,13 @@ class SubscriptionController extends Controller
             // Calculate end date
             $endDate = $startDate->copy()->addDays($data['udf6']);
 
+            // Recruiter company ID (if user type is recruiter)
+            $companyId = null;
+            if ($data['udf2'] === 'recruiter') {
+                $company = RecruiterCompany::where('recruiter_id', $data['udf1'])->first();
+                $companyId = $company ? $company->id : null;
+            }
+            
             $subscription = PurchasedSubscription::create([
                 'user_id'              => $data['udf1'],
                 'user_type'            => $data['udf2'],
@@ -239,6 +246,7 @@ class SubscriptionController extends Controller
                 'response_payload'     => json_encode($data),
                 'start_date'           => $startDate,
                 'end_date'             => $endDate,
+                'company_id'           => $companyId, // ✅ save recruiter company ID
             ]);
 
             // 🔹 Add entry in payments_history

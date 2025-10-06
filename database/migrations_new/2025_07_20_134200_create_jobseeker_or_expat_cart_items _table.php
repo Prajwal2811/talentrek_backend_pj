@@ -1,0 +1,43 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('jobseeker_or_expat_cart_items', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('jobseeker_or_expat_id');
+            $table->enum('role', ['jobseeker', 'expat'])->nullable();
+            $table->unsignedBigInteger('trainer_id');
+            $table->string('material_type')->nullable(); 
+            $table->unsignedBigInteger('material_id');
+            $table->unsignedBigInteger('batch_id')->nullable();
+            $table->string('status')->default('pending'); // e.g., 'pending', 'purchased'
+            $table->timestamps();
+
+            // Foreign Keys (Optional - uncomment if relationships exist)
+            // $table->foreign('jobseeker_id')->references('id')->on('jobseekers')->onDelete('cascade');
+            // $table->foreign('trainer_id')->references('id')->on('trainers')->onDelete('cascade');
+            // $table->foreign('material_id')->references('id')->on('training_materials')->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('jobseeker_cart_items');
+    }
+};
