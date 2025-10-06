@@ -250,6 +250,7 @@
                                     document.getElementById('review-text').value = '';
                                     selectedRating = 0;
                                     highlightStars(0);
+                                    location.reload();
 
                                     const newReview = `
                                         <div class="border p-4 rounded shadow-sm bg-white">

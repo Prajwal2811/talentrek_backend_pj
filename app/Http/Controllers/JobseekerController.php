@@ -39,22 +39,17 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-
 use Carbon\CarbonInterval;
 use App\Services\ZoomService;
 use App\Services\PaymentHelper;
-
 use App\Events\NotificationSent;
-
-
-
 use App\Models\CertificateTemplate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
-
 use App\Models\JobseekerTrainingAssessmentTime;
 use App\Models\Resume;
-
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
 
 class JobseekerController extends Controller
 {
@@ -3212,6 +3207,7 @@ public function submitReview(Request $request)
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
             ->where('reviews.user_type', 'assessor')
+            ->where('reviews.user_id', $id)
             ->select(
                 'reviews.*',
                 'jobseekers.name as jobseeker_name'
@@ -3274,6 +3270,7 @@ public function submitReview(Request $request)
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
             ->where('reviews.user_type', 'coach')
+            ->where('reviews.user_id', $id)
             ->select(
                 'reviews.*',
                 'jobseekers.name as jobseeker_name'
@@ -3646,5 +3643,63 @@ public function submitReview(Request $request)
         return response()->download($filePath, $resume->resume_file);
     }
 
+
+    public function downloadMyResume()
+    {
+        require_once base_path('dompdf/autoload.inc.php');
+
+        $jobseekerId = auth()->id(); 
+        $jobseeker = Jobseekers::findOrFail($jobseekerId);
+
+        $educations = $jobseeker->educations()->get();
+        $experiences = $jobseeker->experiences()->get();
+        $skills = $jobseeker->skills()->get();
+
+        $profilePic = DB::table('additional_info')
+            ->where('user_id', $jobseekerId)
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture')
+            ->value('document_path');
+
+        if ($profilePic && !str_starts_with($profilePic, 'http')) {
+            $profilePic = url($profilePic);
+        }
+
+        $certificates = DB::table('jobseeker_assessment_status as jas')
+            ->join('training_materials as t', 'jas.material_id', '=', 't.id')
+            ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
+            ->select('t.training_title as course_name', 'tr.name as trainer_name', 'jas.created_at as completion_date')
+            ->where('jas.jobseeker_id', $jobseekerId)
+            ->where('jas.submitted', 1)
+            ->get();
+
+        $template = DB::table('resumes_format')->first();
+        if (!$template || empty($template->resume)) {
+            return back()->with('error', 'Resume template not found.');
+        }
+
+        $html = Blade::render($template->resume, [
+            'user' => $jobseeker,
+            'educations' => $educations,
+            'experiences' => $experiences,
+            'skills' => $skills,
+            'certificates' => $certificates,
+            'profilePic' => $profilePic,
+        ]);
+
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('tempDir', storage_path('app/dompdf'));
+        $options->set('chroot', public_path());
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', "attachment; filename=Resume-{$jobseeker->name}.pdf");
+    }
 
 }
