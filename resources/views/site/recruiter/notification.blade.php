@@ -11,7 +11,7 @@
         </div>
     </div>
 
-	 @if($trainerNeedsSubscription)
+	 @if($recruiterNeedsSubscription)
         @include('site.recruiter.subscription.index')
     @endif
     
@@ -38,7 +38,7 @@
                         </thead>
                         <tbody id="assessmentTableBody">
                             
-                             @php $notifications = notificationsAll('trainer'); @endphp
+                             @php $notifications = notificationUsersSent('recruiter'); @endphp
                             @foreach($notifications as $notification)
                                 <tr class="border-t assessment-row">
                                     <td class="px-6 py-4">{{ $notification->sender_type }}</td>
