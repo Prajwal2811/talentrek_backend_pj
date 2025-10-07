@@ -62,9 +62,22 @@ Route::group(['prefix' => 'admin'], function() {
 			// Admin side certificate view
 			Route::get('admin/jobseeker/{jobseeker_id}/certificate/{material_id}', 
 				[AdminController::class, 'viewCertificate'])->name('admin.viewCertificate');
+		});
 
+		// Expat Module
+		Route::middleware('admin.module:Expat')->group(function () {
+			Route::get('/expat', [AdminController::class, 'expat'])->name('admin.expat');
+			Route::get('/expat/{id}/view', [AdminController::class, 'jobseekerView'])->name('admin.expat.view');
+			Route::delete('/expat/{id}/delete', [AdminController::class, 'expatDestroy'])->name('admin.expat.destroy');
+			Route::post('/expat/changeStatus', [AdminController::class, 'expatChangeStatus'])->name('admin.expat.changeStatus');
+			Route::post('/expat/assignAdmin', [AdminController::class, 'assignAdmin'])->name('admin.expat.assignAdmin');
+			Route::post('/expat/update-status', [AdminController::class, 'updateStatus'])->name('admin.expat.updateStatus');
 
-
+			Route::get('/jobseeker/{id}/resume/download', [AdminController::class, 'downloadResume'])
+     		->name('admin.jobseeker.resume.download');
+			// Admin side certificate view
+			Route::get('admin/jobseeker/{jobseeker_id}/certificate/{material_id}', 
+				[AdminController::class, 'viewCertificate'])->name('admin.viewCertificate');
 		});
         // Trainers Module
 		Route::middleware('admin.module:Trainers')->group(function () {

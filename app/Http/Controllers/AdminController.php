@@ -580,12 +580,12 @@ class AdminController extends Controller
         $adminId = $admin->id;
         // If the user is a superadmin, show all jobseekers
         if ($admin->role === 'superadmin') {
-            $jobseekers = Jobseekers::orderBy('id', 'desc')
+            $jobseekers = Jobseekers::orderBy('id', 'desc')->where('role','jobseeker')
                                     ->get();
         } else {
             // Else show only jobseekers assigned to this admin
             $jobseekers = Jobseekers::where('assigned_admin', $adminId)
-                                    ->orderBy('id', 'desc')
+                                    ->orderBy('id', 'desc')->where('role','jobseeker')
                                     ->get();
         }
 
@@ -3222,5 +3222,27 @@ public function viewCertificate($jobseeker_id, $material_id)
 
 
 
+
+
+    public function expat()
+    {   
+        $admin = Auth::guard('admin')->user();
+        $adminId = $admin->id;
+        // If the user is a superadmin, show all jobseekers
+        if ($admin->role === 'superadmin') {
+            $expats = Jobseekers::orderBy('id', 'desc')->where('role','expat')
+                                    ->get();
+        } else {
+            // Else show only expats assigned to this admin
+            $expats = Jobseekers::where('assigned_admin', $adminId)
+                                    ->orderBy('id', 'desc')
+                                    ->where('role','expat')
+                                    ->get();
+        }
+
+        $admins = Admin::where('role', 'admin')->get();
+
+        return view('admin.expat.index', compact('expats', 'admins'));
+    }
 
 }

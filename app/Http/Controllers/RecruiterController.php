@@ -922,6 +922,7 @@ class RecruiterController extends Controller
                                    ->where(function ($query) {
                                         $query->where('shortlist.interview_status', 'scheduled')
                                              ->orWhere('shortlist.interview_status', 'cancelled')
+                                             ->orWhere('shortlist.interview_status', NULL)
                                              ->orWhere('shortlist.interview_status', 'completed');
                                    })
                                    ->select(
@@ -946,6 +947,7 @@ class RecruiterController extends Controller
                                    ->orWhere('shortlist.interview_status', 'completed')
                                    ->select(
                                         'jobseekers.*',
+                                        'jobseekers.id as jobseeker_id',
                                         'shortlist.admin_status as shortlist_admin_status',
                                         'shortlist.interview_request',
                                         'shortlist.jobseeker_id as jobseeker_id', // ✅ explicit alias
@@ -954,7 +956,7 @@ class RecruiterController extends Controller
                                    ->orderBy('shortlist.created_at', 'desc')
                                    ->get();
      //  echo "<pre>";
-     //          print_r($scheduled_jobseekers);die;
+     //          print_r($shortlisted_jobseekers);die;
           return view('site.recruiter.recruiter-jobseekers', compact('jobseekers', 'shortlisted_jobseekers','scheduled_jobseekers'));
      }
 
@@ -1167,89 +1169,93 @@ class RecruiterController extends Controller
    
      public function updateCompanyProfile(Request $request)
 {
-    $user      = auth()->user();
+    $user = auth()->user();
     $recruiter = Recruiters::find($user->id);
-    $company   = RecruiterCompany::find($recruiter->company_id);
+    $company = RecruiterCompany::find($recruiter->company_id);
 
     if (!$recruiter || !$company) {
-        return response()->json(['message' => 'Profile not found.'], 404);
+        return response()->json(['status' => 'error', 'message' => 'Profile not found.'], 404);
     }
 
-    // ✅ Validation rules for company
-    $rules = [
-        'company_name'           => 'required|string|max:255',
-        'company_phone_number'   => 'required|digits:9',
-        'business_email'         => [
-            'required',
-            'email',
-            Rule::unique('recruiters_company', 'business_email')->ignore($company->id),
-        ],
-        'industry_type'          => 'required|string',
-        'establishment_date'     => 'required|date',
-        'company_website'        => 'nullable|url',
-    ];
+    $rules = [];
+    $messages = [];
 
-    $messages = [
-        'company_name.required'          => 'Company name is required.',
-        'company_phone_number.required'  => 'Company phone number is required.',
-        'business_email.required'        => 'Business email is required.',
-        'industry_type.required'         => 'Industry type is required.',
-        'establishment_date.required'    => 'Establishment date is required.',
-        'company_website.url'            => 'Company website must be a valid URL.',
-    ];
+    // ✅ Only main recruiter validates and updates company info
+    if ($recruiter->role === 'main') {
+        $rules = [
+            'company_name'         => 'required|string|max:255',
+            'company_phone_number' => 'required|digits:9',
+            'business_email'       => [
+                'required',
+                'email',
+                Rule::unique('recruiters_company', 'business_email')->ignore($company->id),
+            ],
+            'industry_type'        => 'required|string',
+        ];
 
-    // ✅ Recruiter validation
+        $messages = [
+            'company_name.required'          => 'Company name is required.',
+            'company_phone_number.required'  => 'Company phone number is required.',
+            'business_email.required'        => 'Business email is required.',
+            'industry_type.required'         => 'Industry type is required.',
+        ];
+    }
+
+    // ✅ Recruiter self-validation
     $recruiterRules = [];
     $recruiterMessages = [];
 
-    foreach ($request->recruiters as $index => $r) {
-        // Only validate the logged-in recruiter if role is sub_recruiter
-        if ($recruiter->role === 'sub_recruiter' && $r['id'] != $recruiter->id) {
-            continue; // skip validation for others
+    if ($request->has('recruiters')) {
+        foreach ($request->recruiters as $index => $r) {
+            $recruiterRules["recruiters.$index.id"]            = 'required|integer|exists:recruiters,id';
+            $recruiterRules["recruiters.$index.name"]          = 'required|string|max:255';
+            $recruiterRules["recruiters.$index.email"]         = 'required|email';
+            $recruiterRules["recruiters.$index.national_id"]   = 'required|digits:15';
+            $recruiterRules["recruiters.$index.mobile_number"] = 'required|digits:9';
+            $recruiterRules["recruiters.$index.gender"]        = 'required|in:Male,Female,Other';
+
+            $recruiterMessages["recruiters.$index.name.required"]          = 'Recruiter name is required.';
+            $recruiterMessages["recruiters.$index.email.required"]         = 'Recruiter email is required.';
+            $recruiterMessages["recruiters.$index.national_id.required"]   = 'Recruiter national ID is required.';
+            $recruiterMessages["recruiters.$index.mobile_number.required"] = 'Recruiter mobile number is required.';
+            $recruiterMessages["recruiters.$index.gender.required"]        = 'Recruiter gender is required.';
         }
-
-        $recruiterRules["recruiters.$index.name"]          = 'required|string|max:255';
-        $recruiterRules["recruiters.$index.email"]         = 'required|email';
-        $recruiterRules["recruiters.$index.national_id"]   = 'required|digits:15';
-        $recruiterRules["recruiters.$index.mobile_number"] = 'required|digits:9';
-        $recruiterRules["recruiters.$index.gender"]        = 'required|string|in:Male,Female,Other';
-
-        $recruiterMessages["recruiters.$index.name.required"]          = 'Recruiter name is required.';
-        $recruiterMessages["recruiters.$index.email.required"]         = 'Recruiter email is required.';
-        $recruiterMessages["recruiters.$index.national_id.required"]   = 'Recruiter national ID is required.';
-        $recruiterMessages["recruiters.$index.mobile_number.required"] = 'Recruiter mobile number is required.';
-        $recruiterMessages["recruiters.$index.gender.required"]        = 'Please select your gender.';
     }
 
-    $validator = Validator::make($request->all(), array_merge($rules, $recruiterRules), array_merge($messages, $recruiterMessages));
+    $validator = Validator::make(
+        $request->all(),
+        array_merge($rules, $recruiterRules),
+        array_merge($messages, $recruiterMessages)
+    );
 
-    // ✅ Custom after-validation for unique email & national ID
-    $validator->after(function ($validator) use ($request, $recruiter) {
-        foreach ($request->recruiters as $index => $recData) {
-            if ($recruiter->role === 'sub_recruiter' && $recData['id'] != $recruiter->id) {
-                continue; // skip others
-            }
+    // ✅ Additional uniqueness checks
+    $validator->after(function ($validator) use ($request) {
+        if ($request->has('recruiters')) {
+            foreach ($request->recruiters as $index => $recData) {
+                $recId = $recData['id'] ?? null;
 
-            $recId = $recData['id'] ?? null;
+                // Email uniqueness
+                if (!empty($recData['email'])) {
+                    $exists = Recruiters::where('email', $recData['email'])
+                        ->where('id', '!=', $recId)
+                        ->exists();
 
-            if (!empty($recData['email'])) {
-                $exists = Recruiters::where('email', $recData['email'])
-                    ->where('id', '!=', $recId)
-                    ->exists();
-                if ($exists) {
-                    $validator->errors()->add("recruiters.$index.email", 'The email has already been taken.');
+                    if ($exists) {
+                        $validator->errors()->add("recruiters.$index.email", 'The email has already been taken.');
+                    }
                 }
-            }
 
-            if (!empty($recData['national_id'])) {
-                $duplicate = Recruiters::where('national_id', $recData['national_id'])
-                    ->where('id', '!=', $recId)
-                    ->exists()
-                    || Trainers::where('national_id', $recData['national_id'])->exists()
-                    || Jobseekers::where('national_id', $recData['national_id'])->exists();
+                // National ID uniqueness across tables
+                if (!empty($recData['national_id'])) {
+                    $duplicate = Recruiters::where('national_id', $recData['national_id'])
+                            ->where('id', '!=', $recId)
+                            ->exists()
+                        || Trainers::where('national_id', $recData['national_id'])->exists()
+                        || Jobseekers::where('national_id', $recData['national_id'])->exists();
 
-                if ($duplicate) {
-                    $validator->errors()->add("recruiters.$index.national_id", 'The national ID has already been taken.');
+                    if ($duplicate) {
+                        $validator->errors()->add("recruiters.$index.national_id", 'The national ID has already been taken.');
+                    }
                 }
             }
         }
@@ -1264,31 +1270,32 @@ class RecruiterController extends Controller
 
     $validated = $validator->validated();
 
-    // ✅ Update company
-    $company->update([
-        'company_name'         => $validated['company_name'],
-        'company_phone_number' => $validated['company_phone_number'],
-        'business_email'       => $validated['business_email'],
-        'industry_type'        => $validated['industry_type'],
-        'establishment_date'   => Carbon::parse($validated['establishment_date'])->format('Y-m-d'),
-        'company_website'      => $validated['company_website'] ?? null,
-    ]);
+    // ✅ MAIN recruiter updates company info
+    if ($recruiter->role === 'main') {
+        $company->update([
+            'company_name'         => $validated['company_name'],
+            'company_phone_number' => $validated['company_phone_number'],
+            'business_email'       => $validated['business_email'],
+            'industry_type'        => $validated['industry_type'],
+        ]);
+    }
 
-    // ✅ Update recruiters
-    foreach ($request->recruiters as $data) {
-        $rec = Recruiters::find($data['id']);
-        if ($rec) {
-            if ($recruiter->role === 'sub_recruiter' && $rec->id != $recruiter->id) {
-                continue; // skip others
+    // ✅ Recruiter info update
+    if ($request->has('recruiters')) {
+        foreach ($request->recruiters as $data) {
+            $rec = Recruiters::find($data['id']);
+            if (!$rec) continue;
+
+            // 🔒 MAIN can edit all, sub only their own
+            if ($recruiter->role === 'main' || $rec->id == $recruiter->id) {
+                $rec->update([
+                    'name'          => $data['name'],
+                    'email'         => $data['email'],
+                    'national_id'   => $data['national_id'],
+                    'mobile_number' => $data['mobile_number'],
+                    'gender'        => $data['gender'] ?? $rec->gender,
+                ]);
             }
-
-            $rec->update([
-                'name'          => $data['name'],
-                'email'         => $data['email'],
-                'national_id'   => $data['national_id'],
-                'mobile_number' => $data['mobile_number'],
-                'gender'        => $data['gender'],
-            ]);
         }
     }
 
@@ -1646,6 +1653,7 @@ class RecruiterController extends Controller
                     'recruiter_of' => $validated['main_recruiter_id'],
                     'password'     => Hash::make($password),
                     'pass'         => $password, // ⚠️ temporary only
+                    'is_registered'=> '1', 
                ]);
 
                $addedCount++;

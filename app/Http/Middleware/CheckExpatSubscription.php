@@ -22,7 +22,7 @@ class CheckExpatSubscription
             ->where('user_id', $user->id)
             ->where('user_type', 'expat')
             ->first();
-
+        // echo "<pre>"; print_r($user); die;
         $isExpired = true;
 
         if ($subscription) {

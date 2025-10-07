@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Session;
 use Illuminate\Support\Facades\Log;
-use App\Models\Jobseekers;
+use App\Models\Expat;
 use App\Models\Recruiters;
 use App\Models\Trainers;
 use App\Models\AssessmentQuestion;
@@ -14,8 +14,8 @@ use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\Coupon;
-use App\Models\JobseekerAssessmentStatus;
-use App\Models\JobseekerAssessmentData;
+use App\Models\ExpatAssessmentStatus;
+use App\Models\ExpatAssessmentData;
 use App\Models\Mentors;
 use App\Models\TrainerAssessment;
 use App\Models\Assessors;
@@ -25,10 +25,10 @@ use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
 use App\Models\BookingSession;
 use App\Models\BookingSlot;
-use App\Models\JobseekerTrainingMaterialPurchase;
+use App\Models\ExpatTrainingMaterialPurchase;
 use App\Models\TrainingMaterial;
 use App\Models\AdditionalInfo;
-use App\Models\JobseekerCartItem;
+use App\Models\ExpatCartItem;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -52,15 +52,15 @@ use App\Models\CertificateTemplate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
 
-use App\Models\JobseekerTrainingAssessmentTime;
+use App\Models\ExpatTrainingAssessmentTime;
 use App\Models\Resume;
 
 
-class JobseekerController extends Controller
+class ExpatController extends Controller
 {
     public function showRegistrationForm()
     {
-        return view('site.jobseeker.registration');
+        return view('site.expat.registration');
     }
 
 
@@ -73,7 +73,7 @@ class JobseekerController extends Controller
             'confirm_password' => 'required|min:6',
         ]);
 
-        $jobseeker = Jobseekers::create([
+        $expat = Expat::create([
             'email' => $request->email,
             'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
@@ -129,7 +129,7 @@ class JobseekerController extends Controller
                         <div class="header">
                             <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
                         </div>
-                        <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+                        <p>Hi <strong>' . e($expat->name ?? $expat->email) . '</strong>,</p>
 
                         <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
@@ -149,20 +149,20 @@ class JobseekerController extends Controller
                     </div>
                 </body>
                 </html>
-            ', function ($message) use ($jobseeker) {
-                $message->to($jobseeker->email)
+            ', function ($message) use ($expat) {
+                $message->to($expat->email)
                     ->subject('Welcome to Talentrek – Registration Successful');
             });
          
 
         // Set session
         session([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
 
-        return redirect()->route('jobseeker.registration');
+        return redirect()->route('expat.registration');
     }
 
 
@@ -171,13 +171,13 @@ class JobseekerController extends Controller
         $email = session('email');
         // $phone = session('phone_number');
         $jobseekerId = session('jobseeker_id');
-        $jobseeker = Jobseekers::find($jobseekerId);
+        $expat = Expat::find($jobseekerId);
 
-        return view('site.jobseeker.registration', compact('jobseeker', 'email', 'phone'));
+        return view('site.expat.registration', compact('expat', 'email', 'phone'));
     }
 
 
-    public function storeJobseekerInformation(Request $request)
+    public function storeExpatInformation(Request $request)
     {
         $jobseekerId = session('jobseeker_id');
 
@@ -185,10 +185,10 @@ class JobseekerController extends Controller
             return redirect()->route('signup.form')->with('error', 'Session expired. Please sign up again.');
         }
 
-        $jobseeker = Jobseekers::find($jobseekerId);
+        $expat = Expat::find($jobseekerId);
 
-        if (!$jobseeker) {
-            return redirect()->route('signup.form')->with('error', 'Jobseeker not found.');
+        if (!$expat) {
+            return redirect()->route('signup.form')->with('error', 'expat not found.');
         }
 
         // 🔥 Step 1: Before validation, store resume file name in session if exists
@@ -201,7 +201,7 @@ class JobseekerController extends Controller
         $validated = $request->validate([
             // Basic Info
             'name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
-            'email' => 'required|email|unique:jobseekers,email,' . $jobseeker->id,
+            'email' => 'required|email|unique:jobseekers,email,' . $expat->id,
             'phone_number' => 'required',
             'phone_code' => 'required|string',
             'dob' => 'required|date',
@@ -216,14 +216,14 @@ class JobseekerController extends Controller
             'national_id' => [
                 'required',
                 'min:10',
-                function ($attribute, $value, $fail) use ($jobseeker) {
+                function ($attribute, $value, $fail) use ($expat) {
                     $existsInRecruiters = Recruiters::where('national_id', $value)->exists();
                     $existsInTrainers = Trainers::where('national_id', $value)->exists();
-                    $existsInJobseekers = Jobseekers::where('national_id', $value)
-                        ->where('id', '!=', $jobseeker->id)
+                    $existsInExpat = Expat::where('national_id', $value)
+                        ->where('id', '!=', $expat->id)
                         ->exists();
 
-                    if ($existsInRecruiters || $existsInTrainers || $existsInJobseekers) {
+                    if ($existsInRecruiters || $existsInTrainers || $existsInExpat) {
                         $fail('The national ID has already been taken.');
                     }
                 },
@@ -310,8 +310,8 @@ class JobseekerController extends Controller
         ]);
 
 
-        // Update jobseeker details
-        $jobseeker->update([
+        // Update expat details
+        $expat->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
@@ -330,8 +330,8 @@ class JobseekerController extends Controller
         // Save education details
         foreach ($request->high_education as $index => $education) {
             EducationDetails::create([
-                'user_id' => $jobseeker->id,
-                'user_type' => 'jobseeker',
+                'user_id' => $expat->id,
+                'user_type' => 'expat',
                 'high_education' => $education,
                 'field_of_study' => $request->field_of_study[$index] ?? null,
                 'institution' => $request->institution[$index],
@@ -350,8 +350,8 @@ class JobseekerController extends Controller
                     : ($request->end_to[$index] ?? null);
 
                 WorkExperience::create([
-                    'user_id' => $jobseeker->id,
-                    'user_type' => 'jobseeker',
+                    'user_id' => $expat->id,
+                    'user_type' => 'expat',
                     'job_role' => $role,
                     'organization' => $request->organization[$index] ?? null,
                     'starts_from' => $startDate,
@@ -363,7 +363,7 @@ class JobseekerController extends Controller
 
         // Save skills
         Skills::create([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'skills' => $request->skills,
             'interest' => $request->interest,
             'job_category' => $request->job_category,
@@ -374,8 +374,8 @@ class JobseekerController extends Controller
 
         // Upload Resume
         if ($request->hasFile('resume')) {
-            $existingResume = AdditionalInfo::where('user_id', $jobseeker->id)
-                ->where('user_type', 'jobseeker')
+            $existingResume = AdditionalInfo::where('user_id', $expat->id)
+                ->where('user_type', 'expat')
                 ->where('doc_type', 'resume')
                 ->first();
 
@@ -385,8 +385,8 @@ class JobseekerController extends Controller
                 $request->file('resume')->move('uploads/', $fileNameToStoreResume);
 
                 AdditionalInfo::create([
-                    'user_id' => $jobseeker->id,
-                    'user_type' => 'jobseeker',
+                    'user_id' => $expat->id,
+                    'user_type' => 'expat',
                     'doc_type' => 'resume',
                     'document_name' => $resumeName,
                     'document_path' => asset('uploads/' . $fileNameToStoreResume),
@@ -396,8 +396,8 @@ class JobseekerController extends Controller
 
         // Upload Profile Picture
         if ($request->hasFile('profile_picture')) {
-            $existingProfile = AdditionalInfo::where('user_id', $jobseeker->id)
-                ->where('user_type', 'jobseeker')
+            $existingProfile = AdditionalInfo::where('user_id', $expat->id)
+                ->where('user_type', 'expat')
                 ->where('doc_type', 'profile_picture')
                 ->first();
 
@@ -407,8 +407,8 @@ class JobseekerController extends Controller
                 $request->file('profile_picture')->move('uploads/', $fileNameToStoreProfile);
 
                 AdditionalInfo::create([
-                    'user_id' => $jobseeker->id,
-                    'user_type' => 'jobseeker',
+                    'user_id' => $expat->id,
+                    'user_type' => 'expat',
                     'doc_type' => 'profile_picture',
                     'document_name' => $profileName,
                     'document_path' => asset('uploads/' . $fileNameToStoreProfile),
@@ -419,20 +419,20 @@ class JobseekerController extends Controller
 
 
         // If no admin is assigned, assign an available admin
-        if (!$jobseeker->assigned_admin) {
+        if (!$expat->assigned_admin) {
             // Example logic: pick any available admin (you can change the logic as needed)
             $availableAdmin = Admin::where('status', 'active')->inRandomOrder()->first();
 
             if ($availableAdmin) {
-                $jobseeker->assigned_admin = $availableAdmin->id;
-                $jobseeker->save();
+                $expat->assigned_admin = $availableAdmin->id;
+                $expat->save();
 
                 // Log the assignment
-                Log::info('Jobseeker automatically assigned to admin during update', [
-                    'jobseeker' => [
-                        'id' => $jobseeker->id,
-                        'name' => $jobseeker->name,
-                        'email' => $jobseeker->email,
+                Log::info('expat automatically assigned to admin during update', [
+                    'expat' => [
+                        'id' => $expat->id,
+                        'name' => $expat->name,
+                        'email' => $expat->email,
                     ],
                     'assigned_to_admin' => [
                         'id' => $availableAdmin->id,
@@ -500,7 +500,7 @@ class JobseekerController extends Controller
                     <div class="header">
                         <h2>Welcome to <span style="color:#007bff;">Talentrek</span>!</h2>
                     </div>
-                    <p>Hi <strong>' . e($jobseeker->name ?? $jobseeker->email) . '</strong>,</p>
+                    <p>Hi <strong>' . e($expat->name ?? $expat->email) . '</strong>,</p>
 
                     <p>Thank you for completing your registration on <strong>Talentrek</strong>. We\'re thrilled to have you with us!</p>
 
@@ -520,19 +520,19 @@ class JobseekerController extends Controller
                 </div>
             </body>
             </html>
-        ', function ($message) use ($jobseeker) {
-            $message->to($jobseeker->email)
+        ', function ($message) use ($expat) {
+            $message->to($expat->email)
                 ->subject('Welcome to Talentrek – Registration Successful');
         });
 
         $data = [
-            'sender_id' => $jobseeker->id,
-            'sender_type' => 'Registration by Jobseeker.',
+            'sender_id' => $expat->id,
+            'sender_type' => 'Registration by expat.',
             'receiver_id' => '1',
-            'message' => 'Welcome to Talentrek – Registration Successful by '.$jobseeker->name,
+            'message' => 'Welcome to Talentrek – Registration Successful by '.$expat->name,
             'is_read' => 0,
             'is_read_admin' => 0,
-            'user_type' => 'jobseeker'
+            'user_type' => 'expat'
         ];
 
         Notification::insert($data);
@@ -543,97 +543,68 @@ class JobseekerController extends Controller
 
     public function showSignInForm()
     {
-        return view('site.jobseeker.sign-in');
+        return view('site.expat.sign-in');
     }
 
     public function showSignUpForm()
     {
-        return view('site.jobseeker.sign-up');
+        return view('site.expat.sign-up');
     }
 
     public function showProfilePage()
     {
-        //$jobseeker = Auth::guard('jobseeker')->user();
-        return view('site.jobseeker.profile');
+        //$expat = Auth::guard('expat')->user();
+        return view('site.expat.profile');
     }
 
     public function showSubscriptionPlanPage()
     {
-        //$jobseeker = Auth::guard('jobseeker')->user();
-        return view('site.jobseeker.subscription-plan');
+        //$expat = Auth::guard('expat')->user();
+        return view('site.expat.subscription-plan');
     }
 
 
-    // public function loginJobseeker(Request $request)
-    // {
-    //     $this->validate($request, [
-    //         'email' => 'required|email',
-    //         'password' => 'required'
-    //     ]);
+    
 
-    //     $jobseeker = Jobseekers::where('email', $request->email)->first();
-
-    //     if (!$jobseeker) {
-    //         // Email does not exist
-    //         session()->flash('error', 'Invalid email or password.');
-    //         return back()->withInput($request->only('email'));
-    //     }
-
-    //     if ($jobseeker->status !== 'active') {
-    //         // Status is inactive or blocked
-    //         session()->flash('error', 'Your account is inactive. Please contact admimnistrator.');
-    //         return back()->withInput($request->only('email'));
-    //     }
-
-    //     // Now attempt login only if status is active
-    //     if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
-    //         return redirect()->route('jobseeker.profile');
-    //     } else {
-    //         session()->flash('error', 'Invalid email or password.');
-    //         return back()->withInput($request->only('email'));
-    //     }
-    // }
-
-    public function loginJobseeker(Request $request)
+    public function loginExpat(Request $request)
     {
         $this->validate($request, [
             'email'    => 'required|email',
             'password' => 'required'
         ]);
 
-        $jobseeker = Jobseekers::where('email', $request->email)->first();
+        $expat = Expat::where('email', $request->email)->first();
 
-        if (!$jobseeker) {
+        if (!$expat) {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
 
-        if ($jobseeker->status !== 'active') {
+        if ($expat->status !== 'active') {
             session()->flash('error', 'Your account is inactive. Please contact administrator.');
             return back()->withInput($request->only('email'));
         }
 
-        // Check admin status
-        if (in_array($jobseeker->admin_status, ['superadmin_reject', 'rejected'])) {
+        //  Check admin_status
+        if ($expat->admin_status === 'superadmin_reject' || $expat->admin_status === 'rejected') {
             session()->flash('error', 'Your account has been rejected by administrator.');
             return back()->withInput($request->only('email'));
         }
 
-        if ($jobseeker->admin_status !== 'superadmin_approved') {
+        if ($expat->admin_status !== 'superadmin_approved') {
             session()->flash('error', 'Your account is not yet approved by administrator.');
             return back()->withInput($request->only('email'));
         }
 
         // Check registration completion
-        if ($jobseeker->is_registered == 0) {
+        if ($expat->is_registered == 0) {
             session([
-                'jobseeker_id'  => $jobseeker->id,
-                'email'         => $jobseeker->email,
-                'phone_number'  => $jobseeker->phone_number,
-                'role'          => 'jobseeker', // ✅ assign role here
+                'expat_id'  => $expat->id,
+                'email'         => $expat->email,
+                'phone_number'  => $expat->phone_number,
             ]);
 
-            return redirect()->route('jobseeker.registration')
+            return redirect()->route('expat.registration')
                 ->with([
                     'info'  => 'Please complete your registration.',
                     'email' => session('email'),
@@ -641,18 +612,14 @@ class JobseekerController extends Controller
                 ]);
         }
 
-        // Attempt login only if all checks pass
-        if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            // ✅ Set session role after login
-            session(['role' => 'jobseeker']);
-
-            return redirect()->route('jobseeker.profile')->with('success', 'Login successful!');
+        //  Attempt login only if all checks pass
+        if (Auth::guard('expat')->attempt(['email' => $request->email, 'password' => $request->password])) {
+            return redirect()->route('expat.profile')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
-
 
 
 
@@ -662,18 +629,12 @@ class JobseekerController extends Controller
 
 
 
-
-
-
-
-
-
-    public function getJobseekerAllDetails()
+    public function getExpatAllDetails()
     {
-        $jobseeker = Auth::guard('jobseeker')->user();
-        $jobseekerId = $jobseeker->id;
+        $expat = Auth::guard('expat')->user();
+        $jobseekerId = $expat->id;
 
-        // Jobseeker basic details and skill details
+        // expat basic details and skill details
         $jobseekerSkills = DB::table('jobseekers')
             ->leftJoin('skills', 'skills.jobseeker_id', '=', 'jobseekers.id')
             ->where('jobseekers.id', $jobseekerId)
@@ -695,7 +656,7 @@ class JobseekerController extends Controller
         // print_r($workExperiences);
         // exit;
 
-        return view('site.jobseeker.profile', compact(
+        return view('site.expat.profile', compact(
             'jobseekerSkills',
             'educationDetails',
             'workExperiences',
@@ -706,9 +667,9 @@ class JobseekerController extends Controller
 
 
 
-    public function logoutJobseeker(Request $request)
+    public function logoutExpat(Request $request)
     {
-        Auth::guard('jobseeker')->logout();
+        Auth::guard('expat')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -737,11 +698,11 @@ class JobseekerController extends Controller
                 'min:10',
                 function ($attribute, $value, $fail) use ($user) {
                     if ($value != $user->national_id) {
-                        $existsInJobseekers = Jobseekers::where('national_id', $value)
+                        $existsInExpat = Expat::where('national_id', $value)
                             ->where('id', '!=', $user->id)
                             ->exists();
 
-                        if ($existsInJobseekers) {
+                        if ($existsInExpat) {
                             $fail('The national ID has already been taken.');
                         }
                     }
@@ -829,7 +790,7 @@ class JobseekerController extends Controller
         $incomingIds = $request->input('education_id', []);
 
         $existingIds = EducationDetails::where('user_id', $userId)
-            ->where('user_type', 'jobseeker')
+            ->where('user_type', 'expat')
             ->pluck('id')
             ->toArray();
 
@@ -839,7 +800,7 @@ class JobseekerController extends Controller
         foreach ($request->input('high_education', []) as $i => $education) {
             $data = [
                 'user_id' => $userId,
-                'user_type' => 'jobseeker',
+                'user_type' => 'expat',
                 'high_education' => $request->high_education[$i],
                 'field_of_study' => $request->field_of_study[$i] ?? null,
                 'institution' => $request->institution[$i] ?? null,
@@ -911,7 +872,7 @@ class JobseekerController extends Controller
         // Delete removed work experiences
         $workIds = $request->input('work_id', []);
         $existingIds = WorkExperience::where('user_id', $user_id)
-            ->where('user_type', 'jobseeker')
+            ->where('user_type', 'expat')
             ->pluck('id')
             ->toArray();
 
@@ -927,7 +888,7 @@ class JobseekerController extends Controller
 
             $data = [
                 'user_id' => $user_id,
-                'user_type' => 'jobseeker',
+                'user_type' => 'expat',
                 'job_role' => $role,
                 'organization' => $request->organization[$i] ?? null,
                 'starts_from' => $request->starts_from[$i] ?? null,
@@ -1245,7 +1206,7 @@ class JobseekerController extends Controller
             'otp_value' => $contact
         ]);
 
-        return redirect()->route('jobseeker.verify-otp')->with('success', 'OTP sent!');
+        return redirect()->route('expat.verify-otp')->with('success', 'OTP sent!');
     }
 
     public function resendOtp(Request $request)
@@ -1339,12 +1300,12 @@ class JobseekerController extends Controller
 
     public function showOtpForm()
     {
-        return view('site.jobseeker.verify-otp');
+        return view('site.expat.verify-otp');
     }
 
     public function showResetPasswordForm()
     {
-        return view('site.jobseeker.reset-password');
+        return view('site.expat.reset-password');
     }
 
     public function verifyOtp(Request $request)
@@ -1358,21 +1319,21 @@ class JobseekerController extends Controller
         $isEmail = filter_var($contact, FILTER_VALIDATE_EMAIL);
         $column = $isEmail ? 'email' : 'phone_number';
 
-        $jobseeker = DB::table('jobseekers')
+        $expat = DB::table('jobseekers')
             ->where($column, $contact)
             ->where('otp', $request->otp)
             ->first();
 
-        if (!$jobseeker) {
+        if (!$expat) {
             return back()
                 ->withErrors(['otp' => 'Invalid OTP or contact. Please enter the correct 6-digit OTP.'])
                 ->withInput();
         }
 
         // Save verified user ID in session
-        session(['verified_jobseeker' => $jobseeker->id]);
+        session(['verified_jobseeker' => $expat->id]);
 
-        return redirect()->route('jobseeker.reset-password');
+        return redirect()->route('expat.reset-password');
     }
 
 
@@ -1386,15 +1347,15 @@ class JobseekerController extends Controller
         $jobseekerId = session('verified_jobseeker');
 
         if (!$jobseekerId) {
-            return redirect()->route('jobseeker.forget-password')->withErrors([
+            return redirect()->route('expat.forget-password')->withErrors([
                 'session' => 'Session expired. Please try again.'
             ]);
         }
 
-        $jobseeker = DB::table('jobseekers')->where('id', $jobseekerId)->first();
+        $expat = DB::table('jobseekers')->where('id', $jobseekerId)->first();
 
-        if (!$jobseeker) {
-            return redirect()->route('jobseeker.forget-password')->withErrors([
+        if (!$expat) {
+            return redirect()->route('expat.forget-password')->withErrors([
                 'not_found' => 'User not found.'
             ]);
         }
@@ -1407,7 +1368,7 @@ class JobseekerController extends Controller
         ]);
 
         // ✅ Send Password Reset Confirmation Email (if email available)
-        if (!empty($jobseeker->email)) {
+        if (!empty($expat->email)) {
             Mail::html('
                 <!DOCTYPE html>
                 <html lang="en">
@@ -1441,7 +1402,7 @@ class JobseekerController extends Controller
                 <body>
                     <div class="container">
                         <h2>Password Reset Successfully</h2>
-                        <p>Hello <strong>' . e($jobseeker->email) . '</strong>,</p>
+                        <p>Hello <strong>' . e($expat->email) . '</strong>,</p>
                         <p>Your password has been successfully updated for your Talentrek account.</p>
                         <p>If you didn\'t initiate this change, please contact our support team immediately.</p>
                         <p>Stay safe,<br><strong>The Talentrek Team</strong></p>
@@ -1451,8 +1412,8 @@ class JobseekerController extends Controller
                     </div>
                 </body>
                 </html>
-            ', function ($message) use ($jobseeker) {
-                $message->to($jobseeker->email)
+            ', function ($message) use ($expat) {
+                $message->to($expat->email)
                     ->subject('Your Talentrek Password Has Been Reset');
             });
         }
@@ -1469,7 +1430,7 @@ class JobseekerController extends Controller
     public function mentorshipDetails($id)
     {
         $mentorDetails = Mentors::with([
-            'reviews.jobseeker',
+            'reviews.expat',
             'additionalInfo',
             'profilePicture',
             'experiences',
@@ -1525,7 +1486,7 @@ class JobseekerController extends Controller
     public function bookingSession($mentor_id, $slot_id)
     {
         $mentor = Mentors::with([
-            'reviews.jobseeker',
+            'reviews.expat',
             'additionalInfo',
             'profilePicture',
             'experiences',
@@ -1574,7 +1535,7 @@ class JobseekerController extends Controller
     {
 
         $assessor = Assessors::with([
-            'reviews.jobseeker',
+            'reviews.expat',
             'additionalInfo',
             'profilePicture',
             'experiences',
@@ -1625,7 +1586,7 @@ class JobseekerController extends Controller
     public function bookingCoachSession($coach_id, $slot_id)
     {
         $coach = Coach::with([
-            'reviews.jobseeker',
+            'reviews.expat',
             'additionalInfo',
             'profilePicture',
             'experiences',
@@ -1675,7 +1636,7 @@ class JobseekerController extends Controller
         $mode = $request->query('mode');
         $date = $request->query('date');
         $mentor_id = $request->query('mentor_id');
-        $jobseeker_id = auth('jobseeker')->id(); // or use from request if sent
+        $jobseeker_id = auth('expat')->id(); // or use from request if sent
 
         if (!$mode || !$date || !$mentor_id) {
             return response()->json([
@@ -1698,7 +1659,7 @@ class JobseekerController extends Controller
             ], 404);
         }
 
-        // Step: Get already booked slots by jobseeker on selected date
+        // Step: Get already booked slots by expat on selected date
         $bookedSlots = DB::table('jobseeker_saved_booking_session')
             // ->where('jobseeker_id', $jobseeker_id)
             ->where('user_type', 'mentor')
@@ -1749,7 +1710,7 @@ class JobseekerController extends Controller
         $mode = $request->query('mode');
         $date = $request->query('date');
         $assessor_id = $request->query('assessor_id');
-        $jobseeker_id = auth('jobseeker')->id();
+        $jobseeker_id = auth('expat')->id();
 
         if (!$mode || !$date || !$assessor_id) {
             return response()->json([
@@ -1773,7 +1734,7 @@ class JobseekerController extends Controller
             ], 404);
         }
 
-        // Get already booked slots by jobseeker on selected date
+        // Get already booked slots by expat on selected date
         $bookedSlots = DB::table('jobseeker_saved_booking_session')
             ->where('jobseeker_id', $jobseeker_id)
             ->where('user_type', 'assessor')
@@ -1825,7 +1786,7 @@ class JobseekerController extends Controller
         $mode = $request->query('mode');
         $date = $request->query('date');
         $coach_id = $request->query('coach_id');
-        $jobseeker_id = auth('jobseeker')->id(); // or use from request if sent
+        $jobseeker_id = auth('expat')->id(); // or use from request if sent
 
         if (!$mode || !$date || !$coach_id) {
             return response()->json([
@@ -1848,7 +1809,7 @@ class JobseekerController extends Controller
             ], 404);
         }
 
-        // Step: Get already booked slots by jobseeker on selected date
+        // Step: Get already booked slots by expat on selected date
         $bookedSlots = DB::table('jobseeker_saved_booking_session')
             ->where('jobseeker_id', $jobseeker_id)
             ->where('user_type', 'coach')
@@ -1928,10 +1889,10 @@ class JobseekerController extends Controller
             'slot_time' => 'required',
         ]);
 
-        $jobseeker = auth('jobseeker')->user();
+        $expat = auth('expat')->user();
 
         // Check if there's already a booking on the same date and time
-        $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
+        $existingBooking = BookingSession::where('jobseeker_id', $expat->id)
             ->where('user_type', 'mentor')
             ->where('user_id', $request->mentor_id)
             ->whereDate('slot_date', $request->date)
@@ -1945,7 +1906,7 @@ class JobseekerController extends Controller
 
         // Create the booking record
         $booking = BookingSession::create([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'user_type' => 'mentor',
             'user_id' => $request->mentor_id,
             'booking_slot_id' => $request->slot_id,
@@ -1961,14 +1922,14 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $this->createZoomMeeting("Mentorship with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $this->createZoomMeeting("Mentorship with #{$expat->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
                     'zoom_start_url' => $zoomMeeting['start_url'],
                     'zoom_join_url' => $zoomMeeting['join_url'],
                 ]);
-                $jobseekerDetails = Jobseekers::where('id', $jobseeker->id)->first();
+                $jobseekerDetails = Expat::where('id', $expat->id)->first();
                 $emails = $jobseekerDetails->email;
 
                 Mail::raw("Join Zoom Meeting: " . $zoomMeeting['join_url'], function($message) use ($emails) {
@@ -1977,7 +1938,7 @@ class JobseekerController extends Controller
                 });
             } else {
                 \Log::error('Zoom creation failed for mentorship booking', [
-                    'jobseeker_id' => $jobseeker->id,
+                    'jobseeker_id' => $expat->id,
                     'mentor_id' => $request->mentor_id,
                     'slot_time' => $request->slot_time,
                 ]);
@@ -2012,10 +1973,10 @@ class JobseekerController extends Controller
             'slot_time' => 'required',
         ]);
 
-        $jobseeker = auth('jobseeker')->user();
+        $expat = auth('expat')->user();
 
         // Check if there's already a booking on the same date and time
-        $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
+        $existingBooking = BookingSession::where('jobseeker_id', $expat->id)
             ->where('user_type', 'assessor')
             ->where('user_id', $request->assessor_id)
             ->whereDate('slot_date', $request->date)
@@ -2029,7 +1990,7 @@ class JobseekerController extends Controller
 
         // Create the booking
         $booking = BookingSession::create([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'user_type' => 'assessor',
             'user_id' => $request->assessor_id,
             'booking_slot_id' => $request->slot_id,
@@ -2045,7 +2006,7 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Assessment with #{$expat->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -2054,7 +2015,7 @@ class JobseekerController extends Controller
                 ]);
             } else {
                 \Log::error('Zoom creation failed for assessor booking', [
-                    'jobseeker_id' => $jobseeker->id,
+                    'jobseeker_id' => $expat->id,
                     'assessor_id' => $request->assessor_id,
                     'slot_time' => $request->slot_time,
                 ]);
@@ -2089,10 +2050,10 @@ class JobseekerController extends Controller
             'slot_time' => 'required',
         ]);
 
-        $jobseeker = auth('jobseeker')->user();
+        $expat = auth('expat')->user();
 
         // Check for duplicate booking
-        $existingBooking = BookingSession::where('jobseeker_id', $jobseeker->id)
+        $existingBooking = BookingSession::where('jobseeker_id', $expat->id)
             ->where('user_type', 'coach')
             ->where('user_id', $request->coach_id)
             ->whereDate('slot_date', $request->date)
@@ -2106,7 +2067,7 @@ class JobseekerController extends Controller
 
         // Create booking
         $booking = BookingSession::create([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'user_type' => 'coach',
             'user_id' => $request->coach_id,
             'booking_slot_id' => $request->slot_id,
@@ -2122,7 +2083,7 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $zoom->createMeeting("Coaching with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Coaching with #{$expat->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -2131,7 +2092,7 @@ class JobseekerController extends Controller
                 ]);
             } else {
                 \Log::error('Zoom creation failed for coach booking', [
-                    'jobseeker_id' => $jobseeker->id,
+                    'jobseeker_id' => $expat->id,
                     'coach_id' => $request->coach_id,
                     'slot_time' => $request->slot_time,
                 ]);
@@ -2159,8 +2120,8 @@ class JobseekerController extends Controller
 
    public function courseDetails($id)
     {
-        $jobseeker = auth()->guard('jobseeker')->user();
-        $jobseekerId = auth()->guard('jobseeker')->id();
+        $expat = auth()->guard('expat')->user();
+        $jobseekerId = auth()->guard('expat')->id();
 
         $material = DB::table('training_materials')->where('id', $id)->first();
         if (!$material) {
@@ -2175,7 +2136,7 @@ class JobseekerController extends Controller
             ->where('training_material_id', $material->id)
             ->get();
 
-        $cartItems = JobseekerCartItem::where('jobseeker_id', auth('jobseeker')->id())
+        $cartItems = ExpatCartItem::where('jobseeker_id', auth('expat')->id())
             ->pluck('material_id')
             ->toArray();
 
@@ -2296,11 +2257,11 @@ class JobseekerController extends Controller
     
     public function addToCart(Request $request, $id)
     {
-        if (!Auth::guard('jobseeker')->check()) {
+        if (!Auth::guard('expat')->check()) {
             return response()->json(['message' => 'Please log in to add items to your cart.'], 401);
         }
 
-        $jobseekerId = Auth::guard('jobseeker')->id();
+        $jobseekerId = Auth::guard('expat')->id();
         $material = TrainingMaterial::find($id);
 
         if (!$material) {
@@ -2313,7 +2274,7 @@ class JobseekerController extends Controller
             return response()->json(['message' => 'Please select a batch before adding to cart.'], 400);
         }
 
-        $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
+        $exists = ExpatCartItem::where('jobseeker_id', $jobseekerId)
             ->where('material_id', $id)
             ->where('batch_id', $batchId)
             ->exists();
@@ -2322,7 +2283,7 @@ class JobseekerController extends Controller
             return response()->json(['message' => 'Item with this batch is already in your cart.'], 200);
         }
 
-        JobseekerCartItem::create([
+        ExpatCartItem::create([
             'jobseeker_id' => $jobseekerId,
             'trainer_id' => $material->trainer_id,
             'material_id' => $id,
@@ -2339,8 +2300,8 @@ class JobseekerController extends Controller
 
 public function submitReview(Request $request)
 {
-    $jobseeker = auth()->guard('jobseeker')->user();
-    if (!$jobseeker) {
+    $expat = auth()->guard('expat')->user();
+    if (!$expat) {
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
     }
 
@@ -2364,7 +2325,7 @@ public function submitReview(Request $request)
     }
 
     $data = [
-        'jobseeker_id'    => $jobseeker->id,
+        'jobseeker_id'    => $expat->id,
         'user_type'       => $request->user_type,
         'user_id'         => $userId,  
         'reviews'         => $request->reviews,
@@ -2379,8 +2340,8 @@ public function submitReview(Request $request)
     return response()->json([
         'success' => true,
         'review' => [
-            'jobseeker_id'   => $jobseeker->id,
-            'jobseeker_name' => $jobseeker->name,
+            'jobseeker_id'   => $expat->id,
+            'jobseeker_name' => $expat->name,
             'user_type'      => $request->user_type,
             'user_id'        => $userId, 
             'material_id'    => $request->material_id,
@@ -2619,8 +2580,8 @@ public function submitReview(Request $request)
 
     public function purchaseCourse(Request $request)
     {
-        if (!auth('jobseeker')->check()) {
-            return redirect()->back()->with('error', 'Please log in as a Jobseeker to purchase a course.');
+        if (!auth('expat')->check()) {
+            return redirect()->back()->with('error', 'Please log in as a expat to purchase a course.');
         }
 
         $request->validate([
@@ -2641,8 +2602,8 @@ public function submitReview(Request $request)
             $tax = round($offerPrice * 0.10, 2);
             $total = $offerPrice + $tax;
 
-            JobseekerTrainingMaterialPurchase::create([
-                'jobseeker_id' => auth('jobseeker')->id(),
+            ExpatTrainingMaterialPurchase::create([
+                'jobseeker_id' => auth('expat')->id(),
                 'trainer_id' => $material->trainer_id,
                 'material_id' => $material->id,
                 'training_type' => $request->training_type,
@@ -2669,8 +2630,8 @@ public function submitReview(Request $request)
 
     public function teamPurchaseCourse(Request $request)
     {
-        if (!auth('jobseeker')->check()) {
-            return redirect()->back()->with('error', 'Please log in as a Jobseeker to purchase a course.');
+        if (!auth('expat')->check()) {
+            return redirect()->back()->with('error', 'Please log in as a expat to purchase a course.');
         }
 
         $request->validate([
@@ -2703,8 +2664,8 @@ public function submitReview(Request $request)
             $grandSaved  = $savedAmount * $memberCount;
 
             // Create purchase
-            $purchase = JobseekerTrainingMaterialPurchase::create([
-                'jobseeker_id'   => auth('jobseeker')->id(),
+            $purchase = ExpatTrainingMaterialPurchase::create([
+                'jobseeker_id'   => auth('expat')->id(),
                 'trainer_id'     => $material->trainer_id,
                 'material_id'    => $material->id,
                 'training_type'  => $request->training_type,
@@ -2728,16 +2689,16 @@ public function submitReview(Request $request)
                     'updated_at'  => now(),
                 ]);
 
-                // Create Jobseeker account if not exists
-                // Create Jobseeker account if not exists
-                $existing = Jobseekers::where('email', $email)->first();
+                // Create expat account if not exists
+                // Create expat account if not exists
+                $existing = Expat::where('email', $email)->first();
                 if (!$existing) {
                     $username = strstr($email, '@', true);
 
                     // Create new password based on email prefix
                     $password = $username . '@talentrek';
 
-                    Jobseekers::create([
+                    Expat::create([
                         'name'     => 'Team Member', // optional, you can customize
                         'email'    => $email,
                         'password' => Hash::make($password), // store securely
@@ -2770,9 +2731,9 @@ public function submitReview(Request $request)
     //         ->with(['questions.options'])
     //         ->firstOrFail();
 
-    //     $jobseekerId = Auth::guard('jobseeker')->id();
+    //     $jobseekerId = Auth::guard('expat')->id();
 
-    //     $answeredData = JobseekerAssessmentData::where([
+    //     $answeredData = ExpatAssessmentData::where([
     //         ['assessment_id', '=', $assessment->id],
     //         ['jobseeker_id', '=', $jobseekerId],
     //     ])->get();
@@ -2815,20 +2776,20 @@ public function submitReview(Request $request)
 
     //     $lastIndex = $answeredData->count();
 
-    //     $alreadySubmitted = JobseekerAssessmentStatus::where([
+    //     $alreadySubmitted = ExpatAssessmentStatus::where([
     //         ['assessment_id', '=', $assessment->id],
     //         ['jobseeker_id', '=', $jobseekerId],
     //         ['submitted', '=', true],
     //     ])->exists();
 
 
-    //     $resultStatus = JobseekerAssessmentStatus::where([
+    //     $resultStatus = ExpatAssessmentStatus::where([
     //                         ['assessment_id', '=', $assessment->id],
     //                         ['jobseeker_id', '=', $jobseekerId],
     //                         ['submitted', '=', true],
     //                     ])->first();
 
-    //     return view('site.jobseeker.assessment', compact(
+    //     return view('site.expat.assessment', compact(
     //         'assessment',
     //         'quizQuestions',
     //         'answeredIds',
@@ -2845,10 +2806,10 @@ public function submitReview(Request $request)
             ->with(['questions.options'])
             ->firstOrFail();
 
-        $jobseekerId = Auth::guard('jobseeker')->id();
+        $jobseekerId = Auth::guard('expat')->id();
 
         // Answered data
-        $answeredData = JobseekerAssessmentData::where([
+        $answeredData = ExpatAssessmentData::where([
             ['assessment_id', '=', $assessment->id],
             ['jobseeker_id', '=', $jobseekerId],
         ])->get();
@@ -2858,7 +2819,7 @@ public function submitReview(Request $request)
 
         // Assessment time
         $duration = 3600; // 60 min
-        $assessmentTime = JobseekerTrainingAssessmentTime::firstOrCreate(
+        $assessmentTime = ExpatTrainingAssessmentTime::firstOrCreate(
             [
                 'jobseeker_id' => $jobseekerId,
                 'trainer_id'   => $assessment->trainer_id,
@@ -2899,19 +2860,19 @@ public function submitReview(Request $request)
         });
 
         $lastIndex = $answeredData->count();
-        $alreadySubmitted = JobseekerAssessmentStatus::where([
+        $alreadySubmitted = ExpatAssessmentStatus::where([
             ['assessment_id', '=', $assessment->id],
             ['jobseeker_id', '=', $jobseekerId],
             ['submitted', '=', true],
         ])->exists();
 
-        $resultStatus = JobseekerAssessmentStatus::where([
+        $resultStatus = ExpatAssessmentStatus::where([
             ['assessment_id', '=', $assessment->id],
             ['jobseeker_id', '=', $jobseekerId],
             ['submitted', '=', true],
         ])->first();
 
-        return view('site.jobseeker.assessment', compact(
+        return view('site.expat.assessment', compact(
             'assessment',
             'quizQuestions',
             'answeredIds',
@@ -2924,14 +2885,14 @@ public function submitReview(Request $request)
 
     public function updateRemainingTime(Request $request)
     {
-        $jobseekerId = Auth::guard('jobseeker')->id();
+        $jobseekerId = Auth::guard('expat')->id();
 
         $request->validate([
             'material_id' => 'required|integer',
             'remaining_time' => 'required|integer|min:0',
         ]);
 
-        $record = JobseekerTrainingAssessmentTime::where([
+        $record = ExpatTrainingAssessmentTime::where([
             'jobseeker_id' => $jobseekerId,
             'material_id'  => $request->material_id,
         ])->first();
@@ -2950,7 +2911,7 @@ public function submitReview(Request $request)
 
 
 
-    public function saveJobseekerAnswer(Request $request)
+    public function saveExpatAnswer(Request $request)
     {
         $request->validate([
             'trainer_id' => 'required|integer',
@@ -2961,9 +2922,9 @@ public function submitReview(Request $request)
             'correct_answer' => 'required|string',
         ]);
 
-        $jobseekerId = Auth::guard('jobseeker')->id();
+        $jobseekerId = Auth::guard('expat')->id();
 
-        JobseekerAssessmentData::updateOrCreate(
+        ExpatAssessmentData::updateOrCreate(
             [
                 'trainer_id' => $request->trainer_id,
                 'training_id' => $request->material_id,
@@ -2986,7 +2947,7 @@ public function submitReview(Request $request)
             'answers' => 'required|array',
         ]);
 
-        $jobseekerId = Auth::guard('jobseeker')->id();
+        $jobseekerId = Auth::guard('expat')->id();
         $correctCount = 0;
         $assessmentId = null;
 
@@ -3008,7 +2969,7 @@ public function submitReview(Request $request)
                 $correctCount++;
             }
 
-            JobseekerAssessmentData::updateOrCreate(
+            ExpatAssessmentData::updateOrCreate(
                 [
                     'trainer_id'   => $answer['trainer_id'],
                     'training_id'  => $answer['material_id'],
@@ -3033,7 +2994,7 @@ public function submitReview(Request $request)
             $passingPercentage = $assessmentData ? $assessmentData->passing_percentage : 0;
             $resultStatus = $percentage >= $passingPercentage ? 'pass' : 'fail';
 
-            JobseekerAssessmentStatus::updateOrCreate(
+            ExpatAssessmentStatus::updateOrCreate(
                 [
                     'jobseeker_id' => $jobseekerId,
                     'assessment_id' => $assessmentId,
@@ -3054,7 +3015,7 @@ public function submitReview(Request $request)
                 'receiver_id' => '1',
                 'message' => 'You are '.$resultStatus.' in assessment with score '.$correctCount,
                 'is_read_users' => 0,
-                'user_type' => 'jobseeker'
+                'user_type' => 'expat'
             ];
 
             Notification::insert($data);
@@ -3072,24 +3033,24 @@ public function submitReview(Request $request)
         }
 
         // ✅ Redirect instead of returning JSON
-        return redirect()->route('jobseeker.profile')->with('success', 'Quiz submitted successfully.');
+        return redirect()->route('expat.profile')->with('success', 'Quiz submitted successfully.');
     }
 
 
 
     public function quizSuccess()
     {
-        return view('site.jobseeker.quiz_success');
+        return view('site.expat.quiz_success');
     }
 
     public function viewScore($id)
     {
-        $jobseekerId = Auth::guard('jobseeker')->id();
+        $jobseekerId = Auth::guard('expat')->id();
 
         $assessment = TrainerAssessment::with(['questions.options'])->findOrFail($id);
 
         // Check if submitted
-        $status = JobseekerAssessmentStatus::where([
+        $status = ExpatAssessmentStatus::where([
             ['assessment_id', '=', $id],
             ['jobseeker_id', '=', $jobseekerId],
             ['submitted', '=', '1'],
@@ -3100,7 +3061,7 @@ public function submitReview(Request $request)
         }
 
         // Fetch all submitted answers
-        $answers = JobseekerAssessmentData::where([
+        $answers = ExpatAssessmentData::where([
             ['assessment_id', '=', $id],
             ['jobseeker_id', '=', $jobseekerId],
         ])->get();
@@ -3156,7 +3117,7 @@ public function submitReview(Request $request)
             ];
         });
 
-        return view('site.jobseeker.assessment-result', compact(
+        return view('site.expat.assessment-result', compact(
             'assessment',
             'score',
             'totalQuestions',
@@ -3171,7 +3132,7 @@ public function submitReview(Request $request)
     public function assessorDetails($id)
     {
         $assessor = Assessors::with([
-            'reviews.jobseeker',
+            'reviews.expat',
             'additionalInfo',
             'profilePicture',
             'experiences',
@@ -3235,7 +3196,7 @@ public function submitReview(Request $request)
     {
 
         $coach = Coach::with([
-            'reviews.jobseeker',
+            'reviews.expat',
             'additionalInfo',
             'profilePicture',
             'experiences',
@@ -3293,9 +3254,9 @@ public function submitReview(Request $request)
 
     public function submitAssessorReview(Request $request)
     {
-        $jobseeker = auth()->guard('jobseeker')->user();
+        $expat = auth()->guard('expat')->user();
 
-        if (!$jobseeker) {
+        if (!$expat) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -3306,7 +3267,7 @@ public function submitReview(Request $request)
         ]);
 
         $reviewId = DB::table('reviews')->insertGetId([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'user_type' => 'assessor',
             'user_id' => $request->assessor_id,
             'reviews' => $request->review,
@@ -3319,7 +3280,7 @@ public function submitReview(Request $request)
         return response()->json([
             'success' => 'Review submitted successfully',
             'review' => [
-                'jobseeker_name' => $jobseeker->name ?? 'Anonymous',
+                'jobseeker_name' => $expat->name ?? 'Anonymous',
                 'reviews' => $request->review,
                 'ratings' => $request->rating,
             ]
@@ -3327,9 +3288,9 @@ public function submitReview(Request $request)
     }
     public function submitCoachReview(Request $request)
     {
-        $jobseeker = auth()->guard('jobseeker')->user();
+        $expat = auth()->guard('expat')->user();
 
-        if (!$jobseeker) {
+        if (!$expat) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -3340,7 +3301,7 @@ public function submitReview(Request $request)
         ]);
 
         $reviewId = DB::table('reviews')->insertGetId([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'user_type' => 'coach',
             'user_id' => $request->coach_id,
             'reviews' => $request->review,
@@ -3353,7 +3314,7 @@ public function submitReview(Request $request)
         return response()->json([
             'success' => 'Review submitted successfully',
             'review' => [
-                'jobseeker_name' => $jobseeker->name ?? 'Anonymous',
+                'jobseeker_name' => $expat->name ?? 'Anonymous',
                 'reviews' => $request->review,
                 'ratings' => $request->rating,
             ]
@@ -3362,9 +3323,9 @@ public function submitReview(Request $request)
 
     public function submitMentorReview(Request $request)
     {
-        $jobseeker = auth()->guard('jobseeker')->user();
+        $expat = auth()->guard('expat')->user();
 
-        if (!$jobseeker) {
+        if (!$expat) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -3375,7 +3336,7 @@ public function submitReview(Request $request)
         ]);
 
         $reviewId = DB::table('reviews')->insertGetId([
-            'jobseeker_id' => $jobseeker->id,
+            'jobseeker_id' => $expat->id,
             'user_type' => 'mentor',
             'user_id' => $request->mentor_id,
             'reviews' => $request->review,
@@ -3388,7 +3349,7 @@ public function submitReview(Request $request)
         return response()->json([
             'success' => 'Review submitted successfully',
             'review' => [
-                'jobseeker_name' => $jobseeker->name ?? 'Anonymous',
+                'jobseeker_name' => $expat->name ?? 'Anonymous',
                 'reviews' => $request->review,
                 'ratings' => $request->rating,
             ]
@@ -3398,8 +3359,8 @@ public function submitReview(Request $request)
 
     public function removeCartItem($id)
     {
-        $item = JobseekerCartItem::where('id', $id)
-            ->where('jobseeker_id', auth('jobseeker')->id())
+        $item = ExpatCartItem::where('id', $id)
+            ->where('jobseeker_id', auth('expat')->id())
             ->first();
    
         if (!$item) {
@@ -3418,11 +3379,11 @@ public function submitReview(Request $request)
     //     try {
     //         $googleUser = Socialite::driver('google')->user();
 
-    //         $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
+    //         $expat = Expat::where('email', $googleUser->getEmail())->first();
 
-    //         if (!$jobseeker) {
-    //             // Auto-register new jobseeker
-    //             $jobseeker = Jobseekers::create([
+    //         if (!$expat) {
+    //             // Auto-register new expat
+    //             $expat = Expat::create([
     //                 'name' => $googleUser->getName(),
     //                 'email' => $googleUser->getEmail(),
     //                 'status' => 'active', // or 'pending' if you require manual approval
@@ -3432,13 +3393,13 @@ public function submitReview(Request $request)
     //             ]);
     //         }
 
-    //         if ($jobseeker->status !== 'active') {
+    //         if ($expat->status !== 'active') {
     //             session()->flash('error', 'Your account is inactive. Please contact administrator.');
     //             return redirect()->route('signin.form');
     //         }
 
-    //         Auth::guard('jobseeker')->login($jobseeker);
-    //         return redirect()->intended(route('jobseeker.dashboard'));
+    //         Auth::guard('expat')->login($expat);
+    //         return redirect()->intended(route('expat.dashboard'));
 
     //     } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
     //         session()->flash('error', 'Invalid state. Please try again.');
@@ -3466,12 +3427,12 @@ public function submitReview(Request $request)
             ->user();
 
 
-            $jobseeker = Jobseekers::where('email', $googleUser->getEmail())->first();
+            $expat = Expat::where('email', $googleUser->getEmail())->first();
 
-            if (!$jobseeker) {
+            if (!$expat) {
                 $plainPassword = Str::random(16);
 
-                $jobseeker = Jobseekers::create([
+                $expat = Expat::create([
                     'name'              => $googleUser->getName(),
                     'email'             => $googleUser->getEmail(),
                     'status'            => 'active',
@@ -3484,34 +3445,34 @@ public function submitReview(Request $request)
                 ]);
 
                 session([
-                    'jobseeker_id' => $jobseeker->id,
-                    'email'       => $jobseeker->email,
+                    'jobseeker_id' => $expat->id,
+                    'email'       => $expat->email,
                 ]);
 
-                return redirect()->route('jobseeker.registration');
+                return redirect()->route('expat.registration');
             }
 
-            if ($jobseeker->status !== 'active') {
+            if ($expat->status !== 'active') {
                 return redirect()
-                    ->route('jobseeker.login')
+                    ->route('expat.login')
                     ->with('error', 'Your account is inactive. Please contact administrator.');
             }
 
-            if ($jobseeker->is_registered == 1) {
-                Auth::guard('jobseeker')->login($jobseeker);
-                return redirect()->route('jobseeker.dashboard');
+            if ($expat->is_registered == 1) {
+                Auth::guard('expat')->login($expat);
+                return redirect()->route('expat.dashboard');
             }
 
             session([
-                'jobseeker_id' => $jobseeker->id,
-                'email'       => $jobseeker->email,
+                'jobseeker_id' => $expat->id,
+                'email'       => $expat->email,
             ]);
 
-            return redirect()->route('jobseeker.registration');
+            return redirect()->route('expat.registration');
 
         } catch (\Exception $e) {
             return redirect()
-                ->route('jobseeker.login')
+                ->route('expat.login')
                 ->with('error', 'Google login failed. Please try again.');
         }
     }
@@ -3569,7 +3530,7 @@ public function submitReview(Request $request)
        
         require_once base_path('dompdf/autoload.inc.php');
 
-        $user = auth('jobseeker')->user();
+        $user = auth('expat')->user();
 
        
         $template = CertificateTemplate::first();

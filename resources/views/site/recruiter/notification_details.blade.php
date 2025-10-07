@@ -11,8 +11,11 @@
         </div>
     </div>
 
-	 @if($trainerNeedsSubscription)
+	 @if($recruiterNeedsSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.index')
+    @endif
+     @if($otherRecruiterSubscription && auth()->user('recruiter')->role != "sub_recruiter")
+        @include('site.recruiter.subscription.add-other-recruiters')
     @endif
     
     <div class="page-wraper">

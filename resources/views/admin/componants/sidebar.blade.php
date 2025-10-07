@@ -64,22 +64,6 @@
                     </li>
                 @endif
 
-
-                {{-- @if($role === 'superadmin' || $role === 'admin')
-                    <li class="header">User</li>
-                    <li class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'active' : '' }}">
-                        <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>User</span></a>
-                        <ul class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'collapse in' : 'collapse' }}">
-                            <li class="{{ request()->routeIs('admin.create') ? 'active' : '' }}">
-                                <a href="{{ route('admin.user.create') }}">Create User</a>
-                            </li>
-                            <li class="{{ request()->routeIs('admin.user.index') ? 'active' : '' }}">
-                                <a href="{{ route('admin.user.index') }}">Manage User</a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif --}}
-
                 <li class="header">User Roles</li>
 
                 @php

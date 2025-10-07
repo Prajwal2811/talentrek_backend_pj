@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Carbon\Carbon;
 
-class Jobseekers extends Authenticatable
+class Expat extends Authenticatable
 {
     use HasFactory;
 
@@ -68,14 +68,14 @@ class Jobseekers extends Authenticatable
     public function educations()
     {
         return $this->hasMany(EducationDetails::class, 'user_id')
-                    ->where('user_type', 'jobseeker');
+                    ->where('user_type', 'expat');
     }
 
     public function experiences()
     {
 
         return $this->hasMany(WorkExperience::class, 'user_id')
-                    ->where('user_type', 'jobseeker');
+                    ->where('user_type', 'expat');
     }
 
 
@@ -116,7 +116,7 @@ class Jobseekers extends Authenticatable
     public function profilePicture()
     {
         return $this->hasOne(AdditionalInfo::class, 'user_id')
-            ->where('user_type', 'jobseeker')
+            ->where('user_type', 'expat')
             ->where('doc_type', 'profile_picture');
     }
     

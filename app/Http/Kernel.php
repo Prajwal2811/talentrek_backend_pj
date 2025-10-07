@@ -60,6 +60,9 @@ class Kernel extends HttpKernel
         'jobseeker.auth' => \App\Http\Middleware\JobseekerAuthenticate::class,
         'jobseeker.guest' => \App\Http\Middleware\JobseekerRedirectIfAuthenticated::class,
 
+        'expat.auth' => \App\Http\Middleware\ExpatAuthenticate::class,
+        'expat.guest' => \App\Http\Middleware\ExpatRedirectIfAuthenticated::class,
+
 
         'recruiter.auth' => \App\Http\Middleware\RecruiterAuthenticate::class,
         'recruiter.guest' => \App\Http\Middleware\RecruiterRedirectIfAuthenticated::class,

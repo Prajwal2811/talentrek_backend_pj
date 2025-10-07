@@ -9,6 +9,7 @@ use App\Services\PaymentHelper;
 use App\Models\PurchasedSubscriptionPaymentRequest;
 use App\Models\PaymentHistory;
 use App\Models\Jobseekers;
+use App\Models\Expat;
 use App\Models\RecruiterCompany;
 use App\Models\Mentors;
 use App\Models\Assessors;
@@ -28,7 +29,7 @@ class SubscriptionController extends Controller
         $validator = Validator::make($request->all(), [
             'plan_id' => 'required|exists:subscription_plans,id',
             'user_id' => 'required',
-            'type'    => 'required|in:jobseeker,mentor,assessor,coach,trainer,recruiter',
+            'type'    => 'required|in:jobseeker,mentor,assessor,coach,trainer,recruiter,expat',
         ]);
 
         if ($validator->fails()) {
@@ -40,6 +41,7 @@ class SubscriptionController extends Controller
         // Map user type to model
         $modelMap = [
             'jobseeker' => Jobseekers::class,
+            'expat'     => Expat::class,
             'mentor'    => Mentors::class,
             'assessor'  => Assessors::class,
             'coach'     => Coach::class,
@@ -100,6 +102,7 @@ class SubscriptionController extends Controller
             "responseURL"  => $config['subscription_success_url'],
             "errorURL"     => $config['subscription_failure_url'],
         ];
+        // echo "<pre>"; print_r($transactionDetails); die;
 
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
         $trandata     = strtoupper(PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']));
@@ -163,6 +166,7 @@ class SubscriptionController extends Controller
          // Map user type to model
         $modelMap = [
             'jobseeker' => Jobseekers::class,
+            'expat'     => Expat::class,
             'mentor'    => Mentors::class,
             'assessor'  => Assessors::class,
             'coach'     => Coach::class,
@@ -173,6 +177,7 @@ class SubscriptionController extends Controller
         // Map user type to guard
         $guardMap = [
             'jobseeker' => 'jobseeker',
+            'expat'     => 'expat',
             'mentor'    => 'mentor',
             'assessor'  => 'assessor',
             'coach'     => 'coach',
@@ -267,26 +272,56 @@ class SubscriptionController extends Controller
             ]);
 
 
-            $companyData = RecruiterCompany::where('recruiter_id', $data['udf1'])->firstOrFail();
-            $plan = SubscriptionPlan::findOrFail($data['udf4']);
+           $plan = SubscriptionPlan::findOrFail($data['udf4']);
 
-            $shouldUpdate = false;
-            if (!$companyData->active_subscription_plan_id) {
-                $shouldUpdate = true;
+            // ✅ Update recruiter company table (if recruiter)
+            if ($data['udf2'] === 'recruiter') {
+                $companyData = RecruiterCompany::where('recruiter_id', $data['udf1'])->first();
+
+                if ($companyData) {
+                    $shouldUpdate = false;
+
+                    if (!$companyData->active_subscription_plan_id) {
+                        $shouldUpdate = true;
+                    } else {
+                        $currentActive = PurchasedSubscription::find($companyData->active_subscription_plan_id);
+                        if (!$currentActive || $subscription->end_date->gt($currentActive->end_date)) {
+                            $shouldUpdate = true;
+                        }
+                    }
+
+                    if ($shouldUpdate) {
+                        $companyData->isSubscribtionBuy = 'yes';
+                        $companyData->active_subscription_plan_id   = $subscription->id;
+                        $companyData->active_subscription_plan_slug = $plan->slug;
+                        $companyData->save();
+                    }
+                }
             } else {
-                $currentActive = PurchasedSubscription::find($companyData->active_subscription_plan_id);
-                if (!$currentActive || $subscription->end_date->gt($currentActive->end_date)) {
-                    $shouldUpdate = true;
+                // ✅ For all other user types
+                $userModel = $modelMap[$data['udf2']];
+                $userRecord = $userModel::find($data['udf1']);
+
+                if ($userRecord) {
+                    $shouldUpdate = false;
+
+                    if (!$userRecord->active_subscription_plan_id) {
+                        $shouldUpdate = true;
+                    } else {
+                        $currentActive = PurchasedSubscription::find($userRecord->active_subscription_plan_id);
+                        if (!$currentActive || $subscription->end_date->gt($currentActive->end_date)) {
+                            $shouldUpdate = true;
+                        }
+                    }
+
+                    if ($shouldUpdate) {
+                        $userRecord->isSubscribtionBuy = 'yes';
+                        $userRecord->active_subscription_plan_id   = $subscription->id;
+                        $userRecord->save();
+                    }
                 }
             }
 
-            if ($shouldUpdate) {
-                $companyData->isSubscribtionBuy = 'yes';
-                $companyData->active_subscription_plan_id   = $subscription->id;
-                $companyData->active_subscription_plan_slug = $plan->slug;
-                $companyData->recruiter_count = null; // reset if needed
-                $companyData->save();
-            }
 
 
             
@@ -296,6 +331,7 @@ class SubscriptionController extends Controller
         // 🔹 Update user's subscription flag
         $userModelMap = [
             'jobseeker' => Jobseekers::class,
+            'expat'     => Expat::class,
             'mentor'    => Mentors::class,
             'assessor'  => Assessors::class,
             'coach'     => Coach::class,
@@ -319,6 +355,7 @@ class SubscriptionController extends Controller
         // Redirect based on type
         $redirectRoutes = [
             'jobseeker' => 'jobseeker.profile',
+            'expat'     => 'expat.profile',
             'mentor'    => 'mentor.dashboard',
             'assessor'  => 'assessor.dashboard',
             'coach'     => 'coach.dashboard',

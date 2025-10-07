@@ -11,12 +11,12 @@
         </div>
     </div>
 
-    {{-- @if($recruiterNeedsSubscription)
+    @if($recruiterNeedsSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.index')
     @endif
-        @if($otherRecruiterSubscription)
+     @if($otherRecruiterSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.add-other-recruiters')
-    @endif --}}
+    @endif
 
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">

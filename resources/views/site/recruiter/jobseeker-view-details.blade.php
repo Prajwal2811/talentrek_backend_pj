@@ -9,10 +9,10 @@
             </div>
         </div>
     </div>
-@if($recruiterNeedsSubscription)
+@if($recruiterNeedsSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.index')
     @endif
-	 @if($otherRecruiterSubscription)
+     @if($otherRecruiterSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.add-other-recruiters')
     @endif
     <div class="page-wraper">
