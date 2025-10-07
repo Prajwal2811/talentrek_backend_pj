@@ -10,7 +10,7 @@ class JobseekerTrainingMaterialPurchasePaymentRequest extends Model
     use HasFactory;
 
     // Table name (since it’s long and not standard pluralization)
-    protected $table = 'jobseeker_training_material_purchases_payment_request';
+    protected $table = 'material_purchases_payment_request';
 
     // Mass assignable attributes
     protected $fillable = [

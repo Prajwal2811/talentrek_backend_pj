@@ -68,6 +68,7 @@ class RecruiterController extends Controller
      // ✅ Total shortlisted jobseekers
      $totalShortlisted = DB::table('recruiter_jobseeker_shortlist')
           ->where('recruiter_id', $recruiterId)
+          ->where('admin_status', 'superadmin_approved')
           ->count();
 
      // ✅ Total interviews scheduled
@@ -378,7 +379,7 @@ class RecruiterController extends Controller
 
                ],
 
-               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
+               'company_name' => 'required',
 
                'company_website' => 'required|url',
 
@@ -1104,26 +1105,35 @@ class RecruiterController extends Controller
 
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                     ->where('status', 'active')
-                    ->where('admin_status', 'superadmin_approved')
+                    ->whereIn('admin_status', ['approved', 'superadmin_approved'])
                     ->whereNotIn('id', $shortlistedIds)
+                    ->orderBy('jobseekers.created_at', 'desc')
                     ->get();
           
-
+          // echo "<pre>";
+          // print_r($jobseekers);die;
          $shortlisted_jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                                    ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
                                    ->where('shortlist.recruiter_id', $recruiterId)
                                    ->where('jobseekers.status', 'active')
-                                   ->where('jobseekers.admin_status', 'superadmin_approved')
-                                   // ->where('shortlist.interview_status', NULL)
-                                   
-                                   // ->where('shortlist.admin_status', 'superadmin_approved')
+                                   ->where(function ($query) {
+                                        $query->where('shortlist.interview_status', 'scheduled')
+                                             ->orWhere('shortlist.interview_status', 'cancelled')
+                                             ->orWhere('shortlist.interview_status', NULL)
+                                             ->orWhere('shortlist.interview_status', 'completed');
+                                   })
                                    ->select(
                                         'jobseekers.*',
+                                        'jobseekers.id as jobseeker_id',
                                         'shortlist.admin_status as shortlist_admin_status',
                                         'shortlist.interview_request',
-                                        'shortlist.jobseeker_id as jobseeker_id', // ✅ explicit alias
+                                        'shortlist.jobseeker_id as jobseeker_id',
+                                        'shortlist.*'
                                    )
+                                   ->orderBy('shortlist.created_at', 'desc')
                                    ->get();
+                                   // echo "<pre>";
+                                   // print_r($shortlisted_jobseekers);exit;  
 
         
 
