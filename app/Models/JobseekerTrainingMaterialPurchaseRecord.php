@@ -9,7 +9,7 @@ class JobseekerTrainingMaterialPurchaseRecord extends Model
 {
     use HasFactory;
 
-    protected $table = 'jobseeker_training_material_purchases_payment_record';
+    protected $table = 'material_purchases_payment_record';
 
     protected $fillable = [
         'jobseeker_id',
