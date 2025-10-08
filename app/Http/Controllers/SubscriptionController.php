@@ -16,6 +16,7 @@ use App\Models\Assessors;
 use App\Models\Recruiters;
 use App\Models\Trainers;
 use App\Models\Coach;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -25,6 +26,7 @@ class SubscriptionController extends Controller
 {
     public function processSubscriptionPayment(Request $request)
     {
+
         // Validate input
         $validator = Validator::make($request->all(), [
             'plan_id' => 'required|exists:subscription_plans,id',
@@ -38,6 +40,11 @@ class SubscriptionController extends Controller
 
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
 
+        // 🔹 Fetch tax percentage from settings
+        $taxPercent = (float) Setting::value('subscriptionTax') ?? 0;
+        $taxAmount  = ($plan->price * $taxPercent) / 100;
+        $totalPrice = $plan->price + $taxAmount;
+
         // Map user type to model
         $modelMap = [
             'jobseeker' => Jobseekers::class,
@@ -49,9 +56,7 @@ class SubscriptionController extends Controller
             'recruiter' => Recruiters::class,
         ];
 
-        
         $model = $modelMap[$request->type];
-
         $user = $model::findOrFail($request->user_id);
 
         // Generate reference
@@ -62,7 +67,7 @@ class SubscriptionController extends Controller
                 . '-' . date('YmdHi')
                 . '-' . time();
 
-        // Create payment request record
+        // 🔹 Create payment request record with tax + total
         $booking = PurchasedSubscriptionPaymentRequest::create([
             'subscription_plan_id' => $plan->id,
             'user_id'              => $request->user_id,
@@ -70,8 +75,8 @@ class SubscriptionController extends Controller
             'status'               => 'pending',
             'track_id'             => $referenceNo,
             'amount'               => $plan->price,
-            'tax'                  => 0.00,
-            'total_amount'         => $plan->price,
+            'tax'                  => number_format($taxAmount, 2, '.', ''),
+            'total_amount'         => number_format($totalPrice, 2, '.', ''),
             'currency'             => 'SAR',
             'payment_gateway'      => 'Al Rajhi',
             'request_payload'      => null,
@@ -80,11 +85,12 @@ class SubscriptionController extends Controller
             'response_payload'     => null,
         ]);
 
-        // Prepare transaction payload for Neoleap
+        
+        // 🔹 Prepare transaction payload for Neoleap
         $config = config('neoleap');
         $transactionDetails = [
             "id"           => $config['tranportal_id'],
-            "amt"          => number_format($plan->price, 2, '.', ''),
+            "amt"          => number_format($totalPrice, 2, '.', ''), // ✅ total including tax
             "action"       => "1",
             "password"     => "T4#2H#ma5yHv\$G7",
             "currencyCode" => "682",
@@ -95,13 +101,15 @@ class SubscriptionController extends Controller
             "udf4"         => $plan->id,
             "udf5"         => $request->type,
             "udf6"         => $plan->duration_days,
-            "udf7"         => '0.00',
-            "udf8"         => number_format($plan->price, 2, '.', ''),
-            'udf9'         => $plan->id, 
+            "udf7"         => number_format($taxAmount, 2, '.', ''), // ✅ store tax separately
+            "udf8"         => number_format($plan->price, 2, '.', ''), // ✅ base amount
+            "udf9"         => $plan->id, 
+            "udf10"         => number_format($taxAmount, 2, '.', '') + number_format($plan->price, 2, '.', ''), 
             "langid"       => "en",
             "responseURL"  => $config['subscription_success_url'],
             "errorURL"     => $config['subscription_failure_url'],
         ];
+
         // echo "<pre>"; print_r($transactionDetails); die;
 
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
@@ -117,7 +125,8 @@ class SubscriptionController extends Controller
         ]];
 
         $payloads = json_encode($payload, JSON_UNESCAPED_SLASHES);
-        // Send request to Neoleap
+
+        // 🔹 Send request to Neoleap
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => $config['curlopt_url'],
@@ -126,8 +135,14 @@ class SubscriptionController extends Controller
             CURLOPT_POSTFIELDS => $payloads,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
         ]);
+        
         $response = curl_exec($curl);
+        $error = curl_error($curl);
         curl_close($curl);
+
+        if ($error) {
+            return redirect()->back()->with('error', 'Payment request failed: ' . $error);
+        }
 
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
@@ -140,6 +155,7 @@ class SubscriptionController extends Controller
 
         return redirect()->back()->with('error', 'Unable to initiate payment. Please try again.');
     }
+
 
     /**
      * Success callback
@@ -242,8 +258,8 @@ class SubscriptionController extends Controller
                 'user_type'            => $data['udf2'],
                 'subscription_plan_id' => $data['udf4'],
                 'amount_paid'          => $data['amt'],
-                'tax'                  => $data['udf7'],
-                'amount'               => $data['udf8'],
+                'tax_percentage'       => $data['udf7'],
+                'actual_amount'        => $data['udf8'],
                 'track_id'             => $data['trackId'] ?? null,
                 'currency'             => 'SAR',
                 'transaction_id'       => $data['transId'] ?? null,
@@ -321,10 +337,6 @@ class SubscriptionController extends Controller
                     }
                 }
             }
-
-
-
-            
         }
 
 

@@ -28,19 +28,13 @@
                                         <div class="mr-3">
                                             <img src="../assets/images/user.png" class="rounded" alt="">
                                         </div>
-                                        <!-- <div class="details">
-                                            <h4 class="mb-0">{{ $jobseeker->name }}</h4>
-                                            <span class="text-light">{{ $jobseeker->city }}</span> -->
-                                            <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
-                                        <!-- </div> -->
-
                                          <div class="flex justify-between items-center">
                                             <div class="details">
-                                                <h4 class="mb-0">{{ $jobseeker->name }}</h4>
-                                                <span class="text-light">{{ $jobseeker->city }}</span>
+                                                <h4 class="mb-0">{{ $expat->name }}</h4>
+                                                <span class="text-light">{{ $expat->city }}</span>
                                                 <!-- <p class="mb-0"><span>Posts: <strong>321</strong></span> <span>Followers: <strong>4,230</strong></span> <span>Following: <strong>560</strong></span></p> -->
                                             </div>
-                                            <a href="{{ route('admin.jobseeker.resume.download', $jobseeker->id) }}"
+                                            <a href="{{ route('admin.jobseeker.resume.download', $expat->id) }}"
                                             class="ml-4 bg-green-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-green-700">
                                                 Download Resume
                                             </a>
@@ -48,7 +42,7 @@
                                     </div>
                                     <div>
                                         @php
-                                            $status = $jobseeker->admin_status;
+                                            $status = $expat->admin_status;
                                             $userRole = auth()->user()->role;
                                         @endphp
 
@@ -111,7 +105,7 @@
                                                     <div class="modal-body">Are you sure you want to approve this profile?</div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'approved', this)">Yes, Approve</button>
+                                                        <button class="btn btn-success" onclick="updateStatus({{ $expat->id }}, 'approved', this)">Yes, Approve</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -132,7 +126,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-danger" onclick="submitRejection({{ $jobseeker->id }}, 'rejected', 'adminRejectionReason', this)">Yes, Reject</button>
+                                                        <button class="btn btn-danger" onclick="submitRejection({{ $expat->id }}, 'rejected', 'adminRejectionReason', this)">Yes, Reject</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -146,7 +140,7 @@
                                                     <div class="modal-body">Are you sure you want to super approve this profile?</div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-success" onclick="updateStatus({{ $jobseeker->id }}, 'superadmin_approved', this)">Yes, Approve</button>
+                                                        <button class="btn btn-success" onclick="updateStatus({{ $expat->id }}, 'superadmin_approved', this)">Yes, Approve</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -167,7 +161,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button class="btn btn-danger" onclick="submitRejection({{ $jobseeker->id }}, 'superadmin_rejected', 'superRejectionReason', this)">Yes, Reject</button>
+                                                        <button class="btn btn-danger" onclick="submitRejection({{ $expat->id }}, 'superadmin_rejected', 'superRejectionReason', this)">Yes, Reject</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -246,20 +240,20 @@
                                         <div class="row">
                                             <div class="col-md-12 form-group">
                                                 <label>Name</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->name }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->name }}">
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Gender</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->gender }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->gender }}">
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Email address</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->email }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->email }}">
                                             </div>
                                             <!-- <div class="col-md-12 form-group">
                                                 <label>Date of birth</label>
                                                 @php
-                                                    $date = \Carbon\Carbon::parse($jobseeker->date_of_birth);
+                                                    $date = \Carbon\Carbon::parse($expat->date_of_birth);
                                                     $day = $date->format('j');
                                                     $suffix = match (true) {
                                                         $day % 100 >= 11 && $day % 100 <= 13 => 'th',
@@ -276,8 +270,8 @@
                                                 <label>Date of birth</label>
                                                 @php
                                                     $formattedDate = '';
-                                                    if (!empty($jobseeker->date_of_birth)) {
-                                                        $date = \Carbon\Carbon::parse($jobseeker->date_of_birth);
+                                                    if (!empty($expat->date_of_birth)) {
+                                                        $date = \Carbon\Carbon::parse($expat->date_of_birth);
                                                         $day = $date->format('j');
                                                         $suffix = match (true) {
                                                             $day % 100 >= 11 && $day % 100 <= 13 => 'th',
@@ -295,31 +289,31 @@
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Phone number</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->phone_code ? $jobseeker->phone_code . '-' . $jobseeker->phone_number : $jobseeker->phone_number }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->phone_code ? $expat->phone_code . '-' . $expat->phone_number : $expat->phone_number }}">
                                             </div>
                                             
                                             <div class="col-md-12 form-group">
                                                 <label>City</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->city }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->city }}">
                                             </div>
 
                                             <div class="col-md-12 form-group">
                                                 <label>State</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->state }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->state }}">
                                             </div>
 
                                             <div class="col-md-12 form-group">
                                                 <label>Pin Code</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->pin_code }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->pin_code }}">
                                             </div>
 
                                             <div class="col-md-12 form-group">
                                                 <label>Country</label>
-                                                <input readonly type="text" class="form-control" value="{{ $jobseeker->country }}">
+                                                <input readonly type="text" class="form-control" value="{{ $expat->country }}">
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Address</label>
-                                                <textarea readonly class="form-control">{{ $jobseeker->address }}</textarea>
+                                                <textarea readonly class="form-control">{{ $expat->address }}</textarea>
                                             </div>
 
 
@@ -489,11 +483,11 @@
                                 use App\Models\JobseekerTrainingMaterialPurchase;
 
                                 $courses = JobseekerTrainingMaterialPurchase::with(['material.reviews'])
-                                                                            ->where('jobseeker_id', $jobseeker->id)
+                                                                            ->where('jobseeker_id', $expat->id)
                                                                             ->get();
 
                                 $trainerImage = App\Models\AdditionalInfo::where('doc_type', 'profile_picture')
-                                                                        ->where('user_id', $jobseeker->id)
+                                                                        ->where('user_id', $expat->id)
                                                                         ->first();
                             @endphp
 
@@ -620,20 +614,20 @@
 
                             $mentorships = \App\Models\BookingSession::with([
                                 'mentor.reviews', 'mentor.profilePicture', 'mentor.experiences'
-                            ])->where('jobseeker_id', $jobseeker->id)
+                            ])->where('jobseeker_id', $expat->id)
                             ->where('user_type', 'mentor')
                             ->whereHas('mentor.profilePicture')
                             ->get();
 
                             $assessments = \App\Models\BookingSession::with([
                                 'assessor.reviews', 'assessor.profilePicture', 'assessor.experiences'
-                            ])->where('jobseeker_id', $jobseeker->id)
+                            ])->where('jobseeker_id', $expat->id)
                             ->where('user_type', 'assessor')
                             ->get();
 
                             $coachings = \App\Models\BookingSession::with([
                                 'coach.reviews', 'coach.profilePicture', 'coach.experiences'
-                            ])->where('jobseeker_id', $jobseeker->id)
+                            ])->where('jobseeker_id', $expat->id)
                             ->where('user_type', 'coach')
                             ->get();
                         @endphp
@@ -876,7 +870,7 @@
                             @php
                                 // Fetch payments for this jobseeker
                                 $payments = App\Models\PaymentHistory::where('user_type', 'jobseeker')
-                                            ->where('user_id', $jobseeker->id)
+                                            ->where('user_id', $expat->id)
                                             ->orderBy('created_at', 'desc')
                                             ->get();
 
@@ -893,7 +887,7 @@
 
                             <div class="card">
                                 <div class="header">
-                                    <h2>{{ $jobseeker->name }}'s Payments</h2>
+                                    <h2>{{ $expat->name }}'s Payments</h2>
                                 </div>
                                 <div class="body">
                                     <div class="container-fluid">
@@ -1010,7 +1004,7 @@
                                                                 </div>
                                                                 <div class="modal-body text-center">
                                                                     <!-- ✅ Certificate show in iframe -->
-                                                                    <iframe src="{{ route('admin.viewCertificate', [$jobseeker->id, $cert->material_id]) }}" 
+                                                                    <iframe src="{{ route('admin.viewCertificate', [$expat->id, $cert->material_id]) }}" 
                                                                             frameborder="0" width="100%" height="600px"></iframe>
                                                                 </div>
                                                             </div>

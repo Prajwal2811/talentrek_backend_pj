@@ -125,7 +125,7 @@ class CoursePurchaseController extends Controller
             "id" => $config['tranportal_id'],
             "amt" => $amountPaid,
             "action" => "1",
-            "password" => $config['password'] ?? "T4#2H#ma5yHv\$G7",
+            "password" => $config['tranportal_password'],
             "currencyCode" => "682",
             "trackId" => $referenceNo,
             "langid" => "en",
@@ -156,7 +156,7 @@ class CoursePurchaseController extends Controller
         // Redirect to Neoleap payment
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+            CURLOPT_URL => $config['curlopt_url'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $payload,
@@ -406,7 +406,7 @@ class CoursePurchaseController extends Controller
         "id"            => $config['tranportal_id'],
         "amt"           => $amountPaid,
         "action"        => "1",
-        "password"      => $config['password'] ?? "T4#2H#ma5yHv\$G7",
+        "password"      => $config['tranportal_password'],
         "currencyCode"  => "682",
         "trackId"       => $referenceNo,
         "langid"        => "en",
@@ -804,7 +804,7 @@ class CoursePurchaseController extends Controller
                 "id"            => $config['tranportal_id'],
                 "amt"           => $amountPaid,
                 "action"        => "1",
-                "password"      => $config['password'] ?? "T4#2H#ma5yHv\$G7",
+                "password"      => $config['tranportal_password'],
                 "currencyCode"  => "682",
                 "trackId"       => $referenceNo,
                 "langid"        => "en",
@@ -838,7 +838,7 @@ class CoursePurchaseController extends Controller
             // Redirect to Neoleap
             $curl = curl_init();
             curl_setopt_array($curl, [
-                CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+                CURLOPT_URL => $config['curlopt_url'],
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_POST => true,
                 CURLOPT_POSTFIELDS => $payloads,

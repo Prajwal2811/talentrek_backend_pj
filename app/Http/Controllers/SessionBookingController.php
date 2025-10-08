@@ -133,7 +133,7 @@ class SessionBookingController extends Controller
             "id"           => $config['tranportal_id'],
             "amt"          => $paymentRequest->total_amount,
             "action"       => "1",
-            "password"     => "T4#2H#ma5yHv\$G7",
+            "password"     => $config['tranportal_password'],
             "currencyCode" => "682",
             "trackId"      => $paymentRequest->track_id,
             "udf1"         => $paymentRequest->jobseeker_id,

@@ -30,7 +30,7 @@
                                 <h2 class="text-3xl font-bold text-purple-600">{{ $trainerCount }}</h2>
                             </a>
 
-                            <a href="{{ route('admin.expats') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
+                            <a href="{{ route('admin.expat') }}" class="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300">
                                 <p class="text-gray-500">Expats</p>
                                 {{-- <h2 class="text-3xl font-bold text-blue-500">{{ $expatCount }}</h2> --}}
                             </a>

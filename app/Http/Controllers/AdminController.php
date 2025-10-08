@@ -426,37 +426,35 @@ class AdminController extends Controller
         $validated = $request->validate([
             'admin_id' => 'required|exists:admins,id',
             'jobseeker_ids' => 'required|string',
+            'user_type' => 'required|in:jobseeker,expat',
         ]);
+
         $adminId = $validated['admin_id'];
-        $jobseekerIds = explode(',', $validated['jobseeker_ids']);
+        $userIds = explode(',', $validated['jobseeker_ids']);
+        $userType = $validated['user_type']; // 'jobseeker' or 'expat'
         $assignedCount = 0;
-        $assignedJobseekers = [];
-        
-        foreach ($jobseekerIds as $jobseekerId) {
-            $jobseeker = Jobseekers::find($jobseekerId);
-            
-            // Only assign if not already assigned to an admin
-            if ($jobseeker) {
-                $jobseeker->assigned_admin = $adminId;
-                $jobseeker->save();
+        $assignedUsers = [];
+
+        foreach ($userIds as $id) {
+            $user = Jobseekers::find($id);
+
+            if ($user) {
+                $user->assigned_admin = $adminId;
+                $user->save();
 
                 $assignedCount++;
-                $assignedJobseekers[] = [
-                    'id' => $jobseeker->id,
-                    'name' => $jobseeker->name,
-                    'email' => $jobseeker->email ?? null,
+                $assignedUsers[] = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email ?? null,
                 ];
             }
         }
 
-        // Fetch assigned admin info
         $assignedAdmin = Admin::find($adminId);
-
-        // Get actor info (who made the assignment)
         $actor = auth()->user();
 
-        // Log the assignment
-        Log::info('Jobseekers assigned to admin', [
+        Log::info(ucfirst($userType) . 's assigned to admin', [
             'assigned_to_admin' => [
                 'id' => $assignedAdmin->id,
                 'name' => $assignedAdmin->name,
@@ -469,13 +467,18 @@ class AdminController extends Controller
                 'email' => $actor?->email ?? 'system',
                 'role' => $actor?->role ?? 'unknown',
             ],
-            'jobseekers_assigned' => $assignedJobseekers,
+            'users_assigned' => $assignedUsers,
             'total_assigned' => $assignedCount,
             'time' => now()
         ]);
 
-        return redirect()->back()->with('success', 'Jobseekers have been successfully assigned to the admin.');
+        $message = $assignedCount > 0
+            ? ucfirst($userType) . 's have been successfully assigned to the admin.'
+            : 'No ' . $userType . 's were assigned.';
+
+        return redirect()->back()->with('success', $message);
     }
+
 
     
 
@@ -1003,91 +1006,177 @@ class AdminController extends Controller
 
 
     public function updateRecruiterStatus(Request $request)
+
 {
+
     $request->validate([
-        'company_id' => 'required|exists:recruiters_company,id',
+
+        'recruiter_id' => 'required|exists:recruiters,id',
+
         'status' => 'required|in:approved,rejected,superadmin_approved,superadmin_rejected',
+
         'reason' => 'nullable|string|max:1000',
+
     ]);
 
-    $recruiter = RecruiterCompany::findOrFail($request->company_id);
+
+
+    $recruiter = Recruiters::findOrFail($request->recruiter_id);
+
     $user = auth()->user();
+
     $previousStatus = $recruiter->admin_status;
+
     $status = $request->status;
 
+
+
     // Role validation
+
     if ($user->role === 'superadmin') {
+
         if (!Str::startsWith($status, 'superadmin_')) {
+
             return response()->json(['success' => false, 'message' => 'Invalid status for superadmin'], 403);
+
         }
+
+
 
         if ($recruiter->admin_status === 'rejected') {
+
             return response()->json(['success' => false, 'message' => 'Cannot override admin rejection'], 403);
+
         }
+
+
 
     } elseif ($user->role === 'admin') {
+
         if (Str::startsWith($status, 'superadmin_')) {
+
             return response()->json(['success' => false, 'message' => 'Admins cannot perform superadmin actions'], 403);
+
         }
 
+
+
     } else {
+
         Log::warning('Unauthorized recruiter status update attempt', [
+
             'attempted_by' => $user->only(['id', 'name', 'email', 'role']),
+
             'recruiter_id' => $recruiter->id,
+
             'time' => now(),
+
         ]);
+
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+
     }
 
+
+
     // Save status
+
     $recruiter->admin_status = $status;
+
     $recruiter->rejection_reason = Str::endsWith($status, 'rejected') ? $request->reason : null;
+
     $recruiter->save();
 
+
+
     Log::info('Recruiter status updated', [
+
         'recruiter' => $recruiter->only(['id', 'name', 'email']),
+
         'previous_status' => $previousStatus,
+
         'new_status' => $status,
+
         'rejection_reason' => $recruiter->rejection_reason,
+
         'updated_by' => $user->only(['id', 'name', 'email', 'role']),
+
         'time' => now(),
+
     ]);
+
+
+
 
 
     // Email on rejection
+
     if (Str::endsWith($status, 'rejected') && $request->filled('reason') && $recruiter->email) {
+
         Mail::html('
+
                 <!DOCTYPE html>
+
                 <html>
+
                 <head><meta charset="UTF-8"><title>Recruiter Application Rejected</title>
+
                 <style>
+
                     body { font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 20px; color: #333; }
+
                     .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+
                     .header { text-align: center; margin-bottom: 20px; }
+
                     .footer { font-size: 12px; text-align: center; color: #999; margin-top: 30px; }
+
                     .reason { background-color: #ffe6e6; border-left: 4px solid #dc3545; padding: 10px 15px; margin: 15px 0; }
+
                 </style>
+
                 </head>
+
                 <body>
+
                     <div class="container">
+
                         <div class="header">
+
                             <h2>Recruiter Application – <span style="color:#dc3545;">Rejected</span></h2>
+
                         </div>
+
                         <p>Hi <strong>' . e($recruiter->name ?? $recruiter->email) . '</strong>,</p>
+
                         <p>Your recruiter registration has been rejected on <strong>Talentrek</strong>.</p>
+
                         <div class="reason"><strong>Reason:</strong> ' . e($request->reason) . '</div>
+
                         <p>If you have questions, contact <a href="mailto:support@talentrek.com">support@talentrek.com</a>.</p>
+
                         <p>Thank you,<br><strong>The Talentrek Team</strong></p>
+
                     </div>
+
                     <div class="footer">© ' . date('Y') . ' Talentrek. All rights reserved.</div>
+
                 </body>
+
                 </html>
+
             ', function ($message) use ($recruiter) {
+
                 $message->to($recruiter->email)->subject('Recruiter Application Rejected – Talentrek');
+
             });
+
     }
 
+
+
     return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+
 }
 
     public function cms()
@@ -2983,7 +3072,7 @@ class AdminController extends Controller
     public function updateTax(Request $request)
     {
         $request->validate([
-            'user_type' => 'required|string|in:mentor,trainer,assessor,coach',
+            'user_type' => 'required|string|in:mentor,trainer,assessor,coach,subscription',
             'rate'      => 'required|numeric|min:0',
         ]);
 
@@ -2992,10 +3081,11 @@ class AdminController extends Controller
 
         // Map user types to setting fields
         $fieldMap = [
-            'trainer'   => 'trainingMaterialTax',
-            'mentor'    => 'mentorTax',
-            'assessor'  => 'assessorTax',
-            'coach'     => 'coachTax',
+            'trainer'       => 'trainingMaterialTax',
+            'mentor'        => 'mentorTax',
+            'assessor'      => 'assessorTax',
+            'coach'         => 'coachTax',
+            'subscription'  => 'subscriptionTax'
         ];
 
         if (isset($fieldMap[$userType])) {
@@ -3245,4 +3335,102 @@ public function viewCertificate($jobseeker_id, $material_id)
         return view('admin.expat.index', compact('expats', 'admins'));
     }
 
+
+    public function expatChangeStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'expat_id' => 'required|exists:jobseekers,id',
+            'status' => 'required|in:active,inactive',
+            'reason' => 'nullable|string|max:1000'
+        ]);
+
+        $user = Jobseekers::findOrFail($validated['expat_id']);
+        $oldStatus = $user->status;
+        $oldReason = $user->inactive_reason;
+
+        $user->status = $validated['status'];
+
+        if ($validated['status'] === 'inactive' && isset($validated['reason'])) {
+            $user->inactive_reason = $validated['reason'];
+        } else {
+            $user->inactive_reason = null;
+        }
+
+        $user->save();
+
+        // Actor performing the change
+        $actor = auth()->user();
+
+        // Logging the change
+        Log::info('Expat status updated', [
+            'jobseeker' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email ?? null,
+                'old_status' => $oldStatus,
+                'new_status' => $user->status,
+                'old_reason' => $oldReason,
+                'new_reason' => $user->inactive_reason
+            ],
+            'changed_by' => [
+                'id' => $actor?->id ?? null,
+                'name' => $actor?->name ?? 'System',
+                'email' => $actor?->email ?? 'system',
+                'role' => $actor?->role ?? 'unknown'
+            ],
+            'time' => now()
+        ]);
+
+        if($user->status == 'active'){
+            $status = 'Approved';
+        }else{
+            $status = 'Rejected';
+        }
+        $data = [
+            'sender_id' => $validated['expat_id'],
+            'sender_type' => 'Expat '.$status,
+            'receiver_id' => '1',
+            'message' => $user->name.' Expat '.$status,
+            'is_read' => 0,
+            'is_read_admin' => 0,
+            'user_type' => 'expat'
+        ];
+
+        Notification::insert($data);
+
+        return response()->json([
+            'message' => 'Expat status updated successfully.',
+            'status' => $user->status
+        ]);
+    }
+
+
+    public function expatView($id)
+    {
+        $expat = Jobseekers::findOrFail($id);
+        $educations = $expat->educations()->orderBy('id', 'desc')->get();
+        $experiences = $expat->experiences()->orderBy('id', 'desc')->get();
+        $skills = $expat->skills()->orderBy('id', 'desc')->get();
+        $additioninfos = AdditionalInfo::select('*')->where('user_id' , $id)->where('user_type','expat')->get();
+        $subscriptionPlans = PurchasedSubscription::select('subscription_plans.*','purchased_subscriptions.*')
+                                                    ->where('purchased_subscriptions.user_id', $id)
+                                                    ->where('purchased_subscriptions.user_type', 'expat')
+                                                    ->join('subscription_plans', 'purchased_subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
+                                                    ->get();
+        $certificates = DB::table('jobseeker_assessment_status as jas')
+            ->join('training_materials as t', 'jas.material_id', '=', 't.id')
+            ->leftJoin('trainers as tr', 't.trainer_id', '=', 'tr.id')
+            ->select(
+                't.training_title as course_name',
+                'jas.created_at as completion_date',
+                'jas.material_id' // ✅ yeh add karo
+            )
+            ->where('jas.jobseeker_id', $id)
+            ->where('jas.submitted', 1)
+            ->get();
+
+        // echo "<pre>";                                         
+        // print_r($certificates); die;    
+        return view('admin.expat.view', compact('expat', 'experiences', 'educations', 'skills','additioninfos','subscriptionPlans', 'certificates'));
+    }
 }

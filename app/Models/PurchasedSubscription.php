@@ -41,6 +41,9 @@ class PurchasedSubscription extends Model
         'order_id',
         'response_payload',
         'raw_response',
+        'tax_percentage',
+        'taxed_amount',
+        'actual_amount'
     ];
 
 

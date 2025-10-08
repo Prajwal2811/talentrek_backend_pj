@@ -47,7 +47,7 @@
                                         </tfoot>
                                         <tbody>
                                             @php
-                                                $userTypes = ['Trainer', 'Coach', 'Mentor', 'Assessor'];
+                                                $userTypes = ['Trainer', 'Coach', 'Mentor', 'Assessor','Subscription'];
                                             @endphp
                                             @foreach($userTypes as $index => $type)
                                                 <tr>

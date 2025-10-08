@@ -22,11 +22,8 @@
                  <div class="row clearfix">
                     <div class="col-lg-12">
                         <div class="card">
-                            <div class="header d-flex justify-content-between align-items-center mb-3">
+                           <div class="header d-flex justify-content-between align-items-center mb-3">
                                 <h2>Expat Management</h2>
-                                @php
-                                    $admin = Auth::guard('admin')->user();
-                                @endphp
 
                                 <!-- Assign Admin Button (only for non-admins) -->
                                 @if (auth()->user()->role !== 'admin')
@@ -41,7 +38,7 @@
 
                             <div class="modal fade" id="assignAdminModal" aria-labelledby="assignAdminModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
-                                    <form id="assignAdminForm" method="POST" action="{{ route('admin.jobseeker.assignAdmin') }}">
+                                    <form id="assignAdminForm" method="POST" action="{{ route('admin.expat.assignAdmin') }}">
                                         @csrf
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -57,13 +54,16 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                               <div class="mb-3">
+                                                <div class="mb-3">
                                                     <label class="form-label">Selected Expats</label>
                                                     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ced4da; border-radius: .25rem;">
                                                         <ul id="selectedExpatList" class="list-group list-group-flush mb-0"></ul>
                                                     </div>
                                                 </div>
-                                                <input type="hidden" name="jobseeker_ids" id="jobseekerIdsInput">
+
+                                                <!-- Hidden inputs to pass IDs and type -->
+                                                <input type="hidden" name="jobseeker_ids" id="expatIdsInput">
+                                                <input type="hidden" name="user_type" value="expat">
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -73,38 +73,39 @@
                                     </form>
                                 </div>
                             </div>
-                            
-                              <!-- JS Logic -->
+
+                            <!-- JS Logic -->
                             <script>
                                 function toggleSelectAll(source) {
                                     const checkboxes = document.querySelectorAll('.row-checkbox');
                                     checkboxes.forEach(cb => cb.checked = source.checked);
                                 }
 
-                                 const assignAdminModal = document.getElementById('assignAdminModal');
-                                    assignAdminModal.addEventListener('show.bs.modal', function () {
-                                        const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-                                        const jobseekerIds = [];
-                                        const list = document.getElementById('selectedExpatList');
-                                        list.innerHTML = '';
+                                const assignAdminModal = document.getElementById('assignAdminModal');
+                                assignAdminModal.addEventListener('show.bs.modal', function () {
+                                    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+                                    const expatIds = [];
+                                    const list = document.getElementById('selectedExpatList');
+                                    list.innerHTML = '';
 
-                                        selectedCheckboxes.forEach(cb => {
-                                            // Skip if checkbox is disabled (already assigned)
-                                            if (cb.disabled) return;
+                                    selectedCheckboxes.forEach(cb => {
+                                        // Skip if checkbox is disabled (already assigned)
+                                        if (cb.disabled) return;
 
-                                            const id = cb.getAttribute('data-id');
-                                            const name = cb.getAttribute('data-name');
-                                            jobseekerIds.push(id);
+                                        const id = cb.getAttribute('data-id');
+                                        const name = cb.getAttribute('data-name');
+                                        expatIds.push(id);
 
-                                            const li = document.createElement('li');
-                                            li.className = 'list-group-item';
-                                            li.textContent = `ID: ${id} | Name: ${name}`;
-                                            list.appendChild(li);
-                                        });
-
-                                        document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
+                                        const li = document.createElement('li');
+                                        li.className = 'list-group-item';
+                                        li.textContent = `ID: ${id} | Name: ${name}`;
+                                        list.appendChild(li);
                                     });
+
+                                    document.getElementById('expatIdsInput').value = expatIds.join(',');
+                                });
                             </script>
+
 
 
                             <!-- Table Section -->
@@ -178,7 +179,7 @@
                                                         <input type="checkbox"
                                                             {{ $expat->status === 'active' ? 'checked' : '' }}
                                                             onchange="toggleStatus(this)"
-                                                            data-jobseeker-id="{{ $expat->id }}">
+                                                            data-expat-id="{{ $expat->id }}">
                                                         <span class="slider round"></span>
                                                     </label>
                                                 </td>
@@ -202,7 +203,7 @@
                                                             <div class="modal-body">
                                                                 <textarea required id="inactive-reason-input" class="form-control" rows="3" placeholder="Enter reason here..."></textarea>
                                                                 <div class="invalid-feedback">Reason is required.</div>
-                                                                <input type="hidden" id="modal-jobseeker-id">
+                                                                <input type="hidden" id="modal-expat-id">
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary" onclick="cancelStatusChange()">Cancel</button>
@@ -218,16 +219,16 @@
                                                     let modalInstance = new bootstrap.Modal(document.getElementById('inactiveReasonModal'));
 
                                                     function toggleStatus(checkbox) {
-                                                        const jobseekerId = $(checkbox).data('jobseeker-id');
+                                                        const expatId = $(checkbox).data('expat-id');
                                                         const isChecked = checkbox.checked;
 
                                                         if (!isChecked) {
                                                             currentCheckbox = checkbox;
-                                                            $('#modal-jobseeker-id').val(jobseekerId);
+                                                            $('#modal-expat-id').val(expatId);
                                                             $('#inactive-reason-input').val('');
                                                             modalInstance.show();
                                                         } else {
-                                                            sendStatusUpdate(jobseekerId, 'active');
+                                                            sendStatusUpdate(expatId, 'active');
                                                         }
                                                     }
 
@@ -237,7 +238,7 @@
                                                     }
 
                                                     function submitInactiveReason() {
-                                                        const jobseekerId = $('#modal-jobseeker-id').val();
+                                                        const expatId = $('#modal-expat-id').val();
                                                         const reasonInput = $('#inactive-reason-input');
                                                         const reason = reasonInput.val().trim();
 
@@ -248,17 +249,17 @@
 
                                                         reasonInput.removeClass('is-invalid');
                                                         modalInstance.hide();
-                                                        sendStatusUpdate(jobseekerId, 'inactive', reason);
+                                                        sendStatusUpdate(expatId, 'inactive', reason);
                                                     }
 
 
-                                                    function sendStatusUpdate(jobseekerId, status, reason = null) {
+                                                    function sendStatusUpdate(expatId, status, reason = null) {
                                                         $.ajax({
-                                                            url: '{{ route('admin.jobseeker.changeStatus') }}',
+                                                            url: '{{ route('admin.expat.changeStatus') }}',
                                                             method: 'POST',
                                                             data: {
                                                                 _token: '{{ csrf_token() }}',
-                                                                jobseeker_id: jobseekerId,
+                                                                expat_id: expatId,
                                                                 status: status,
                                                                 reason: reason
                                                             },
@@ -277,23 +278,29 @@
                                                 </script>
 
                                                 <td>
-                                                    @if($expat->admin_status == 'approved')
-                                                        <span class="badge bg-success text-light">Admin Approved</span>
-                                                    @elseif($expat->admin_status == 'rejected')
-                                                        <span class="badge bg-danger text-light">Admin Rejected</span>
-                                                    @elseif($expat->admin_status == 'superadmin_rejected')
-                                                        <span class="badge bg-danger text-light">Super Admin Rejected</span>
-                                                    @elseif($expat->admin_status == 'superadmin_approved')
-                                                        <span class="badge bg-success text-light">Super Admin Approved</span>
-                                                    @else
-                                                         <span class="badge bg-warning text-light">Pending</span>
-                                                    @endif
+                                                    @switch($expat->admin_status)
+                                                        @case('approved')
+                                                            <span class="badge" style="background-color: #28a745; color: #fff;">Admin Approved</span>
+                                                            @break
+                                                        @case('rejected')
+                                                            <span class="badge" style="background-color: #dc3545; color: #fff;">Admin Rejected</span>
+                                                            @break
+                                                        @case('superadmin_approved')
+                                                            <span class="badge" style="background-color: #007bff; color: #fff;">Super Admin Approved</span>
+                                                            @break
+                                                        @case('superadmin_rejected')
+                                                            <span class="badge" style="background-color: #ff4d4d; color: #fff;">Super Admin Rejected</span>
+                                                            @break
+                                                        @default
+                                                            <span class="badge" style="background-color: #ffc107; color: #000;">Pending</span>
+                                                    @endswitch
                                                 </td>
+
 
 
                                                 <td>{{ \Carbon\Carbon::parse($expat->created_at)->format('d/m/Y') }}</td>
                                                 <td>
-                                                    <a href="{{ route('admin.jobseeker.view', $expat->id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                                                    <a href="{{ route('admin.expat.view', $expat->id) }}" class="btn btn-sm btn-primary">View Profile</a>
                                                     {{-- <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $expat->id }})">Delete</button> --}}
                                                 </td>
                                             </tr>

@@ -32,8 +32,6 @@
                        <a href="{{ route('admin.profile') }}">
                             <i class="fa fa-user"></i> My Profile
                         </a>
-
-
                     </li>
                     <li><a href="{{ route('admin.settings') }}"><i class="fa fa-gear"></i>Settings</a></li>
                     <li class="divider"></li>
@@ -69,7 +67,7 @@
                 @php
                     $menuItems = [
                         'Jobseekers' => ['route' => 'admin.jobseekers', 'icon' => 'fa-users'],
-                        'Expat' => ['route' => 'admin.expat', 'icon' => 'fa-globe'],
+                        'Expats' => ['route' => 'admin.expat', 'icon' => 'fa-globe'],
                         'Recruiters' => ['route' => 'admin.recruiters', 'icon' => 'fa-user-tie'],
                         'Trainers' => ['route' => 'admin.trainers', 'icon' => 'fa-chalkboard-teacher'],
                         'Assessors' => ['route' => 'admin.assessors', 'icon' => 'fa-check-circle'],

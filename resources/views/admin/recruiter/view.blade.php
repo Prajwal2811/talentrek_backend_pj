@@ -34,7 +34,9 @@
                                     </div>
                                     <div>
                                         @php
-                                            $status = App\Models\Recruiters::with('company')->where('id', $recruiter->id)->first()->admin_status;
+                                            $recruiterData = App\Models\Recruiters::where('id', $recruiter->id)->first();
+                                            $status = $recruiterData->admin_status;
+                                            // print_r($status);
                                             $userRole = auth()->user()->role;
                                         @endphp
 
@@ -160,14 +162,14 @@
                                         <!-- jQuery + AJAX -->
                                         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
                                         <script>
-                                            function updateStatus(recruiterCompanyId, status, btn) {
+                                            function updateStatus(recruiterId, status, btn) {
                                                 const originalText = btn.innerHTML;
                                                 btn.disabled = true;
                                                 btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Processing...`;
 
                                                 $.post('{{ route("admin.recruiter.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    company_id: recruiterCompanyId,
+                                                    recruiter_id: recruiterId,
                                                     status: status
                                                 }).done(() => {
                                                     $('.modal').modal('hide');
@@ -179,7 +181,7 @@
                                                 });
                                             }
 
-                                            function submitRejection(recruiterCompanyId, status, reasonId, btn) {
+                                            function submitRejection(recruiterId, status, reasonId, btn) {
                                                 const reason = document.getElementById(reasonId).value.trim();
                                                 const errorDiv = document.getElementById(reasonId + "Error");
 
@@ -197,7 +199,7 @@
 
                                                 $.post('{{ route("admin.recruiter.updateStatus") }}', {
                                                     _token: '{{ csrf_token() }}',
-                                                    company_id: recruiterCompanyId,
+                                                    recruiter_id: recruiterId,
                                                     status: status,
                                                     reason: reason
                                                 }).done(() => {
@@ -242,7 +244,7 @@
                                             </div>
                                             <div class="col-md-12 form-group">
                                                 <label>Phone Number</label>
-                                                <input readonly type="text" class="form-control" value="{{ $recruiter->phone }}">
+                                                <input readonly type="text" class="form-control" value="{{ $recruiter->phone_code. "-" .$recruiter->phone_number }}">
                                             </div>
                                         </div>
                                     </form>
@@ -381,7 +383,7 @@
                                                                         <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                         <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                     </div>
-                                                                @elseif($info->doc_type == 'company_profile_picture')
+                                                                @elseif($info->doc_type == 'company_profile')
                                                                     <div class="col-md-12 form-group d-flex align-items-center">
                                                                         <label class="w-100">Uploaded Company Profile Picture</label>
                                                                         <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">

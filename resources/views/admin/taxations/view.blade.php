@@ -37,6 +37,8 @@
                                 $rateValue = $taxData->assessorTax;
                             } elseif ($type === 'Coach') {
                                 $rateValue = $taxData->coachTax;
+                            } elseif ($type === 'Subscription') {
+                                $rateValue = $taxData->subscriptionTax ;
                             }
                         @endphp
 

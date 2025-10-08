@@ -1288,7 +1288,7 @@ $skills = $user->skills->first();
                             <div x-data="{ tab: 'cart' }">
                                 <div x-show="tab === 'cart'" x-cloak>
                                     <h2 class="text-xl font-semibold mb-4">My Cart</h2>
-                                    <form action="{{ route('jobseeker.cart-purchase-course') }}" method="POST" enctype="multipart/form-data">
+                                    <form action="" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                             <!-- Left: Course List -->

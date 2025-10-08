@@ -80,7 +80,7 @@ return [
         ],
         'expat' => [
             'driver' => 'session',
-            'provider' => 'jobseekers',
+            'provider' => 'expats',
         ],
     ],
 

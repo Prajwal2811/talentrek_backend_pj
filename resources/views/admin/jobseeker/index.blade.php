@@ -24,6 +24,7 @@
                         <div class="card">
                             <div class="header d-flex justify-content-between align-items-center mb-3">
                                 <h2>Jobseeker Management</h2>
+
                                 @php
                                     $admin = Auth::guard('admin')->user();
                                 @endphp
@@ -57,13 +58,17 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                               <div class="mb-3">
+
+                                                <div class="mb-3">
                                                     <label class="form-label">Selected Jobseekers</label>
                                                     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ced4da; border-radius: .25rem;">
                                                         <ul id="selectedJobseekerList" class="list-group list-group-flush mb-0"></ul>
                                                     </div>
                                                 </div>
+
+                                                <!-- Hidden input to pass selected Jobseeker IDs -->
                                                 <input type="hidden" name="jobseeker_ids" id="jobseekerIdsInput">
+                                                <input type="hidden" name="user_type" value="jobseeker">
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -73,38 +78,38 @@
                                     </form>
                                 </div>
                             </div>
-                            
-                              <!-- JS Logic -->
+
+                            <!-- JS Logic -->
                             <script>
                                 function toggleSelectAll(source) {
                                     const checkboxes = document.querySelectorAll('.row-checkbox');
                                     checkboxes.forEach(cb => cb.checked = source.checked);
                                 }
 
-                                 const assignAdminModal = document.getElementById('assignAdminModal');
-                                    assignAdminModal.addEventListener('show.bs.modal', function () {
-                                        const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-                                        const jobseekerIds = [];
-                                        const list = document.getElementById('selectedJobseekerList');
-                                        list.innerHTML = '';
+                                const assignAdminModal = document.getElementById('assignAdminModal');
+                                assignAdminModal.addEventListener('show.bs.modal', function () {
+                                    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+                                    const jobseekerIds = [];
+                                    const list = document.getElementById('selectedJobseekerList');
+                                    list.innerHTML = '';
 
-                                        selectedCheckboxes.forEach(cb => {
-                                            // Skip if checkbox is disabled (already assigned)
-                                            if (cb.disabled) return;
+                                    selectedCheckboxes.forEach(cb => {
+                                        if (cb.disabled) return; // skip if already assigned
 
-                                            const id = cb.getAttribute('data-id');
-                                            const name = cb.getAttribute('data-name');
-                                            jobseekerIds.push(id);
+                                        const id = cb.getAttribute('data-id');
+                                        const name = cb.getAttribute('data-name');
+                                        jobseekerIds.push(id);
 
-                                            const li = document.createElement('li');
-                                            li.className = 'list-group-item';
-                                            li.textContent = `ID: ${id} | Name: ${name}`;
-                                            list.appendChild(li);
-                                        });
-
-                                        document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
+                                        const li = document.createElement('li');
+                                        li.className = 'list-group-item';
+                                        li.textContent = `ID: ${id} | Name: ${name}`;
+                                        list.appendChild(li);
                                     });
+
+                                    document.getElementById('jobseekerIdsInput').value = jobseekerIds.join(',');
+                                });
                             </script>
+
 
 
                             <!-- Table Section -->
@@ -277,18 +282,24 @@
                                                 </script>
 
                                                 <td>
-                                                    @if($jobseeker->admin_status == 'approved')
-                                                        <span class="badge bg-success text-light">Admin Approved</span>
-                                                    @elseif($jobseeker->admin_status == 'rejected')
-                                                        <span class="badge bg-danger text-light">Admin Rejected</span>
-                                                    @elseif($jobseeker->admin_status == 'superadmin_rejected')
-                                                        <span class="badge bg-danger text-light">Super Admin Rejected</span>
-                                                    @elseif($jobseeker->admin_status == 'superadmin_approved')
-                                                        <span class="badge bg-success text-light">Super Admin Approved</span>
-                                                    @else
-                                                         <span class="badge bg-warning text-light">Pending</span>
-                                                    @endif
+                                                    @switch($jobseeker->admin_status)
+                                                        @case('approved')
+                                                            <span class="badge" style="background-color: #28a745; color: #fff;">Admin Approved</span>
+                                                            @break
+                                                        @case('rejected')
+                                                            <span class="badge" style="background-color: #dc3545; color: #fff;">Admin Rejected</span>
+                                                            @break
+                                                        @case('superadmin_approved')
+                                                            <span class="badge" style="background-color: #007bff; color: #fff;">Super Admin Approved</span>
+                                                            @break
+                                                        @case('superadmin_rejected')
+                                                            <span class="badge" style="background-color: #ff4d4d; color: #fff;">Super Admin Rejected</span>
+                                                            @break
+                                                        @default
+                                                            <span class="badge" style="background-color: #ffc107; color: #000;">Pending</span>
+                                                    @endswitch
                                                 </td>
+
 
 
                                                 <td>{{ \Carbon\Carbon::parse($jobseeker->created_at)->format('d/m/Y') }}</td>
