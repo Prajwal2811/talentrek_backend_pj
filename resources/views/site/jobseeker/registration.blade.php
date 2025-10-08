@@ -533,7 +533,7 @@
                                         <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="skills" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. AWS Certified, Python, Project Management"
-                                            value="{{ old('skills') }}" />
+                                            value="{{ old('skills') }}" required/>
                                         @error('skills')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -559,7 +559,7 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. Software Engineer, Data Analyst"
-                                            value="{{ old('job_category') }}" />
+                                            value="{{ old('job_category') }}" required/>
                                         @error('job_category')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -568,7 +568,7 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Website Link <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
-                                            value="{{ old('website_link') }}" />
+                                            value="{{ old('website_link') }}" required/>
                                         @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -577,7 +577,7 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link<span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" mt-1
                                             placeholder="e.g. https://portfolio.example.com"
-                                            value="{{ old('portfolio_link') }}" />
+                                            value="{{ old('portfolio_link') }}" required/>
                                         @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -621,34 +621,16 @@
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
 
-                                        <!-- Resume filename display -->
-                                        <p id="resumeFilename" class="text-green-600 text-sm mt-1"></p>
+                                        <!-- Resume -->
+                                        <p id="resumeError" class="text-red-600 text-sm mt-1 min-h-[1.25rem]">
+                                            @error('resume') {{ $message }} @enderror
+                                        </p>
+
 
                                         @error('resume')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <!-- <script>
-                                        const resumeInput = document.getElementById('resumeFile');
-                                        const resumeFilenameDisplay = document.getElementById('resumeFilename');
-
-                                        resumeInput.addEventListener('change', function () {
-                                            if (this.files.length > 0) {
-                                                const fileName = this.files[0].name;
-                                                resumeFilenameDisplay.textContent = "Selected: " + fileName;
-                                                sessionStorage.setItem('resumeFileName', fileName); // store temporarily
-                                            }
-                                        });
-
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            const savedFileName = sessionStorage.getItem('resumeFileName');
-                                            if (savedFileName) {
-                                                resumeFilenameDisplay.textContent = "Previously selected: " + savedFileName;
-                                            }
-                                        });
-
-                                    </script> -->
-
 
 
                                     <!-- Upload Profile Picture -->
@@ -660,7 +642,10 @@
                                             <input type="file" id="profilePicture" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-
+                                        <!-- Profile Picture -->
+                                       <p id="profilePictureError" class="text-red-600 text-sm mt-1 min-h-[1.25rem]">
+                                            @error('profile_picture') {{ $message }} @enderror
+                                        </p>`
                                         @error('profile_picture')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -969,6 +954,8 @@
 
 
 
+
+
 <script>
     $(document).ready(function () {
         const form = $('#multiStepForm');
@@ -995,6 +982,12 @@
                 resume: "required",
                 profile_picture: "required",
                 training_certificate: "required",
+                phone_number: {
+                    required: true,
+                    digits: true,
+                    minlength: 9,
+                    maxlength: 9
+                }
             },
             messages: {
                 name: "Full name is required",
@@ -1013,6 +1006,21 @@
                 resume: "Please upload your resume",
                 profile_picture: "Please upload a profile picture",
                 training_certificate: "Please upload a training certificate",
+                phone_number: {
+                    required: "Phone number is required",
+                    digits: "Only numbers are allowed",
+                    minlength: "Phone number must be exactly 9 digits",
+                    maxlength: "Phone number must be exactly 9 digits"
+                }
+            },
+            errorPlacement: function (error, element) {
+                if (element.attr("type") === "file") {
+                    error.insertAfter(element.closest('div'));
+                } else if (element.attr("name") === "phone_number") {
+                    error.insertAfter(element.closest('.flex'));
+                } else {
+                    error.insertAfter(element);
+                }
             }
         });
 
@@ -1182,7 +1190,6 @@
         };
     });
 </script>
-
 
 
 
@@ -1424,3 +1431,13 @@
 <script>
   feather.replace(); 
 </script>
+<style>
+    input[type="file"] {
+        display: block;
+    }
+    label.error {
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+</style>

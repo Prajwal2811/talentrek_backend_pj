@@ -218,8 +218,8 @@
                                     <tr>
                                         <th class="px-4 py-2 border">#</th>
                                         <th class="px-4 py-2 border">{{ langLabel('batch_no') }}</th>
-                                        <th class="px-4 py-2 border">{{ langLabel('start_timing') }}</th>
-                                        <th class="px-4 py-2 border">{{ langLabel('end_timing') }}</th>
+                                        <th class="px-4 py-2 border">{{ langLabel('start_date') }}</th>
+                                        <th class="px-4 py-2 border">{{ langLabel('end_date') }}</th>
                                         <th class="px-4 py-2 border">{{ langLabel('time') }}</th>
                                         <th class="px-4 py-2 border">{{ langLabel('duration') }}</th>
                                         <th class="px-4 py-2 border">{{ langLabel('days') }}</th>
