@@ -144,7 +144,7 @@
 
                 <section class="mb-6 tab-content" data-tab-content="reviews">
                     <h2 class="text-lg font-semibold mb-2">{{ langLabel('reviews') }}</h2>
-                    <p class="text-sm text-gray-600">{{ langLabel('user_reviews') }}</p>
+                    <p class="text-sm text-gray-600">{{ langLabel('user_reviews_appear_here') }}</p>
                 </section>
 
 
@@ -491,12 +491,68 @@
                         @php
 
                             use Carbon\Carbon;
-
-                            use App\Models\JobseekerTrainingMaterialPurchase;
-
                             use App\Models\TrainingBatch;
-
+                            use App\Models\JobseekerTrainingMaterialPurchase;
                             use App\Models\JobseekerAssessmentStatus;
+
+                            $existOrNot = false;
+                            $enableJoin = false;
+                            $showAssessment = false;
+                            $batch = null;
+                            $assessmentStatus = null;
+                            $now = Carbon::now();
+
+                            if(auth('jobseeker')->check()){
+                                $jobseekerId = auth('jobseeker')->id();
+
+                                // Check if the course is purchased
+                                $purchase = JobseekerTrainingMaterialPurchase::where('jobseeker_id', $jobseekerId)
+                                    ->where('material_id', $material->id)
+                                    ->first();
+
+                                if($purchase){
+                                    $existOrNot = true;
+
+                                    if($purchase->batch_id){
+                                        $batch = TrainingBatch::find($purchase->batch_id);
+
+                                        if($batch){
+                                            $batchDays = json_decode($batch->days, true) ?? [];
+                                            $dayName = $now->format('l');
+
+                                            $startDate = Carbon::parse($batch->start_date)->startOfDay();
+                                            $endDate = $batch->end_date ? Carbon::parse($batch->end_date)->endOfDay() : $startDate;
+
+                                            $startTime = Carbon::parse($batch->start_timing)->subMinutes(10);
+                                            $endTime = Carbon::parse($batch->end_timing);
+
+                                            if($endTime->lessThan($startTime)){
+                                                $endTime->addDay();
+                                            }
+
+                                            $startDateTime = Carbon::parse($now->format('Y-m-d').' '.$startTime->format('H:i:s'));
+                                            $endDateTime = Carbon::parse($now->format('Y-m-d').' '.$endTime->format('H:i:s'));
+
+                                            if($now->between($startDate, $endDate) && in_array($dayName, $batchDays)){
+                                                if($now->between($startDateTime, $endDateTime)){
+                                                    $enableJoin = true;
+                                                }
+                                            }
+
+                                            $isPastBatch = $now->greaterThan($endDate);
+                                            $isEndDayAndTimeOver = $now->isSameDay($endDate) && $now->greaterThan($endDateTime);
+                                            $showAssessment = $isPastBatch || $isEndDayAndTimeOver;
+                                        }
+                                    }
+
+                                    // Fetch assessment status
+                                    $assessmentStatus = JobseekerAssessmentStatus::where('jobseeker_id', $jobseekerId)
+                                        ->where('material_id', $material->id)
+                                        ->latest()
+                                        ->first();
+                                }
+                            }
+                            
 
 
 

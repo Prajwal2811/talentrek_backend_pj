@@ -59,11 +59,11 @@ class ChatController extends Controller
       
     public function sendMessage(Request $request)
     {
-        //$sender = $this->getSender();
+        $sender = $this->getSender();
 
         $data = [
             'sender_id'    => $request->sender_id,
-            'sender_type'  => $request->sender_type,            ,
+            'sender_type'  => $request->sender_type,            
             'receiver_id'  => $request->receiver_id,
             'receiver_type'=> $request->receiver_type,
             'type'         => 1, // default text
@@ -130,7 +130,7 @@ class ChatController extends Controller
     // ✅ Get chat messages between any 2 parties
     public function getMessages(Request $request)
     {
-        //$sender = $this->getSender();
+        $sender = $this->getSender();
 
         if (!$request->sender_id || !$request->receiver_id || !$request->receiver_type) {
             return response()->json(['error' => 'Invalid data'], 422);

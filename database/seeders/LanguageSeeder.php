@@ -609,6 +609,11 @@ class LanguageSeeder extends Seeder
             ['code' => 'skip', 'english' => 'Skip', 'arabic' => 'تخطي'],
             ['code' => 'sign_in_as_recruiter', 'english' => 'Sign in as Recruiter', 'arabic' => 'تسجيل الدخول كمسؤول توظيف'],
             ['code' => 'sign_in_as_expat', 'english' => 'Sign in as Expat', 'arabic' => 'تسجيل الدخول كمغترب'],
+            ['code' => 'select_gender', 'english' => 'Select gender', 'arabic' => 'اختر الجنس'],
+            ['code' => 'phone_no', 'english' => 'Phone Number', 'arabic' => 'رقم الهاتف'],
+            ['code' => 'enter_course_sub_title', 'english' => 'Enter Course Sub Title', 'arabic' => 'أدخل العنوان الفرعي للدورة'],
+            ['code' => 'recorded_courses', 'english' => 'Recorded Courses', 'arabic' => 'الدورات المسجلة'],
+
 
         ];
 
