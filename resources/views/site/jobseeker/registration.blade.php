@@ -86,7 +86,9 @@
                             <!-- Steps Content -->
                             <form class="space-y-6" id="multiStepForm" action="{{ route('jobseeker.registration.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
-                                <!-- Step 1: Personal Info -->
+                               
+                               
+  <!-- Step 1: Personal Info -->
                                 <div id="step-1" class="step">
 
                                     <div>
@@ -332,91 +334,23 @@
                                     </div>
                                 </div>
 
-
+                             
                                 <!-- Step 3: Work Experience -->
-                                <!-- <div id="step-3" class="step hidden" x-data="workExperience()">
-
+                                <div id="step-3" class="step hidden">
                                     <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                        <template x-for="(work, index) in workList" :key="index">
-                                            <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
-
-                                                {{-- Job Role --}}
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. Software Engineer"
-                                                        x-model="work.job_role">
-                                                </div>
-
-                                                {{-- Organization --}}
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2"
-                                                        placeholder="e.g. ABC Corp"
-                                                        x-model="work.organization">
-                                                </div>
-
-                                                {{-- Start Date --}}
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
-                                                        x-model="work.start" max="{{ date('Y-m-d') }}">
-                                                </div>
-
-                                                {{-- End Date & Checkbox --}}
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
-                                                    <input type="date" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
-                                                        x-model="work.end"
-                                                        :disabled="work.working"
-                                                        :readonly="work.working"
-                                                        max="{{ date('Y-m-d') }}">
-
-                                                    <label class="inline-flex items-center mt-2 space-x-2">
-                                                        <input type="checkbox" class="currently-working-checkbox"
-                                                            x-model="work.working"
-                                                            @change="handleWorkingChange(index)">
-                                                        <span>I currently work here</span>
-                                                    </label>
-                                                </div>
-
-                                                {{-- Remove Button --}}
-                                                <button type="button"
-                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                        @click="removeWork(index)"
-                                                        x-show="workList.length > 1">&times;</button>
-
-                                            </div>
-                                        </template>
-                                    </div>
-
-                                    {{-- Add Work Button --}}
-                                    <div class="col-span-2">
-                                        <button type="button" class="text-green-600 text-sm mt-2 mb-2" @click="addWork()">Add work experience +</button>
-                                    </div>
-
-                                    {{-- Navigation --}}
-                                    <div class="col-span-2 flex justify-between mt-4">
-                                        <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">Back</button>
-                                        <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
-                                    </div>
-
-                                </div> -->
-                                <!-- Step 3: Work Experience -->
-                                    <div id="step-3" class="step hidden">
                                         @php
-                                            $workData = old('job_role') ?? [null];
+                                            $workCount = count(old('job_role', [null]));
                                         @endphp
 
-                                        <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                            @foreach($workData as $i => $value)
+                                        @for ($i = 0; $i < $workCount; $i++)
                                             <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
-                                                {{-- Job Role --}}
+
+                                                {{-- Job Title --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('job_role') }} <span style="color: red; font-size: 17px;">*</span>
+                                                        Job Title <span style="color: red;">*</span>
                                                     </label>
-                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2" 
+                                                    <input type="text" name="job_role[]" class="w-full border border-gray-300 rounded-md p-2"
                                                         value="{{ old("job_role.$i") }}" placeholder="e.g. Software Engineer">
                                                     @error("job_role.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -426,9 +360,9 @@
                                                 {{-- Organization --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('organization') }} <span style="color: red; font-size: 17px;">*</span>
+                                                        Organization <span style="color: red;">*</span>
                                                     </label>
-                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2" 
+                                                    <input type="text" name="organization[]" class="w-full border border-gray-300 rounded-md p-2"
                                                         value="{{ old("organization.$i") }}" placeholder="e.g. ABC Corp">
                                                     @error("organization.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -438,48 +372,52 @@
                                                 {{-- Start Date --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('started_from') }} <span style="color: red; font-size: 17px;">*</span>
+                                                        Started From <span style="color: red;">*</span>
                                                     </label>
-                                                    <input type="date" name="starts_from[]" class="w-full border rounded-md p-2" 
-                                                        value="{{ old("starts_from.$i") }}">
+                                                    <input type="date" name="starts_from[]" class="w-full border border-gray-300 rounded-md p-2"
+                                                        value="{{ old("starts_from.$i") }}" max="{{ date('Y-m-d') }}">
                                                     @error("starts_from.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
                                                 </div>
 
-                                                {{-- End Date & Checkbox --}}
+                                                {{-- End Date + Checkboxes --}}
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('to') }} <span style="color: red; font-size: 17px;">*</span>
+                                                        To <span style="color: red;">*</span>
                                                     </label>
-                                                    <input type="date" name="end_to[]" class="w-full border rounded-md p-2" 
-                                                        value="{{ old("end_to.$i") }}" {{ old("currently_working.$i") ? 'readonly disabled' : '' }}>
-                                                    
-                                                    <label class="inline-flex items-center mt-2 space-x-2">
-                                                        <input type="checkbox" class="currently-working-checkbox" 
-                                                            name="currently_working[]" value="1" {{ old("currently_working.$i") ? 'checked' : '' }}>
-                                                        <span>{{ langLabel('currently_work_here') }}</span>
-                                                    </label>
+                                                    <input type="date" name="end_to[]" class="w-full border border-gray-300 rounded-md p-2"
+                                                        value="{{ old("end_to.$i") }}" max="{{ date('Y-m-d') }}">
+
+                                                    <div class="mt-2 space-y-1">
+                                                        <label class="inline-flex items-center space-x-2">
+                                                            <input type="checkbox" name="currently_working[{{ $i }}]" value="1" class="currently-working-checkbox">
+                                                            <span>I currently work here</span>
+                                                        </label>
+                                                    </div>
                                                 </div>
 
                                                 {{-- Remove Button --}}
-                                                <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                        style="{{ $i == 0 ? 'display:none;' : 'display:block;' }}">×</button>
+                                                <button type="button"
+                                                    class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                    style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
                                             </div>
-                                            @endforeach
-                                        </div>
-
-                                        <div class="col-span-2">
-                                            <button type="button" id="add-work" class="text-green-600 text-sm mt-3">
-                                                + {{ langLabel('add_work_experience') }}
-                                            </button>
-                                        </div>
-
-                                        <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
-                                            <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
-                                        </div>
+                                        @endfor
                                     </div>
+
+                                    {{-- Add Work Button --}}
+                                    <div class="col-span-2">
+                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
+                                    </div>
+
+                                    {{-- Navigation --}}
+                                    <div class="col-span-2 flex justify-between mt-4">
+                                        <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                    </div>
+                                </div>
+
+
                                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
                                 <script>
                                 function workExperience() {
@@ -595,6 +533,9 @@
 
                                 </div>
 
+                                @php
+                                    $resume = App\Models\Resume::first();
+                                @endphp
                                 <!-- Step 5: Additional Information -->
                                 <div id="step-5" class="step hidden">
 
@@ -710,233 +651,6 @@
 
         @include('site.jobseeker.componants.footer')
 
-<!-- Multiple educations  -->
-<!-- <script>
-    // Function to handle education add/remove
-    const educationContainer = document.getElementById('education-container');
-    const addEducationBtn = document.getElementById('add-education');
-
-    addEducationBtn.addEventListener('click', () => {
-        const firstEntry = educationContainer.querySelector('.education-entry');
-        const clone = firstEntry.cloneNode(true);
-
-        clone.querySelectorAll('input').forEach(input => input.value = '');
-        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-
-        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-
-        clone.querySelector('.remove-education').style.display = 'block';
-
-        educationContainer.appendChild(clone);
-    });
-
-    educationContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-education')) {
-            const entry = e.target.closest('.education-entry');
-            entry.remove();
-        }
-    });
-</script> -->     
-<!-- <script>
-    const educationContainer = document.getElementById('education-container');
-    const addEducationBtn = document.getElementById('add-education');
-
-    addEducationBtn.addEventListener('click', () => {
-        const firstEntry = educationContainer.querySelector('.education-entry');
-        const clone = firstEntry.cloneNode(true);
-
-        // Clear inputs and selects
-        clone.querySelectorAll('input').forEach(input => input.value = '');
-        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-
-        // Show remove button
-        clone.querySelector('.remove-education').style.display = 'block';
-
-        // Append clone
-        educationContainer.appendChild(clone);
-
-        // Wait a moment and apply validation rules to new inputs
-        setTimeout(() => {
-            const container = $(clone);
-
-            container.find('select[name="high_education[]"]').rules('add', {
-                required: true,
-                messages: { required: "Please select qualification" }
-            });
-            container.find('select[name="field_of_study[]"]').rules('add', {
-                required: true,
-                messages: { required: "Please select field of study" }
-            });
-            container.find('input[name="institution[]"]').rules('add', {
-                required: true,
-                messages: { required: "Institution name is required" }
-            });
-            container.find('select[name="graduate_year[]"]').rules('add', {
-                required: true,
-                messages: { required: "Graduation year is required" }
-            });
-        }, 100); // ensure DOM render before applying rules
-    });
-
-    educationContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-education')) {
-            const entry = e.target.closest('.education-entry');
-            entry.remove();
-        }
-    });
-</script> -->
-<!-- <script>
-    const educationContainer = document.getElementById('education-container');
-
-    function updateQualificationOptions() {
-        // Get all selected values
-        const selectedValues = Array.from(educationContainer.querySelectorAll('select[name="high_education[]"]'))
-            .map(select => select.value)
-            .filter(val => val !== '');
-
-        // Get all qualification selects
-        const allSelects = educationContainer.querySelectorAll('select[name="high_education[]"]');
-
-        allSelects.forEach(select => {
-            const currentValue = select.value;
-
-            // Show all options first
-            Array.from(select.options).forEach(option => {
-                if (option.value !== "") {
-                    option.style.display = "block";
-                }
-            });
-
-            // Now hide already selected values in other selects
-            selectedValues.forEach(value => {
-                if (value !== currentValue) {
-                    const optionToHide = select.querySelector(`option[value="${value}"]`);
-                    if (optionToHide) optionToHide.style.display = "none";
-                }
-            });
-        });
-    }
-
-    // Initial call
-    updateQualificationOptions();
-
-    // Add change event listener to update dropdowns when any value is selected
-    educationContainer.addEventListener('change', (e) => {
-        if (e.target.name === "high_education[]") {
-            updateQualificationOptions();
-        }
-    });
-
-    // When you add new education entry, make sure to call updateQualificationOptions after adding it
-    const addEducationBtn = document.getElementById('add-education');
-    addEducationBtn.addEventListener('click', () => {
-        const firstEntry = educationContainer.querySelector('.education-entry');
-        const clone = firstEntry.cloneNode(true);
-
-        // Clear values
-        clone.querySelectorAll('input').forEach(input => input.value = '');
-        clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-
-        // Show remove button
-        clone.querySelector('.remove-education').style.display = 'block';
-
-        // Append clone
-        educationContainer.appendChild(clone);
-
-        // Apply validation rules if needed
-        setTimeout(() => {
-            const container = $(clone);
-            container.find('select[name="high_education[]"]').rules('add', {
-                required: true,
-                messages: { required: "Please select qualification" }
-            });
-            container.find('select[name="field_of_study[]"]').rules('add', {
-                required: true,
-                messages: { required: "Please select field of study" }
-            });
-            container.find('input[name="institution[]"]').rules('add', {
-                required: true,
-                messages: { required: "Institution name is required" }
-            });
-            container.find('select[name="graduate_year[]"]').rules('add', {
-                required: true,
-                messages: { required: "Graduation year is required" }
-            });
-
-            updateQualificationOptions(); // <=== Important
-        }, 100);
-    });
-
-    // Remove entry
-    educationContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-education')) {
-            const entry = e.target.closest('.education-entry');
-            entry.remove();
-            updateQualificationOptions(); // <=== Important
-        }
-    });
-</script> -->
-<!-- Multiple exprience  -->    
-<!-- <script>
-    const workContainer = document.getElementById('work-container');
-    const addWorkBtn = document.getElementById('add-work');
-
-    addWorkBtn.addEventListener('click', () => {
-        const firstEntry = workContainer.querySelector('.work-entry');
-        const clone = firstEntry.cloneNode(true);
-
-        // Reset fields
-        clone.querySelectorAll('input').forEach(input => {
-            if (input.type === 'checkbox') {
-                input.checked = false;
-                input.disabled = false;
-            } else {
-                input.value = '';
-                input.readOnly = false;
-                input.disabled = false;
-            }
-        });
-
-        // Remove old validation errors
-        clone.querySelectorAll('p.text-red-600').forEach(error => error.remove());
-        clone.querySelector('.remove-work').style.display = 'block';
-
-        workContainer.appendChild(clone);
-        Alpine.initTree(clone);
-
-        // Add validation rules
-        setTimeout(() => {
-            const container = $(clone);
-
-            container.find('input[name="job_title[]"]').rules('add', {
-                required: true,
-                messages: { required: "Job title is required" }
-            });
-            container.find('input[name="company_name[]"]').rules('add', {
-                required: true,
-                messages: { required: "Company name is required" }
-            });
-            container.find('input[name="start_date[]"]').rules('add', {
-                required: true,
-                messages: { required: "Start date is required" }
-            });
-            container.find('input[name="end_date[]"]').rules('add', {
-                required: true,
-                messages: { required: "End date is required" }
-            });
-        }, 100);
-    });
-
-    workContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-work')) {
-            const entry = e.target.closest('.work-entry');
-            entry.remove();
-        }
-    });
-
-</script> -->
 <!-- multiple Tabs - steps   -->
 <script>
     function showStep(step) {
@@ -948,8 +662,6 @@
         document.getElementById(`step-${step}-circle`).classList.add('bg-blue-600', 'text-white');
     }
 </script>
-
-
 
 
 
@@ -1079,6 +791,7 @@
 
         // === 5. Add Work dynamically ===
         let workIndex = $('#work-container .work-entry').length - 1;
+
         $('#add-work').click(function () {
             workIndex++;
             const newBlock = $(`
@@ -1093,15 +806,17 @@
                     </div>
                     <div>
                         <label>Started From <span style="color: red;">*</span></label>
-                        <input type="date" name="starts_from[${workIndex}]" class="w-full border rounded-md p-2">
+                        <input type="date" name="starts_from[${workIndex}]" class="w-full border rounded-md p-2" max="${new Date().toISOString().split('T')[0]}">
                     </div>
                     <div>
                         <label>To <span style="color: red;">*</span></label>
-                        <input type="date" name="end_to[${workIndex}]" class="w-full border rounded-md p-2">
-                        <label class="inline-flex items-center mt-2 space-x-2">
-                            <input type="checkbox" class="currently-working-checkbox" name="currently_working[${workIndex}]" value="1">
-                            <span>Currently working here</span>
-                        </label>
+                        <input type="date" name="end_to[${workIndex}]" class="w-full border rounded-md p-2" max="${new Date().toISOString().split('T')[0]}">
+                        <div class="mt-2 space-y-1">
+                            <label class="inline-flex items-center space-x-2">
+                                <input type="checkbox" class="currently-working-checkbox" name="currently_working[${workIndex}]" value="1">
+                                <span>I currently work here</span>
+                            </label>
+                        </div>
                     </div>
                     <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold">&times;</button>
                 </div>
@@ -1111,10 +826,10 @@
             applyWorkValidation(newBlock);
         });
 
-        // === 6. Remove Work block ===
         $('#work-container').on('click', '.remove-work', function () {
             $(this).closest('.work-entry').remove();
         });
+
 
         // === 7. Apply validation + checkbox logic for Work block ===
         function applyWorkValidation($block) {
@@ -1128,17 +843,19 @@
             $org.rules('add', { required: true, messages: { required: "Company name is required" } });
             $start.rules('add', { required: true, messages: { required: "Start date is required" } });
 
-            if (!$checkbox.is(':checked')) {
-                $end.rules('add', { required: true, messages: { required: "End date is required" } });
-            }
+            // Default rule
+            $end.rules('add', { required: true, messages: { required: "End date is required" } });
 
-            // Checkbox toggle: add/remove validation + disable/enable
+            // Checkbox change event
             $checkbox.change(function () {
                 if ($(this).is(':checked')) {
+                    // Disable + clear + remove validation
                     $end.prop('disabled', true).prop('readonly', true).val('');
                     $end.rules('remove', 'required');
+                    $end.valid(); // 🔥 force revalidation to remove old error
                     $end.siblings('label.error').remove();
                 } else {
+                    // Enable + add validation
                     $end.prop('disabled', false).prop('readonly', false);
                     $end.rules('add', {
                         required: true,
@@ -1147,22 +864,17 @@
                 }
             });
 
-            // Input change: re-evaluate validation
+            // When user selects an end date manually
             $end.on('input change', function () {
-                if ($(this).val() || $checkbox.is(':checked')) {
-                    $(this).rules('remove', 'required');
-                    $(this).siblings('label.error').remove();
-                } else {
-                    $(this).rules('add', {
-                        required: true,
-                        messages: { required: "End date is required" }
-                    });
+                if ($(this).val()) {
+                    $checkbox.prop('checked', false).trigger('change'); // 🔥 uncheck if date chosen
                 }
             });
 
-            // Trigger checkbox logic initially
+            // Trigger initial state check
             $checkbox.trigger('change');
         }
+
 
         // === 8. Step navigation ===
         window.showStep = function (step, validate = true) {
@@ -1190,6 +902,7 @@
         };
     });
 </script>
+
 
 
 
@@ -1303,128 +1016,7 @@
 
 <!-- Step 2: jQuery Validation Plugin -->
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-<!-- all step field click on next button-->
-<!-- <script>
-    $(document).ready(function () {
-        const form = $('#multiStepForm');
 
-        form.validate({
-            ignore: [],
-            rules: {
-                // Step 1 - Personal Info
-                name: "required",
-                gender: "required",
-                dob: "required",
-                national_id: "required",
-                address: "required",
-                city: "required",
-                state: "required",
-                country: "required",
-                pin_code: "required",
-
-                // Step 2 - Education
-                'high_education[]': { required: true },
-                'field_of_study[]': { required: true },
-                'institution[]': { required: true },
-                'graduate_year[]': { required: true },
-
-                // Step 3 - Work Experience
-                'job_role[]': { required: true },
-                'organization[]': { required: true },
-                'starts_from[]': { required: true },
-                'end_to[]': {
-                    required: function (element) {
-                        const parent = $(element).closest('.work-entry');
-                        const isWorking = parent.find('.currently-working-checkbox').prop('checked');
-                        return !isWorking;
-                    }
-                },
-
-                // Step 4 - Skills & Interest
-                skills: "required",
-                interest: "required",
-                job_category: "required",
-
-                // Step 5 - Uploads & Terms
-                resume: "required",
-                profile_picture: "required",
-               
-            },
-
-            messages: {
-                // Step 1
-                name: "Full name is required",
-                gender: "Please select gender",
-                dob: "Date of birth is required",
-                national_id: "National ID is required",
-                address: "Address is required",
-                city: "City is required",
-                state: "State is required",
-                country: "Country is required",
-                pin_code: "Pin code is required",
-
-                // Step 2
-                'high_education[]': "Please select qualification",
-                'field_of_study[]': "Please select field of study",
-                'institution[]': "Institution name is required",
-                'graduate_year[]': "Graduation year is required",
-
-                // Step 3
-                'job_role[]': "Job title is required",
-                'organization[]': "Organization is required",
-                'starts_from[]': "Start date is required",
-                'end_to[]': "End date is required unless currently working",
-
-                // Step 4
-                skills: "Please enter your skills",
-                interest: "Please select an area of interest",
-                job_category: "Job category is required",
-
-                // Step 5
-                resume: "Please upload your resume",
-                profile_picture: "Please upload a profile picture",
-               
-            },
-
-            errorPlacement: function (error, element) {
-                error.addClass('text-red-600 text-sm mt-1');
-
-                // Special handling for file inputs
-                if (element.attr("type") === "file") {
-                    error.insertAfter(element.closest('div'));
-                } else {
-                    error.insertAfter(element);
-                }
-            }
-
-        });
-
-        // Step navigation with validation check
-        window.showStep = function (step, validate = true) {
-            const currentStep = $('.step:visible');
-            let valid = true;
-
-              // Run validation only if it's "Next"
-            if (validate) {
-                currentStep.find('input, select, textarea').each(function () {
-                    if (!$(this).valid()) {
-                        valid = false;
-                    }
-                });
-                if (!valid) return;
-            }
-
-            for (let i = 1; i <= 5; i++) {
-                $(`#step-${i}`).addClass('hidden');
-                $(`#step-${i}-circle`).removeClass('bg-blue-600 text-white');
-            }
-
-            $(`#step-${step}`).removeClass('hidden');
-            $(`#step-${step}-circle`).addClass('bg-blue-600 text-white');
-        };
-
-    });
-</script> -->
 
 
 <script src="https://unpkg.com/feather-icons"></script>

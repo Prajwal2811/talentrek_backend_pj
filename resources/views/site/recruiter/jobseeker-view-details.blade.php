@@ -9,10 +9,10 @@
             </div>
         </div>
     </div>
-@if($recruiterNeedsSubscription)
+@if($recruiterNeedsSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.index')
     @endif
-	 @if($otherRecruiterSubscription)
+     @if($otherRecruiterSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.add-other-recruiters')
     @endif
     <div class="page-wraper">
@@ -55,7 +55,7 @@
                             @endphp
 
                             <!-- Interview Request Button -->
-                            <!-- <button
+                            {{-- <button
                                 id="interview-btn-{{ $jobseekerId }}"
                                 onclick="confirmInterviewRequest({{ $jobseekerId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
                                 class="text-white text-base px-4 py-1.5 rounded
@@ -67,7 +67,7 @@
                                 {{ ($interviewRequested || !$isApproved) ? 'disabled' : '' }}
                             >
                                 {{ $interviewRequested ? langLabel('interview_requested') : langLabel('interview_request') }}
-                            </button> -->
+                            </button> --}}
                         </div>
                         <hr>
 

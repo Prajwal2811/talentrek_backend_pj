@@ -78,6 +78,7 @@ class Jobseekers extends Authenticatable
                     ->where('user_type', 'jobseeker');
     }
 
+
     public function skills()
     {
         return $this->hasMany(Skills::class, 'jobseeker_id');
@@ -85,22 +86,27 @@ class Jobseekers extends Authenticatable
     }
 
 
-    // public function getTotalExperienceAttribute()
-    // {
-    //     $totalDays = 0;
+   public function getTotalExperienceAttribute()
+    {
+        $totalDays = 0;
 
-    //     foreach ($this->experiences as $exp) {
-    //         $start = Carbon::parse($exp->starts_from);
-    //         $end = Carbon::parse($exp->end_to);
-    //         $totalDays += $start->diffInDays($end);
-    //     }
+        foreach ($this->experiences as $exp) {
+            $start = Carbon::parse($exp->starts_from);
 
-    //     $years = floor($totalDays / 365);
-    //     $months = floor(($totalDays % 365) / 30);
-    //     $days = $totalDays % 30;
+            // Handle ongoing jobs
+            $end = $exp->end_to && strtolower($exp->end_to) !== 'work here' && strtolower($exp->end_to) !== 'present'
+                ? Carbon::parse($exp->end_to)
+                : now();
 
-    //     return "$years years, $months months";
-    // }
+            $totalDays += $start->diffInDays($end);
+        }
+
+        $years = floor($totalDays / 365);
+        $months = floor(($totalDays % 365) / 30);
+        // $days = $totalDays % 30; // optional
+
+        return "$years years, $months months";
+    }
 
     public function payments()
     {

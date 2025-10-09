@@ -366,7 +366,7 @@ class RecruiterController extends Controller
                          }
                     },
                ],
-               'company_name' => 'required',
+               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
                'company_website' => 'required|url',
                'company_city' => 'required|string|max:255',
                'company_address' => 'required|string|max:500',
@@ -377,8 +377,8 @@ class RecruiterController extends Controller
                'no_of_employee' => 'required|string|max:255',
                'industry_type' => 'required|string|max:255',
                'registration_number' => 'required|string|max:255',
-               'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:1024',
-               'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
+               'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+               'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:5120',
                'gender' => 'required|string|in:Male,Female,Other',
           ], [
                'name.required' => 'Name is required.',
@@ -909,9 +909,8 @@ class RecruiterController extends Controller
 
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                     ->where('status', 'active')
-                    ->where('admin_status','superadmin_approved')
+                    ->whereIn('admin_status', 'superadmin_approved')
                     ->whereNotIn('id', $shortlistedIds)
-                    ->orderBy('jobseekers.created_at', 'desc')
                     ->get();
           
           // echo "<pre>";
@@ -1169,142 +1168,133 @@ class RecruiterController extends Controller
 
    
      public function updateCompanyProfile(Request $request)
-{
-    $user = auth()->user();
-    $recruiter = Recruiters::find($user->id);
-    $company = RecruiterCompany::find($recruiter->company_id);
+     {
+     $user = auth()->user();
+     $recruiter = Recruiters::find($user->id);
+     $company = RecruiterCompany::find($recruiter->company_id);
 
-    if (!$recruiter || !$company) {
-        return response()->json(['status' => 'error', 'message' => 'Profile not found.'], 404);
-    }
+     if (!$recruiter || !$company) {
+          return response()->json(['status'=>'error','message'=>'Profile not found.'],404);
+     }
 
-    $rules = [];
-    $messages = [];
+     $rules = [];
+     $messages = [];
 
-    // ✅ Only main recruiter validates and updates company info
-    if ($recruiter->role === 'main') {
-        $rules = [
-            'company_name'         => 'required|string|max:255',
-            'company_phone_number' => 'required|digits:9',
-            'business_email'       => [
-                'required',
-                'email',
-                Rule::unique('recruiters_company', 'business_email')->ignore($company->id),
-            ],
-            'industry_type'        => 'required|string',
-        ];
+     // Only main recruiter can update company info
+     if ($recruiter->role === 'main' || $recruiter->role === null) {
+          $rules = [
+               'company_name'          => 'required|string|max:255',
+               'company_website'       => 'nullable|string|max:255',
+               'company_city'          => 'nullable|string|max:255',
+               'company_address'       => 'nullable|string|max:500',
+               'business_email'        => [
+                    'required',
+                    'email',
+                    Rule::unique('recruiters_company','business_email')->ignore($company->id ?? null),
+               ],
+               'phone_code'            => 'nullable|string|max:10',
+               'company_phone_number'  => 'required|digits_between:6,15',
+               'industry_type'         => 'required|string|max:255',
+               'registration_number'   => 'nullable|string|max:100',
+          ];
 
-        $messages = [
-            'company_name.required'          => 'Company name is required.',
-            'company_phone_number.required'  => 'Company phone number is required.',
-            'business_email.required'        => 'Business email is required.',
-            'industry_type.required'         => 'Industry type is required.',
-        ];
-    }
+          $messages = [
+               'company_name.required'          => 'Company name is required.',
+               'company_website.string'         => 'Company website must be a valid string.',
+               'company_city.string'            => 'Company city must be a valid string.',
+               'company_address.string'         => 'Company address must be a valid string.',
+               'business_email.required'        => 'Business email is required.',
+               'business_email.email'           => 'Business email must be a valid email address.',
+               'business_email.unique'          => 'This business email is already taken.',
+               'phone_code.string'              => 'Phone code must be a valid string.',
+               'company_phone_number.required'  => 'Company phone number is required.',
+               'company_phone_number.digits_between' => 'Company phone number must be between 6 and 15 digits.',
+               'industry_type.required'         => 'Industry type is required.',
+               'registration_number.string'     => 'Registration number must be a valid string.',
+          ];
+     }
 
-    // ✅ Recruiter self-validation
-    $recruiterRules = [];
-    $recruiterMessages = [];
+     // Recruiters info validation (everyone)
+     if ($request->has('recruiters')) {
+          foreach ($request->recruiters as $index => $r) {
+               $rules["recruiters.$index.id"] = 'required|integer|exists:recruiters,id';
+               $rules["recruiters.$index.name"] = 'required|string|max:255';
+               $rules["recruiters.$index.email"] = 'required|email';
+               $rules["recruiters.$index.national_id"] = 'required|digits:15';
+               $rules["recruiters.$index.mobile_number"] = 'required|digits:9';
+               $rules["recruiters.$index.gender"] = 'required|in:Male,Female,Other';
+          }
+     }
 
-    if ($request->has('recruiters')) {
-        foreach ($request->recruiters as $index => $r) {
-            $recruiterRules["recruiters.$index.id"]            = 'required|integer|exists:recruiters,id';
-            $recruiterRules["recruiters.$index.name"]          = 'required|string|max:255';
-            $recruiterRules["recruiters.$index.email"]         = 'required|email';
-            $recruiterRules["recruiters.$index.national_id"]   = 'required|digits:15';
-            $recruiterRules["recruiters.$index.mobile_number"] = 'required|digits:9';
-            $recruiterRules["recruiters.$index.gender"]        = 'required|in:Male,Female,Other';
+     $validator = Validator::make($request->all(), $rules, $messages);
 
-            $recruiterMessages["recruiters.$index.name.required"]          = 'Recruiter name is required.';
-            $recruiterMessages["recruiters.$index.email.required"]         = 'Recruiter email is required.';
-            $recruiterMessages["recruiters.$index.national_id.required"]   = 'Recruiter national ID is required.';
-            $recruiterMessages["recruiters.$index.mobile_number.required"] = 'Recruiter mobile number is required.';
-            $recruiterMessages["recruiters.$index.gender.required"]        = 'Recruiter gender is required.';
-        }
-    }
+     // Uniqueness checks
+     $validator->after(function ($validator) use ($request) {
+          if ($request->has('recruiters')) {
+               foreach ($request->recruiters as $index => $recData) {
+                    $recId = $recData['id'] ?? null;
 
-    $validator = Validator::make(
-        $request->all(),
-        array_merge($rules, $recruiterRules),
-        array_merge($messages, $recruiterMessages)
-    );
-
-    // ✅ Additional uniqueness checks
-    $validator->after(function ($validator) use ($request) {
-        if ($request->has('recruiters')) {
-            foreach ($request->recruiters as $index => $recData) {
-                $recId = $recData['id'] ?? null;
-
-                // Email uniqueness
-                if (!empty($recData['email'])) {
-                    $exists = Recruiters::where('email', $recData['email'])
-                        ->where('id', '!=', $recId)
-                        ->exists();
-
-                    if ($exists) {
-                        $validator->errors()->add("recruiters.$index.email", 'The email has already been taken.');
+                    if (!empty($recData['email'])) {
+                         $exists = Recruiters::where('email', $recData['email'])
+                                   ->where('id','!=',$recId)->exists();
+                         if ($exists) $validator->errors()->add("recruiters.$index.email",'The email has already been taken.');
                     }
-                }
 
-                // National ID uniqueness across tables
-                if (!empty($recData['national_id'])) {
-                    $duplicate = Recruiters::where('national_id', $recData['national_id'])
-                            ->where('id', '!=', $recId)
-                            ->exists()
-                        || Trainers::where('national_id', $recData['national_id'])->exists()
-                        || Jobseekers::where('national_id', $recData['national_id'])->exists();
-
-                    if ($duplicate) {
-                        $validator->errors()->add("recruiters.$index.national_id", 'The national ID has already been taken.');
+                    if (!empty($recData['national_id'])) {
+                         $duplicate = Recruiters::where('national_id',$recData['national_id'])->where('id','!=',$recId)->exists()
+                                   || Trainers::where('national_id',$recData['national_id'])->exists()
+                                   || Jobseekers::where('national_id',$recData['national_id'])->exists();
+                         if ($duplicate) $validator->errors()->add("recruiters.$index.national_id",'The national ID has already been taken.');
                     }
-                }
-            }
-        }
-    });
+               }
+          }
+     });
 
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'error',
-            'errors' => $validator->errors(),
-        ], 422);
-    }
+     if ($validator->fails()) {
+          return response()->json(['status'=>'error','errors'=>$validator->errors()],422);
+     }
 
-    $validated = $validator->validated();
+     $validated = $validator->validated();
 
-    // ✅ MAIN recruiter updates company info
-    if ($recruiter->role === 'main') {
-        $company->update([
-            'company_name'         => $validated['company_name'],
-            'company_phone_number' => $validated['company_phone_number'],
-            'business_email'       => $validated['business_email'],
-            'industry_type'        => $validated['industry_type'],
-        ]);
-    }
+     // Update company info (only main recruiter)
+     if ($recruiter->role === 'main' || $recruiter->role === null) {
+          $company->update([
+               'company_name' => $validated['company_name'],
+               'company_website' => $validated['company_website'] ?? $company->company_website,
+               'company_city' => $validated['company_city'] ?? $company->company_city,
+               'company_address' => $validated['company_address'] ?? $company->company_address,
+               'business_email' => $validated['business_email'],
+               'phone_code' => $validated['phone_code'] ?? $company->phone_code,
+               'company_phone_number' => $validated['company_phone_number'],
+               'industry_type' => $validated['industry_type'],
+               'registration_number' => $validated['registration_number'] ?? $company->registration_number,
+          ]);
+     }
 
-    // ✅ Recruiter info update
-    if ($request->has('recruiters')) {
-        foreach ($request->recruiters as $data) {
-            $rec = Recruiters::find($data['id']);
-            if (!$rec) continue;
+     // Update recruiters info (main recruiter or self)
+     if ($request->has('recruiters')) {
+          foreach ($request->recruiters as $data) {
+               $rec = Recruiters::find($data['id']);
+               if (!$rec) continue;
 
-            // 🔒 MAIN can edit all, sub only their own
-            if ($recruiter->role === 'main' || $rec->id == $recruiter->id) {
-                $rec->update([
-                    'name'          => $data['name'],
-                    'email'         => $data['email'],
-                    'national_id'   => $data['national_id'],
-                    'mobile_number' => $data['mobile_number'],
-                    'gender'        => $data['gender'] ?? $rec->gender,
-                ]);
-            }
-        }
-    }
+               if ($recruiter->role === 'main' || $recruiter->id == $rec->id) {
+                    $rec->update([
+                         'name' => $data['name'],
+                         'email' => $data['email'],
+                         'national_id' => $data['national_id'],
+                         'phone_number' => $data['mobile_number'],
+                         'gender' => $data['gender'] ?? $rec->gender,
+                    ]);
+               }
+          }
+     }
 
-    return response()->json([
-        'status'  => 'success',
-        'message' => 'Company and recruiter profile updated successfully!',
-    ]);
-}
+     return response()->json([
+          'status'=>'success',
+          'message'=>'Company and recruiter profile updated successfully!'
+     ]);
+     }
+
 
 
 
@@ -1314,44 +1304,47 @@ class RecruiterController extends Controller
 
      public function updateCompanyDocument(Request $request)
      {
-          $userId = auth()->id();
+     $userId = Auth::id();
+     $recruiterRole = auth()->user()->role ?? null; // Optional: check role if needed
 
-          $validated = $request->validate([
-               'company_profile' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-               'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-          ], [
-               'company_profile.file' => 'The company profile must be a valid file.',
-               'company_profile.mimes' => 'The company profile must be a file of type: jpg, jpeg, png.',
-               'company_profile.max' => 'The company profile must not be greater than 5MB.',
+     // Validation
+     $validated = $request->validate([
+          'company_profile'   => 'nullable|file|mimes:jpg,jpeg,png|max:2048', // 2MB
+          'register_document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // 5MB
+     ], [
+          'company_profile.file'   => 'The company profile must be a valid file.',
+          'company_profile.mimes'  => 'The company profile must be a file of type: jpg, jpeg, png.',
+          'company_profile.max'    => 'The company profile must not be greater than 2MB.',
 
-               'register_document.file' => 'The registration document must be a valid file.',
-               'register_document.mimes' => 'The registration document must be a file of type: pdf, doc, docx.',
-               'register_document.max' => 'The registration document must not be greater than 5MB.',
-          ]);
+          'register_document.file' => 'The registration document must be a valid file.',
+          'register_document.mimes'=> 'The registration document must be a file of type: pdf, doc, docx.',
+          'register_document.max'  => 'The registration document must not be greater than 5MB.',
+     ]);
 
-          foreach (['company_profile', 'register_document'] as $type) {
-               if ($request->hasFile($type)) {
-                    $file = $request->file($type);
-                    $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
-                    $file->move('uploads', $fileName);
-                    $path = asset('uploads/' . $fileName);
+     // Handle file uploads
+     foreach (['company_profile', 'register_document'] as $type) {
+          if ($request->hasFile($type)) {
+               $file = $request->file($type);
+               $fileName = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
+               $filePath = $file->storeAs('uploads/recruiters', $fileName, 'public');
 
-                    AdditionalInfo::updateOrCreate(
-                         ['user_id' => $userId, 'doc_type' => $type],
-                         [
-                              'document_path' => $path,
-                              'document_name' => $fileName,
-                              'user_type' => 'recruiter', // Ensures recruiter type is stored
-                         ]
-                    );
-               }
+               $fullPath = 'storage/' . $filePath;
+
+               // Update or create the document record
+               AdditionalInfo::updateOrCreate(
+                    ['user_id' => $userId, 'doc_type' => $type],
+                    [
+                         'document_path' => $fullPath,
+                         'document_name' => $fileName,
+                         'user_type'     => 'recruiter',
+                    ]
+               );
           }
-
-          return response()->json([
-               'status' => 'success',
-               'message' => 'Company documents updated successfully!',
-          ]);
      }
+
+     return redirect()->back()->with('success', 'Company documents updated successfully!');
+     }
+
 
 
      public function deleteCompanyDocument($type)
@@ -1470,7 +1463,7 @@ class RecruiterController extends Controller
      // return $years . ' years';
      // }
 
-     private function calculateExperience($jobseeker)
+      private function calculateExperience($jobseeker)
      {
           $totalExp = 0;
 
@@ -1633,8 +1626,6 @@ class RecruiterController extends Controller
           return true;
 
      }
-
-
 
      public function processSubscriptionPayment(Request $request)
      {

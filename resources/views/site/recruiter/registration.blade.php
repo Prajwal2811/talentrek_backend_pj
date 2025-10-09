@@ -145,7 +145,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('business_email') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_email_id') }}" value="{{old('business_email')}}"/>
+                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_email_id') }}" value="{{old('company_address')}}"/>
                                                 @error('business_email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -334,8 +334,7 @@
                                                 <div class="flex flex-col gap-2">
                                                     <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('company_registration_documents') }} <span style="color: red; font-size: 17px;">*</span></label>
                                                     <div class="flex items-center gap-4">
-                                                        <!-- <input type="file" name="registration_documents" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple /> -->
-                                                        <input type="file" name="registration_documents[]" accept=".doc, .docx, .pdf" class="w-full border rounded-md p-2" multiple />
+                                                        <input type="file" name="registration_documents" accept=".png, .jpg, .jpeg, .pdf, .doc, .docx" class="w-full border rounded-md p-2" multiple />
                                                     </div>
                                                     @if ($errors->has('registration_documents'))
                                                         @foreach ($errors->get('registration_documents') as $message)

@@ -32,8 +32,6 @@
                        <a href="{{ route('admin.profile') }}">
                             <i class="fa fa-user"></i> My Profile
                         </a>
-
-
                     </li>
                     <li><a href="{{ route('admin.settings') }}"><i class="fa fa-gear"></i>Settings</a></li>
                     <li class="divider"></li>
@@ -64,28 +62,12 @@
                     </li>
                 @endif
 
-
-                {{-- @if($role === 'superadmin' || $role === 'admin')
-                    <li class="header">User</li>
-                    <li class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'active' : '' }}">
-                        <a href="#" class="has-arrow"><i class="fa fa-user-md"></i><span>User</span></a>
-                        <ul class="{{ request()->routeIs('admin.user.create', 'admin.user.index') ? 'collapse in' : 'collapse' }}">
-                            <li class="{{ request()->routeIs('admin.create') ? 'active' : '' }}">
-                                <a href="{{ route('admin.user.create') }}">Create User</a>
-                            </li>
-                            <li class="{{ request()->routeIs('admin.user.index') ? 'active' : '' }}">
-                                <a href="{{ route('admin.user.index') }}">Manage User</a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif --}}
-
                 <li class="header">User Roles</li>
 
                 @php
                     $menuItems = [
                         'Jobseekers' => ['route' => 'admin.jobseekers', 'icon' => 'fa-users'],
-                        'Expat' => ['route' => 'admin.expat', 'icon' => 'fa-globe'],
+                        'Expats' => ['route' => 'admin.expat', 'icon' => 'fa-globe'],
                         'Recruiters' => ['route' => 'admin.recruiters', 'icon' => 'fa-user-tie'],
                         'Trainers' => ['route' => 'admin.trainers', 'icon' => 'fa-chalkboard-teacher'],
                         'Assessors' => ['route' => 'admin.assessors', 'icon' => 'fa-check-circle'],

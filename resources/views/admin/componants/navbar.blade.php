@@ -61,22 +61,7 @@
                                 
                                 @foreach($notifications as $notification)
                                     <li>
-                                        @if($notification->sender_type == 'Registration by Jobseeker.')
-                                            @php $urlnotif = route('admin.jobseeker.view', $notification->sender_id); @endphp
-                                        @elseif($notification->sender_type == 'Registration by Mentor.')   
-                                            @php $urlnotif = route('admin.mentor.view', $notification->sender_id); @endphp 
-                                        @elseif($notification->sender_type == 'Registration by Company and Recruiter.')   
-                                            @php $urlnotif = route('admin.recruiter.view', $notification->sender_id); @endphp
-                                        @elseif($notification->sender_type == 'Registration by Trainer.')   
-                                            @php $urlnotif = route('admin.trainer.view', $notification->sender_id); @endphp
-                                        @elseif($notification->sender_type == 'Registration by Assessor.')   
-                                            @php $urlnotif = route('admin.assessor.view', $notification->sender_id); @endphp
-                                        @elseif($notification->sender_type == 'Registration by Coach.')   
-                                            @php $urlnotif = route('admin.coach.view', $notification->sender_id); @endphp
-                                        @else
-                                            @php $urlnotif = route('admin.notifications.view', $notification->id); @endphp
-                                        @endif    
-                                        <a href="{{ $urlnotif }}">
+                                        <a href="{{ route('admin.notifications.view',['id' => $notification->id]) }}">
                                             <div class="mr-4"><i class="fa fa-check text-red"></i></div>
                                             <div class="feeds-body">
                                                 <h4 class="title text-info">{{ $notification->sender_type }}

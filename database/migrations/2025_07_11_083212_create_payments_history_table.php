@@ -31,7 +31,8 @@ return new class extends Migration
 
             // Payment details
             $table->decimal('amount_paid', 10, 2)->nullable();
-            $table->decimal('tax', 10, 2)->default(0.00); // tax amount
+            $table->string('tax_percentage')->nullable();         // CAPTURED, DECLINED, etc.
+            $table->string('taxed_amount')->nullable();         // CAPTURED, DECLINED, etc.
             $table->string('applied_coupon')->nullable(); // coupon code if applied
             $table->enum('payment_status', ['pending', 'completed', 'failed', 'refunded']);
             $table->string('transaction_id')->nullable();

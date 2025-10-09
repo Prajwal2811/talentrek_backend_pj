@@ -1,170 +1,153 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ExpatController;
+use App\Http\Controllers\CoursePurchaseController;
+use App\Http\Controllers\SessionBookingController;
 
+// Joobseeker Routes
+Route::group(['prefix' => 'expat'], function() {
+	Route::group(['middleware' => 'expat.guest'], function(){
+		// Route::view('/sign-in','site.expat.sign-in')->name('expat.sign-in');
+		// Route::view('/sign-up','site.expat.sign-up')->name('expat.sign-up');
+		Route::view('/forget-password','site.expat.forget-password')->name('expat.forget-password');
+		Route::view('/verify-otp','site.expat.verify-otp')->name('expat.verify-otp');
+		Route::view('/reset-password','site.expat.reset-password')->name('expat.reset-password');
+		Route::view('/registration','site.expat.registration')->name('expat.registration');
+		
+		
 
-// Admin Routes
-Route::group(['prefix' => 'admin'], function() {
-	Route::group(['middleware' => 'admin.guest'], function(){
-		Route::view('/login', 'admin.login')->name('admin.login');
-		Route::view('/forgot-password', 'admin.forgot-password')->name('admin.forgot-password');
-		Route::post('/admin/login', [App\Http\Controllers\AdminController::class, 'authenticate'])->name('admin.auth');
-		Route::post('/admin/send-reset-link', [App\Http\Controllers\AdminController::class, 'sendResetPassword'])->name('admin.send-reset-link');
-	
+		Route::get('/registration', [ExpatController::class, 'showRegistrationForm'])->name('expat.registration');
+		Route::post('/registration', [ExpatController::class, 'postRegistration'])->name('expat.register.post'); 
+		Route::post('/registration/store', [ExpatController::class, 'storeExpatInformation'])->name('expat.registration.store');
+		Route::get('/cv-template/download/{id}', [ExpatController::class, 'downloadCvTemplate'])->name('expat.cv.template.download');
+		Route::get('/sign-in', [ExpatController::class, 'showSignInForm'])->name('expat.signin.form');
+		Route::get('/sign-up', [ExpatController::class, 'showSignUpForm'])->name('expat.signup.form');
+		Route::post('/expat/login', [ExpatController::class, 'loginExpat'])->name('expat.login.submit');
+		Route::post('/submit-forget-password', [ExpatController::class, 'submitForgetPassword'])->name('expat.submit.forget.password');
+		Route::post('/resend-otp', [ExpatController::class, 'resendOtp'])->name('expat.resend-otp');
+		Route::get('/verify-otp', [ExpatController::class, 'showOtpForm'])->name('expat.verify-otp');
+		Route::post('/submit-verify-otp', [ExpatController::class, 'verifyOtp'])->name('expat.verify-otp.submit');
+		Route::get('reset-password', [ExpatController::class, 'showResetPasswordForm'])->name('expat.reset-password');
+		Route::post('/submit-reset-password', [ExpatController::class, 'resetPassword'])->name('expat.reset-password.submit');
+		
+
+		Route::post('/check-promocode', [ExpatController::class, 'check'])->name('expat.check-promocode');
+		Route::get('auth/google/redirect', [ExpatController::class, 'redirectToGoogle'])->name('expat.google.redirect');
+		Route::get('auth/google/callback', [ExpatController::class, 'handleGoogleCallback'])->name('expat.google.callback');
+
 	});
 	
-	Route::group(['middleware' => 'admin.auth'], function () {
-
-		// Dashboard
-		Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-
-		// Profile, Settings
-		Route::get('/profile', [AdminController::class, 'profile'])->name('admin.profile');
-		Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
-		Route::post('/settings/store', [AdminController::class, 'settingsUpdate'])->name('admin.settings.store');
-		Route::post('/settings/store-media', [AdminController::class, 'storeMediaLinks'])->name('admin.settings.store-media');
-
-		// Logout
-		Route::get('/logout', [AdminController::class, 'signOut'])->name('admin.signOut');
-
-		// Admin Management (Superadmin only)
-		Route::middleware('admin.module:Admin')->group(function () {
-			Route::get('/admins/create', [AdminController::class, 'create'])->name('admin.create');
-			Route::post('/admins/store', [AdminController::class, 'store'])->name('admin.store');
-			Route::get('/admins', [AdminController::class, 'index'])->name('admin.index');
-			Route::get('/admins/{id}/edit', [AdminController::class, 'edit'])->name('admin.edit');
-			Route::post('/admins/{id}', [AdminController::class, 'update'])->name('admin.update');
-			Route::delete('/admins/{id}/delete', [AdminController::class, 'destroy'])->name('admin.destroy');
-			Route::post('/admins/changeStatus', [AdminController::class, 'changeStatus'])->name('admin.changeStatus');
-			Route::post('/admins/jobseekers/unassign', [AdminController::class, 'unassign'])->name('admin.jobseekers.unassign');
-		});
-
-
-		Route::middleware(['admin.module:User'])->group(function () {
-			Route::get('/', [AdminController::class, 'users'])->name('admin.user.index');            // List users
-			Route::get('/create', [AdminController::class, 'createUser'])->name('admin.user.create');    // Create user form
-			Route::post('/store', [AdminController::class, 'storeUser'])->name('admin.user.store');      // Store new user
-			Route::get('/{id}/edit', [AdminController::class, 'editUser'])->name('admin.user.edit');     // Edit user form
-			Route::delete('/{id}/delete', [AdminController::class, 'destroyUser'])->name('admin.user.destroy'); // Delete user
-
-			// Optional: status change or actions
-			Route::post('/changeStatus', [AdminController::class, 'changeStatus'])->name('admin.user.changeStatus');
-		});
-
-
-		// Jobseekers Module
-		Route::middleware('admin.module:Jobseekers')->group(function () {
-			Route::get('/jobseekers', [AdminController::class, 'jobseekers'])->name('admin.jobseekers');
-			Route::get('/jobseekers/{id}/view', [AdminController::class, 'jobseekerView'])->name('admin.jobseeker.view');
-			Route::delete('/jobseekers/{id}/delete', [AdminController::class, 'jobseekerDestroy'])->name('admin.jobseeker.destroy');
-			Route::post('/jobseekers/changeStatus', [AdminController::class, 'jobseekerChangeStatus'])->name('admin.jobseeker.changeStatus');
-			Route::post('/jobseekers/assignAdmin', [AdminController::class, 'assignAdmin'])->name('admin.jobseeker.assignAdmin');
-			Route::post('/jobseeker/update-status', [AdminController::class, 'updateStatus'])->name('admin.jobseeker.updateStatus');
-		});
+ 	// Routes accessible after login but before subscription
+    Route::middleware(['expat.auth'])->group(function () {
+        Route::get('/subscription', [ExpatController::class, 'showSubscriptionPlans'])->name('expat.subscription.index');
+        // Route::post('/subscription-payment', [ExpatController::class, 'processSubscriptionPayment'])->name('expat.subscription.payment');
+    });
 
 
 
-        // Jobseekers Module
-		Route::middleware('admin.module:Trainers')->group(function () {
-			Route::get('/trainers', [App\Http\Controllers\AdminController::class, 'trainers'])->name('admin.trainers');
-            Route::get('/trainer/{id}/view', [App\Http\Controllers\AdminController::class, 'viewTrainer'])->name('admin.trainer.view');
-            Route::get('/trainer/{id}/training-material', [App\Http\Controllers\AdminController::class, 'viewTrainingMaterial'])->name('admin.trainer.training-material');
-            Route::delete('/trainer/{id}/delete', [App\Http\Controllers\AdminController::class, 'trainerDestroy'])->name('admin.trainer.destroy');
-            Route::post('/trainer/changeStatus', [App\Http\Controllers\AdminController::class, 'trainerChangeStatus'])->name('admin.trainer.changeStatus');	
-            Route::post('/trainer/update-status', [App\Http\Controllers\AdminController::class, 'updateStatusTrainer'])->name('admin.trainer.updateStatus');
-            Route::delete('/trainer/{id}/delete', [App\Http\Controllers\AdminController::class, 'destroy'])->name('admin.trainer.destroy');
-            Route::get('/trainer/{trainer}/training-material/{material}/view', [App\Http\Controllers\AdminController::class, 'viewTrainingMaterialDetail'])->name('admin.trainer.training-material.view');
+	Route::middleware(['expat.auth', 'check.expat.subscription'])->group(function () {
+		Route::get('/dashboard',[ExpatController::class, 'dashboard'])->name('expat.dashboard');
+		Route::post('/login',[ExpatController::class, 'authenticate'])->name('expat.auth');
+		Route::get('/profile', [ExpatController::class, 'showProfilePage'])->name('expat.profile');
+		Route::get('/profile', [ExpatController::class, 'getExpatAllDetails'])->name('expat.profile');
+		Route::post('/logout',[ExpatController::class, 'logoutExpat'])->name('expat.logout');
+		Route::post('/profile/update-personal-info',[ExpatController::class, 'updatePersonalInfo'])->name('expat.profile.update');
+		Route::post('/profile/update-education-info',[ExpatController::class, 'updateEducationInfo'])->name('expat.education.update');
+		Route::post('/profile/update-work-exprience-info',[ExpatController::class, 'updateWorkExprienceInfo'])->name('expat.workexprience.update'); 
+		Route::post('/profile/update-skills-info',[ExpatController::class, 'updateSkillsInfo'])->name('expat.skill.update'); 
+		Route::post('/profile/additional-info',[ExpatController::class, 'updateAdditionalInfo'])->name('expat.additional.update'); 
+		Route::delete('/expat/additional/delete/{type}', [ExpatController::class, 'deleteAdditionalFile'])->name('expat.additional.delete');
 
 
-		});
+		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [ExpatController::class, 'bookingSession'])->name('expat.mentorship-book-session');
+		Route::get('/assessor-details/{assessor_id}/assessor-book-session/{slot_id}', [ExpatController::class, 'bookingAssessorSession'])->name('expat.assessor-book-session');
+		Route::get('/coach-details/{coach_id}/coach-book-session/{slot_id}', [ExpatController::class, 'bookingCoachSession'])->name('expat.coach-book-session');
 
-        // Expats Module
-        Route::middleware('admin.module:Expats')->group(function () {
-			Route::get('/expat', [App\Http\Controllers\AdminController::class, 'expat'])->name('admin.expat');
-		});
-
-        
-        // Assessors Module
-        Route::middleware('admin.module:Assessors')->group(function () {
-		    Route::get('/assessors', [App\Http\Controllers\AdminController::class, 'assessors'])->name('admin.assessors');
+		Route::post('/submit-review', [ExpatController::class, 'submitReview'])->name('expat.submit.review');
+		Route::post('/submit-assessor-review', [ExpatController::class, 'submitAssessorReview'])->name('expat.submit.assessor.review');
+		Route::post('/submit-coach-review', [ExpatController::class, 'submitCoachReview'])->name('expat.submit.coach.review');
+		Route::post('/submit-mentor-review', [ExpatController::class, 'submitMentorReview'])->name('expat.submit.mentor.review');
 			
-		});
-
-        // Coach Module
-        Route::middleware('admin.module:Coach')->group(function () {
-		    Route::get('/coach', [App\Http\Controllers\AdminController::class, 'coach'])->name('admin.coach');
-                    
-        });
-
-        // Mentor Module
-        Route::middleware('admin.module:Mentor')->group(function () {
-		    Route::get('/mentors', [App\Http\Controllers\AdminController::class, 'mentors'])->name('admin.mentors');
-                    
-        });
-
-        // Payments
-        Route::middleware('admin.module:Payments')->group(function () {
-		    Route::get('/payments', [App\Http\Controllers\AdminController::class, 'payments'])->name('admin.payments');
-                    
-        });
-
-        // Activity Log
-        Route::middleware('admin.module:Log')->group(function () {
-		    Route::get('/activity-log', [App\Http\Controllers\AdminController::class, 'showActivityLog'])->name('admin.activity.log');
-        });
-
-        // Subscriptions
-        Route::middleware('admin.module:Subscriptions')->group(function () {
-		    Route::get('/subscriptions', [App\Http\Controllers\AdminController::class, 'subscriptions'])->name('admin.subscriptions');
-        });
-
-        // Languages
-        Route::middleware('admin.module:Languages')->group(function () {
-		    Route::get('/languages', [App\Http\Controllers\AdminController::class, 'languages'])->name('admin.languages');
-        });
 
 
-        // Recruiters Module
-        Route::middleware('admin.module:Recruiters')->group(function () {
-			Route::get('/recruiters', [App\Http\Controllers\AdminController::class, 'recruiters'])->name('admin.recruiters');
-            Route::get('/recruiter/{id}/view', [App\Http\Controllers\AdminController::class, 'recruiterView'])->name('admin.recruiter.view');
-            Route::get('/recruiter/{id}/shortlisted-jobseekers', [App\Http\Controllers\AdminController::class, 'viewShortlistedJobseekers'])->name('admin.recruiter.shortlisted-jobseekers');
-            Route::post('/recruiter/changeStatus', [App\Http\Controllers\AdminController::class, 'recruiterChangeStatus'])->name('admin.recruiter.changeStatus');	
-            Route::post('/recruiter/update-status', [App\Http\Controllers\AdminController::class, 'updateRecruiterStatus'])->name('admin.recruiter.updateStatus');
-		});
-
-		// CMS Module
-		Route::middleware('admin.module:CMS')->group(function () {
-			Route::get('/cms', [AdminController::class, 'cms'])->name('admin.cms');
-			Route::get('/cms/{slug}/edit', [AdminController::class, 'cmsEdit'])->name('admin.cms.edit');
-			Route::post('/cms/banner-update', [AdminController::class, 'updateBanner'])->name('admin.cms.banner.update');
-		});
-
-		// Testimonials Module
-		Route::middleware('admin.module:Testimonials')->group(function () {
-			Route::get('/testimonials', [AdminController::class, 'testimonials'])->name('admin.testimonials');
-			Route::get('/testimonials/add', [AdminController::class, 'createTestimonial'])->name('admin.testimonials.add');
-			Route::post('/testimonials/add', [AdminController::class, 'storeTestimonial'])->name('admin.testimonials.store');
-			Route::get('/testimonials/manage', [AdminController::class, 'manageTestimonial'])->name('admin.testimonials.manage');
-			Route::get('/testimonials/edit/{id}', [AdminController::class, 'editTestimonial'])->name('admin.testimonials.edit');
-			Route::post('/testimonials/update/{id}', [AdminController::class, 'updateTestimonial'])->name('admin.testimonials.update');
-			Route::post('/testimonials/delete/{id}', [AdminController::class, 'destroyTestimonial'])->name('admin.testimonials.delete');
-		});
-
-	
-		// Certification Template
-		Route::middleware('admin.module:Certification Template')->group(function () {
-			Route::get('/certification-template', [AdminController::class, 'certificationTemplate'])->name('admin.certification.template');
-			Route::post('/certification-template-update', [AdminController::class, 'updateTemplate'])->name('admin.certification.update');
-		});
-
-		// Contact Support
-		Route::middleware('admin.module:Certification Template')->group(function () {
-			Route::get('/contact-support', [AdminController::class, 'contactSupport'])->name('admin.contact_support');
-		});
+		// Purchase request stays POST
+		
 
 
-	
+
+
+		Route::post('/team-purchase-course', [ExpatController::class, 'teamPurchaseCourse'])->name('expat.team-purchase-course');
+
+		Route::post('/expat/save-answer', [ExpatController::class, 'saveExpatAnswer'])->name('expat.saveAnswer');
+		Route::post('/expat/submit-quiz', [ExpatController::class, 'submitQuiz'])->name('expat.submitQuiz');
+		Route::post('/save-remaining-time', [ExpatController::class, 'saveRemainingTime'])->name('expat.saveRemainingTime');
+
+		Route::get('/quiz/success', [ExpatController::class, 'quizSuccess'])->name('expat.quizSuccessPage');
+		Route::get('/assessment/result/{id}', [ExpatController::class, 'viewScore'])->name('expat.assessment.result');
+
+		Route::post('/add-to-cart/{id}', [ExpatController::class, 'addToCart'])->name('expat.addtocart');
+
+		// Route::post('/cart/remove/{id}', [ExpatController::class, 'remove'])->name('cart.remove');
+		Route::post('/cart/remove/{id}', [ExpatController::class, 'removeCartItem'])->name('expat.cart.remove');
+
+
+		Route::post('/chat/send', [ExpatController::class, 'sendMessage'])->name('expat.chat.send');
+    	Route::get('/chat/messages', [ExpatController::class, 'getMessages'])->name('expat.chat.fetch');
+
+		Route::get('/download-certificate/{material_id}', [ExpatController::class, 'downloadCertificate'])
+    	->name('expat.download.certificate');
+
+
+		
 	});
+
+		Route::get('/mentorship-details/{id}', [ExpatController::class, 'mentorshipDetails'])->name('expat.mentorship-details');
+		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [ExpatController::class, 'bookingSession'])->name('expat.mentorship-book-session');
+		Route::get('/get-available-slots', [ExpatController::class, 'getAvailableSlots'])->name('expat.get-available-slots');
+		Route::get('/get-assessor-available-slots', [ExpatController::class, 'getAssesorAvailableSlots'])->name('expat.get-assessor-available-slots');
+
+		Route::get('/get-coach-available-slots', [ExpatController::class, 'getCoachAvailableSlots'])->name('expat.get-coach-available-slots');
+		
+
+		
+		// Route::post('/mentorship-book-session', [ExpatController::class, 'submitMentorshipBooking'])->name('expat.mentorship-booking-submit');
+		Route::post('/assessor-book-session', [ExpatController::class, 'submitAssessorBooking'])->name('expat.assessor-booking-submit');
+		Route::post('/coach-book-session', [ExpatController::class, 'submitCoachBooking'])->name('expat.coach-booking-submit');
+
+
+
+		Route::get('/expat/mentorship-booking-success', function () {
+			return view('expat.booking-success');
+		})->name('expat.mentorship-booking-success');
+
+
+		Route::get('/course-details/{id}', [ExpatController::class, 'courseDetails'])->name('expat.course.details');
+		Route::get('/take-assessment/{id}', [ExpatController::class, 'viewAssessment'])->name('expat.assessment.view');
+		Route::post('/expat/update-remaining-time', [App\Http\Controllers\ExpatController::class, 'updateRemainingTime'])
+    	->name('expat.updateRemainingTime');
+
+
+		Route::get('/buy-course/{id}', [ExpatController::class, 'buyCourseDetails'])->name('expat.buy-course');
+		Route::get('/buy-course-for-team/{id}', [ExpatController::class, 'buyTeamCourseDetails'])->name('expat.buy-course-for-team');
+		// Route::post('/purchase-course', [ExpatController::class, 'purchaseCourse'])->name('expat.purchase-course');
+		Route::post('/team-purchase-course', [ExpatController::class, 'teamPurchaseCourse'])->name('expat.team-purchase-course');
+
+
+		// Zoom OAuth routes
+		// Route::get('/zoom/authorize', [ExpatController::class, 'redirectToZoom'])->name('redirectToZoom');
+		// Route::get('/zoom/callback', [ExpatController::class, 'handleZoomCallback']);
+		Route::get('/zoom/authorize', [ExpatController::class, 'redirectToZoom'])->name('expat.zoom.redirect');
+		Route::get('/zoom/callback', [ExpatController::class, 'handleZoomCallback'])->name('expat.zoom.callback');
+
+		// Route::get('/zoom/create-meeting', [ExpatController::class, 'createMeeting']);
+	
+		// routes/web.php
+
+		// Assessors
+		Route::get('/assessor-details/{id}', [ExpatController::class, 'assessorDetails'])->name('expat.assessor-details');
+		Route::get('/coach-details/{id}', [ExpatController::class, 'coachDetails'])->name('expat.coach-details');
+
+		Route::post('/apply-coupon', [ExpatController::class, 'applyCoupon'])->name('expat.apply.coupon');
+		
 });

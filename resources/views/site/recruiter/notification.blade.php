@@ -11,8 +11,11 @@
         </div>
     </div>
 
-	 @if($recruiterNeedsSubscription)
+	 @if($recruiterNeedsSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.index')
+    @endif
+     @if($otherRecruiterSubscription && auth()->user('recruiter')->role != "sub_recruiter")
+        @include('site.recruiter.subscription.add-other-recruiters')
     @endif
     
     <div class="page-wraper">
@@ -38,7 +41,7 @@
                         </thead>
                         <tbody id="assessmentTableBody">
                             
-                             @php $notifications = notificationUsersSent('recruiter'); @endphp
+                             @php $notifications = notificationsAll('trainer'); @endphp
                             @foreach($notifications as $notification)
                                 <tr class="border-t assessment-row">
                                     <td class="px-6 py-4">{{ $notification->sender_type }}</td>

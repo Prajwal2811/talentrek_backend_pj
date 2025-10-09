@@ -106,9 +106,9 @@
                             </div>
 
                             <!-- Rich Text Editor CSS & JS (include only once in your blade if not already loaded) -->
-                            <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
-                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
-                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+                            <link rel="stylesheet" href="{{ asset('asset/richtexteditor/richtexteditor/rte_theme_default.css')}}" />
+                    <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/plugins/all_plugins.js')}}"></script>
+                    <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/rte.js')}}"></script>
 
                             <script>
                                 var contentEditor = new RichTextEditor("#contentText");

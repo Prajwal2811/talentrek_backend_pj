@@ -8,7 +8,6 @@ use App\Models\EducationDetails;
 use App\Models\WorkExperience;
 use App\Models\Skills;
 use App\Models\AdditionalInfo;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 
 class JobseekerInformationSeeder extends Seeder
@@ -23,6 +22,9 @@ class JobseekerInformationSeeder extends Seeder
 
         foreach (range(0, 4) as $i) {
             $password = 'Password@' . ($i + 1);
+
+            // Alternate role between jobseeker and expat
+            $role = $i % 2 === 0 ? 'jobseeker' : 'expat';
 
             // Create jobseeker
             $jobseeker = Jobseekers::create([
@@ -51,6 +53,7 @@ class JobseekerInformationSeeder extends Seeder
                 'zoom_access_token' => null,
                 'zoom_refresh_token' => null,
                 'zoom_token_expires_at' => null,
+                'role' => $role, // ✅ Added role field
             ]);
 
             // Add education

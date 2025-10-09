@@ -76,9 +76,8 @@
                                             @php
                                                 $modules = [
                                                     'Dashboard',
-                                                    'User',
                                                     'Jobseekers',
-                                                    'Expat',
+                                                    'Expats',
                                                     'Recruiters',
                                                     'Trainers',
                                                     'Assessors',
@@ -95,7 +94,9 @@
                                                     'Resume Format',
                                                     'Training Category',
                                                     'Testimonials',
-                                                    'Logs'
+                                                    'Logs',
+                                                    'Taxation Manage',
+                                                    'Coupon Code Manage'
                                                 ];
                                                 $adminPermissions = $admin->permissions ?? [];
                                             @endphp

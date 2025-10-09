@@ -18,6 +18,7 @@ class SiteSettingsSeeder extends Seeder
             'coachTax'                 => 8.00,
             'mentorTax'                => 7.50,
             'assessorTax'              => 9.00,
+            'subscriptionTax'          => 3.0,
             'created_at'               => now(),
             'updated_at'               => now(),
         ]);

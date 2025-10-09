@@ -49,7 +49,7 @@ class PaymentSeeder extends Seeder
                     'receiver_id'    => $receiver === 'trainer' ? $course->trainer_id : null, 
                     'payment_for'    => $receiver === 'trainer' ? 'training' : 'subscription',
                     'amount_paid'    => $basePrice + $tax,
-                    'tax'            => $tax,
+                    'taxed_amount'   => $tax,
                     'applied_coupon' => $appliedCoupon,
                     'payment_status' => $statuses[array_rand($statuses)],
                     'transaction_id' => strtoupper(Str::random(12)),

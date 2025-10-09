@@ -11,10 +11,10 @@
         </div>
     </div>
 
-@if($recruiterNeedsSubscription)
+@if($recruiterNeedsSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.index')
     @endif
-	 @if($otherRecruiterSubscription)
+     @if($otherRecruiterSubscription && auth()->user('recruiter')->role != "sub_recruiter")
         @include('site.recruiter.subscription.add-other-recruiters')
     @endif
     <div class="page-wraper">
@@ -83,12 +83,10 @@
                                 <div class="space-x-6 font-medium text-sm">
                                     <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">{{ langLabel('jobseeker') }}</button>
                                     <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">{{ langLabel('shortlisted') }}</button>
-                                    {{-- <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">{{ langLabel('scheduled_interview') }}</button> --}}
-
+                                    <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">{{ langLabel('scheduled_interview') }}</button>
                                 </div>
                             </div>
 
-                           
                             <!-- Jobseekers Tab -->
                             <div id="jobseekerList" data-tab-content="jobseekers" class="divide-y">
                                 @include('site.recruiter.partials.jobseeker-list', ['jobseekers' => $jobseekers])
@@ -97,223 +95,16 @@
                             
                             <!-- Shortlisted Tab -->
                             <div id="shortlistedList" data-tab-content="shortlisted" class="divide-y hidden">
-                                    @foreach($shortlisted_jobseekers->unique('jobseeker_id') as $shortlisted_jobseeker)
-                                        <div class="jobseeker-shortlisted  flex justify-between items-center py-4">
-                                            <!-- Profile Image & Name -->
-                                            <div class="flex items-center space-x-4 w-1/3">
-                                                <img 
-                                                    src="{{ $shortlisted_jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
-                                                    class="w-12 h-12 rounded-full object-cover blur-sm" 
-                                                    alt="{{ $shortlisted_jobseeker->name }}"
-                                                />
-                                                <div>
-                                                    <h4 class="font-semibold text-sm blur-sm">{{ $shortlisted_jobseeker->name }}</h4>
-                                                    <p class="text-sm text-gray-500">
-                                                        {{ $shortlisted_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <!-- Experience Years -->
-                                            <div class="w-32 text-sm">
-                                                <p class="font-semibold">{{ langLabel('experience') }}</p>
-                                                <p>{{ $shortlisted_jobseeker->total_experience }}</p>
-                                            </div>
-
-                                            <!-- Skills -->
-                                            <div class="text-sm flex-1">
-                                                <p class="font-semibold">{{ langLabel('skills') }}</p>
-                                                <p>
-                                                    @if($shortlisted_jobseeker->skills && $shortlisted_jobseeker->skills->count())
-                                                        {{ $shortlisted_jobseeker->skills->pluck('skills')->filter()->join(', ') }}
-                                                    @else
-                                                        {{ langLabel('not_provided') }}
-                                                    @endif
-                                                </p>
-                                            </div>
-
-                                            <!-- Shortlist Button -->
-                                            <div class="ml-4 flex space-x-2">
-                                                @php
-                                                    $isApproved = $shortlisted_jobseeker->shortlist_admin_status === 'superadmin_approved';
-                                                    $interviewRequested = strtolower($shortlisted_jobseeker->interview_request ?? '') === 'yes';
-                                                    $jobseekerId = $shortlisted_jobseeker->id;
-                                                @endphp
-
-                                                <!-- Status Label -->
-                                                <span class="border text-xs px-2 py-1 rounded 
-                                                            {{ $isApproved ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500' }}">
-                                                    {{ $isApproved ? langLabel('approved') : langLabel('pending') }}
-                                                </span>
-
-
-                                                <!-- View Profile -->
-                                                <a href="{{ $isApproved ? route('recruiter.jobseeker.details', ['jobseeker_id' => $jobseekerId]) : '#' }}"
-                                                class="text-white text-xs px-2 py-1 rounded inline-block
-                                                {{ $isApproved ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 cursor-not-allowed' }}"
-                                                {{ $isApproved ? '' : 'onclick=event.preventDefault()' }}>
-                                                    {{ langLabel('view_profile') }}
-                                                </a>
-
-                                                <!-- Interview Request Button -->
-                                                @if ($interviewRequested || !$isApproved)
-                                                    {{-- Show as badge when disabled --}}
-                                                    <span class="inline-block text-white text-xs px-2 py-1 rounded 
-                                                                {{ $interviewRequested ? 'bg-gray-400' : 'bg-gray-600' }}">
-                                                        {{ $interviewRequested ? langLabel('interview_requested') : langLabel('not_approved') }}
-                                                    </span>
-                                                @else
-                                                    {{-- Show as clickable button when enabled --}}
-                                                    <button
-                                                        id="interview-btn-{{ $jobseekerId }}"
-                                                        onclick="confirmInterviewRequest({{ $jobseekerId }}, true, false)"
-                                                        class="text-white text-xs px-2 py-1 rounded bg-purple-500 hover:bg-purple-600"
-                                                    >
-                                                        {{ langLabel('interview_request') }}
-                                                    </button>
-                                                @endif
-
-                                            </div>
-                                        </div>
-                                    @endforeach
+                                @include('site.recruiter.partials.shortlisted-jobseeker-list', ['shortlisted_jobseekers' => $shortlisted_jobseekers])
                                 {{-- @include('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers]) --}}
                                 <div id="shortlistedPagination" class="mt-6 flex justify-center space-x-2"></div>
                             </div>
 
                             <!-- Contacted Tab -->
-                            {{-- <div id="scheduledList" data-tab-content="scheduled" class="divide-y hidden">
-                                @foreach($scheduled_jobseekers->unique('jobseeker_id') as $scheduled_jobseeker)
-                                    @php
-                                        $isApproved = $scheduled_jobseeker->shortlist_admin_status === 'superadmin_approved';
-                                        $jobseekerId = $scheduled_jobseeker->id;
-
-                                        // Build interview datetime if both exist
-                                        $interviewDateTime = null;
-                                        if ($scheduled_jobseeker->interview_date && $scheduled_jobseeker->interview_time) {
-                                            $interviewDateTime = \Carbon\Carbon::parse(
-                                                $scheduled_jobseeker->interview_date . ' ' . $scheduled_jobseeker->interview_time
-                                            );
-                                        }
-
-                                        // Default status
-                                        $status = strtolower($scheduled_jobseeker->interview_status ?? 'pending');
-                                        $statusLabel = ucfirst($status);
-                                        $statusClass = 'text-yellow-600';
-
-                                        // Disable join button by default
-                                        $joinDisabled = false;
-
-                                        // Check status rules
-                                        if ($status === 'completed') {
-                                            $statusLabel = 'Completed';
-                                            $statusClass = 'text-green-600 font-semibold';
-                                            $joinDisabled = true; // cannot join once completed
-                                        } elseif ($status === 'cancelled') {
-                                            $statusLabel = 'Cancelled';
-                                            $statusClass = 'text-red-600 font-semibold';
-                                            $joinDisabled = true; // cannot join if cancelled
-                                        } elseif ($status === 'scheduled' && $interviewDateTime && now()->greaterThan($interviewDateTime)) {
-                                            // Scheduled but time passed
-                                            $statusLabel = 'Expired';
-                                            $statusClass = 'text-red-600 font-semibold';
-                                            $joinDisabled = true;
-                                        }
-                                    @endphp
-
-                                    <div class="jobseeker-shortlisted flex justify-between items-center py-4">
-                                        
-                                        <!-- Profile Image & Name -->
-                                        <div class="flex items-center space-x-4 w-1/3">
-                                            <img 
-                                                src="{{ $scheduled_jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
-                                                class="w-12 h-12 rounded-full object-cover " 
-                                                alt="{{ $scheduled_jobseeker->name }}"
-                                            />
-                                            <div>
-                                                <h4 class="font-semibold text-sm ">{{ $scheduled_jobseeker->name }}</h4>
-                                                <p class="text-sm text-gray-500">
-                                                    {{ $scheduled_jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Interview Info -->
-                                        <div class="w-40 text-sm">
-                                            <p class="font-semibold">{{ langLabel('interview_date_time') }}</p>
-                                            <p>
-                                                @if($interviewDateTime)
-                                                    {{ $interviewDateTime->format('d M Y, h:i A') }}
-                                                @else
-                                                    {{ langLabel('not_scheduled') }}
-                                                @endif
-                                            </p>
-                                        </div>
-
-                                        <!-- Interview Status -->
-                                        <div class="w-32 text-sm">
-                                            <p class="font-semibold">{{ langLabel('interview_status') }}</p>
-                                            <p class="{{ $statusClass }}">
-                                                {{ $statusLabel }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Actions -->
-                                        <div class="ml-4 flex space-x-2 items-center">
-                                            <!-- Dropdown for status change -->
-                                            <!-- Dropdown for status change -->
-                                            <form action="{{ route('recruiter.interview.updateStatus') }}" method="POST" class="flex items-center space-x-2">
-                                                @csrf
-                                                <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
-
-                                                <select name="status" class="border rounded px-2 py-1 text-sm"
-                                                    @if($status === 'cancelled' || ($interviewDateTime && now()->greaterThan($interviewDateTime))) disabled @endif>
-                                                    <option value="" disabled>{{ langLabel('update_status') }}</option>
-
-                                                    @if ($status === 'cancelled')
-                                                        <!-- Locked if cancelled -->
-                                                        <option value="cancelled" selected>{{ langLabel('cancelled') }}</option>
-                                                    @elseif ($interviewDateTime && now()->greaterThan($interviewDateTime))
-                                                        <!-- Locked if interview expired -->
-                                                        <option value="{{ $status }}" selected>{{ ucfirst($status) }}</option>
-                                                    @else
-                                                        <option value="cancelled" @if ($status === 'cancelled') selected @endif>{{ langLabel('cancelled') }}</option>
-                                                        <option value="scheduled" @if ($status === 'scheduled') selected @endif>{{ langLabel('scheduled') }}</option>
-                                                        <option value="completed" 
-                                                            @if ($status === 'completed') selected @endif
-                                                            @if (!$interviewDateTime || now()->lessThan($interviewDateTime)) disabled @endif>
-                                                            Completed
-                                                        </option>
-                                                    @endif
-                                                </select>
-
-                                                @if ($status !== 'cancelled' && !($interviewDateTime && now()->greaterThan($interviewDateTime)))
-                                                    <button type="submit" class="bg-gray-700 text-white text-xs px-2 py-1 rounded">
-                                                        {{ langLabel('save') }}
-                                                    </button>
-                                                @endif
-                                            </form>
-
-
-
-                                            <!-- Join Button -->
-                                            <a href="{{ !$joinDisabled && $isApproved ? $scheduled_jobseeker->zoom_join_url : '#' }}" 
-                                            target="_blank"
-                                            class="text-white text-xs px-2 py-1 rounded inline-block 
-                                                    {{ $joinDisabled || !$isApproved ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600' }}"
-                                            {{ $joinDisabled || !$isApproved ? 'onclick=event.preventDefault()' : '' }}>
-                                                {{ langLabel('join') }}
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endforeach
-
-
-
+                            <div id="scheduledList" data-tab-content="scheduled" class="divide-y hidden">
+                                @include('site.recruiter.partials.scheduled-jobseeker-list', ['shortlisted_jobseekers' => $shortlisted_jobseekers])
                                 <div id="scheduledPagination" class="mt-6 flex justify-center space-x-2"></div>
-                            </div> --}}
-
-
-
+                            </div>
                         </div>
                     </div>
 

@@ -318,205 +318,119 @@
                                     </div>
 
 
-                                    <!-- Step 3: Work Experience -->
-                                    <!-- <div id="step-3" class="step hidden" x-data="workExperience()">
+                                    
+                                   <div id="step-3" class="step hidden" x-data="workExperience()">
 
-                                        <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-
-                                            <template x-for="(work, index) in workList" :key="index">
-                                                <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
-                                                    {{-- Job Role --}}
-                                                    <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('job_title') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
-                                                            placeholder="e.g. Software Engineer"
-                                                            x-model="work.job_role">
-                                                    </div>
-
-                                                    {{-- Organization --}}
-                                                    <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('organization') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="text" name="organization[]" class="w-full border rounded-md p-2"
-                                                            placeholder="e.g. ABC Corp"
-                                                            x-model="work.organization">
-                                                    </div>
-    
-                                                    {{-- Start Date --}}
-                                                    <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                            {{ langLabel('started_from') }} <span style="color: red; font-size: 17px;">*</span>
-                                                        </label>
-                                                        <input 
-                                                            type="date" 
-                                                            name="starts_from[]" 
-                                                            class="w-full border rounded-md p-2" 
-                                                            value="{{ old('starts_from.' . $i) }}" 
-                                                        />
-                                                        @error("starts_from.$i")
-                                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                        @enderror
-                                                    </div>
-
-                                                    {{-- End Date & Checkbox --}}
-                                                 
-                                                    <div>
-                                                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('to') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                        <input type="date" name="end_to[]" class="w-full border rounded-md p-2"
-                                                            x-model="work.end"
-                                                            :disabled="work.working"
-                                                            :readonly="work.working">
-
-                                                        <label class="inline-flex items-center mt-2 space-x-2">
-                                                            <input type="checkbox" class="currently-working-checkbox"
-                                                                x-model="work.working"
-                                                                @change="handleWorkingChange(index)">
-                                                            <span>{{ langLabel('currently_work_here') }}</span>
-                                                        </label>
-                                                    </div>
-
-                                                    {{-- Remove Button --}}
-                                                    <button type="button"
-                                                            class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                            @click="removeWork(index)"
-                                                            x-show="workList.length > 1">&times;</button>
-                                                </div>
-                                            </template>
-
-                                        </div>
-
-                                        {{-- Add Work Button --}}
-                                        <div class="col-span-2">
-
-                                            <button type="button" id="add-work" class="text-green-600 text-sm mt-3">+ {{ langLabel('add_work_experience') }}</button>
-                                        </div>
-
-                                        {{-- Navigation Buttons --}}
-                                        <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
-                                            <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
-                                        </div>
-
-                                    </div> -->
-                                    <div id="step-3" class="step hidden">
-                                        @php
-                                            $workData = old('job_role') ?? [null];
-                                        @endphp
-
-                                        <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                            @foreach($workData as $i => $value)
+                                    <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
+                                        <template x-for="(work, index) in workList" :key="index">
                                             <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
+
                                                 {{-- Job Role --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('job_role') }} <span style="color: red; font-size: 17px;">*</span>
-                                                    </label>
-                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2" 
-                                                        value="{{ old("job_role.$i") }}" placeholder="e.g. Software Engineer">
-                                                    @error("job_role.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. Software Engineer"
+                                                        x-model="work.job_role">
                                                 </div>
 
                                                 {{-- Organization --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('organization') }} <span style="color: red; font-size: 17px;">*</span>
-                                                    </label>
-                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2" 
-                                                        value="{{ old("organization.$i") }}" placeholder="e.g. ABC Corp">
-                                                    @error("organization.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. ABC Corp"
+                                                        x-model="work.organization">
                                                 </div>
 
                                                 {{-- Start Date --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('started_from') }} <span style="color: red; font-size: 17px;">*</span>
-                                                    </label>
-                                                    <input type="date" name="starts_from[]" class="w-full border rounded-md p-2" 
-                                                        value="{{ old("starts_from.$i") }}">
-                                                    @error("starts_from.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
+                                                        x-model="work.start" max="{{ date('Y-m-d') }}">
                                                 </div>
 
                                                 {{-- End Date & Checkbox --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        {{ langLabel('to') }} <span style="color: red; font-size: 17px;">*</span>
-                                                    </label>
-                                                    <input type="date" name="end_to[]" class="w-full border rounded-md p-2" 
-                                                        value="{{ old("end_to.$i") }}" {{ old("currently_working.$i") ? 'readonly disabled' : '' }}>
-                                                    
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="date" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
+                                                        x-model="work.end"
+                                                        :disabled="work.working"
+                                                        :readonly="work.working"
+                                                        max="{{ date('Y-m-d') }}">
+
                                                     <label class="inline-flex items-center mt-2 space-x-2">
-                                                        <input type="checkbox" class="currently-working-checkbox" 
-                                                            name="currently_working[]" value="1" {{ old("currently_working.$i") ? 'checked' : '' }}>
-                                                        <span>{{ langLabel('currently_work_here') }}</span>
+                                                        <input type="checkbox" class="currently-working-checkbox"
+                                                            x-model="work.working"
+                                                            @change="handleWorkingChange(index)">
+                                                        <span>I currently work here</span>
                                                     </label>
                                                 </div>
 
                                                 {{-- Remove Button --}}
-                                                <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                        style="{{ $i == 0 ? 'display:none;' : 'display:block;' }}">×</button>
+                                                <button type="button"
+                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                        @click="removeWork(index)"
+                                                        x-show="workList.length > 1">&times;</button>
+
                                             </div>
-                                            @endforeach
-                                        </div>
-
-                                        <div class="col-span-2">
-                                            <button type="button" id="add-work" class="text-green-600 text-sm mt-3">
-                                                + {{ langLabel('add_work_experience') }}
-                                            </button>
-                                        </div>
-
-                                        <div class="col-span-2 flex justify-between mt-4">
-                                            <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">{{ langLabel('back') }}</button>
-                                            <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">{{ langLabel('next') }}</button>
-                                        </div>
+                                        </template>
                                     </div>
-                                    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-                                    <script>
-                                    function workExperience() {
-                                        return {
-                                            workList: [
-                                                @php
-                                                    $oldRoles = old('job_role', ['']);
-                                                    $oldOrgs = old('organization', ['']);
-                                                    $oldStarts = old('starts_from', ['']);
-                                                    $oldEnds = old('end_to', ['']);
-                                                    $oldWorking = old('currently_working', []);
-                                                @endphp
-                                                @foreach ($oldRoles as $i => $role)
-                                                {
-                                                    job_role: "{{ $role }}",
-                                                    organization: "{{ $oldOrgs[$i] ?? '' }}",
-                                                    start: "{{ $oldStarts[$i] ?? '' }}",
-                                                    end: "{{ $oldEnds[$i] ?? '' }}",
-                                                    working: {{ isset($oldWorking[$i]) && $oldWorking[$i] == 'on' ? 'true' : 'false' }}
-                                                },
-                                                @endforeach
-                                            ],
 
-                                            addWork() {
-                                                this.workList.push({ job_role:'', organization:'', start:'', end:'', working:false });
+                                    {{-- Add Work Button --}}
+                                    <div class="col-span-2">
+                                        <button type="button" class="text-green-600 text-sm mt-2 mb-2" @click="addWork()">Add work experience +</button>
+                                    </div>
+
+                                    {{-- Navigation --}}
+                                    <div class="col-span-2 flex justify-between mt-4">
+                                        <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">Back</button>
+                                        <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
+                                    </div>
+
+                                </div>
+
+                                <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+                                <script>
+                                function workExperience() {
+                                    return {
+                                        workList: [
+                                            @php
+                                                $oldRoles = old('job_role', ['']);
+                                                $oldOrgs = old('organization', ['']);
+                                                $oldStarts = old('starts_from', ['']);
+                                                $oldEnds = old('end_to', ['']);
+                                                $oldWorking = old('currently_working', []);
+                                            @endphp
+                                            @foreach ($oldRoles as $i => $role)
+                                            {
+                                                job_role: "{{ $role }}",
+                                                organization: "{{ $oldOrgs[$i] ?? '' }}",
+                                                start: "{{ $oldStarts[$i] ?? '' }}",
+                                                end: "{{ $oldEnds[$i] ?? '' }}",
+                                                working: {{ isset($oldWorking[$i]) && $oldWorking[$i] == 'on' ? 'true' : 'false' }}
                                             },
+                                            @endforeach
+                                        ],
 
-                                            removeWork(index) {
-                                                this.workList.splice(index, 1);
-                                            },
+                                        addWork() {
+                                            this.workList.push({ job_role:'', organization:'', start:'', end:'', working:false });
+                                        },
 
-                                            handleWorkingChange(index) {
-                                                // Only one can be checked at a time
-                                                this.workList.forEach((w, i) => {
-                                                    if(i !== index) w.working = false;
-                                                });
+                                        removeWork(index) {
+                                            this.workList.splice(index, 1);
+                                        },
 
-                                                // Clear end date if currently working
-                                                if(this.workList[index].working) this.workList[index].end = '';
-                                            }
+                                        handleWorkingChange(index) {
+                                            // Only one checkbox can be checked at a time
+                                            this.workList.forEach((w, i) => {
+                                                if(i !== index) w.working = false;
+                                            });
+
+                                            // Clear end date if currently working
+                                            if(this.workList[index].working) this.workList[index].end = '';
                                         }
                                     }
-                                    </script>
+                                }
+                                </script>
 
                                     
                                     <!-- Step 4: Skills -->

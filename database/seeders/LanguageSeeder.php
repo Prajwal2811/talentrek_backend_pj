@@ -609,11 +609,12 @@ class LanguageSeeder extends Seeder
             ['code' => 'skip', 'english' => 'Skip', 'arabic' => 'تخطي'],
             ['code' => 'sign_in_as_recruiter', 'english' => 'Sign in as Recruiter', 'arabic' => 'تسجيل الدخول كمسؤول توظيف'],
             ['code' => 'sign_in_as_expat', 'english' => 'Sign in as Expat', 'arabic' => 'تسجيل الدخول كمغترب'],
-            ['code' => 'select_gender', 'english' => 'Select gender', 'arabic' => 'اختر الجنس'],
-            ['code' => 'phone_no', 'english' => 'Phone Number', 'arabic' => 'رقم الهاتف'],
-            ['code' => 'enter_course_sub_title', 'english' => 'Enter Course Sub Title', 'arabic' => 'أدخل العنوان الفرعي للدورة'],
-            ['code' => 'recorded_courses', 'english' => 'Recorded Courses', 'arabic' => 'الدورات المسجلة'],
-
+            ['code' => 'add_cart', 'english' => 'Add Cart', 'arabic' => 'أضف إلى السلة'],
+            ['code' => 'total_question', 'english' => 'Total Question', 'arabic' => 'إجمالي الأسئلة'],
+            ['code' => 'passing_question', 'english' => 'Passing Question', 'arabic' => 'عدد الأسئلة المطلوبة للنجاح'],
+            ['code' => 'enter_total_question', 'english' => 'Enter Total Question', 'arabic' => 'أدخل إجمالي الأسئلة'],
+            ['code' => 'enter_passing_question', 'english' => 'Enter Passing Question', 'arabic' => 'أدخل عدد الأسئلة المطلوبة للنجاح'],
+            ['code' => 'create_assessment', 'english' => 'Create Assessment', 'arabic' => 'إنشاء تقييم'],
 
         ];
 

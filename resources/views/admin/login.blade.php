@@ -18,8 +18,9 @@
     <link rel="stylesheet" href="{{ asset('asset/backend/css/mooli.min.css') }}">
 </head>
 
-<body class="theme-cyan">
-<div class="auth-main">
+<body class="theme-cyan" >
+
+<div class="auth-main" style="background-image: url('https://t4.ftcdn.net/jpg/09/02/53/81/360_F_902538150_JCEcejSQkRHHR7d5jE1nbmfhXHdcd9E3.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     <div class="auth_div vivify fadeIn">
         <div class="row">
             <div class="col-12 ml-auto mr-auto text-center" style="margin: auto">
@@ -83,10 +84,16 @@
                 }
             }, 3000);
         </script>
-        <div class="auth_brand">
-            <a class="navbar-brand" href="#">
-            <img src="{{ asset('asset/backend/images/icon.svg') }}" width="50" class="d-inline-block align-top mr-2" alt="">Talentrek</a>                                                
+        @php
+            $headerLogo = App\Models\Setting::value('header_logo');
+        @endphp
+
+        <div class="auth_brand text-center my-3">
+            <a class="navbar-brand d-inline-block" href="#">
+                <img src="{{ $headerLogo }}" alt="Logo" style="width: 150px; height: auto;">
+            </a>
         </div>
+
     
         <div class="card">
             <div class="header">

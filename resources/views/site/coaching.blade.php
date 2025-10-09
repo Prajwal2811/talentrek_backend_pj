@@ -87,13 +87,6 @@ use Illuminate\Support\Facades\DB;
                     'trainingexperience'
                 ])->where('status', 'active')->get();
 
-                // Add avgRating and reviewCount to each coach
-                $coaches->transform(function($a) {
-                    $a->avgRating = $a->reviews->avg('ratings') ?? 0;  // Average rating
-                    $a->reviewCount = $a->reviews->count();           // Total reviews
-                    return $a;
-                });
-
                 // Get unique area_of_interest values for filters
                 $interests = TrainingExperience::where('user_type', 'coach')
                     ->pluck('area_of_interest')

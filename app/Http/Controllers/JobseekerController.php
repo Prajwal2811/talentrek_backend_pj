@@ -51,6 +51,7 @@ use App\Models\Resume;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 
+
 class JobseekerController extends Controller
 {
     public function showRegistrationForm()
@@ -608,8 +609,8 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        //  Check admin_status
-        if ($jobseeker->admin_status === 'superadmin_reject' || $jobseeker->admin_status === 'rejected') {
+        // Check admin status
+        if (in_array($jobseeker->admin_status, ['superadmin_reject', 'rejected'])) {
             session()->flash('error', 'Your account has been rejected by administrator.');
             return back()->withInput($request->only('email'));
         }
@@ -625,6 +626,7 @@ class JobseekerController extends Controller
                 'jobseeker_id'  => $jobseeker->id,
                 'email'         => $jobseeker->email,
                 'phone_number'  => $jobseeker->phone_number,
+                'role'          => 'jobseeker', // ✅ assign role here
             ]);
 
             return redirect()->route('jobseeker.registration')
@@ -635,14 +637,18 @@ class JobseekerController extends Controller
                 ]);
         }
 
-        //  Attempt login only if all checks pass
+        // Attempt login only if all checks pass
         if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
+            // ✅ Set session role after login
+            session(['role' => 'jobseeker']);
+
             return redirect()->route('jobseeker.profile')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
 
 
@@ -1502,7 +1508,6 @@ class JobseekerController extends Controller
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
             ->where('reviews.user_type', 'mentor')
-            ->where('reviews.user_id', $id)
             ->select(
                 'reviews.*',
                 'jobseekers.name as jobseeker_name'
@@ -2036,7 +2041,7 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $this->createZoomMeeting("Assessment with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Assessment with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -2113,7 +2118,7 @@ class JobseekerController extends Controller
         if ($request->mode === 'online') {
             $zoom = new ZoomService();
             $startTime = $request->date . ' ' . explode(' - ', $request->slot_time)[0];
-            $zoomMeeting = $this->createZoomMeeting("Coaching with #{$jobseeker->id}", $startTime);
+            $zoomMeeting = $zoom->createMeeting("Coaching with #{$jobseeker->id}", $startTime);
 
             if ($zoomMeeting) {
                 $booking->update([
@@ -3207,7 +3212,6 @@ public function submitReview(Request $request)
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
             ->where('reviews.user_type', 'assessor')
-            ->where('reviews.user_id', $id)
             ->select(
                 'reviews.*',
                 'jobseekers.name as jobseeker_name'
@@ -3270,7 +3274,6 @@ public function submitReview(Request $request)
         $reviews = DB::table('reviews')
             ->join('jobseekers', 'reviews.jobseeker_id', '=', 'jobseekers.id')
             ->where('reviews.user_type', 'coach')
-            ->where('reviews.user_id', $id)
             ->select(
                 'reviews.*',
                 'jobseekers.name as jobseeker_name'
@@ -3643,7 +3646,6 @@ public function submitReview(Request $request)
         return response()->download($filePath, $resume->resume_file);
     }
 
-
     public function downloadMyResume()
     {
         require_once base_path('dompdf/autoload.inc.php');
@@ -3701,5 +3703,4 @@ public function submitReview(Request $request)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', "attachment; filename=Resume-{$jobseeker->name}.pdf");
     }
-
 }

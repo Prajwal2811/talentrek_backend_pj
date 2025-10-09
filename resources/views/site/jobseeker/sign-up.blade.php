@@ -27,12 +27,12 @@
                             <div class="col-xl-6 col-lg-6 col-md-6">
                             <div class="container d-flex justify-content-center align-items-center min-vh-100">
                                 <div class="w-full max-w-md px-6">
-                                    <h2 class="text-2xl font-semibold font-medium mb-1">{{ langLabel('sign_up') }}</h2>
+                                    <h2 class="text-2xl font-semibold mb-1">{{ langLabel('sign_up') }}</h2>
                                     <p class="text-gray-600 mb-6">{{ langLabel('enter_details') }}</p>
                                     <form class="space-y-4" action="{{ route('jobseeker.register.post') }}" method="POST">
                                         @csrf 
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">{{ langLabel('email') }}</label>
+                                            <label class="block text-sm mb-1">{{ langLabel('email') }}</label>
                                             <input type="email" name="email" placeholder="{{ langLabel('email') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('email') }}">
                                             @error('email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -80,8 +80,6 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
-
-
 
                                         <div class="flex items-start">
                                             <input type="checkbox" class="mt-1 mr-2" id="terms">

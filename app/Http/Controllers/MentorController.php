@@ -509,10 +509,16 @@ class MentorController extends Controller
 
             'resume.required' => 'Please upload your resume.',
             'resume.mimes' => 'Resume must be a file of type: pdf, doc, docx.',
+            'resume.max' => 'Resume must not be greater than 2MB.',
+
             'profile_picture.required' => 'Please upload your profile picture.',
             'profile_picture.image' => 'Profile picture must be an image.',
+            'profile_picture.mimes' => 'Profile picture must be a file of type: jpg, jpeg, png.',
+            'profile_picture.max' => 'Profile picture must not be greater than 1MB.',
+
             'training_certificate.required' => 'Please upload your training certificate.',
             'training_certificate.mimes' => 'Training certificate must be a file of type: pdf, doc, docx.',
+            'training_certificate.max' => 'Training certificate must not be greater than 2MB.',
         ]);
 
         DB::beginTransaction();

@@ -103,9 +103,9 @@
                             </div>
 
                             <!-- Rich Text Editor -->
-                            <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
-                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
-                            <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+                            <link rel="stylesheet" href="{{ asset('asset/richtexteditor/richtexteditor/rte_theme_default.css')}}" />
+                            <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/plugins/all_plugins.js')}}"></script>
+                            <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/rte.js')}}"></script>
                             <script>
                                 var contentTextEditor = new RichTextEditor("#contentTextEditor");
                             </script>
@@ -137,14 +137,15 @@
                                                     <input type="hidden" name="content_sections[{{ $i }}][title]" value="{{ $section['title'] ?? '' }}">
                                                 </td>
                                                 <td class="p-2 border text-sm text-gray-600">
-                                                    {{ $section['description'] ?? '' }}
-                                                    <input type="hidden" name="content_sections[{{ $i }}][description]" value="{{ $section['description'] ?? '' }}">
+                                                    {{ strip_tags($section['description'] ?? '') }}
+                                                    <input type="hidden" name="content_sections[{{ $i }}][description]" value="{{ strip_tags($section['description'] ?? '') }}">
                                                 </td>
+
                                                 <td class="p-2 border text-center">
                                                     <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">
                                                         {{ $section['file_name'] ?? langLabel('upload_file') }}
                                                     </button>
-                                                    <input type="file" name="content_sections[{{ $i }}][file]" style="display:none" />
+                                                    <input accept="video/*" type="file" name="content_sections[{{ $i }}][file]" style="display:none" />
                                                     @if(!empty($section['file_name']))
                                                         <input type="hidden" name="content_sections[{{ $i }}][existing_file_name]" value="{{ $section['file_name'] }}">
                                                         <input type="hidden" name="content_sections[{{ $i }}][existing_file_path]" value="{{ $section['file_path'] }}">
@@ -173,6 +174,143 @@
                                 </table>
                             </div>
                         </div>
+                        
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                                const addBtn = document.getElementById('addContentBtn');
+                                const titleInput = document.getElementById('sectionTitle');
+                                const tableBody = document.querySelector('#courseTable tbody');
+
+                                let index = tableBody.querySelectorAll('tr').length;
+
+                                addBtn.addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    const title = titleInput.value.trim();
+                                    const content = contentTextEditor.getHTML().trim();
+
+                                    if (!title || !content) {
+                                        alert('Please enter both Section Title and Contents.');
+                                        return;
+                                    }
+
+                                    const tr = document.createElement('tr');
+                                    tr.innerHTML = `
+                                        <td class="p-2 border">${tableBody.rows.length + 1}</td>
+                                        <td class="p-2 border font-medium">
+                                            ${title}
+                                            <input type="hidden" name="content_sections[${index}][title]" value="${title}">
+                                        </td>
+                                        <td class="p-2 border text-sm text-gray-600">
+                                            ${content}
+                                            <input type="hidden" name="content_sections[${index}][description]" value="${content}">
+                                        </td>
+                                        <td class="p-2 border text-center">
+                                            <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
+                                            <input accept="video/*" type="file" name="content_sections[${index}][file]" style="display:none" />
+                                        </td>
+                                        <td class="p-2 border text-center duration-cell">
+                                            --
+                                            <input type="hidden" name="content_sections[${index}][file_duration]" value="">
+                                        </td>
+                                        <td class="p-2 border text-center">
+                                            <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6 2a2 2 0 00-2 2v1H2v2h1v9a2 2 0 002 2h10a2 2 0 002-2V7h1V5h-2V4a2 2 0 00-2-2H6zm0 3h8v1H6V5zm1 3v7h2V8H7zm4 0v7h2V8h-2z" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    `;
+                                    tableBody.appendChild(tr);
+                                    titleInput.value = '';
+                                    contentTextEditor.setHTML('');
+                                    index++;
+                                    updateSerialNumbers();
+                                });
+
+                                tableBody.addEventListener('click', (e) => {
+                                    if (e.target.closest('.delete-btn')) {
+                                        e.target.closest('tr').remove();
+                                        updateSerialNumbers();
+                                    } else if (e.target.closest('.upload-btn')) {
+                                        const btn = e.target.closest('.upload-btn');
+                                        const fileInput = btn.nextElementSibling;
+                                        if (fileInput && fileInput.type === 'file') fileInput.click();
+                                    }
+                                });
+
+                                tableBody.addEventListener('change', (e) => {
+                                    if (e.target.type === 'file') {
+                                        const fileInput = e.target;
+                                        const file = fileInput.files[0];
+                                        if (!file) return;
+
+                                        if (file.size > 20 * 1024 * 1024) {
+                                            alert("File size must be <= 20MB.");
+                                            fileInput.value = '';
+                                            return;
+                                        }
+
+                                        const btn = fileInput.previousElementSibling;
+                                        btn.textContent = file.name;
+
+                                        const video = document.createElement('video');
+                                        video.preload = 'metadata';
+                                        video.onloadedmetadata = function () {
+                                            window.URL.revokeObjectURL(video.src);
+                                            const durationInSeconds = video.duration;
+                                            const minutes = Math.floor(durationInSeconds / 60);
+                                            const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
+                                            const formattedDuration = `${minutes}:${seconds}`;
+
+                                            const tr = fileInput.closest('tr');
+                                            const durationCell = tr.querySelector('.duration-cell');
+                                            const hiddenInput = durationCell.querySelector('input[type="hidden"]');
+                                            hiddenInput.value = formattedDuration;
+                                            durationCell.childNodes[0].nodeValue = formattedDuration;
+                                        };
+                                        video.src = URL.createObjectURL(file);
+                                    }
+                                });
+
+                                function updateSerialNumbers() {
+                                    [...tableBody.rows].forEach((row, i) => row.cells[0].textContent = i + 1);
+                                }
+
+                                $("#trainingForm").on("submit", function (e) {
+                                    let errors = [];
+                                    let rows = $("#courseTable tbody tr");
+
+                                    if (rows.length === 0) errors.push("Please add at least one course section.");
+
+                                    rows.each(function (i, row) {
+                                        let fileInput = $(row).find('input[type="file"]')[0];
+                                        let hiddenFileInput = $(row).find('input[name*="[existing_file_name]"]')[0];
+                                        let durationInput = $(row).find('.duration-cell input')[0];
+
+                                        // Check: either new file uploaded OR existing file exists
+                                        if ((!fileInput || fileInput.files.length === 0) && !hiddenFileInput) {
+                                            errors.push(`Row ${i + 1}: Please upload a file.`);
+                                        }
+
+                                        // Check: duration must exist (for old files, hidden input has it)
+                                        if (!durationInput || !durationInput.value) {
+                                            errors.push(`Row ${i + 1}: File duration missing.`);
+                                        }
+                                    });
+
+                                    if (errors.length > 0) {
+                                        e.preventDefault();
+                                        swal({
+                                            title: "Validation Error",
+                                            text: errors.join("\n"),
+                                            icon: "error",
+                                            button: "OK"
+                                        });
+                                    }
+                                });
+
+                            });
+                            </script>
 
                         <!-- Thumbnail Upload -->
                         <div class="mb-4">
@@ -221,142 +359,6 @@
                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
                 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
-                <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    const addBtn = document.getElementById('addContentBtn');
-                    const titleInput = document.getElementById('sectionTitle');
-                    const tableBody = document.querySelector('#courseTable tbody');
-
-                    let index = tableBody.querySelectorAll('tr').length;
-
-                    addBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const title = titleInput.value.trim();
-                        const content = contentTextEditor.getHTML().trim();
-
-                        if (!title || !content) {
-                            alert('Please enter both Section Title and Contents.');
-                            return;
-                        }
-
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td class="p-2 border">${tableBody.rows.length + 1}</td>
-                            <td class="p-2 border font-medium">
-                                ${title}
-                                <input type="hidden" name="content_sections[${index}][title]" value="${title}">
-                            </td>
-                            <td class="p-2 border text-sm text-gray-600">
-                                ${content}
-                                <input type="hidden" name="content_sections[${index}][description]" value="${content}">
-                            </td>
-                            <td class="p-2 border text-center">
-                                <button type="button" class="upload-btn text-blue-600 px-2 py-1 border rounded-md cursor-pointer">Upload File</button>
-                                <input type="file" name="content_sections[${index}][file]" style="display:none" />
-                            </td>
-                            <td class="p-2 border text-center duration-cell">
-                                --
-                                <input type="hidden" name="content_sections[${index}][file_duration]" value="">
-                            </td>
-                            <td class="p-2 border text-center">
-                                <button type="button" class="text-red-600 delete-btn" aria-label="Delete row">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 2a2 2 0 00-2 2v1H2v2h1v9a2 2 0 002 2h10a2 2 0 002-2V7h1V5h-2V4a2 2 0 00-2-2H6zm0 3h8v1H6V5zm1 3v7h2V8H7zm4 0v7h2V8h-2z" />
-                                    </svg>
-                                </button>
-                            </td>
-                        `;
-                        tableBody.appendChild(tr);
-                        titleInput.value = '';
-                        contentTextEditor.setHTML('');
-                        index++;
-                        updateSerialNumbers();
-                    });
-
-                    tableBody.addEventListener('click', (e) => {
-                        if (e.target.closest('.delete-btn')) {
-                            e.target.closest('tr').remove();
-                            updateSerialNumbers();
-                        } else if (e.target.closest('.upload-btn')) {
-                            const btn = e.target.closest('.upload-btn');
-                            const fileInput = btn.nextElementSibling;
-                            if (fileInput && fileInput.type === 'file') fileInput.click();
-                        }
-                    });
-
-                    tableBody.addEventListener('change', (e) => {
-                        if (e.target.type === 'file') {
-                            const fileInput = e.target;
-                            const file = fileInput.files[0];
-                            if (!file) return;
-
-                            if (file.size > 20 * 1024 * 1024) {
-                                alert("File size must be <= 20MB.");
-                                fileInput.value = '';
-                                return;
-                            }
-
-                            const btn = fileInput.previousElementSibling;
-                            btn.textContent = file.name;
-
-                            const video = document.createElement('video');
-                            video.preload = 'metadata';
-                            video.onloadedmetadata = function () {
-                                window.URL.revokeObjectURL(video.src);
-                                const durationInSeconds = video.duration;
-                                const minutes = Math.floor(durationInSeconds / 60);
-                                const seconds = Math.floor(durationInSeconds % 60).toString().padStart(2, '0');
-                                const formattedDuration = `${minutes}:${seconds}`;
-
-                                const tr = fileInput.closest('tr');
-                                const durationCell = tr.querySelector('.duration-cell');
-                                const hiddenInput = durationCell.querySelector('input[type="hidden"]');
-                                hiddenInput.value = formattedDuration;
-                                durationCell.childNodes[0].nodeValue = formattedDuration;
-                            };
-                            video.src = URL.createObjectURL(file);
-                        }
-                    });
-
-                    function updateSerialNumbers() {
-                        [...tableBody.rows].forEach((row, i) => row.cells[0].textContent = i + 1);
-                    }
-
-                    $("#trainingForm").on("submit", function (e) {
-                        let errors = [];
-                        let rows = $("#courseTable tbody tr");
-
-                        if (rows.length === 0) errors.push("Please add at least one course section.");
-
-                        rows.each(function (i, row) {
-                            let fileInput = $(row).find('input[type="file"]')[0];
-                            let hiddenFileInput = $(row).find('input[name*="[existing_file_name]"]')[0];
-                            let durationInput = $(row).find('.duration-cell input')[0];
-
-                            // Check: either new file uploaded OR existing file exists
-                            if ((!fileInput || fileInput.files.length === 0) && !hiddenFileInput) {
-                                errors.push(`Row ${i + 1}: Please upload a file.`);
-                            }
-
-                            // Check: duration must exist (for old files, hidden input has it)
-                            if (!durationInput || !durationInput.value) {
-                                errors.push(`Row ${i + 1}: File duration missing.`);
-                            }
-                        });
-
-                        if (errors.length > 0) {
-                            e.preventDefault();
-                            swal({
-                                title: "Validation Error",
-                                text: errors.join("\n"),
-                                icon: "error",
-                                button: "OK"
-                            });
-                        }
-                    });
-
-                });
-                </script>
 
 
             </div>

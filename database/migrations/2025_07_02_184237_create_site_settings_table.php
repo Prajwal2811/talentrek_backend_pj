@@ -23,7 +23,7 @@ return new class extends Migration
             $table->double('coachTax', 8, 2)->nullable();
             $table->double('mentorTax', 8, 2)->nullable();
             $table->double('assessorTax', 8, 2)->nullable();
-
+            $table->double('subscriptionTax', 8, 2)->nullable();
             $table->timestamps();
         });
     }

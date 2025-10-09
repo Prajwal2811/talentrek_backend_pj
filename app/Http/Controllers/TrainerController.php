@@ -537,7 +537,7 @@ class TrainerController extends Controller
                 'pin_code' => $validated['pin_code'],
                 'national_id' => $validated['national_id'],
                 'is_registered' => 1,
-                
+              
             ]);
 
             // Save education
@@ -563,19 +563,25 @@ class TrainerController extends Controller
             //         'end_to' => $request->end_to[$index],
             //     ]);
             // }
-            foreach ($request->job_role as $index => $role) {
-                $isCurrentlyWorking = isset($request->currently_working[$index]) && $request->currently_working[$index] === 'on';
+            if ($request->has('job_role')) {
+                foreach ($request->job_role as $index => $role) {
+                    $isCurrentlyWorking = $request->input("currently_working.$index") === 'on';
 
-                WorkExperience::create([
-                    'user_id' => $trainer->id,
-                    'user_type' => 'trainer',
-                    'job_role' => $role,
-                    'organization' => $request->organization[$index],
-                    'starts_from' => $request->starts_from[$index],
-                    'end_to' => $isCurrentlyWorking ? 'work here' : $request->end_to[$index], // ✅ Save "Work Here"
-                ]);
+                    $startDate = $request->starts_from[$index] ?? null;
+                    $endDate = $isCurrentlyWorking 
+                        ? 'work here'
+                        : ($request->end_to[$index] ?? null);
+
+                    WorkExperience::create([
+                        'user_id'       => $trainer->id,
+                        'user_type'     => 'trainer',
+                        'job_role'      => $role,
+                        'organization'  => $request->organization[$index] ?? null,
+                        'starts_from'   => $startDate,
+                        'end_to'        => $endDate,
+                    ]);
+                }
             }
-
 
             // Save training experience
             TrainingExperience::create([
@@ -941,7 +947,7 @@ class TrainerController extends Controller
 
             'content_sections.*.description' => 'required|string',
 
-            'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:512000',
+            'content_sections.*.file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,mov,avi,mkv|max:51200',
 
             'content_sections.*.file_duration' => 'required|string|max:255',
 
@@ -1153,30 +1159,72 @@ class TrainerController extends Controller
 
 
 
+    // public function createZoomMeeting($topic, $startTime)
+    // {
+    //     $token = getAccessToken();
+    //     if (!$token) {
+    //         return ['error' => 'Failed to fetch access token'];
+    //     }
+    //     $email = env('ZOOM_USER_EMAIL');
+    //     $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
+    //         'topic' => $topic,
+    //         'type' => 2,
+    //         'start_time' => $startTime,
+    //         'duration' => 30,
+    //         'timezone' => 'Asia/Kolkata',
+    //         'settings' => [
+    //             'host_video' => true,
+    //             'participant_video' => true,
+    //             'join_before_host' => false,
+    //         ],
+    //     ]);
+
+    //     return $response->json();
+    // }
+
     public function createZoomMeeting($topic, $startTime)
+
     {
+
         $token = getAccessToken();
+
         if (!$token) {
+
             return ['error' => 'Failed to fetch access token'];
+
         }
+
         $email = env('ZOOM_USER_EMAIL');
+
         $response = Http::withToken($token)->post("https://api.zoom.us/v2/users/{$email}/meetings", [
+
             'topic' => $topic,
+
             'type' => 2,
+
             'start_time' => $startTime,
+
             'duration' => 30,
+
             'timezone' => 'Asia/Kolkata',
+
             'settings' => [
+
                 'host_video' => true,
+
                 'participant_video' => true,
+
                 'join_before_host' => false,
+
             ],
+
         ]);
 
-        return $response->json();
-    }
 
-    
+
+        return $response->json();
+
+    }
 
 
 
@@ -2395,7 +2443,7 @@ class TrainerController extends Controller
 
     //             // $zoomMeeting = $zoom->createMeeting("Batch #{$batch['batch_no']}", $startTime);
 
-                   // $zoomMeeting = $this->createZoomMeeting("Batch #{$batch['batch_no']}", $startTime);
+            // $zoomMeeting = $this->createZoomMeeting("Batch #{$batch['batch_no']}", $startTime);
 
     //             // if (!$zoomMeeting || !isset($zoomMeeting['start_url'])) {
 
@@ -3116,8 +3164,7 @@ class TrainerController extends Controller
             ->orderBy('b.start_timing', 'asc')
             ->get();
 
-        $trainingCourses = TrainingMaterial::where('trainer_id', $trainerId)->count();
-        $coursePurchasesCount = $coursePurchasesJobseekers->count();         
+
         // echo "<pre>";
         // print_r($batches);
         // exit;
@@ -3127,9 +3174,7 @@ class TrainerController extends Controller
 
         return view('site.trainer.trainer-dashboard', [
             'jobseekersData' => $coursePurchasesJobseekers,
-            'batches' => $batches,
-            'trainingCourses' => $trainingCourses,
-            'coursePurchasesCount' => $coursePurchasesCount,
+            'batches' => $batches
         ]);
      
     }

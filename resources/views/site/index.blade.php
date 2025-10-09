@@ -1491,16 +1491,16 @@
                                 <p class="text-sm text-gray-500 mb-2 line-clamp-2">{{ $material->training_sub_title }}</p>
 
                                 <div class="flex items-center text-yellow-500 text-sm mb-2 flex-shrink-0">
-                                    @php
-                                        $avgRating = round($material->rating ?? 0, 1);
-                                        $filledStars = floor($avgRating);
-                                    @endphp
-                                    <p class="mt-1 text-yellow-500">
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
-                                        @endfor
-                                        <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) {{ langLabel('rating') }}</span>
-                                    </p>
+                                @php
+                                    $avgRating = round($material->rating ?? 0, 1);
+                                    $filledStars = floor($avgRating);
+                                @endphp
+                                <p class="mt-1 text-yellow-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <span class="{{ $i <= $filledStars ? '' : 'text-gray-300' }}">★</span>
+                                    @endfor
+                                    <span class="text-gray-500 font-medium ml-2">({{ $avgRating }}/5) {{ langLabel('rating') }}</span>
+                                </p>
                                 </div>
 
                                 <ul class="text-xs text-gray-500 flex flex-wrap gap-4 mb-4 flex-shrink-0">

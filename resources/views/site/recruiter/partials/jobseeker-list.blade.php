@@ -3,7 +3,7 @@
     <!-- Profile Image & Name -->
     <div class="flex items-center space-x-4 w-1/3">
         <img 
-            src="{{ $jobseeker->profile_image ?? 'https://i.pravatar.cc/100' }}" 
+            src="{{ $jobseeker->profile_image }}" 
             class="w-12 h-12 rounded-full object-cover blur-sm" 
             alt="{{ $jobseeker->name }}"
         />

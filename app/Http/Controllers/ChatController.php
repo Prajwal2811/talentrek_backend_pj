@@ -69,7 +69,7 @@ class ChatController extends Controller
             'message'     => $message->message,
             'type'        => $message->type,
             'created_at'  => $message->created_at->toDateTimeString()
-        ]);  
+        ]);
     }
 
 

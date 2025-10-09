@@ -97,14 +97,6 @@ use Illuminate\Support\Facades\DB;
                     ->unique()
                     ->values();
 
-                // Add avgRating and reviewCount to each assessor
-                $assessors->transform(function($a) {
-                    $a->avgRating = $a->reviews->avg('ratings') ?? 0;  // Average rating
-                    $a->reviewCount = $a->reviews->count();           // Total reviews
-                    return $a;
-                });    
-
-
                 // Categories for sidebar
                 $categories = TrainingCategory::select('id', 'category')->get();
 
@@ -257,8 +249,8 @@ use Illuminate\Support\Facades\DB;
                             id: a.id,
                             name: a.name,
                             profilePicture: a.profilePicture?.[0]?.file_path ?? null,
-                            avgRating: a.avgRating ?? 0,        
-                            reviewCount: a.reviewCount ?? 0,    
+                            avgRating: a.avgRating ?? 0,
+                            reviewCount: a.reviews?.length ?? 0,
                             areaOfInterest: a.trainingexperience?.area_of_interest ?? "",
                             category: a.trainingexperience?.job_category ?? ""
                         })),
