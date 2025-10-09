@@ -62,8 +62,7 @@ class ChatController extends Controller
         //$sender = $this->getSender();
 
         $data = [
-            'sender_id'    => $request->sender_id,
-            'sender_type'  => $request->sender_type,            ,
+            'sender_type'  => $request->sender_type,
             'receiver_id'  => $request->receiver_id,
             'receiver_type'=> $request->receiver_type,
             'type'         => 1, // default text

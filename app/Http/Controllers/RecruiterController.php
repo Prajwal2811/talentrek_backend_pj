@@ -1583,8 +1583,10 @@ class RecruiterController extends Controller
 
           }
 
+    
 
-
+          
+ 
           // Gender filter
 
           if ($request->filled('gender') && !in_array('all', $request->gender)) {
