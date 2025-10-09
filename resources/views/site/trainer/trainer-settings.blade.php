@@ -67,13 +67,13 @@
                                     :class="activeSection === 'subscription' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
                                 >{{ langLabel('subscription') }}</a>
                                 </li>
-                                <li>
+                                {{-- <li>
                                 <a
                                     href="#"
                                     @click.prevent="activeSection = 'privacy'"
                                     :class="activeSection === 'privacy' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'"
                                 >{{ langLabel('privacy_policy') }}</a>
-                                </li>
+                                </li> --}}
                                 <li>
                                 <!-- <a
                                     href="#"
@@ -103,7 +103,7 @@
                                 @include('site.trainer.profile.subscription')
                                 @include('site.trainer.profile.delete')
                                 @include('site.trainer.profile.payment')
-                                @include('site.trainer.profile.privacy')
+                                {{-- @include('site.trainer.profile.privacy') --}}
                         </section>
                     </div>
                 </main>

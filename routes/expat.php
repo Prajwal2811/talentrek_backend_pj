@@ -24,7 +24,7 @@ Route::group(['prefix' => 'expat'], function() {
 		Route::get('/sign-in', [ExpatController::class, 'showSignInForm'])->name('signin.form');
 		Route::get('/sign-up', [ExpatController::class, 'showSignUpForm'])->name('signup.form');
 		Route::post('/expat/login', [ExpatController::class, 'loginExpat'])->name('expat.login.submit');
-		Route::post('/submit-forget-password', [ExpatController::class, 'submitForgetPassword'])->name('submit.forget.password');
+		Route::post('/submit-forget-password', [ExpatController::class, 'submitForgetPassword'])->name('expat.submit.forget.password');
 		Route::post('/resend-otp', [ExpatController::class, 'resendOtp'])->name('expat.resend-otp');
 		Route::get('/verify-otp', [ExpatController::class, 'showOtpForm'])->name('expat.verify-otp');
 		Route::post('/submit-verify-otp', [ExpatController::class, 'verifyOtp'])->name('expat.verify-otp.submit');
@@ -60,14 +60,13 @@ Route::group(['prefix' => 'expat'], function() {
 		Route::delete('/expat/additional/delete/{type}', [ExpatController::class, 'deleteAdditionalFile'])->name('expat.additional.delete');
 
 
-		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [ExpatController::class, 'bookingSession'])->name('mentorship-book-session');
-		Route::get('/assessor-details/{assessor_id}/assessor-book-session/{slot_id}', [ExpatController::class, 'bookingAssessorSession'])->name('assessor-book-session');
-		Route::get('/coach-details/{coach_id}/coach-book-session/{slot_id}', [ExpatController::class, 'bookingCoachSession'])->name('coach-book-session');
-
-		Route::post('/submit-review', [ExpatController::class, 'submitReview'])->name('submit.review');
-		Route::post('/submit-assessor-review', [ExpatController::class, 'submitAssessorReview'])->name('submit.assessor.review');
-		Route::post('/submit-coach-review', [ExpatController::class, 'submitCoachReview'])->name('submit.coach.review');
-		Route::post('/submit-mentor-review', [ExpatController::class, 'submitMentorReview'])->name('submit.mentor.review');
+		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [ExpatController::class, 'bookingSession'])->name('expat.mentorship-book-session');
+		Route::get('/assessor-details/{assessor_id}/assessor-book-session/{slot_id}', [ExpatController::class, 'bookingAssessorSession'])->name('expat.assessor-book-session');
+		Route::get('/coach-details/{coach_id}/coach-book-session/{slot_id}', [ExpatController::class, 'bookingCoachSession'])->name('expat.coach-book-session');
+		Route::post('/submit-review', [ExpatController::class, 'submitReview'])->name('expat.submit.review');
+		Route::post('/submit-assessor-review', [ExpatController::class, 'submitAssessorReview'])->name('expat.submit.assessor.review');
+		Route::post('/submit-coach-review', [ExpatController::class, 'submitCoachReview'])->name('expat.submit.coach.review');
+		Route::post('/submit-mentor-review', [ExpatController::class, 'submitMentorReview'])->name('expat.submit.mentor.review');
 			
 
 
@@ -78,58 +77,50 @@ Route::group(['prefix' => 'expat'], function() {
 
 
 		Route::post('/team-purchase-course', [ExpatController::class, 'teamPurchaseCourse'])->name('expat.team-purchase-course');
-
 		Route::post('/expat/save-answer', [ExpatController::class, 'saveExpatAnswer'])->name('expat.saveAnswer');
 		Route::post('/expat/submit-quiz', [ExpatController::class, 'submitQuiz'])->name('expat.submitQuiz');
 		Route::post('/save-remaining-time', [ExpatController::class, 'saveRemainingTime'])->name('expat.saveRemainingTime');
-
 		Route::get('/quiz/success', [ExpatController::class, 'quizSuccess'])->name('expat.quizSuccessPage');
 		Route::get('/assessment/result/{id}', [ExpatController::class, 'viewScore'])->name('expat.assessment.result');
-
 		Route::post('/add-to-cart/{id}', [ExpatController::class, 'addToCart'])->name('expat.addtocart');
-
 		// Route::post('/cart/remove/{id}', [ExpatController::class, 'remove'])->name('cart.remove');
-		Route::post('/cart/remove/{id}', [ExpatController::class, 'removeCartItem'])->name('cart.remove');
-
-
+		Route::post('/cart/remove/{id}', [ExpatController::class, 'removeCartItem'])->name('expat.cart.remove');
 		Route::post('/chat/send', [ExpatController::class, 'sendMessage'])->name('expat.chat.send');
     	Route::get('/chat/messages', [ExpatController::class, 'getMessages'])->name('expat.chat.fetch');
-
-		Route::get('/download-certificate/{material_id}', [ExpatController::class, 'downloadCertificate'])
-    	->name('download.certificate');
+		Route::get('/download-certificate/{material_id}', [ExpatController::class, 'downloadCertificate'])->name('expat.download.certificate');
 
 
 		
 	});
 
-		Route::get('/mentorship-details/{id}', [ExpatController::class, 'mentorshipDetails'])->name('mentorship-details');
-		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [ExpatController::class, 'bookingSession'])->name('mentorship-book-session');
-		Route::get('/get-available-slots', [ExpatController::class, 'getAvailableSlots'])->name('get-available-slots');
-		Route::get('/get-assessor-available-slots', [ExpatController::class, 'getAssesorAvailableSlots'])->name('get-assessor-available-slots');
+		Route::get('/mentorship-details/{id}', [ExpatController::class, 'mentorshipDetails'])->name('expat.mentorship-details');
+		Route::get('/mentorship-details/{mentor_id}/mentorship-book-session/{slot_id}', [ExpatController::class, 'bookingSession'])->name('expat.mentorship-book-session');
+		Route::get('/get-available-slots', [ExpatController::class, 'getAvailableSlots'])->name('expat.get-available-slots');
+		Route::get('/get-assessor-available-slots', [ExpatController::class, 'getAssesorAvailableSlots'])->name('expat.get-assessor-available-slots');
 
-		Route::get('/get-coach-available-slots', [ExpatController::class, 'getCoachAvailableSlots'])->name('get-coach-available-slots');
+		Route::get('/get-coach-available-slots', [ExpatController::class, 'getCoachAvailableSlots'])->name('expat.get-coach-available-slots');
 		
 
 		
 		// Route::post('/mentorship-book-session', [ExpatController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
-		Route::post('/assessor-book-session', [ExpatController::class, 'submitAssessorBooking'])->name('assessor-booking-submit');
-		Route::post('/coach-book-session', [ExpatController::class, 'submitCoachBooking'])->name('coach-booking-submit');
+		Route::post('/assessor-book-session', [ExpatController::class, 'submitAssessorBooking'])->name('expat.assessor-booking-submit');
+		Route::post('/coach-book-session', [ExpatController::class, 'submitCoachBooking'])->name('expat.coach-booking-submit');
 
 
 
 		Route::get('/expat/mentorship-booking-success', function () {
 			return view('expat.booking-success');
-		})->name('mentorship-booking-success');
+		})->name('expat.mentorship-booking-success');
 
 
-		Route::get('/course-details/{id}', [ExpatController::class, 'courseDetails'])->name('course.details');
-		Route::get('/take-assessment/{id}', [ExpatController::class, 'viewAssessment'])->name('assessment.view');
-		Route::post('/expat/update-remaining-time', [App\Http\Controllers\ExpatController::class, 'updateRemainingTime'])
+		Route::get('/course-details/{id}', [ExpatController::class, 'courseDetails'])->name('expat.course.details');
+		Route::get('/take-assessment/{id}', [ExpatController::class, 'viewAssessment'])->name('expat.assessment.view');
+		Route::post('/expat/update-remaining-time', [App\Http\Controllers\ExpatController::class, 'expat.updateRemainingTime'])
     	->name('expat.updateRemainingTime');
 
 
-		Route::get('/buy-course/{id}', [ExpatController::class, 'buyCourseDetails'])->name('buy-course');
-		Route::get('/buy-course-for-team/{id}', [ExpatController::class, 'buyTeamCourseDetails'])->name('buy-course-for-team');
+		Route::get('/buy-course/{id}', [ExpatController::class, 'buyCourseDetails'])->name('expat.buy-course');
+		Route::get('/buy-course-for-team/{id}', [ExpatController::class, 'buyTeamCourseDetails'])->name('expat.buy-course-for-team');
 		// Route::post('/purchase-course', [ExpatController::class, 'purchaseCourse'])->name('expat.purchase-course');
 		Route::post('/team-purchase-course', [ExpatController::class, 'teamPurchaseCourse'])->name('expat.team-purchase-course');
 
@@ -137,17 +128,17 @@ Route::group(['prefix' => 'expat'], function() {
 		// Zoom OAuth routes
 		// Route::get('/zoom/authorize', [ExpatController::class, 'redirectToZoom'])->name('redirectToZoom');
 		// Route::get('/zoom/callback', [ExpatController::class, 'handleZoomCallback']);
-		Route::get('/zoom/authorize', [ExpatController::class, 'redirectToZoom'])->name('zoom.redirect');
-		Route::get('/zoom/callback', [ExpatController::class, 'handleZoomCallback'])->name('zoom.callback');
+		Route::get('/zoom/authorize', [ExpatController::class, 'redirectToZoom'])->name('expat.zoom.redirect');
+		Route::get('/zoom/callback', [ExpatController::class, 'handleZoomCallback'])->name('expat.zoom.callback');
 
 		// Route::get('/zoom/create-meeting', [ExpatController::class, 'createMeeting']);
 	
 		// routes/web.php
 
 		// Assessors
-		Route::get('/assessor-details/{id}', [ExpatController::class, 'assessorDetails'])->name('assessor-details');
-		Route::get('/coach-details/{id}', [ExpatController::class, 'coachDetails'])->name('coach-details');
+		Route::get('/assessor-details/{id}', [ExpatController::class, 'assessorDetails'])->name('expat.assessor-details');
+		Route::get('/coach-details/{id}', [ExpatController::class, 'coachDetails'])->name('expat.coach-details');
 
-		Route::post('/apply-coupon', [ExpatController::class, 'applyCoupon'])->name('apply.coupon');
+		Route::post('/apply-coupon', [ExpatController::class, 'applyCoupon'])->name('expat.apply.coupon');
 		
 });
