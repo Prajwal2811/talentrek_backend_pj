@@ -223,7 +223,7 @@ class CoursePurchaseController extends Controller
                 'receiver_id'    => $paymentRequest->trainer_id,
                 'payment_for'    => 'training',
                 'amount_paid'    => $paymentRequest->amount_paid,
-                'tax'            => $paymentRequest->tax,
+                'taxed_amount'            => $paymentRequest->tax,
                 'applied_coupon' => $paymentRequest->coupon_code,
                 'payment_status' => 'completed',
                 'transaction_id' => $paymentRequest->transaction_id,

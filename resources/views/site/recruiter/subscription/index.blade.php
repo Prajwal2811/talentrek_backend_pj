@@ -94,6 +94,7 @@
                             <div class="flex justify-between items-center text-sm mb-1">
                                 <span class="text-gray-600">Tax ({{ $taxPercent }}%):</span>
                                 <span class="font-medium text-gray-800">AED {{ number_format($taxAmount, 2) }}</span>
+                                <input type="hidden" name="tax_percent" value="{{ $taxPercent }}">
                             </div>
                             <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between items-center">
                                 <span class="font-semibold text-gray-700">Total (incl. tax):</span>

@@ -86,6 +86,9 @@ class SubscriptionController extends Controller
         ]);
 
         
+        // Fetch tax percentage
+        $taxPercent = (float) Setting::value('subscriptionTax') ?? 0;
+        
         // 🔹 Prepare transaction payload for Neoleap
         $config = config('neoleap');
         $transactionDetails = [
@@ -103,8 +106,8 @@ class SubscriptionController extends Controller
             "udf6"         => $plan->duration_days,
             "udf7"         => number_format($taxAmount, 2, '.', ''), // ✅ store tax separately
             "udf8"         => number_format($plan->price, 2, '.', ''), // ✅ base amount
-            "udf9"         => $plan->id, 
-            "udf10"         => number_format($taxAmount, 2, '.', '') + number_format($plan->price, 2, '.', ''), 
+            "udf9"         => $taxPercent, 
+            "udf10"        => number_format($taxAmount, 2, '.', '') + number_format($plan->price, 2, '.', ''), 
             "langid"       => "en",
             "responseURL"  => $config['subscription_success_url'],
             "errorURL"     => $config['subscription_failure_url'],
@@ -156,10 +159,6 @@ class SubscriptionController extends Controller
         return redirect()->back()->with('error', 'Unable to initiate payment. Please try again.');
     }
 
-
-    /**
-     * Success callback
-     */
     public function successSubscription(Request $request)
     {
         // echo "<pre>"; print_r($request->all()); echo "</pre>"; exit;
@@ -258,30 +257,36 @@ class SubscriptionController extends Controller
                 'user_type'            => $data['udf2'],
                 'subscription_plan_id' => $data['udf4'],
                 'amount_paid'          => $data['amt'],
-                'tax_percentage'       => $data['udf7'],
                 'actual_amount'        => $data['udf8'],
+                'taxed_amount'         => $data['udf7'],
+                'tax_percentage'       => $data['udf9'],
                 'track_id'             => $data['trackId'] ?? null,
-                'currency'             => 'SAR',
                 'transaction_id'       => $data['transId'] ?? null,
+                'order_id'             => 'ORD-' . $data['udf1'] . '-' . $data['udf4'],
+                'currency'             => 'SAR',
                 'payment_status'       => 'paid',
-                'response_payload'     => json_encode($data),
+                'coupon_code'          => $booking->coupon_code ?? null,
                 'start_date'           => $startDate,
                 'end_date'             => $endDate,
-                'company_id'           => $companyId, // ✅ save recruiter company ID
+                'company_id'           => $companyId,
+                'response_payload'     => json_encode($data),
             ]);
 
             // 🔹 Add entry in payments_history
             PaymentHistory::create([
-                'user_type'     => $data['udf2'],       // payer type
-                'user_id'       => $data['udf1'],       // payer id
-                'receiver_type' => 'talentrek',         // always platform
-                'receiver_id'   => null,                // or 1 if you want fixed id
+                'user_type'     => $data['udf2'],
+                'user_id'       => $data['udf1'],
+                'receiver_type' => 'talentrek',
+                'receiver_id'   => null,
                 'payment_for'   => 'subscription',
                 'amount_paid'   => $data['amt'],
+                'taxed_amount'  => $data['udf7'],
+                'tax_percentage' => $data['udf9'],
+                'applied_coupon'=> $booking->coupon_code ?? null,
                 'payment_status'=> 'completed',
                 'transaction_id'=> $data['transId'] ?? null,
                 'track_id'      => $data['trackId'] ?? null,
-                'order_id'      => 'ORD-' . $data['udf1'] . '-' . $data['udf4'] . '-' .  $data['ref'],
+                'order_id'      => 'ORD-' . $data['udf1'] . '-' . $data['udf4'],
                 'currency'      => 'SAR',
                 'payment_method'=> 'Al Rajhi',
                 'paid_at'       => now(),
