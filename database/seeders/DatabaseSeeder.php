@@ -27,7 +27,6 @@ class DatabaseSeeder extends Seeder
             CoachSeeder::class,
             TestimonialSeeder::class,
             MentorSeeder::class,
-
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
             EducationDetailsSeeder::class,
@@ -51,7 +50,6 @@ class DatabaseSeeder extends Seeder
             // TeamCourseMembersSeeder::class,
             NotificationSeeder::class
         ]);
-
         
     }
 }
