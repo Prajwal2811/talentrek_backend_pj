@@ -909,7 +909,7 @@ class RecruiterController extends Controller
 
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                     ->where('status', 'active')
-                    ->whereIn('admin_status', ['approved', 'superadmin_approved'])
+                    ->where('admin_status', 'superadmin_approved')
                     ->whereNotIn('id', $shortlistedIds)
                     ->get();
           
@@ -1449,70 +1449,187 @@ class RecruiterController extends Controller
      return $shortlisted;
      }
 
-     private function calculateExperience($jobseeker)
+     // private function calculateExperience($jobseeker)
+     // {
+     // $totalExp = 0;
+     // foreach ($jobseeker->experiences as $exp) {
+     //      if ($exp->starts_from && $exp->end_to) {
+     //           $start = Carbon::parse($exp->starts_from);
+     //           $end = Carbon::parse($exp->end_to);
+     //           $totalExp += $start->diffInDays($end);
+     //      }
+     // }
+     // $years = floor($totalExp / 365);
+     // return $years . ' years';
+     // }
+
+      private function calculateExperience($jobseeker)
      {
-     $totalExp = 0;
-     foreach ($jobseeker->experiences as $exp) {
-          if ($exp->starts_from && $exp->end_to) {
-               $start = Carbon::parse($exp->starts_from);
-               $end = Carbon::parse($exp->end_to);
-               $totalExp += $start->diffInDays($end);
+          $totalExp = 0;
+
+          foreach ($jobseeker->experiences as $exp) {
+               try {
+                    if ($exp->starts_from && $exp->end_to) {
+                         $start = Carbon::parse($exp->starts_from);
+                         $end = Carbon::parse($exp->end_to);
+
+                         if ($end->greaterThanOrEqualTo($start)) {
+                              $totalExp += $start->diffInDays($end);
+                         }
+                    }
+               } catch (\Exception $e) {
+                    // Ignore invalid dates like 'work here'
+                    continue;
+               }
           }
+
+          // $years = floor($totalExp / 365);
+          // return $years . ' years';
+          $yearsExp = $totalExp / 365; 
+          $jobseeker->total_experience = floor($yearsExp) . ' years'; 
+
+          return $yearsExp; 
      }
-     $years = floor($totalExp / 365);
-     return $years . ' years';
-     }
+
+     // private function applyFilters($jobseeker, $request)
+     // {
+     // $totalExp = 0;
+     // foreach ($jobseeker->experiences as $exp) {
+     //      if ($exp->starts_from && $exp->end_to) {
+     //           $start = Carbon::parse($exp->starts_from);
+     //           $end = Carbon::parse($exp->end_to);
+     //           $totalExp += $start->diffInDays($end);
+     //      }
+     // }
+
+     // $yearsExp = floor($totalExp / 365);
+     // $jobseeker->total_experience = $yearsExp . ' years';
+
+     // // Experience filter
+     // if ($request->filled('experience') && !in_array('all', $request->experience)) {
+     //      $match = false;
+     //      if (in_array('fresher', $request->experience) && $yearsExp <= 3) $match = true;
+     //      if (in_array('experienced', $request->experience) && $yearsExp > 3) $match = true;
+     //      if (!$match) return false;
+     // }
+
+     // // Education filter
+     // if ($request->filled('education')) {
+     //      $eduMatch = $jobseeker->educations->pluck('high_education')->intersect($request->education)->isNotEmpty();
+     //      if (!$eduMatch) return false;
+     // }
+
+     // // Gender filter
+     // if ($request->filled('gender') && !in_array('all', $request->gender)) {
+     //      $filterGenders = array_map('strtolower', $request->gender);
+     //      $jobseekerGender = strtolower($jobseeker->gender);
+     //      if (!in_array($jobseekerGender, $filterGenders)) {
+     //           return false;
+     //      }
+     // }
+
+     // // Certificate filter
+     // if ($request->filled('certificate') && !in_array('all', $request->certificate)) {
+     //      $certificateCount = $jobseeker->skills->count();
+     //      $match = false;
+     //      if (in_array('0-5', $request->certificate) && $certificateCount >= 0 && $certificateCount <= 5) $match = true;
+     //      if (in_array('5+', $request->certificate) && $certificateCount > 5) $match = true;
+     //      if (in_array('not-certified', $request->certificate) && $certificateCount == 0) $match = true;
+     //      if (!$match) return false;
+     // }
+
+     // return true;
+     // }
 
      private function applyFilters($jobseeker, $request)
+
      {
-     $totalExp = 0;
-     foreach ($jobseeker->experiences as $exp) {
-          if ($exp->starts_from && $exp->end_to) {
-               $start = Carbon::parse($exp->starts_from);
-               $end = Carbon::parse($exp->end_to);
-               $totalExp += $start->diffInDays($end);
+
+          $totalExp = 0;
+          foreach ($jobseeker->experiences as $exp) {
+          try {
+               if ($exp->starts_from && $exp->end_to) {
+                    $start = Carbon::parse($exp->starts_from);
+                    $end = Carbon::parse($exp->end_to);
+
+                    if ($end->greaterThanOrEqualTo($start)) {
+                         $totalExp += $start->diffInDays($end);
+                    }
+               }
+          } catch (\Exception $e) {
+               continue;
           }
-     }
+          }
+          $yearsExp = $totalExp / 365; // decimal for filter
+          $jobseeker->total_experience = floor($yearsExp) . ' years'; // display
 
-     $yearsExp = floor($totalExp / 365);
-     $jobseeker->total_experience = $yearsExp . ' years';
+          // Experience filter
+          if ($request->filled('experience') && !in_array('all', $request->experience)) {
 
-     // Experience filter
-     if ($request->filled('experience') && !in_array('all', $request->experience)) {
           $match = false;
           if (in_array('fresher', $request->experience) && $yearsExp <= 3) $match = true;
           if (in_array('experienced', $request->experience) && $yearsExp > 3) $match = true;
           if (!$match) return false;
-     }
 
-     // Education filter
-     if ($request->filled('education')) {
-          $eduMatch = $jobseeker->educations->pluck('high_education')->intersect($request->education)->isNotEmpty();
-          if (!$eduMatch) return false;
-     }
-
-     // Gender filter
-     if ($request->filled('gender') && !in_array('all', $request->gender)) {
-          $filterGenders = array_map('strtolower', $request->gender);
-          $jobseekerGender = strtolower($jobseeker->gender);
-          if (!in_array($jobseekerGender, $filterGenders)) {
-               return false;
           }
-     }
 
-     // Certificate filter
-     if ($request->filled('certificate') && !in_array('all', $request->certificate)) {
-          $certificateCount = $jobseeker->skills->count();
-          $match = false;
-          if (in_array('0-5', $request->certificate) && $certificateCount >= 0 && $certificateCount <= 5) $match = true;
-          if (in_array('5+', $request->certificate) && $certificateCount > 5) $match = true;
-          if (in_array('not-certified', $request->certificate) && $certificateCount == 0) $match = true;
-          if (!$match) return false;
-     }
 
-     return true;
-     }
 
+          // Education filter
+
+          if ($request->filled('education')) {
+
+               $eduMatch = $jobseeker->educations->pluck('high_education')->intersect($request->education)->isNotEmpty();
+
+               if (!$eduMatch) return false;
+
+          }
+
+    
+
+          
+ 
+          // Gender filter
+
+          if ($request->filled('gender') && !in_array('all', $request->gender)) {
+
+               $filterGenders = array_map('strtolower', $request->gender);
+
+               $jobseekerGender = strtolower($jobseeker->gender);
+
+               if (!in_array($jobseekerGender, $filterGenders)) {
+
+                    return false;
+
+               }
+
+          }
+
+
+
+          // Certificate filter
+
+          if ($request->filled('certificate') && !in_array('all', $request->certificate)) {
+
+               $certificateCount = $jobseeker->skills->count();
+
+               $match = false;
+
+               if (in_array('0-5', $request->certificate) && $certificateCount >= 0 && $certificateCount <= 5) $match = true;
+
+               if (in_array('5+', $request->certificate) && $certificateCount > 5) $match = true;
+
+               if (in_array('not-certified', $request->certificate) && $certificateCount == 0) $match = true;
+
+               if (!$match) return false;
+
+          }
+
+
+
+          return true;
+
+     }
 
 
      public function processSubscriptionPayment(Request $request)

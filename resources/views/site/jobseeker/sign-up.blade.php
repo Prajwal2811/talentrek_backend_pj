@@ -50,37 +50,38 @@
                                         <!-- Password Field -->
                                         <div class="mb-3">
                                             <label for="password" class="block text-sm font-medium mb-1">{{ langLabel('password') }}</label>
-                                            <div class="relative w-full">
-                                                <input type="password" name="password" id="password" placeholder="{{ langLabel('password') }}"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"/>
 
-                                                <!-- Eye Toggle Button -->
+                                            <div class="password-wrapper">
+                                                <input type="password" name="password" id="password" placeholder="{{ langLabel('password') }}"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                                                 <button type="button" onclick="togglePassword('password', 'eye-icon')"
-                                                    class="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
+                                                        class="eye-btn text-gray-500 hover:text-blue-600 focus:outline-none">
                                                     <i data-feather="eye" id="eye-icon" class="w-5 h-5"></i>
                                                 </button>
-                                                @error('password')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                @enderror
                                             </div>
+                                            @error('password')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+
                                         </div>
 
                                         <!-- Confirm Password Field -->
                                         <div class="mb-3">
                                             <label for="confirm_password" class="block text-sm font-medium mb-1">{{ langLabel('confirm_password') }}</label>
-                                            <div class="relative w-full">
+                                            <div class="password-wrapper">
                                                 <input type="password" name="confirm_password" id="confirm_password" placeholder="{{ langLabel('confirm_password') }}"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"/>
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
 
-                                                <!-- Eye Toggle Button -->
                                                 <button type="button" onclick="toggleConfirmPassword('confirm_password', 'eye-icon-confirm')"
-                                                    class="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
+                                                        class="eye-btn text-gray-500 hover:text-blue-600 focus:outline-none">
                                                     <i data-feather="eye" id="eye-icon-confirm" class="w-5 h-5"></i>
                                                 </button>
-                                                @error('confirm_password')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                @enderror
                                             </div>
+                                            @error('confirm_password')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+
                                         </div>
 
                                         <div class="flex items-start">
@@ -172,3 +173,23 @@
         feather.replace(); // Refresh the icon
     }
 </script>
+<style>
+    /* Fix for eye icon shifting on validation */
+    .password-wrapper {
+        position: relative;
+    }
+    .password-wrapper input {
+        padding-right: 2.5rem; /* space for eye icon */
+    }
+    .password-wrapper button.eye-btn {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        pointer-events: auto;
+    }
+</style>

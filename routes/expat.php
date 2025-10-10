@@ -20,9 +20,10 @@ Route::group(['prefix' => 'expat'], function() {
 		Route::get('/registration', [ExpatController::class, 'showRegistrationForm'])->name('expat.registration');
 		Route::post('/registration', [ExpatController::class, 'postRegistration'])->name('expat.register.post'); 
 		Route::post('/registration/store', [ExpatController::class, 'storeExpatInformation'])->name('expat.registration.store');
-		Route::get('/cv-template/download/{id}', [ExpatController::class, 'downloadCvTemplate'])->name('cv.template.download');
-		Route::get('/sign-in', [ExpatController::class, 'showSignInForm'])->name('signin.form');
-		Route::get('/sign-up', [ExpatController::class, 'showSignUpForm'])->name('signup.form');
+		Route::get('/cv-template/download/{id}', [ExpatController::class, 'downloadCvTemplate'])->name('expat.cv.template.download');
+		Route::get('/sign-in', [ExpatController::class, 'showSignInForm'])->name('expat.signin.form');
+		Route::get('/sign-up', [ExpatController::class, 'showSignUpForm'])->name('expat.signup.form');
+
 		Route::post('/expat/login', [ExpatController::class, 'loginExpat'])->name('expat.login.submit');
 		Route::post('/submit-forget-password', [ExpatController::class, 'submitForgetPassword'])->name('expat.submit.forget.password');
 		Route::post('/resend-otp', [ExpatController::class, 'resendOtp'])->name('expat.resend-otp');
@@ -77,6 +78,28 @@ Route::group(['prefix' => 'expat'], function() {
 
 
 		Route::post('/team-purchase-course', [ExpatController::class, 'teamPurchaseCourse'])->name('expat.team-purchase-course');
+
+		// Route::post('/expat/save-answer', [ExpatController::class, 'saveExpatAnswer'])->name('expat.saveAnswer');
+		// Route::post('/expat/submit-quiz', [ExpatController::class, 'submitQuiz'])->name('expat.submitQuiz');
+		// Route::post('/save-remaining-time', [ExpatController::class, 'saveRemainingTime'])->name('expat.saveRemainingTime');
+
+		// Route::get('/quiz/success', [ExpatController::class, 'quizSuccess'])->name('expat.quizSuccessPage');
+		// Route::get('/assessment/result/{id}', [ExpatController::class, 'viewScore'])->name('expat.assessment.result');
+
+		// Route::post('/add-to-cart/{id}', [ExpatController::class, 'addToCart'])->name('expat.addtocart');
+
+		// // Route::post('/cart/remove/{id}', [ExpatController::class, 'remove'])->name('cart.remove');
+		// Route::post('/cart/remove/{id}', [ExpatController::class, 'removeCartItem'])->name('expat.cart.remove');
+
+
+		// Route::post('/chat/send', [ExpatController::class, 'sendMessage'])->name('expat.chat.send');
+    	// Route::get('/chat/messages', [ExpatController::class, 'getMessages'])->name('expat.chat.fetch');
+
+		// Route::get('/download-certificate/{material_id}', [ExpatController::class, 'downloadCertificate'])
+    	// ->name('expat.download.certificate');
+
+
+		
 		Route::post('/expat/save-answer', [ExpatController::class, 'saveExpatAnswer'])->name('expat.saveAnswer');
 		Route::post('/expat/submit-quiz', [ExpatController::class, 'submitQuiz'])->name('expat.submitQuiz');
 		Route::post('/save-remaining-time', [ExpatController::class, 'saveRemainingTime'])->name('expat.saveRemainingTime');
@@ -102,7 +125,8 @@ Route::group(['prefix' => 'expat'], function() {
 		
 
 		
-		// Route::post('/mentorship-book-session', [ExpatController::class, 'submitMentorshipBooking'])->name('mentorship-booking-submit');
+		// Route::post('/mentorship-book-session', [ExpatController::class, 'submitMentorshipBooking'])->name('expat.mentorship-booking-submit');
+
 		Route::post('/assessor-book-session', [ExpatController::class, 'submitAssessorBooking'])->name('expat.assessor-booking-submit');
 		Route::post('/coach-book-session', [ExpatController::class, 'submitCoachBooking'])->name('expat.coach-booking-submit');
 
@@ -115,7 +139,8 @@ Route::group(['prefix' => 'expat'], function() {
 
 		Route::get('/course-details/{id}', [ExpatController::class, 'courseDetails'])->name('expat.course.details');
 		Route::get('/take-assessment/{id}', [ExpatController::class, 'viewAssessment'])->name('expat.assessment.view');
-		Route::post('/expat/update-remaining-time', [App\Http\Controllers\ExpatController::class, 'expat.updateRemainingTime'])
+
+		Route::post('/expat/update-remaining-time', [App\Http\Controllers\ExpatController::class, 'updateRemainingTime'])
     	->name('expat.updateRemainingTime');
 
 

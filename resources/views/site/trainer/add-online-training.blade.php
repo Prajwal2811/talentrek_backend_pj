@@ -59,9 +59,11 @@
                         @enderror
                     </div>
 
+
                     <link rel="stylesheet" href="{{ asset('asset/richtexteditor/richtexteditor/rte_theme_default.css')}}" />
                     <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/plugins/all_plugins.js')}}"></script>
                     <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/rte.js')}}"></script>
+
 
                     <script>
                         var trainingEditor = new RichTextEditor("#training_editor");
@@ -216,9 +218,9 @@
                                 <thead class="bg-gray-100 font-semibold">
                                     <tr>
                                         <th class="px-4 py-2 border">#</th>
-                                        <th class="px-4 py-2 border">{{ langLabel('batch_no') }}</th>
-                                        <th class="px-4 py-2 border">{{ langLabel('start_timing') }}</th>
-                                        <th class="px-4 py-2 border">{{ langLabel('end_timing') }}</th>
+                                        <th class="px-4 py-2 border">{{ langLabel('batch_no') }}</th>b
+                                        <th class="px-4 py-2 border">{{ langLabel('start_date') }}</th>
+                                        <th class="px-4 py-2 border">{{ langLabel('end_date') }}</th>
                                         <th class="px-4 py-2 border">{{ langLabel('time') }}</th>
                                         <th class="px-4 py-2 border">{{ langLabel('duration') }}</th>
                                         <th class="px-4 py-2 border">{{ langLabel('days') }}</th>
@@ -260,136 +262,6 @@
                 </form>
             </main>
 
-            <!-- <script>
-                function batchManager() {
-                    return {
-                        batchNo: '', batchDate: '', startTime: '', endTime: '',
-                        durationType: 'day', duration: '', strength: '',
-                        selectedDays: [],
-                        weekDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                        batches: [], isEditing: false, editIndex: null, conflict: false,
-
-                        getOptions() {
-                            if (this.durationType === 'day') return Array.from({ length: 60 }, (_, i) => `${i + 1} day`);
-                            if (this.durationType === 'month') return Array.from({ length: 12 }, (_, i) => `${i + 1} month`);
-                            if (this.durationType === 'year') return Array.from({ length: 5 }, (_, i) => `${i + 1} year`);
-                            return [];
-                        },
-
-                        addBatch() {
-                            if (!this.validateForm()) return;
-                            if (this.hasConflict()) { this.conflict = true; return; }
-                            this.conflict = false;
-                            this.batches.push(this.getBatchData());
-                            this.clearForm();
-                        },
-
-                        updateBatch() {
-                            if (!this.validateForm()) return;
-                            if (this.hasConflict()) { this.conflict = true; return; }
-                            this.conflict = false;
-                            this.batches[this.editIndex] = this.getBatchData();
-                            this.clearForm();
-                        },
-
-                        editBatch(index) {
-                            const b = this.batches[index];
-                            this.batchNo = b.batchNo; this.batchDate = b.batchDate;
-                            this.startTime = b.startTime; this.endTime = b.endTime;
-                            this.duration = b.duration; this.strength = b.strength;
-                            this.durationType = this.getDurationTypeFromString(b.duration);
-                            this.selectedDays = [...b.selectedDays];
-                            this.editIndex = index; this.isEditing = true;
-                        },
-
-                        removeBatch(index) {
-                            this.batches.splice(index, 1);
-                            if (this.isEditing && this.editIndex === index) this.clearForm();
-                        },
-
-                        hasConflict() {
-                            const [val, unit] = this.duration.split(' ');
-                            const startDate = new Date(this.batchDate);
-                            const endDate = new Date(this.batchDate);
-                            const dur = parseInt(val);
-                            if (unit.includes('day')) endDate.setDate(endDate.getDate() + dur - 1);
-                            else if (unit.includes('month')) { endDate.setMonth(endDate.getMonth() + dur); endDate.setDate(endDate.getDate() - 1); }
-                            else if (unit.includes('year')) { endDate.setFullYear(endDate.getFullYear() + dur); endDate.setDate(endDate.getDate() - 1); }
-
-                            return this.batches.some((b, i) => {
-                                if (this.isEditing && this.editIndex === i) return false;
-                                const bStart = new Date(b.batchDate); const bEnd = new Date(b.endDate);
-                                const dateOverlap = startDate <= bEnd && endDate >= bStart;
-                                const timeOverlap = !(this.endTime <= b.startTime || this.startTime >= b.endTime);
-                                return dateOverlap && timeOverlap;
-                            });
-                        },
-
-                        validateForm() {
-                            return this.batchNo && this.batchDate && this.startTime && this.endTime && this.duration && this.strength && this.selectedDays.length > 0 && this.endTime > this.startTime;
-                        },
-
-                        getBatchData() {
-                            return {
-                                batchNo: this.batchNo,
-                                batchDate: this.batchDate,
-                                startTime: this.startTime,
-                                endTime: this.endTime,
-                                duration: this.duration,
-                                strength: this.strength,
-                                selectedDays: [...this.selectedDays],
-                                endDate: this.calculateEndDate()
-                            };
-                        },
-
-                        clearForm() {
-                            this.batchNo = ''; this.batchDate = ''; this.startTime = ''; this.endTime = '';
-                            this.duration = ''; this.strength = ''; this.durationType = 'day';
-                            this.selectedDays = []; this.isEditing = false; this.editIndex = null; this.conflict = false;
-                        },
-
-                        getDurationTypeFromString(str) {
-                            if (str.includes('day')) return 'day';
-                            if (str.includes('month')) return 'month';
-                            if (str.includes('year')) return 'year';
-                            return 'day';
-                        },
-
-                        calculateEndDate() {
-                            if (!this.batchDate || !this.duration || !this.durationType || this.selectedDays.length === 0) return '';
-
-                            const weekdaysMap = {
-                                Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3,
-                                Thursday: 4, Friday: 5, Saturday: 6
-                            };
-
-                            const selectedIndices = this.selectedDays.map(day => weekdaysMap[day]);
-                            const startDate = new Date(this.batchDate);
-                            const endDate = new Date(startDate);
-
-                            if (this.durationType === 'day') {
-                                let count = 0;
-                                while (count < parseInt(this.duration)) {
-                                    if (selectedIndices.includes(endDate.getDay())) {
-                                        count++;
-                                    }
-                                    if (count < parseInt(this.duration)) {
-                                        endDate.setDate(endDate.getDate() + 1);
-                                    }
-                                }
-                            } else if (this.durationType === 'month') {
-                                endDate.setMonth(endDate.getMonth() + parseInt(this.duration));
-                                endDate.setDate(endDate.getDate() - 1);
-                            } else if (this.durationType === 'year') {
-                                endDate.setFullYear(endDate.getFullYear() + parseInt(this.duration));
-                                endDate.setDate(endDate.getDate() - 1);
-                            }
-
-                            return endDate.toISOString().split('T')[0];
-                        }
-                    };
-                }
-            </script> -->
 
             <style>
                 .error-message {

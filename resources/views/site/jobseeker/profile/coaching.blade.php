@@ -1,4 +1,5 @@
 {{-- Coaching --}}
+
 @php
     $coachings = \App\Models\BookingSession::with([
         'coach.reviews',

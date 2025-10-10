@@ -8,7 +8,15 @@
                                     }
                                 }
                             }">
-    <h2 class="text-xl font-semibold mb-4">{{ langLabel('my_profile') }}</h2>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">{{ langLabel('my_profile') }}</h2>
+        <a href="{{ route('jobseeker.resume.download') }}"
+        class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-500 transition">
+            Download Resume
+        </a>
+
+    </div>
+
     @if(session('success'))
         <span id="successMessage"
             class="inline-flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4 gap-2">
@@ -1055,3 +1063,4 @@
         </script>
     </div>
 </div>
+

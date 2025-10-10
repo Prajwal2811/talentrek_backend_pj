@@ -27,6 +27,7 @@ Route::post('/cart/course/payment/failure', [CoursePurchaseController::class, 'f
 
 
 // for expat
+
 Route::post('/expat/purchase-course', [CoursePurchaseController::class, 'processPurchaseCoursePayment'])->name('expat.purchase-course');
 Route::post('/expat/course/payment/success', [CoursePurchaseController::class, 'successPurchaseCourse']);
 Route::post('/expat/course/payment/failure', [CoursePurchaseController::class, 'failurePurchaseCourse']);

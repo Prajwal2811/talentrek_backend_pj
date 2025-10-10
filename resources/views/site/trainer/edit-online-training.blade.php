@@ -52,7 +52,7 @@
                                     class="w-full border rounded-md p-2 h-24">{{ old('training_objective', $training->training_objective ?? '') }}</textarea>
                             </div>
 
-                            <div class="mb-4">
+                             <div class="mb-4">
                                 <label class="block font-medium mb-1">{{ langLabel('course_content') }}</label>
                                 <textarea id="trainingDescriptionsEditor" name="training_descriptions">
                                     {{ old('training_descriptions', $training->training_descriptions ?? '') }}
@@ -63,9 +63,10 @@
                             </div>
 
                             <!-- Rich Text Editor CSS & JS (include only once per page) -->
-                             <link rel="stylesheet" href="{{ asset('asset/richtexteditor/richtexteditor/rte_theme_default.css')}}" />
-                    <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/plugins/all_plugins.js')}}"></script>
-                    <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/rte.js')}}"></script>
+                            <link rel="stylesheet" href="{{ asset('asset/richtexteditor/richtexteditor/rte_theme_default.css')}}" />
+                            <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/plugins/all_plugins.js')}}"></script>
+                            <script type="text/javascript" src="{{ asset('asset/richtexteditor/richtexteditor/rte.js')}}"></script>
+
 
                             <script>
                                 var trainingDescriptionsEditor = new RichTextEditor("#trainingDescriptionsEditor");

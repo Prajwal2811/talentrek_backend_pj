@@ -78,7 +78,8 @@ Route::group(['prefix' => 'jobseeker'], function() {
 		Route::post('/submit-coach-review', [JobseekerController::class, 'submitCoachReview'])->name('submit.coach.review');
 		Route::post('/submit-mentor-review', [JobseekerController::class, 'submitMentorReview'])->name('submit.mentor.review');
 			
-
+		Route::get('resume/download', [JobseekerController::class, 'downloadMyResume'])
+     		->name('jobseeker.resume.download');
 
 		// Purchase request stays POST
 		

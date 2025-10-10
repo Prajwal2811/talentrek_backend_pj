@@ -27,7 +27,6 @@ class DatabaseSeeder extends Seeder
             CoachSeeder::class,
             TestimonialSeeder::class,
             MentorSeeder::class,
-
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
             EducationDetailsSeeder::class,

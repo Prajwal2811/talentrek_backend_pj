@@ -29,7 +29,8 @@ class CoursePurchaseController extends Controller
     /**
      * Initiate Course Purchase Payment
      */
-   public function processPurchaseCoursePayment(Request $request)
+
+    public function processPurchaseCoursePayment(Request $request)
     {
 
         // Check if jobseeker is logged in

@@ -254,7 +254,9 @@
                             button.type = 'button';
                             button.className = correct ? 'btn btn-success' : 'btn btn-outline-secondary';
                             button.innerText = correct ? 'Correct' : 'Mark correct option';
-                            button.style.width = '150px'; // adjust as needed
+                            button.style.width = '200px'; // adjust as needed
+                            button.style.height = '40px'; // adjust as needed
+
 
                             button.onclick = () => {
                                 options.forEach((opt, i) => opt.correct = i === index);

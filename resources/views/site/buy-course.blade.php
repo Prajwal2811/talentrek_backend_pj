@@ -87,10 +87,11 @@
 
                 <form accept="multipart/form-data" action="{{ route('jobseeker.purchase-course') }}" method="POST">
                     @csrf
-                    <input type="text" name="material_id" value="{{ $material->id }}">
-                    <input type="text" name="training_type" value="{{ $material->training_type }}">
-                    <input type="text" name="user_id" value="{{ auth('jobseeker')->user()?->id }}">
-                    <input type="text" name="buy_type" value="buyNow">
+                    <input type="hidden" name="material_id" value="{{ $material->id }}">
+                    <input type="hidden" name="training_type" value="{{ $material->training_type }}">
+                    <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()?->id }}">
+                    <input type="hidden" name="buy_type" value="buyNow">
+
 
 
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,8 +100,9 @@
                         <div class="lg:col-span-2 space-y-6">
                             @if($material->training_type === "online" || $material->training_type === "classroom")
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
-                                    <input type="text" name="session_type" value="{{ $material->training_type }}">
+                                    <label
+                                        class="block text-sm font-medium text-gray-700 mb-1">{{ langLabel('training_mode') }}</label>
+                                    <input type="hidden" name="session_type" value="{{ $material->training_type }}">
                                     <select class="w-64 border border-gray-300 rounded px-3 py-2 text-sm" disabled>
                                         <option value="" disabled>{{ langLabel('select_training_mode') }}</option>
                                         <option value="online" @if($material->training_type === 'online') selected @endif>

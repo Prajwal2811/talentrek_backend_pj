@@ -42,6 +42,7 @@ return new class extends Migration
             // $table->foreign('trainer_id')->references('id')->on('trainers')->onDelete('cascade');
             // $table->foreign('material_id')->references('id')->on('training_materials')->onDelete('cascade');
             // $table->foreign('batch_id')->references('id')->on('training_batches')->onDelete('set null');
+
         });
     }
 

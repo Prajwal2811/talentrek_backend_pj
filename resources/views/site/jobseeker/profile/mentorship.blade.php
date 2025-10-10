@@ -1,4 +1,4 @@
-{{-- Mentorship --}}
+
 @php
     $mentorships = \App\Models\BookingSession::with([
         'mentor.reviews',

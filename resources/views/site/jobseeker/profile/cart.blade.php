@@ -7,6 +7,7 @@
         'material.profilePicture'
     ])
     ->where('jobseeker_id', auth('jobseeker')->id())
+
     ->where('status', '!=', 'paid')
     ->get();
 
@@ -381,3 +382,4 @@ $(document).ready(function () {
         </div>
     </div>
 </div>
+
