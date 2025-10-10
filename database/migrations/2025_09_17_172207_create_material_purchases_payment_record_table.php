@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('batch_id')->nullable();
 
             // Purchase for type
-            $table->enum('purchase_for', ['individual', 'team']);
+            $table->enum('purchase_for', ['individual', 'team', 'cart']);
 
             // Payment relation
             $table->string('payment_id')->nullable();

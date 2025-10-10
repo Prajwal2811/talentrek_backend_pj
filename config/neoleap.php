@@ -41,5 +41,4 @@ return [
 
 
     'curlopt_url' => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
-
 ];

@@ -29,7 +29,7 @@ class CoursePurchaseController extends Controller
     /**
      * Initiate Course Purchase Payment
      */
-    public function processPurchaseCoursePayment(Request $request)
+   public function processPurchaseCoursePayment(Request $request)
     {
 
         // Check if jobseeker is logged in
@@ -125,7 +125,7 @@ class CoursePurchaseController extends Controller
             "id" => $config['tranportal_id'],
             "amt" => $amountPaid,
             "action" => "1",
-            "password" => $config['tranportal_password'],
+            "password" => $config['password'] ?? "T4#2H#ma5yHv\$G7",
             "currencyCode" => "682",
             "trackId" => $referenceNo,
             "langid" => "en",
@@ -156,7 +156,7 @@ class CoursePurchaseController extends Controller
         // Redirect to Neoleap payment
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => $config['curlopt_url'],
+            CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $payload,
@@ -406,7 +406,7 @@ class CoursePurchaseController extends Controller
         "id"            => $config['tranportal_id'],
         "amt"           => $amountPaid,
         "action"        => "1",
-        "password"      => $config['tranportal_password'],
+        "password"      => "T4#2H#ma5yHv\$G7",
         "currencyCode"  => "682",
         "trackId"       => $referenceNo,
         "langid"        => "en",
@@ -804,7 +804,7 @@ class CoursePurchaseController extends Controller
                 "id"            => $config['tranportal_id'],
                 "amt"           => $amountPaid,
                 "action"        => "1",
-                "password"      => $config['tranportal_password'],
+                "password"      => "T4#2H#ma5yHv\$G7",
                 "currencyCode"  => "682",
                 "trackId"       => $referenceNo,
                 "langid"        => "en",
@@ -903,7 +903,7 @@ class CoursePurchaseController extends Controller
                     'training_type'    => $material->training_type,
                     'session_type'     => $material->training_type,
                     'batch_id'         => $payment->batch_id,
-                    'purchase_for'     => 'team',
+                    'purchase_for'     => 'cart',
                     'payment_id'       => $payment->id,
                     'batchStatus'      => 'active',
                     'status'           => 'active',
@@ -940,10 +940,11 @@ class CoursePurchaseController extends Controller
                     'paid_at'        => now(),
                 ]);
 
-                // ✅ Remove item from cart
+                // ✅ upadte status item in cart
                 JobseekerCartItem::where('jobseeker_id', $payment->jobseeker_id)
-                    ->where('material_id', $material->id)
-                    ->delete();
+                        ->where('material_id', $material->id)
+                        ->update(['status' => 'paid']);
+
             }
 
             // ✅ Log jobseeker in

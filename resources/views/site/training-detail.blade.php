@@ -391,21 +391,31 @@ if(auth('jobseeker')->check()){
                     $.ajax({
                         url: "{{ route('jobseeker.addtocart', ['id' => '__id__']) }}".replace('__id__', selectedMaterialId),
                         type: "POST",
-                        data: {_token: '{{ csrf_token() }}', batch_id: batchId},
-                        success: function () {
-                            $('#batch-modal').fadeOut();
-
-                            const button = $('.add-to-cart-btn[data-id="'+selectedMaterialId+'"]');
-                            button
-                                .removeClass('add-to-cart-btn border-blue-600 text-blue-600 hover:bg-blue-50')
-                                .addClass('bg-orange-500 text-white')
-                                .text('{{ langLabel("go_cart") }}')
-                                .off('click')
-                                .on('click', function () { window.location.href = "{{ route('jobseeker.profile') }}"; });
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            batch_id: batchId
                         },
-                        error: function () { alert('Something went wrong. Please try again!'); }
+                        success: function (res) {
+                            if(res.success){
+                                $('#batch-modal').fadeOut();
+
+                                const button = $('.add-to-cart-btn[data-id="'+selectedMaterialId+'"]');
+                                button
+                                    .removeClass('add-to-cart-btn border-blue-600 text-blue-600 hover:bg-blue-50')
+                                    .addClass('bg-orange-500 text-white')
+                                    .text('{{ langLabel("go_cart") }}')
+                                    .off('click')
+                                    .on('click', function () {
+                                        window.location.href = "{{ route('jobseeker.profile') }}";
+                                    });
+                            }
+                        },
+                        error: function () {
+                            alert('Something went wrong. Please try again!');
+                        }
                     });
                 });
+
             });
         </script>
 
