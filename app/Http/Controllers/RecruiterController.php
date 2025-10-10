@@ -909,7 +909,7 @@ class RecruiterController extends Controller
 
           $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
                     ->where('status', 'active')
-                    ->whereIn('admin_status', 'superadmin_approved')
+                    ->where('admin_status', 'superadmin_approved')
                     ->whereNotIn('id', $shortlistedIds)
                     ->get();
           
@@ -1565,10 +1565,12 @@ class RecruiterController extends Controller
 
           // Experience filter
           if ($request->filled('experience') && !in_array('all', $request->experience)) {
+
           $match = false;
           if (in_array('fresher', $request->experience) && $yearsExp <= 3) $match = true;
           if (in_array('experienced', $request->experience) && $yearsExp > 3) $match = true;
           if (!$match) return false;
+
           }
 
 
@@ -1628,6 +1630,7 @@ class RecruiterController extends Controller
           return true;
 
      }
+
 
      public function processSubscriptionPayment(Request $request)
      {

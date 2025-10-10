@@ -56,7 +56,6 @@ use App\Models\ExpatTrainingAssessmentTime;
 use App\Models\Resume;
 
 
-
 class ExpatController extends Controller
 {
     public function showRegistrationForm()

@@ -13,10 +13,19 @@ class JobseekerCartItem extends Model
     protected $fillable = [
         'jobseeker_id',
         'trainer_id',
+        'material_type',
         'material_id',
         'batch_id',
+        'price',
+        'available_seats',
+        'batch_status',
         'status',
     ];
+
+    // Relationships
+    public function batch() {
+        return $this->belongsTo(TrainingBatch::class, 'batch_id');
+    }
 
     // Relationships (optional)
     public function jobseeker()

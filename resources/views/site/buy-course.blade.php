@@ -93,6 +93,7 @@
                     <input type="hidden" name="buy_type" value="buyNow">
 
 
+
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                         <!-- Course Info & Batches -->

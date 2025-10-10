@@ -20,6 +20,7 @@ use App\Models\Mentors;
 use App\Models\TrainerAssessment;
 use App\Models\Assessors;
 use App\Models\Coach;
+use App\Models\TrainingBatch;
 use App\Models\Admin;
 use App\Models\SubscriptionPlan;
 use App\Models\PurchasedSubscription;
@@ -50,6 +51,7 @@ use App\Models\JobseekerTrainingAssessmentTime;
 use App\Models\Resume;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
+
 
 
 class JobseekerController extends Controller
@@ -2288,48 +2290,58 @@ class JobseekerController extends Controller
 
 
 
-
-    
-    public function addToCart(Request $request, $id)
+     // Add to Cart
+    public function addToCart(Request $request, $materialId)
     {
-        if (!Auth::guard('jobseeker')->check()) {
-            return response()->json(['message' => 'Please log in to add items to your cart.'], 401);
-        }
+        $jobseekerId = auth('jobseeker')->id();
+        $batchId = $request->batch_id ?? null;
 
-        $jobseekerId = Auth::guard('jobseeker')->id();
-        $material = TrainingMaterial::find($id);
-
+        $material = TrainingMaterial::find($materialId);
         if (!$material) {
-            return response()->json(['message' => 'Invalid material ID.'], 400);
+            return response()->json(['error' => 'Material not found'], 404);
         }
 
-        // Make sure batch_id is provided
-        $batchId = $request->input('batch_id');
-        if (!$batchId) {
-            return response()->json(['message' => 'Please select a batch before adding to cart.'], 400);
+        $price = $material->training_offer_price ?? $material->training_price ?? 0;
+
+        $availableSeats = null;
+        $batchStatus = 'active';
+
+        if ($batchId) {
+            $batch = TrainingBatch::find($batchId);
+            if ($batch) {
+                $strength = $batch->strength ?? 0;
+                $enrolled = JobseekerTrainingMaterialPurchase::where('batch_id', $batch->id)
+                            ->where('material_id', $materialId)
+                            ->count();
+                $availableSeats = max($strength - $enrolled, 0);
+
+                $endDate = Carbon::parse($batch->end_date ?? $batch->start_date);
+                if ($endDate->isPast()) {
+                    $batchStatus = 'expired';
+                } elseif ($availableSeats <= 0) {
+                    $batchStatus = 'full';
+                }
+            } else {
+                $batchStatus = 'invalid';
+            }
         }
 
-        $exists = JobseekerCartItem::where('jobseeker_id', $jobseekerId)
-            ->where('material_id', $id)
-            ->where('batch_id', $batchId)
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'Item with this batch is already in your cart.'], 200);
-        }
-
+        // Save to cart
         JobseekerCartItem::create([
-            'jobseeker_id' => $jobseekerId,
-            'trainer_id' => $material->trainer_id,
-            'material_id' => $id,
-            'batch_id' => $batchId,
-            'status' => 'pending',
+            'jobseeker_id'    => $jobseekerId,
+            'trainer_id'      => $material->trainer_id ?? null,
+            'material_type'   => $material->training_type ?? null,
+            'material_id'     => $materialId,
+            'batch_id'        => $batchId,
+            'price'           => $price,
+            'available_seats' => $availableSeats,
+            'batch_status'    => $batchStatus,
+            'status'          => 'pending',
         ]);
 
-        return response()->json(['message' => 'Item added to cart successfully.']);
+        return response()->json(['success' => true]);
+
     }
-
-
 
 
 

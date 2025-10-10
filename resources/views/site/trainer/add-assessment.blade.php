@@ -257,6 +257,7 @@
                             button.style.width = '200px'; // adjust as needed
                             button.style.height = '40px'; // adjust as needed
 
+
                             button.onclick = () => {
                                 options.forEach((opt, i) => opt.correct = i === index);
                                 renderOptions();

@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
             // TeamCourseMembersSeeder::class,
             NotificationSeeder::class
         ]);
+
         
     }
 }

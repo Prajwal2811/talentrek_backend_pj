@@ -1,9 +1,4 @@
-<div x-show="activeSection === 'payment'" x-transition class="bg-white p-6">
-    
-                             
-                              
 
-                                
 
                                 <!-- Subscription Section (with internal tabs) -->
                                 <div x-show="activeSection === 'profile'" x-transition>
@@ -945,3 +940,51 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const workContainer = document.getElementById('work-container');
+        const addWorkBtn = document.getElementById('add-work');
+
+        // Add new work block
+        addWorkBtn.addEventListener('click', function () {
+            const firstEntry = workContainer.querySelector('.work-entry');
+            const clone = firstEntry.cloneNode(true);
+
+            // Clear input values
+            clone.querySelectorAll('input').forEach(input => {
+                if (input.type === 'hidden') {
+                    input.remove();
+                } else if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+                if (input.name === 'end_to[]') input.disabled = false;
+            });
+
+            // Show remove button
+            const removeBtn = clone.querySelector('.remove-work');
+            removeBtn.style.display = 'block';
+
+            workContainer.appendChild(clone);
+        });
+
+        // Remove work block
+        workContainer.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-work')) {
+                const allEntries = workContainer.querySelectorAll('.work-entry');
+                if (allEntries.length > 1) {
+                    e.target.closest('.work-entry').remove();
+                }
+            }
+        });
+    });
+
+    // Toggle "currently working" checkbox
+    function toggleEndDate(checkbox) {
+        const input = checkbox.closest('div').querySelector('input[type="date"]');
+        input.disabled = checkbox.checked;
+        if (checkbox.checked) input.value = '';
+    }
+</script>

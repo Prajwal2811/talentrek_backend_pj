@@ -1,45 +1,249 @@
-<div x-show="activeSection === 'payment'" x-transition class="bg-white p-6">
-    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Payment History</h3>
+@if(auth()->user('mentor'))
+    @php
+        $paymentHistory = App\Models\PaymentHistory::where('user_type', 'mentor')
+            ->where('user_id', auth()->user('mentor')->id)
+            ->get()
+            ->map(function($payment) {
+                $payer = App\Models\Mentors::find($payment->user_id);
+                $receiver = $payment->receiver_id ? App\Models\Recruiters::find($payment->receiver_id) : null;
 
-    <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden">
-        <thead class="bg-gray-100 text-gray-700">
-            <tr>
-            <th class="px-4 py-2 border">Sr. No.</th>
-            <th class="px-4 py-2 border">Paid to</th>
-            <th class="px-4 py-2 border">Date</th>
-            <th class="px-4 py-2 border">Amount</th>
-            <th class="px-4 py-2 border">Payment status</th>
-            <th class="px-4 py-2 border">Action</th>
-            </tr>
-        </thead>
-        <tbody class="text-gray-700">
-            <tr class="border-b">
-            <td class="px-4 py-2">1.</td>
-            <td class="px-4 py-2">Session1</td>
-            <td class="px-4 py-2">24/04/2025</td>
-            <td class="px-4 py-2">200</td>
-            <td class="px-4 py-2">Paid</td>
-            <td class="px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                View invoice
-                </button>
-            </td>
-            </tr>
-            <tr class="border-b">
-            <td class="px-4 py-2">2.</td>
-            <td class="px-4 py-2">Session2</td>
-            <td class="px-4 py-2">26/04/2025</td>
-            <td class="px-4 py-2">100</td>
-            <td class="px-4 py-2">Paid</td>
-            <td class="px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                View invoice
-                </button>
-            </td>
-            </tr>
-            <!-- Add more rows dynamically if needed -->
-        </tbody>
-        </table>
+                $payment->payer_name = $payer ? $payer->name : 'N/A';
+                $payment->receiver_name = $receiver ? $receiver->name : $payment->receiver_type ?? 'N/A';
+                return $payment;
+            });
+
+        $headerLogo = App\Models\Setting::value('header_logo');
+        $headerLogoUrl = $headerLogo ? asset($headerLogo) : '';
+    @endphp
+
+    <div x-show="activeSection === 'payment'" x-transition class="bg-white p-6 rounded-lg shadow-md mt-4" x-data="{ openInvoice: null, selectedPayment: null }">
+        <h3 class="text-xl font-semibold mb-4 border-b pb-2">Payment History</h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden">
+                <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                        <th class="px-4 py-2 border">Sr. No.</th>
+                        <th class="px-4 py-2 border">Paid To</th>
+                        <th class="px-4 py-2 border">Date</th>
+                        <th class="px-4 py-2 border">Amount</th>
+                        <th class="px-4 py-2 border">Payment Status</th>
+                        <th class="px-4 py-2 border">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @foreach($paymentHistory as $index => $payment)
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-4 py-2">{{ $index + 1 }}</td>
+                            <td class="px-4 py-2">{{ $payment->receiver_name }}</td>
+                            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($payment->paid_at)->format('d/m/Y H:i') }}</td>
+                            <td class="px-4 py-2 font-medium">{{ $payment->currency }} {{ number_format($payment->amount_paid, 2) }}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                    {{ $payment->payment_status == 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    {{ ucfirst($payment->payment_status) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2">
+                                <button 
+                                    @click="openInvoice = {{ $payment->id }}; selectedPayment = {{ $payment->toJson() }};"
+                                    class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs">
+                                    View Invoice
+                                </button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Invoice Modal -->
+        <div x-show="openInvoice" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 max-h-[85vh] overflow-y-auto relative"
+                 @click.away="openInvoice = null">
+                 
+                <button @click="openInvoice = null" 
+                        class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+
+                <div x-show="selectedPayment" x-cloak>
+                    <div class="text-center border-b pb-3 mb-3">
+                        <img src="{{ $headerLogoUrl }}" alt="Logo" class="h-10 mx-auto mb-2">
+                        <h2 class="text-lg font-bold">Payment Invoice</h2>
+                        <p class="text-gray-600 text-sm">Invoice #: <span x-text="selectedPayment.track_id"></span></p>
+                    </div>
+
+                    <div class="text-sm space-y-2 mb-4">
+                        <div class="flex justify-between">
+                            <div>
+                                <strong>Payer:</strong><br>
+                                <span x-text="selectedPayment.payer_name"></span><br>
+                                <span>ID: <span x-text="selectedPayment.user_id"></span></span>
+                            </div>
+                            <div class="text-right">
+                                <strong>Receiver:</strong><br>
+                                <span x-text="selectedPayment.receiver_name"></span><br>
+                                <span x-text="selectedPayment.payment_method"></span>
+                            </div>
+                        </div>
+                        <div class="border-t pt-2">
+                            <p><strong>Payment For:</strong> <span x-text="selectedPayment.payment_for"></span></p>
+                            <p><strong>Date:</strong> <span x-text="new Date(selectedPayment.paid_at).toLocaleString()"></span></p>
+                            <p><strong>Transaction ID:</strong> <span x-text="selectedPayment.transaction_id || 'N/A'"></span></p>
+                            <p><strong>Order ID:</strong> <span x-text="selectedPayment.order_id || 'N/A'"></span></p>
+                            <p><strong>Tax Percentage:</strong> <span x-text="selectedPayment.tax_percentage ? selectedPayment.tax_percentage + '%' : '0%'"></span></p>
+                            <p><strong>Taxed Amount:</strong> <span x-text="selectedPayment.taxed_amount ? selectedPayment.currency + ' ' + Number(selectedPayment.taxed_amount).toFixed(2) : selectedPayment.currency + ' 0.00'"></span></p>
+                            <p x-show="selectedPayment.applied_coupon"><strong>Coupon Applied:</strong> <span x-text="selectedPayment.applied_coupon"></span></p>
+                        </div>
+                    </div>
+
+                    <table class="w-full text-sm border border-gray-200">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700">
+                                <th class="border px-3 py-2 text-left">Description</th>
+                                <th class="border px-3 py-2 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border px-3 py-2">Amount Paid</td>
+                                <td class="border px-3 py-2 text-right" x-text="selectedPayment.currency + ' ' + Number(selectedPayment.amount_paid).toFixed(2)"></td>
+                            </tr>
+                            <template x-if="selectedPayment.taxed_amount">
+                                <tr>
+                                    <td class="border px-3 py-2">Tax</td>
+                                    <td class="border px-3 py-2 text-right" x-text="selectedPayment.currency + ' ' + Number(selectedPayment.taxed_amount).toFixed(2)"></td>
+                                </tr>
+                            </template>
+                            <template x-if="selectedPayment.applied_coupon">
+                                <tr>
+                                    <td class="border px-3 py-2">Coupon Discount</td>
+                                    <td class="border px-3 py-2 text-right text-red-600" x-text="'- ' + selectedPayment.currency + ' ' + Number(selectedPayment.applied_coupon).toFixed(2)"></td>
+                                </tr>
+                            </template>
+                            <tr class="font-semibold bg-gray-50">
+                                <td class="border px-3 py-2 text-right">Total</td>
+                                <td class="border px-3 py-2 text-right"
+                                    x-text="selectedPayment.currency + ' ' + (Number(selectedPayment.amount_paid) - Number(selectedPayment.applied_coupon || 0)).toFixed(2)">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p class="text-gray-600 text-sm italic mt-4 text-center">Thank you for your payment!</p>
+
+                    <div class="mt-4 text-center">
+                        <button @click="downloadInvoice(selectedPayment)"
+                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                            Download Invoice PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        function downloadInvoice(payment) {
+            const logoUrl = '{{ $headerLogoUrl }}';
+
+            const payerName = payment.payer_name || 'N/A';
+            const userId = payment.user_id || 'N/A';
+            const receiverName = payment.receiver_name || 'N/A';
+            const paymentMethod = payment.payment_method || 'N/A';
+            const paymentFor = payment.payment_for || 'N/A';
+            const taxPercentage = payment.tax_percentage ?? 0;
+            const amountPaid = Number(payment.amount_paid || 0).toFixed(2);
+            const taxedAmount = Number(payment.taxed_amount || 0).toFixed(2);
+            const appliedCoupon = Number(payment.applied_coupon || 0).toFixed(2);
+            const currency = payment.currency || '₹';
+            const trackId = payment.track_id || 'N/A';
+            const transactionId = payment.transaction_id || 'N/A';
+            const orderId = payment.order_id || 'N/A';
+            const paidAt = payment.paid_at ? new Date(payment.paid_at).toLocaleString() : 'N/A';
+            const total = (Number(amountPaid) - Number(appliedCoupon)).toFixed(2);
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.padding = '20px';
+            tempDiv.innerHTML = `
+                <div style="font-family:sans-serif; max-width:700px; margin:auto;">
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ddd; padding-bottom:10px;">
+                        <div>
+                            <h2 style="font-size:24px; margin:0;">Invoice</h2>
+                            <p>Invoice #: ${trackId}</p>
+                            <p>Order ID: ${orderId}</p>
+                            <p>Date: ${paidAt}</p>
+                            <p>Transaction ID: ${transactionId}</p>
+                        </div>
+                        <div>
+                            <img src="${logoUrl}" id="pdf-logo" style="height:50px;" />
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                        <div>
+                            <strong>Payer:</strong>
+                            <p>${payerName} (ID: ${userId})</p>
+                        </div>
+                        <div>
+                            <strong>Receiver:</strong>
+                            <p>${receiverName}</p>
+                            <p>${paymentMethod}</p>
+                        </div>
+                    </div>
+
+                    <p><strong>Payment For:</strong> ${paymentFor}</p>
+                    <p><strong>Tax Percentage:</strong> ${taxPercentage}%</p>
+
+                    <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+                        <thead>
+                            <tr style="background:#f0f0f0;">
+                                <th style="border:1px solid #ddd; padding:8px;">Description</th>
+                                <th style="border:1px solid #ddd; padding:8px;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border:1px solid #ddd; padding:8px;">Amount Paid</td>
+                                <td style="border:1px solid #ddd; padding:8px;">${currency} ${amountPaid}</td>
+                            </tr>
+                            ${taxedAmount > 0 ? `<tr><td style="border:1px solid #ddd; padding:8px;">Tax</td><td style="border:1px solid #ddd; padding:8px;">${currency} ${taxedAmount}</td></tr>` : ''}
+                            ${appliedCoupon > 0 ? `<tr><td style="border:1px solid #ddd; padding:8px;">Coupon Discount</td><td style="border:1px solid #ddd; padding:8px;">- ${currency} ${appliedCoupon}</td></tr>` : ''}
+                            <tr>
+                                <td style="border:1px solid #ddd; padding:8px; text-align:right;"><strong>Total</strong></td>
+                                <td style="border:1px solid #ddd; padding:8px;"><strong>${currency} ${total}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p style="margin-top:20px; font-style:italic;">Thank you for your payment!</p>
+                </div>
+            `;
+
+            document.body.appendChild(tempDiv);
+
+            const logoImg = tempDiv.querySelector('#pdf-logo');
+            if (logoImg) {
+                logoImg.onload = () => renderPDF(tempDiv);
+                logoImg.onerror = () => renderPDF(tempDiv);
+            } else {
+                renderPDF(tempDiv);
+            }
+
+            function renderPDF(div) {
+                const filename = `${payerName.replace(/\s+/g,'_')}_${paidAt.split(',')[0].replace(/\//g,'-')}.pdf`;
+                html2pdf().set({
+                    margin: 0.5,
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                }).from(div).save().finally(() => {
+                    document.body.removeChild(div);
+                });
+            }
+        }
+    </script>
+@endif

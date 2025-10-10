@@ -50,6 +50,7 @@
                                         <!-- Password Field -->
                                         <div class="mb-3">
                                             <label for="password" class="block text-sm font-medium mb-1">{{ langLabel('password') }}</label>
+
                                             <div class="password-wrapper">
                                                 <input type="password" name="password" id="password" placeholder="{{ langLabel('password') }}"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
@@ -62,6 +63,7 @@
                                             @error('password')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
+
                                         </div>
 
                                         <!-- Confirm Password Field -->
@@ -79,6 +81,7 @@
                                             @error('confirm_password')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
+
                                         </div>
 
                                         <div class="flex items-start">

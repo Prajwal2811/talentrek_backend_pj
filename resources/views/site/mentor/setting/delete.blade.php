@@ -11,3 +11,22 @@
                                         </button>
                                     </form>
                                 </div>
+
+                                <script>
+                                    document.getElementById('deleteAccountBtn').addEventListener('click', function (e) {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: "This action will permanently delete your account!",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#d33',
+                                            cancelButtonColor: '#3085d6',
+                                            confirmButtonText: 'Yes, delete it!',
+                                            cancelButtonText: 'No, cancel'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                document.getElementById('deleteAccountForm').submit();
+                                            }
+                                        });
+                                    });
+                                    </script>

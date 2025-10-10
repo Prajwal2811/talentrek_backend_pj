@@ -56,11 +56,11 @@
                                             :class="activeSection === 'payment' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'">{{ langLabel('payment_history') }}</a>
                                     </li>
                                 @endif
-                                <li>
+
+                                <!-- <li>
                                     <a href="#" @click.prevent="activeSection = 'privacy'"
                                         :class="activeSection === 'privacy' ? 'bg-blue-100 text-blue-700 rounded px-2 py-2 block' : 'block px-2 py-2 hover:bg-gray-100 rounded'">{{ langLabel('privacy_policy') }}</a>
-                                </li>
-
+                                </li> -->
                                 <li>
                                     <a href="#" @click.prevent="activeSection = 'delete'"
                                         :class="activeSection === 'delete' ? 'bg-red-100 text-red-700 rounded px-2 py-2 block' : 'block px-2 py-2 text-red-600 hover:bg-red-100 rounded'">{{ langLabel('delete_account') }}</a>

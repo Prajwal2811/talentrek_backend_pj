@@ -359,6 +359,7 @@
 
                                                 {{-- Organization --}}
                                                 <div>
+
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                                         Organization <span style="color: red;">*</span>
                                                     </label>
@@ -367,10 +368,12 @@
                                                     @error("organization.$i")
                                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                     @enderror
+
                                                 </div>
 
                                                 {{-- Start Date --}}
                                                 <div>
+
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                                         Started From <span style="color: red;">*</span>
                                                     </label>
@@ -395,6 +398,7 @@
                                                             <span>I currently work here</span>
                                                         </label>
                                                     </div>
+
                                                 </div>
 
                                                 {{-- Remove Button --}}
@@ -403,11 +407,14 @@
                                                     style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
                                             </div>
                                         @endfor
+
                                     </div>
 
                                     {{-- Add Work Button --}}
                                     <div class="col-span-2">
+
                                         <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
+
                                     </div>
 
                                     {{-- Navigation --}}
@@ -498,6 +505,7 @@
                                         <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. Software Engineer, Data Analyst"
                                             value="{{ old('job_category') }}" required/>
+
                                         @error('job_category')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -507,6 +515,7 @@
                                         <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
                                             value="{{ old('website_link') }}" required/>
+
                                         @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -516,6 +525,7 @@
                                         <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" mt-1
                                             placeholder="e.g. https://portfolio.example.com"
                                             value="{{ old('portfolio_link') }}" required/>
+
                                         @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -551,6 +561,7 @@
                                         </a>
 
 
+
                                     </div>
                                     <!-- Upload Resume -->
                                     <div>
@@ -561,11 +572,11 @@
                                             <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx,.txt"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-
                                         <!-- Resume -->
                                         <p id="resumeError" class="text-red-600 text-sm mt-1 min-h-[1.25rem]">
                                             @error('resume') {{ $message }} @enderror
                                         </p>
+
 
 
                                         @error('resume')
@@ -587,6 +598,7 @@
                                        <p id="profilePictureError" class="text-red-600 text-sm mt-1 min-h-[1.25rem]">
                                             @error('profile_picture') {{ $message }} @enderror
                                         </p>`
+
                                         @error('profile_picture')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -700,6 +712,7 @@
                     minlength: 9,
                     maxlength: 9
                 }
+
             },
             messages: {
                 name: "Full name is required",
@@ -791,7 +804,6 @@
 
         // === 5. Add Work dynamically ===
         let workIndex = $('#work-container .work-entry').length - 1;
-
         $('#add-work').click(function () {
             workIndex++;
             const newBlock = $(`
@@ -817,6 +829,7 @@
                                 <span>I currently work here</span>
                             </label>
                         </div>
+
                     </div>
                     <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold">&times;</button>
                 </div>
@@ -829,7 +842,6 @@
         $('#work-container').on('click', '.remove-work', function () {
             $(this).closest('.work-entry').remove();
         });
-
 
         // === 7. Apply validation + checkbox logic for Work block ===
         function applyWorkValidation($block) {
@@ -856,6 +868,7 @@
                     $end.siblings('label.error').remove();
                 } else {
                     // Enable + add validation
+
                     $end.prop('disabled', false).prop('readonly', false);
                     $end.rules('add', {
                         required: true,
@@ -1033,3 +1046,4 @@
     }
 
 </style>
+

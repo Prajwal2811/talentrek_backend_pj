@@ -984,8 +984,6 @@
 
 
 
-
-
     <style>
         .active-tab {
             border-bottom-color: #2563eb;

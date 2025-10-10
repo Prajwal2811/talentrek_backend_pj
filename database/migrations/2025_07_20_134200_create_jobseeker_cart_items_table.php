@@ -15,18 +15,34 @@ return new class extends Migration
     {
         Schema::create('jobseeker_cart_items', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('jobseeker_id');
-            $table->unsignedBigInteger('trainer_id');
-            $table->string('material_type')->nullable(); 
-            $table->unsignedBigInteger('material_id');
-            $table->unsignedBigInteger('batch_id')->nullable();
-            $table->string('status')->default('pending'); // e.g., 'pending', 'purchased'
+
+            // Ownership
+            $table->unsignedBigInteger('jobseeker_id')->index();
+            $table->unsignedBigInteger('trainer_id')->index();
+
+            // Material / Training Info
+            $table->string('material_type')->nullable(); // e.g., 'online', 'offline', 'hybrid'
+            $table->unsignedBigInteger('material_id')->index();
+
+            // Selected Batch
+            $table->unsignedBigInteger('batch_id')->nullable()->index();
+
+            // Financial Info
+            $table->decimal('price', 10, 2)->nullable(); // Latest price from material
+            $table->integer('available_seats')->nullable(); // Updated from batch
+            $table->string('batch_status')->default('active'); // 'active', 'upcoming', 'full', 'expired', 'invalid'
+
+            // Cart Status
+            $table->string('status')->nullable(); // 'pending', 'purchased', 'removed'
+
             $table->timestamps();
 
-            // Foreign Keys (Optional - uncomment if relationships exist)
+            // Foreign Keys (optional — uncomment when related tables exist)
             // $table->foreign('jobseeker_id')->references('id')->on('jobseekers')->onDelete('cascade');
             // $table->foreign('trainer_id')->references('id')->on('trainers')->onDelete('cascade');
             // $table->foreign('material_id')->references('id')->on('training_materials')->onDelete('cascade');
+            // $table->foreign('batch_id')->references('id')->on('training_batches')->onDelete('set null');
+
         });
     }
 
