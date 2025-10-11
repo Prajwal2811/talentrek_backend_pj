@@ -150,9 +150,9 @@
                                 // ✅ If we got a duplicate error from controller
                                 if (response.message) {
                                     Swal.fire({
-                                        title: 'Duplicate Entry',
+                                        // title: 'Duplicate Entry',
                                         text: response.message,
-                                        icon: 'warning',
+                                        // icon: 'warning',
                                         confirmButtonColor: '#3085d6',
                                         confirmButtonText: 'OK'
                                     });

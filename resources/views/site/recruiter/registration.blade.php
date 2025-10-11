@@ -145,7 +145,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label class="block mb-1 text-sm font-medium mt-3">{{ langLabel('business_email') }} <span style="color: red; font-size: 17px;">*</span></label>
-                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_email_id') }}" value="{{old('company_address')}}"/>
+                                                <input type="email"  name="business_email"  class="w-full border rounded-md p-2 mt-1" placeholder="{{ langLabel('enter_email_id') }}" value="{{old('business_email')}}"/>
                                                 @error('business_email')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                                 @enderror
@@ -437,7 +437,13 @@
                 // Step 2
                 name: "required",
                 email: "required",
-                phone_number: "required",
+                gender: "required",
+                phone_number: {
+                    required: true,
+                    digits: true,
+                    minlength: 9,
+                    maxlength: 9
+                },
                 national_id: "required",
                 company_profile: "required",
                 registration_documents: "required"
@@ -457,15 +463,28 @@
                 // Step 2
                 name: "Recruiter's name is required",
                 email: "Recruiter's email is required",
+                gender: "Recruiter's gender is required",
                 phone_number: "Recruiter's phone number is required",
                 national_id: "National ID is required",
                 company_profile: "Upload company profile",
                 registration_documents: "Upload registration documents"
             },
             errorElement: 'p',
+            errorClass: 'text-red-600 text-sm mt-1',
             errorPlacement: function (error, element) {
-                error.addClass('text-red-600 text-sm mt-1');
-                error.insertAfter(element);
+                // For file inputs, show message *below input*
+                if (element.attr("type") === "file") {
+                    element.closest('.flex-col').append(error);
+                } 
+                // For phone input, show below the whole flex group
+                else if (element.attr("name") === "phone_number" || element.attr("name") === "company_phone_number") {
+                    element.closest('.flex').after(error);
+                }
+ 
+                // Default placement
+                else {
+                    error.insertAfter(element);
+                }
             }
         });
 
@@ -509,8 +528,13 @@
         });
 
     });
+
 </script>
-    <!-- Natioanl id and gender logic code -->
+
+
+
+
+
 <script>
     $(document).ready(function () {
         function validateNationalIdInput() {
@@ -541,6 +565,7 @@
         });
     });
 </script>
+
 
 </body>
 </html>

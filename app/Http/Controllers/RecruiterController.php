@@ -366,7 +366,7 @@ class RecruiterController extends Controller
                          }
                     },
                ],
-               'company_name' => 'required|regex:/^[A-Za-z]+(?:\s[A-Za-z]+)*$/',
+               'company_name' => 'required',
                'company_website' => 'required|url',
                'company_city' => 'required|string|max:255',
                'company_address' => 'required|string|max:500',
@@ -377,8 +377,8 @@ class RecruiterController extends Controller
                'no_of_employee' => 'required|string|max:255',
                'industry_type' => 'required|string|max:255',
                'registration_number' => 'required|string|max:255',
-               'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-               'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:5120',
+               'company_profile' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+               'registration_documents.*' => 'file|mimes:pdf,doc,docx,jpeg,jpg,png|max:2048',
                'gender' => 'required|string|in:Male,Female,Other',
           ], [
                'name.required' => 'Name is required.',

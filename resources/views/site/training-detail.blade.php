@@ -370,67 +370,77 @@
               </section>
 
               <!-- JavaScript (Inline or External) -->
-              <script>
+              <!-- JS -->
+            <script>
                 let selectedRating = 0;
 
-                // Star click handler
+                const userType = "{{ $userType }}"; // trainer/mentor/coach/assessor
+                const loggedInUserType = "{{ $loggedInUserType }}"; // jobseeker or expat
+                const materialId = "{{ $material->id ?? '' }}";
+
+                let submitUrl = '';
+                if (loggedInUserType === 'jobseeker') {
+                    submitUrl = "{{ route('submit.review') }}";
+                } else if (loggedInUserType === 'expat') {
+                    submitUrl = "{{ route('expat.submit.review') }}";
+                }
+
+                // ⭐ Handle star selection
                 document.querySelectorAll('.star').forEach(star => {
                     star.addEventListener('click', function () {
-                    selectedRating = parseInt(this.dataset.value);
-                    highlightStars(selectedRating);
+                        selectedRating = parseInt(this.dataset.value);
+                        highlightStars(selectedRating);
                     });
                 });
 
                 function highlightStars(count) {
                     document.querySelectorAll('.star').forEach((star, index) => {
-                    star.textContent = index < count ? '★' : '☆';
+                        star.textContent = index < count ? '★' : '☆';
                     });
                 }
 
-                // Submit review via AJAX
-                const submitButton = document.getElementById('submit-review');
-                submitButton.addEventListener('click', function () {
+                // 📨 Submit review
+                document.getElementById('submit-review').addEventListener('click', function (e) {
+                    e.preventDefault();
+
                     const reviewText = document.getElementById('review-text').value;
                     if (!reviewText || selectedRating === 0) {
-                    alert('Please write a review and select a rating.');
-                    return;
+                        alert('Please write a review and select a rating.');
+                        return;
                     }
 
-                    fetch("{{ route('submit.review') }}", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        user_type: '{{ $userType }}',     // dynamically passed from controller
-                        user_id: '{{ $userId }}',         // trainer/mentor/etc ID
-                        material_id: '{{ $material->id ?? '' }}',
-                        reviews: reviewText,
-                        ratings: selectedRating
-                    })
+                    fetch(submitUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            user_type: userType,
+                            material_id: materialId,
+                            reviews: reviewText,
+                            ratings: selectedRating
+                        })
                     })
                     .then(res => res.json())
                     .then(data => {
-                    if (data.success) {
-                        document.getElementById('review-text').value = '';
-                        selectedRating = 0;
-                        highlightStars(0);
-                        location.reload();
-                        const newReview = `
-                        <div class="border p-4 rounded shadow-sm bg-white">
-                            <p class="text-sm font-semibold">${data.review.jobseeker_name}</p>
-                            <p class="text-yellow-400 text-sm">
-                            ${'★'.repeat(data.review.ratings)}${'☆'.repeat(5 - data.review.ratings)}
-                            </p>
-                            <p class="text-sm text-gray-700">${data.review.reviews}</p>
-                        </div>
-                        `;
-                        document.getElementById('review-list').insertAdjacentHTML('afterbegin', newReview);
-                    }
+                        if (data.success) {
+                            document.getElementById('review-text').value = '';
+                            selectedRating = 0;
+                            highlightStars(0);
+                            location.reload();
+                        } else {
+                            alert(data.message || 'Something went wrong.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Error submitting review.');
                     });
                 });
-              </script>
+                </script>
+
+
       
 
               <script>
@@ -832,36 +842,38 @@
 
                         </a>
 
+                        @php
+                            use App\Models\JobseekerCartItem;
+                            use App\Models\ExpatCartItem;
 
+                            // Detect logged-in user
+                            $userType = auth('jobseeker')->check() ? 'jobseeker' : (auth('expat')->check() ? 'expat' : '');
+                            $cartItems = [];
+
+                            if ($userType == 'jobseeker') {
+                                $cartItems = JobseekerCartItem::where('jobseeker_id', auth('jobseeker')->id())
+                                    ->pluck('material_id')->toArray();
+                            } elseif ($userType == 'expat') {
+                                $cartItems = ExpatCartItem::where('jobseeker_id', auth('expat')->id())
+                                    ->pluck('material_id')->toArray();
+                            }
+                        @endphp    
 
                         {{-- Add to Cart / Go to Cart --}}
 
                         @if(!$existOrNot)
-
                             @if(!in_array($material->id, $cartItems))
-
                                 <button class="add-to-cart-btn border border-blue-600 text-blue-600 hover:bg-blue-50 w-full py-2 rounded font-medium mb-2"
-
                                     data-id="{{ $material->id }}">
-
                                     Add to Cart
-
                                 </button>
-
                             @else
-
-                                <a href="{{ route('jobseeker.profile') }}" 
-
+                                <a href="{{ $userType == 'jobseeker' ? route('jobseeker.profile') : route('expat.profile') }}" 
                                 onclick="localStorage.setItem('activeTab','cart')"
-
                                 class="bg-orange-500 text-white py-2 w-full block text-center rounded font-medium mb-2">
-
                                     Go to Cart
-
                                 </a>
-
                             @endif
-
                         @endif
                 </div>
             </aside>
@@ -936,7 +948,7 @@
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+    <!-- <script>
         let selectedMaterialId = null;
 
         function selectBatch(batchId) {
@@ -979,7 +991,77 @@
                 });
             });
         });
+    </script> -->
+    <script>
+        let selectedMaterialId = null;
+
+        function selectBatch(batchId) {
+            $('#batch-radio-' + batchId).prop('checked', true);
+        }
+
+        $(document).ready(function () {
+            const userType = '{{ auth("jobseeker")->check() ? "jobseeker" : (auth("expat")->check() ? "expat" : "") }}';
+
+            $('.add-to-cart-btn').on('click', function () {
+                selectedMaterialId = $(this).data('id');
+                $('#batch-modal').fadeIn().css('display','flex');
+            });
+
+            $('#cancel-batch').on('click', function () {
+                $('#batch-modal').fadeOut();
+            });
+
+            $('#confirm-batch').on('click', function () {
+                const batchId = $('input[name="batch_id"]:checked').val();
+                if (!batchId) {
+                    alert('{{ langLabel("please_select_batch") }}');
+                    return;
+                }
+
+                if (!userType) {
+                    alert('Please log in to add items to your cart.');
+                    return;
+                }
+
+                const url = userType === 'jobseeker'
+                    ? "{{ route('jobseeker.addtocart', ['id' => '__id__']) }}".replace('__id__', selectedMaterialId)
+                    : "{{ route('expat.addtocart', ['id' => '__id__']) }}".replace('__id__', selectedMaterialId);
+
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {_token: '{{ csrf_token() }}', batch_id: batchId},
+                    success: function (res) {
+                        $('#batch-modal').fadeOut();
+                        location.reload();
+
+                        // Update button dynamically
+                        const button = $('.add-to-cart-btn[data-id="'+selectedMaterialId+'"]');
+                        button
+                            .removeClass('add-to-cart-btn border-blue-600 text-blue-600 hover:bg-blue-50')
+                            .addClass('bg-orange-500 text-white')
+                            .text('{{ langLabel("go_cart") }}')
+                            .off('click')
+                            .on('click', function () {
+                                const redirectUrl = userType === 'jobseeker'
+                                    ? "{{ route('jobseeker.profile') }}"
+                                    : "{{ route('expat.profile') }}";
+                                window.location.href = redirectUrl;
+                            });
+
+                        // Update JS cart array to persist button without reload
+                        cartItems.push(selectedMaterialId);
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.message || 'Something went wrong. Please try again!';
+                        alert(msg);
+                    }
+                });
+            });
+        });
     </script>
+
+
 
 
 

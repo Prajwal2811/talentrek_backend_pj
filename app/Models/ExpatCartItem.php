@@ -12,7 +12,7 @@ class ExpatCartItem extends Model
     protected $table = 'jobseeker_cart_items';
     protected $fillable = [
         'jobseeker_id',
-        'trainer_id',
+        'trainer_id', 
         'material_id',
         'batch_id',
         'status',
