@@ -125,7 +125,7 @@
 
                                     <div class="text-center text-sm">
                                         {{ langLabel('no_account') }}
-                                        <a href="{{ route('signup.form')}}" class="text-blue-600 hover:underline">{{ langLabel('register') }}</a>
+                                        <a href="{{ route('expat.signup.form')}}" class="text-blue-600 hover:underline">{{ langLabel('register') }}</a>
                                     </div>
                                 </form>
 

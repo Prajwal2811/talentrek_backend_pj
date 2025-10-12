@@ -31,6 +31,8 @@
                                     <p class="text-gray-600 mb-6">{{ langLabel('enter_details') }}</p>
                                     <form class="space-y-4" action="{{ route('jobseeker.register.post') }}" method="POST">
                                         @csrf 
+                                        <input type="hidden" name="role" value="jobseeker">
+
                                         <div>
                                             <label class="block text-sm mb-1">{{ langLabel('email') }}</label>
                                             <input type="email" name="email" placeholder="{{ langLabel('email') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" value="{{ old('email') }}">

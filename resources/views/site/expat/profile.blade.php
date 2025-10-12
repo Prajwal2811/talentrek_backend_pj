@@ -23,9 +23,7 @@ $skills = $user->skills->first();
 
     @include('site.componants.navbar')	
 
-     @if($expatNeedsSubscription)
-        @include('site.expat.subscription.index')
-    @endif
+  
 
 
         <div class="page-content">
@@ -1563,17 +1561,14 @@ $skills = $user->skills->first();
                             <script>
                             $(document).ready(function () {
                                 let itemToRemoveId = null;
-                                let $clickedButton = null;
 
                                 $('.remove-item').on('click', function () {
                                     itemToRemoveId = $(this).data('id');
-                                    $clickedButton = $(this);
                                     $('#removeConfirmModal').removeClass('hidden');
                                 });
 
                                 $('#cancelRemove').on('click', function () {
                                     itemToRemoveId = null;
-                                    $clickedButton = null;
                                     $('#removeConfirmModal').addClass('hidden');
                                 });
 
@@ -1581,7 +1576,7 @@ $skills = $user->skills->first();
                                     if (!itemToRemoveId) return;
 
                                     $.ajax({
-                                        url: "{{ route('cart.remove', ':id') }}".replace(':id', itemToRemoveId),
+                                        url: "{{ route('expat.cart.remove', ':id') }}".replace(':id', itemToRemoveId),
                                         type: 'POST',
                                         headers: {
                                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1609,6 +1604,8 @@ $skills = $user->skills->first();
                                 }
                             });
                             </script>
+
+
 
                             <!-- Remove Confirmation Modal -->
                             <div id="removeConfirmModal" class="fixed top-20 left-0 right-0 flex justify-center z-50 hidden">

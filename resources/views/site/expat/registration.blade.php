@@ -84,7 +84,7 @@
                             </div>
 
                             <!-- Steps Content -->
-                            <form class="space-y-6" id="multiStepForm" action="{{ route('jobseeker.registration.store') }}" method="POST" enctype="multipart/form-data">
+                            <form class="space-y-6" id="multiStepForm" action="{{ route('expat.registration.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                
                                
