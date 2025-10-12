@@ -73,6 +73,8 @@ Route::group(['prefix' => 'expat'], function() {
 
 		// Purchase request stays POST
 		
+		Route::get('resume/download', [ExpatController::class, 'downloadMyResume'])
+     		->name('expat.resume.download');
 
 
 

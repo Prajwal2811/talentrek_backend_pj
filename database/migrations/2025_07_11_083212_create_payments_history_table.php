@@ -59,3 +59,29 @@ return new class extends Migration
         Schema::dropIfExists('payments');
     }
 };
+
+
+
+
+
+
+
+// ALTER TABLE talentrek_payments_history
+// ADD COLUMN IF NOT EXISTS user_type ENUM('jobseeker', 'trainer', 'mentor', 'coach', 'assessor', 'recruiter', 'expat') NULL,
+// ADD COLUMN IF NOT EXISTS user_id BIGINT UNSIGNED NULL,
+// ADD COLUMN IF NOT EXISTS receiver_type ENUM('trainer', 'mentor', 'coach', 'assessor', 'recruiter', 'expat', 'talentrek') NULL,
+// ADD COLUMN IF NOT EXISTS receiver_id BIGINT UNSIGNED NULL,
+// ADD COLUMN IF NOT EXISTS payment_for ENUM('training', 'booking_slot', 'subscription') NULL,
+// ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2) NULL,
+// ADD COLUMN IF NOT EXISTS tax_percentage VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS taxed_amount VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS applied_coupon VARCHAR(255) NULL COMMENT 'coupon code if applied',
+// ADD COLUMN IF NOT EXISTS payment_status ENUM('pending', 'completed', 'failed', 'refunded') NULL,
+// ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS track_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS order_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS currency VARCHAR(10) NULL DEFAULT 'INR',
+// ADD COLUMN IF NOT EXISTS payment_method VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS paid_at DATETIME NULL,
+// ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NULL DEFAULT NULL,
+// ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NULL DEFAULT NULL;

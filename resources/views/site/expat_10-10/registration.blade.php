@@ -336,85 +336,66 @@
 
                              
                                 <!-- Step 3: Work Experience -->
-                                <div id="step-3" class="step hidden">
-                                    <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
-                                        @php
-                                            $workCount = count(old('job_role', [null]));
-                                        @endphp
+                                 <!-- Step 3: Work Experience -->
+                               <div id="step-3" class="step hidden" x-data="workExperience()">
 
-                                        @for ($i = 0; $i < $workCount; $i++)
+                                    <div id="work-container" class="col-span-2 grid grid-cols-2 gap-4">
+                                        <template x-for="(work, index) in workList" :key="index">
                                             <div class="work-entry grid grid-cols-2 gap-4 col-span-2 p-4 rounded-md relative border border-gray-300">
 
-                                                {{-- Job Title --}}
+                                                {{-- Job Role --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        Job Title <span style="color: red;">*</span>
-                                                    </label>
-                                                    <input type="text" name="job_role[]" class="w-full border border-gray-300 rounded-md p-2"
-                                                        value="{{ old("job_role.$i") }}" placeholder="e.g. Software Engineer">
-                                                    @error("job_role.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="job_role[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. Software Engineer"
+                                                        x-model="work.job_role">
                                                 </div>
 
                                                 {{-- Organization --}}
                                                 <div>
-
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        Organization <span style="color: red;">*</span>
-                                                    </label>
-                                                    <input type="text" name="organization[]" class="w-full border border-gray-300 rounded-md p-2"
-                                                        value="{{ old("organization.$i") }}" placeholder="e.g. ABC Corp">
-                                                    @error("organization.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
-
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="text" name="organization[]" class="w-full border rounded-md p-2"
+                                                        placeholder="e.g. ABC Corp"
+                                                        x-model="work.organization">
                                                 </div>
 
                                                 {{-- Start Date --}}
                                                 <div>
-
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        Started From <span style="color: red;">*</span>
-                                                    </label>
-                                                    <input type="date" name="starts_from[]" class="w-full border border-gray-300 rounded-md p-2"
-                                                        value="{{ old("starts_from.$i") }}" max="{{ date('Y-m-d') }}">
-                                                    @error("starts_from.$i")
-                                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                                    @enderror
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Started From <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="date" name="starts_from[]" class="datepicker-start w-full border rounded-md p-2"
+                                                        x-model="work.start" max="{{ date('Y-m-d') }}">
                                                 </div>
 
-                                                {{-- End Date + Checkboxes --}}
+                                                {{-- End Date & Checkbox --}}
                                                 <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                                        To <span style="color: red;">*</span>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">To <span style="color: red; font-size: 17px;">*</span></label>
+                                                    <input type="date" name="end_to[]" class="w-full border rounded-md p-2 datepicker-end"
+                                                        x-model="work.end"
+                                                        :disabled="work.working"
+                                                        :readonly="work.working"
+                                                        max="{{ date('Y-m-d') }}">
+
+                                                    <label class="inline-flex items-center mt-2 space-x-2">
+                                                        <input type="checkbox" class="currently-working-checkbox"
+                                                            x-model="work.working"
+                                                            @change="handleWorkingChange(index)">
+                                                        <span>I currently work here</span>
                                                     </label>
-                                                    <input type="date" name="end_to[]" class="w-full border border-gray-300 rounded-md p-2"
-                                                        value="{{ old("end_to.$i") }}" max="{{ date('Y-m-d') }}">
-
-                                                    <div class="mt-2 space-y-1">
-                                                        <label class="inline-flex items-center space-x-2">
-                                                            <input type="checkbox" name="currently_working[{{ $i }}]" value="1" class="currently-working-checkbox">
-                                                            <span>I currently work here</span>
-                                                        </label>
-                                                    </div>
-
                                                 </div>
 
                                                 {{-- Remove Button --}}
                                                 <button type="button"
-                                                    class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
-                                                    style="{{ $i == 0 ? 'display:none;' : '' }}">&times;</button>
-                                            </div>
-                                        @endfor
+                                                        class="remove-work absolute top-2 right-2 text-red-600 font-bold text-lg"
+                                                        @click="removeWork(index)"
+                                                        x-show="workList.length > 1">&times;</button>
 
+                                            </div>
+                                        </template>
                                     </div>
 
                                     {{-- Add Work Button --}}
                                     <div class="col-span-2">
-
-                                        <button type="button" id="add-work" class="text-green-600 text-sm mt-2 mb-2">Add work experience +</button>
-
+                                        <button type="button" class="text-green-600 text-sm mt-2 mb-2" @click="addWork()">Add work experience +</button>
                                     </div>
 
                                     {{-- Navigation --}}
@@ -422,8 +403,8 @@
                                         <button type="button" onclick="showStep(2, false)" class="px-4 py-2 border rounded-md">Back</button>
                                         <button type="button" onclick="showStep(4, true)" class="bg-blue-700 text-white px-6 py-2 rounded-md">Next</button>
                                     </div>
-                                </div>
 
+                                </div>
 
                                 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
                                 <script>
@@ -478,7 +459,7 @@
                                         <label class="block mb-1 text-sm font-medium">Skills <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="skills" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. AWS Certified, Python, Project Management"
-                                            value="{{ old('skills') }}" required/>
+                                            value="{{ old('skills') }}" />
                                         @error('skills')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -504,8 +485,7 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Job Categories <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="text" name="job_category" class="w-full border rounded-md p-2 mt-1"
                                             placeholder="e.g. Software Engineer, Data Analyst"
-                                            value="{{ old('job_category') }}" required/>
-
+                                            value="{{ old('job_category') }}" />
                                         @error('job_category')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -514,8 +494,7 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Website Link <span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="url" name="website_link" class="w-full border rounded-md p-2 mt-1" 
                                             placeholder="e.g. https://www.example.com"
-                                            value="{{ old('website_link') }}" required/>
-
+                                            value="{{ old('website_link') }}" />
                                         @error('website_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -524,8 +503,7 @@
                                         <label class="block mb-1 text-sm font-medium mt-3">Portfolio Link<span style="color: red; font-size: 17px;">*</span></label>
                                         <input type="url" name="portfolio_link" class="w-full border rounded-md p-2" mt-1
                                             placeholder="e.g. https://portfolio.example.com"
-                                            value="{{ old('portfolio_link') }}" required/>
-
+                                            value="{{ old('portfolio_link') }}" />
                                         @error('portfolio_link')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
@@ -548,20 +526,18 @@
                                 @endphp
                                 <!-- Step 5: Additional Information -->
                                 <div id="step-5" class="step hidden">
-
                                     <!-- CV Template Download -->
                                     <div>
                                         <label class="block text-sm font-medium mb-1">CV template
-                                            <span class="text-xs text-gray-500">(Download CV template and make sure the
-                                                template you upload must follow the attached template)</span>
+                                            <span class="text-xs text-gray-500">
+                                                (Download CV template and make sure the template you upload must follow the attached template)
+                                            </span>
                                         </label>
                                         <a href="{{ route('cv.template.download', 1) }}" 
-                                        class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs btn mt-2">
+                                        class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs btn mt-2
+                                        {{ !$resume ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
                                         Download CV template
                                         </a>
-
-
-
                                     </div>
                                     <!-- Upload Resume -->
                                     <div>
@@ -572,12 +548,9 @@
                                             <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx,.txt"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-                                        <!-- Resume -->
-                                        <p id="resumeError" class="text-red-600 text-sm mt-1 min-h-[1.25rem]">
-                                            @error('resume') {{ $message }} @enderror
-                                        </p>
 
-
+                                        <!-- Resume filename display -->
+                                        <p id="resumeFilename" class="text-green-600 text-sm mt-1"></p>
 
                                         @error('resume')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -594,10 +567,6 @@
                                             <input type="file" id="profilePicture" name="profile_picture" accept="image/png, image/jpeg"
                                                 class="border rounded-md p-2 w-full text-sm" />
                                         </div>
-                                        <!-- Profile Picture -->
-                                       <p id="profilePictureError" class="text-red-600 text-sm mt-1 min-h-[1.25rem]">
-                                            @error('profile_picture') {{ $message }} @enderror
-                                        </p>`
 
                                         @error('profile_picture')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -706,13 +675,6 @@
                 resume: "required",
                 profile_picture: "required",
                 training_certificate: "required",
-                phone_number: {
-                    required: true,
-                    digits: true,
-                    minlength: 9,
-                    maxlength: 9
-                }
-
             },
             messages: {
                 name: "Full name is required",
@@ -731,21 +693,6 @@
                 resume: "Please upload your resume",
                 profile_picture: "Please upload a profile picture",
                 training_certificate: "Please upload a training certificate",
-                phone_number: {
-                    required: "Phone number is required",
-                    digits: "Only numbers are allowed",
-                    minlength: "Phone number must be exactly 9 digits",
-                    maxlength: "Phone number must be exactly 9 digits"
-                }
-            },
-            errorPlacement: function (error, element) {
-                if (element.attr("type") === "file") {
-                    error.insertAfter(element.closest('div'));
-                } else if (element.attr("name") === "phone_number") {
-                    error.insertAfter(element.closest('.flex'));
-                } else {
-                    error.insertAfter(element);
-                }
             }
         });
 
@@ -818,18 +765,15 @@
                     </div>
                     <div>
                         <label>Started From <span style="color: red;">*</span></label>
-                        <input type="date" name="starts_from[${workIndex}]" class="w-full border rounded-md p-2" max="${new Date().toISOString().split('T')[0]}">
+                        <input type="date" name="starts_from[${workIndex}]" class="w-full border rounded-md p-2">
                     </div>
                     <div>
                         <label>To <span style="color: red;">*</span></label>
-                        <input type="date" name="end_to[${workIndex}]" class="w-full border rounded-md p-2" max="${new Date().toISOString().split('T')[0]}">
-                        <div class="mt-2 space-y-1">
-                            <label class="inline-flex items-center space-x-2">
-                                <input type="checkbox" class="currently-working-checkbox" name="currently_working[${workIndex}]" value="1">
-                                <span>I currently work here</span>
-                            </label>
-                        </div>
-
+                        <input type="date" name="end_to[${workIndex}]" class="w-full border rounded-md p-2">
+                        <label class="inline-flex items-center mt-2 space-x-2">
+                            <input type="checkbox" class="currently-working-checkbox" name="currently_working[${workIndex}]" value="1">
+                            <span>Currently working here</span>
+                        </label>
                     </div>
                     <button type="button" class="remove-work absolute top-2 right-2 text-red-600 font-bold">&times;</button>
                 </div>
@@ -839,6 +783,7 @@
             applyWorkValidation(newBlock);
         });
 
+        // === 6. Remove Work block ===
         $('#work-container').on('click', '.remove-work', function () {
             $(this).closest('.work-entry').remove();
         });
@@ -855,20 +800,17 @@
             $org.rules('add', { required: true, messages: { required: "Company name is required" } });
             $start.rules('add', { required: true, messages: { required: "Start date is required" } });
 
-            // Default rule
-            $end.rules('add', { required: true, messages: { required: "End date is required" } });
+            if (!$checkbox.is(':checked')) {
+                $end.rules('add', { required: true, messages: { required: "End date is required" } });
+            }
 
-            // Checkbox change event
+            // Checkbox toggle: add/remove validation + disable/enable
             $checkbox.change(function () {
                 if ($(this).is(':checked')) {
-                    // Disable + clear + remove validation
                     $end.prop('disabled', true).prop('readonly', true).val('');
                     $end.rules('remove', 'required');
-                    $end.valid(); // 🔥 force revalidation to remove old error
                     $end.siblings('label.error').remove();
                 } else {
-                    // Enable + add validation
-
                     $end.prop('disabled', false).prop('readonly', false);
                     $end.rules('add', {
                         required: true,
@@ -877,17 +819,22 @@
                 }
             });
 
-            // When user selects an end date manually
+            // Input change: re-evaluate validation
             $end.on('input change', function () {
-                if ($(this).val()) {
-                    $checkbox.prop('checked', false).trigger('change'); // 🔥 uncheck if date chosen
+                if ($(this).val() || $checkbox.is(':checked')) {
+                    $(this).rules('remove', 'required');
+                    $(this).siblings('label.error').remove();
+                } else {
+                    $(this).rules('add', {
+                        required: true,
+                        messages: { required: "End date is required" }
+                    });
                 }
             });
 
-            // Trigger initial state check
+            // Trigger checkbox logic initially
             $checkbox.trigger('change');
         }
-
 
         // === 8. Step navigation ===
         window.showStep = function (step, validate = true) {
@@ -1036,14 +983,3 @@
 <script>
   feather.replace(); 
 </script>
-<style>
-    input[type="file"] {
-        display: block;
-    }
-    label.error {
-        display: block;
-        margin-top: 0.25rem;
-    }
-
-</style>
-

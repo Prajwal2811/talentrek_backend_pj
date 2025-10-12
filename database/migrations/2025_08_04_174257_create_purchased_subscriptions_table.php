@@ -70,3 +70,32 @@ return new class extends Migration
         Schema::dropIfExists('purchased_subscriptions');
     }
 };
+
+
+
+
+
+// ALTER TABLE talentrek_purchased_subscriptions
+// ADD COLUMN IF NOT EXISTS subscription_plan_id BIGINT UNSIGNED NULL,
+// ADD COLUMN IF NOT EXISTS user_id BIGINT UNSIGNED NULL,
+// ADD COLUMN IF NOT EXISTS user_type ENUM('jobseeker', 'recruiter', 'trainer', 'mentor', 'coach', 'assessor', 'expat') NULL,
+// ADD COLUMN IF NOT EXISTS company_id BIGINT UNSIGNED NULL,
+// ADD COLUMN IF NOT EXISTS start_date DATE NULL,
+// ADD COLUMN IF NOT EXISTS end_date DATE NULL,
+// ADD COLUMN IF NOT EXISTS actual_amount DECIMAL(8,2) NULL,
+// ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(8,2) NULL,
+// ADD COLUMN IF NOT EXISTS payment_status VARCHAR(255) NULL COMMENT 'e.g. paid, pending, failed',
+// ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255) NULL COMMENT 'tranid from gateway',
+// ADD COLUMN IF NOT EXISTS payment_id VARCHAR(255) NULL COMMENT 'paymentid from gateway',
+// ADD COLUMN IF NOT EXISTS track_id VARCHAR(255) NULL COMMENT 'trackid from gateway',
+// ADD COLUMN IF NOT EXISTS order_id VARCHAR(255) NULL COMMENT 'our udf4',
+// ADD COLUMN IF NOT EXISTS currency VARCHAR(10) NULL COMMENT 'SAR, USD etc.',
+// ADD COLUMN IF NOT EXISTS result VARCHAR(255) NULL COMMENT 'CAPTURED, DECLINED, etc.',
+// ADD COLUMN IF NOT EXISTS coupon_type VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS coupon_amount VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS tax_percentage VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS taxed_amount VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS response_payload LONGTEXT NULL COMMENT 'store full gateway JSON',
+// ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NULL DEFAULT NULL,
+// ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NULL DEFAULT NULL;

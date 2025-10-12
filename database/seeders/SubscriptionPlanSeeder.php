@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+
 class SubscriptionPlanSeeder extends Seeder
 {
     public function run(): void
     {
         $plans = [
+            // Jobseeker Plans
             [
                 'user_type' => 'jobseeker',
                 'title' => 'Standard',
@@ -27,8 +28,29 @@ class SubscriptionPlanSeeder extends Seeder
                 'features' => ['Everything in Standard', 'Priority listing', 'Direct recruiter messages'],
                 'duration_days' => 365,
                 'slug' => 'jobseeker_plus'
-
             ],
+
+            // Expat Plans (Copy of Jobseeker)
+            [
+                'user_type' => 'expat',
+                'title' => 'Standard',
+                'price' => 150.00,
+                'description' => 'Expat standard plan billed annually.',
+                'features' => ['Access to job listings', 'Apply to jobs', 'Email notifications'],
+                'duration_days' => 365,
+                'slug' => 'expat_standard'
+            ],
+            [
+                'user_type' => 'expat',
+                'title' => 'Expat+ (First Year)',
+                'price' => 600.00,
+                'description' => 'Premium Expat plan for the first year, then $150/year afterwards.',
+                'features' => ['Everything in Standard', 'Priority listing', 'Direct recruiter messages'],
+                'duration_days' => 365,
+                'slug' => 'expat_plus'
+            ],
+
+            // Trainer
             [
                 'user_type' => 'trainer',
                 'title' => 'Trainer Plan',
@@ -38,6 +60,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'duration_days' => 365,
                 'slug' => 'trainer_standard'
             ],
+            // Mentor
             [
                 'user_type' => 'mentor',
                 'title' => 'Mentor Plan',
@@ -45,8 +68,9 @@ class SubscriptionPlanSeeder extends Seeder
                 'description' => 'Annual subscription for mentors.',
                 'features' => ['Host mentorship sessions', 'Manage mentees', 'Session analytics'],
                 'duration_days' => 365,
-                 'slug' => 'mentor_standard'
+                'slug' => 'mentor_standard'
             ],
+            // Assessor
             [
                 'user_type' => 'assessor',
                 'title' => 'Evaluator/Assessor Plan',
@@ -54,8 +78,9 @@ class SubscriptionPlanSeeder extends Seeder
                 'description' => 'Annual subscription for evaluators/assessors.',
                 'features' => ['Evaluate candidates', 'Report generation', 'Assessment tools'],
                 'duration_days' => 365,
-                 'slug' => 'assessor_standard'
+                'slug' => 'assessor_standard'
             ],
+            // Coach
             [
                 'user_type' => 'coach',
                 'title' => 'Coach Plan',
@@ -63,8 +88,9 @@ class SubscriptionPlanSeeder extends Seeder
                 'description' => 'Annual subscription for coaches.',
                 'features' => ['Manage coaching sessions', 'Client tracking', 'Goal setting tools'],
                 'duration_days' => 365,
-                 'slug' => 'coach_standard'
+                'slug' => 'coach_standard'
             ],
+            // Recruiter
             [
                 'user_type' => 'recruiter',
                 'title' => 'Recruiter Plan',

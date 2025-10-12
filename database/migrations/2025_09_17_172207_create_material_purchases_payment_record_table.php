@@ -76,3 +76,34 @@ return new class extends Migration
         Schema::dropIfExists('material_purchases_payment_record');
     }
 };
+
+
+
+
+
+// ALTER TABLE talentrek_material_purchases_payment_record
+// ADD COLUMN IF NOT EXISTS jobseeker_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS trainer_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS material_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS training_type ENUM('online', 'classroom', 'recorded') NULL,
+// ADD COLUMN IF NOT EXISTS session_type ENUM('online', 'classroom') NULL,
+// ADD COLUMN IF NOT EXISTS batch_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS purchase_for ENUM('individual', 'team', 'cart') NULL,
+// ADD COLUMN IF NOT EXISTS payment_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS batchStatus VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS status VARCHAR(255) NOT NULL DEFAULT 'pending',
+// ADD COLUMN IF NOT EXISTS tax_percentage VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS taxed_amount VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2) NULL,
+// ADD COLUMN IF NOT EXISTS coupon_type VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS coupon_amount VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS order_id VARCHAR(255) NULL,
+// ADD COLUMN IF NOT EXISTS track_id VARCHAR(50) NULL COMMENT 'Unique booking reference number',
+// ADD UNIQUE INDEX IF NOT EXISTS booking_track_id_unique (track_id),
+// ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(191) NULL COMMENT 'from payment provider',
+// ADD COLUMN IF NOT EXISTS payment_status ENUM('pending', 'success', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
+// ADD COLUMN IF NOT EXISTS response_payload JSON NULL COMMENT 'full response from gateway',
+// ADD COLUMN IF NOT EXISTS member_count INT UNSIGNED NULL,
+// ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NULL DEFAULT NULL,
+// ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NULL DEFAULT NULL;

@@ -688,15 +688,26 @@
 
                         @if(!$existOrNot)
 
-                            <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+                            @auth('jobseeker')
+                                <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Buy course
+                                    </button>
+                                </a>
+                            @elseif(auth('expat')->check())
+                                <a href="{{ route('expat.buy-course', ['id' => $material->id]) }}">
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Buy course
+                                    </button>
+                                </a>
+                            @else
+                                <a href="{{ route('buy-course', ['id' => $material->id]) }}">
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
+                                        Buy course
+                                    </button>
+                                </a>
+                            @endauth
 
-                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium mt-3">
-
-                                    Buy course
-
-                                </button>
-
-                            </a>
 
                         @endif
 
@@ -822,15 +833,26 @@
 
                         {{-- Buy for Team --}}
 
-                        <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
+                        @auth('jobseeker')
+                            <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+                                    Buy for Team
+                                </button>
+                            </a>
+                        @elseif(auth('expat')->check())
+                            <a href="{{ route('expat.buy-course-for-team', ['id' => $material->id]) }}">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+                                    Buy for Team
+                                </button>
+                            </a>
+                        @else
+                            <a href="{{ route('buy-course-for-team', ['id' => $material->id]) }}">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
+                                    Buy for Team
+                                </button>
+                            </a>
+                        @endauth
 
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded mb-2 font-medium">
-
-                                Buy for Team
-
-                            </button>
-
-                        </a>
 
 
 

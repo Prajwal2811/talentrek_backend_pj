@@ -90,6 +90,7 @@
                     <input type="hidden" name="material_id" value="{{ $material->id }}">
                     <input type="hidden" name="training_type" value="{{ $material->training_type }}">
                     <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()?->id }}">
+                    <input type="hidden" name="user_id" value="{{ auth('expat')->user()?->id }}">
                     <input type="hidden" name="buy_type" value="buyNow">
 
 
@@ -278,11 +279,18 @@
                                         class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
                                         {{ langLabel('proceed_checkout') }}
                                     </button>
+                                @elseif(auth('expat')->check())
+                                    <!-- Optional: show a different message or button for expats -->
+                                    <button type="submit"
+                                        class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                        {{ langLabel('proceed_checkout') }}
+                                    </button>
                                 @else
                                     <div class="alert alert-danger alert-dismissible fade show mt-4 text-center" role="alert" style="text-align: justify;">
                                         <strong>Please log in as a Jobseeker</strong> to purchase a course.
                                     </div>
                                 @endauth
+
                             </div>
                         </div>
                     </div>
