@@ -98,72 +98,99 @@ $skills = $user->skills->first();
                         <!-- Sidebar Outer Tabs -->
                         <div class="w-1/5 space-y-2" style="background-color: rgb(238, 238, 238);">
                             <ul class="text-sm font-medium">
-                                <li>
-                                    <button @click="tab = 'profile'"
-                                        :class="tab === 'profile' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('profile') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'cart'"
-                                        :class="tab === 'cart' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('cart') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'training'"
-                                        :class="tab === 'training' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('training') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'mentorship'"
-                                        :class="tab === 'mentorship' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('mentorship') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'assessment'"
-                                        :class="tab === 'assessment' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('assessment') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'coaching'"
-                                        :class="tab === 'coaching' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('coaching') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'subscription'"
-                                        :class="tab === 'subscription' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('subscription') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'payment'"
-                                        :class="tab === 'payment' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('payment') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button @click="tab = 'certificates'"
-                                        :class="tab === 'certificates' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                                        class="w-full text-left px-4 py-2 rounded">
-                                        {{ langLabel('certificates') }}
-                                    </button>
-                                </li>
-                                <!-- More outer tabs can be added here -->
-                            </ul>
-                        </div>
+                            <li>
+                            <button
+                            @click="tab = 'profile'"
+                            :class="tab === 'profile' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                            {{ langLabel('profile') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'cart'"
+                            :class="tab === 'cart' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('cart') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'training'"
+                            :class="tab === 'training' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('training') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'mentorship'"
+                            :class="tab === 'mentorship' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('mentorship') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'assessment'"
+                            :class="tab === 'assessment' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('assessment') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'coaching'"
+                            :class="tab === 'coaching' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('coaching') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'subscription'"
+                            :class="tab === 'subscription' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('subscription') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'payment'"
+                            :class="tab === 'payment' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                             {{ langLabel('payment') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'certificates'"
+                            :class="tab === 'certificates' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                            {{ langLabel('certificates') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                            @click="tab = 'settings'"
+                            :class="tab === 'settings' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+                            class="w-full text-left px-4 py-2 rounded"
+                            >
+                            {{ langLabel('settings') }}
+                            </button>
+                        </li>
+                        <!-- More outer tabs can be added here -->
+                        </ul>
+                    </div>
 
                         <!-- Main Content -->
                         <div class="w-4/5 space-y-6">

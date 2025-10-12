@@ -14,6 +14,7 @@ use App\Models\RecruiterCompany;
 use App\Models\Setting;
 use App\Models\SocialMedia;
 use App\Models\Jobseekers;
+use App\Models\Expat;
 use App\Models\Recruiters;
 use App\Models\AdditionalInfo;
 use App\Models\Testimonial;
@@ -3407,7 +3408,7 @@ public function viewCertificate($jobseeker_id, $material_id)
 
     public function expatView($id)
     {
-        $expat = Jobseekers::findOrFail($id);
+        $expat = Expat::findOrFail($id);
         $educations = $expat->educations()->orderBy('id', 'desc')->get();
         $experiences = $expat->experiences()->orderBy('id', 'desc')->get();
         $skills = $expat->skills()->orderBy('id', 'desc')->get();

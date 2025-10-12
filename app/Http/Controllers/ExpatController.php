@@ -71,6 +71,7 @@ class ExpatController extends Controller
             'phone_number' => 'required|unique:jobseekers,phone_number',
             'password' => 'required|min:6|same:confirm_password',
             'confirm_password' => 'required|min:6',
+            //'role' => 'required|in:jobseeker,expat',
         ]);
 
         $expat = Expat::create([
@@ -538,7 +539,7 @@ class ExpatController extends Controller
 
         Notification::insert($data);
         session()->forget('jobseeker_id');
-        return redirect()->route('signin.form')->with('success_popup', true);
+        return redirect()->route('expat.signin.form')->with('success_popup', true);
     }
 
 
@@ -2245,9 +2246,12 @@ class ExpatController extends Controller
             ->latest('r.created_at')
             ->limit(10)
             ->get();
+        
+        $loggedInUserType = auth()->guard('expat')->check() ? 'expat' : (auth()->guard('jobseeker')->check() ? 'jobseeker' : null);
+    
 
         return view('site.training-detail', compact(
-            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews', 'cartItems'
+            'material', 'user', 'userType', 'userId', 'average', 'ratingsPercent', 'reviews', 'cartItems', 'loggedInUserType'
         ));
     }
 
@@ -2258,6 +2262,7 @@ class ExpatController extends Controller
     
     public function addToCart(Request $request, $id)
     {
+       
         if (!Auth::guard('expat')->check()) {
             return response()->json(['message' => 'Please log in to add items to your cart.'], 401);
         }
@@ -2299,41 +2304,100 @@ class ExpatController extends Controller
 
 
 
+// public function submitReview(Request $request)
+// {
+//     $expat = auth()->guard('expat')->user();
+//     print_r($expat);exit;
+//     if (!$expat) {
+//         return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+//     }
+
+//     $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
+
+//     $request->validate([
+//         'user_type'   => 'required|string|in:' . implode(',', $allowedTypes),
+//         'ratings'     => 'required|integer|min:1|max:5',
+//         'reviews'     => 'required|string',
+//         'material_id' => 'nullable|integer',
+//     ]);
+
+//     $userId = $request->user_id;
+
+  
+//     if ($request->user_type === 'trainer' && $request->filled('material_id')) {
+//         $material = DB::table('training_materials')->where('id', $request->material_id)->first();
+//         if ($material) {
+//             $userId = $material->trainer_id;  
+//         }
+//     }
+
+//     $data = [
+//         'jobseeker_id'    => $expat->id,
+//         'user_type'       => $request->user_type,
+//         'user_id'         => $userId,  
+//         'reviews'         => $request->reviews,
+//         'ratings'         => $request->ratings,
+//         'trainer_material'=> $request->user_type === 'trainer' ? $request->material_id : null,
+//         'created_at'      => now(),
+//         'updated_at'      => now(),
+//     ];
+
+//     DB::table('reviews')->insert($data);
+
+//     return response()->json([
+//         'success' => true,
+//         'review' => [
+//             'jobseeker_id'   => $expat->id,
+//             'jobseeker_name' => $expat->name,
+//             'user_type'      => $request->user_type,
+//             'user_id'        => $userId, 
+//             'material_id'    => $request->material_id,
+//             'ratings'        => $request->ratings,
+//             'reviews'        => $request->reviews,
+//         ]
+//     ]);
+// }
+
+
 public function submitReview(Request $request)
 {
-    $expat = auth()->guard('expat')->user();
-    if (!$expat) {
-        return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-    }
+    $user = auth()->guard('expat')->user();
+    if (!$user) return response()->json(['success'=>false,'message'=>'Unauthorized'],401);
 
-    $allowedTypes = ['trainer', 'mentor', 'coach', 'assessor'];
+    return $this->saveReview($request, $user);
+}
+
+
+private function saveReview(Request $request, $user)
+{
+    $allowedTypes = ['trainer','mentor','coach','assessor'];
 
     $request->validate([
-        'user_type'   => 'required|string|in:' . implode(',', $allowedTypes),
-        'ratings'     => 'required|integer|min:1|max:5',
-        'reviews'     => 'required|string',
+        'user_type' => 'required|string|in:'.implode(',',$allowedTypes),
+        'ratings' => 'required|integer|min:1|max:5',
+        'reviews' => 'required|string',
         'material_id' => 'nullable|integer',
     ]);
 
-    $userId = $request->user_id;
+    $userId = $request->user_id ?? null;
 
-  
     if ($request->user_type === 'trainer' && $request->filled('material_id')) {
         $material = DB::table('training_materials')->where('id', $request->material_id)->first();
-        if ($material) {
-            $userId = $material->trainer_id;  
+        if (!$material) {
+            return response()->json(['success'=>false,'message'=>'Invalid material_id'],400);
         }
+        $userId = $material->trainer_id;
     }
 
     $data = [
-        'jobseeker_id'    => $expat->id,
-        'user_type'       => $request->user_type,
-        'user_id'         => $userId,  
-        'reviews'         => $request->reviews,
-        'ratings'         => $request->ratings,
-        'trainer_material'=> $request->user_type === 'trainer' ? $request->material_id : null,
-        'created_at'      => now(),
-        'updated_at'      => now(),
+        'jobseeker_id' => $user->id,
+        'user_type' => $request->user_type,
+        'user_id' => $userId,
+        'reviews' => $request->reviews,
+        'ratings' => $request->ratings,
+        'trainer_material' => $request->user_type === 'trainer' ? $request->material_id : null,
+        'created_at' => now(),
+        'updated_at' => now(),
     ];
 
     DB::table('reviews')->insert($data);
@@ -2341,13 +2405,13 @@ public function submitReview(Request $request)
     return response()->json([
         'success' => true,
         'review' => [
-            'jobseeker_id'   => $expat->id,
-            'jobseeker_name' => $expat->name,
-            'user_type'      => $request->user_type,
-            'user_id'        => $userId, 
-            'material_id'    => $request->material_id,
-            'ratings'        => $request->ratings,
-            'reviews'        => $request->reviews,
+            'jobseeker_id' => $user->id,
+            'jobseeker_name' => $user->name,
+            'user_type' => $request->user_type,
+            'user_id' => $userId,
+            'material_id' => $request->material_id,
+            'ratings' => $request->ratings,
+            'reviews' => $request->reviews,
         ]
     ]);
 }

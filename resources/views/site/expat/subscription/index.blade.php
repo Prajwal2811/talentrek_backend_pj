@@ -15,7 +15,7 @@
 
        @php
             // Fetch jobseeker subscription plans
-            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'jobseeker')->get();
+            $subscriptions = App\Models\SubscriptionPlan::where('user_type', 'expat')->get();
 
             // Fetch tax percentage (for example, 5 means 5%)
             $taxPercent = App\Models\Setting::value('subscriptionTax') ?? 0;
@@ -75,8 +75,8 @@
                             <form action="{{ route('subscription.payment') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="plan_id" value="{{ $plan->id }}">
-                                <input type="hidden" name="user_id" value="{{ auth()->user('jobseeker')->id }}">
-                                <input type="hidden" name="type" value="jobseeker">
+                                <input type="hidden" name="user_id" value="{{ auth()->user('expat')->id }}">
+                                <input type="hidden" name="type" value="expat">
                                 <input type="hidden" name="total_price" value="{{ $totalPrice }}">
 
                                 <button type="submit"
