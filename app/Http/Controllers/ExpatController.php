@@ -568,7 +568,7 @@ class ExpatController extends Controller
 
     
 
-    public function loginExpat(Request $request)
+   public function loginExpat(Request $request)
     {
         $this->validate($request, [
             'email'    => 'required|email',
@@ -582,13 +582,20 @@ class ExpatController extends Controller
             return back()->withInput($request->only('email'));
         }
 
+        // ✅ Check if user has correct role
+        if ($expat->role !== 'expat') {
+            session()->flash('error', 'Access denied. You are not authorized as an expat.');
+            return back()->withInput($request->only('email'));
+        }
+
+        // ✅ Account status checks
         if ($expat->status !== 'active') {
             session()->flash('error', 'Your account is inactive. Please contact administrator.');
             return back()->withInput($request->only('email'));
         }
 
-        //  Check admin_status
-        if ($expat->admin_status === 'superadmin_reject' || $expat->admin_status === 'rejected') {
+        // ✅ Admin status validation
+        if (in_array($expat->admin_status, ['superadmin_reject', 'rejected'])) {
             session()->flash('error', 'Your account has been rejected by administrator.');
             return back()->withInput($request->only('email'));
         }
@@ -598,12 +605,13 @@ class ExpatController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        // Check registration completion
+        // ✅ Check registration completion
         if ($expat->is_registered == 0) {
             session([
-                'expat_id'  => $expat->id,
-                'email'         => $expat->email,
-                'phone_number'  => $expat->phone_number,
+                'expat_id'     => $expat->id,
+                'email'        => $expat->email,
+                'phone_number' => $expat->phone_number,
+                'role'         => 'expat',
             ]);
 
             return redirect()->route('expat.registration')
@@ -614,14 +622,20 @@ class ExpatController extends Controller
                 ]);
         }
 
-        //  Attempt login only if all checks pass
-        if (Auth::guard('expat')->attempt(['email' => $request->email, 'password' => $request->password])) {
+        // ✅ Attempt login (with enforced role check)
+        if (Auth::guard('expat')->attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+            'role' => 'expat', // ensures role match
+        ])) {
+            session(['role' => 'expat']);
             return redirect()->route('expat.profile')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
 
 

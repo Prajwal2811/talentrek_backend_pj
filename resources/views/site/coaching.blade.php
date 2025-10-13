@@ -207,10 +207,20 @@ use Illuminate\Support\Facades\DB;
                                     <img :src="coach.profilePicture ? '/storage/' + coach.profilePicture : '{{ asset('default.jpg') }}'"
                                         alt="coach Image"
                                         class="w-full h-48 object-cover rounded-lg">
-                                    <a :href="'jobseeker/coach-details/' + coach.id">
-                                        <h3 class="text-lg font-semibold text-gray-900"
-                                            x-text="coach.name"></h3>
-                                    </a>
+                                    @auth('jobseeker')
+                                        <a :href="'{{ url('jobseeker/coach-details') }}/' + coach.id">
+                                            <h3 class="text-lg font-semibold text-gray-900" x-text="coach.name"></h3>
+                                        </a>
+                                    @elseif(auth('expat')->check())
+                                        <a :href="'{{ url('expat/coach-details') }}/' + coach.id">
+                                            <h3 class="text-lg font-semibold text-gray-900" x-text="coach.name"></h3>
+                                        </a>
+                                    @else
+                                        <a :href="'{{ url('jobseeker/coach-details') }}/' + coach.id">
+                                            <h3 class="text-lg font-semibold text-gray-900" x-text="coach.name"></h3>
+                                        </a>
+                                    @endauth
+
                                     <div class="flex items-center justify-center text-sm text-gray-700 space-x-1">
                                         <span class="text-orange-500">★</span>
                                         <span x-text="(coach.avgRating ?? 0).toFixed(1) + '/5'"></span>

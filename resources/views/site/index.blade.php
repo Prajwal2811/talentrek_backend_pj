@@ -583,35 +583,27 @@
       @include('site.componants.navbar')
         @php
             $bannerContent = App\Models\CMS::where('slug', 'web_banner')->first();
-        @endphp
-        <!-- <div class="page-content">
-            <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" style="background-image: url('{{ $bannerContent->file_path }}');">
-                {{-- CMS Start form here --}}
-                    @php
-                        echo $bannerContent->description;
-                    @endphp
-                {{-- CMS end form here --}}
-              
-                <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
-                    <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" alt="Curved Bottom" class="w-full h-auto" />
-                </div>
-            </div> -->
-            <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" 
-                style="background-image: url('{{ $bannerContent->file_path }}');">
-                
-                {{-- CMS Start form here --}}
-                    @php
-                        echo $bannerContent->description;
-                    @endphp
-                {{-- CMS end form here --}}
+            $lang = session('lang', 'english'); // default to English
 
-                
-                <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
-                    <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" 
-                        alt="Curved Bottom" 
-                        class="w-full h-auto" />
-                </div>
+            // Choose correct description based on language
+            $bannerDescription = ($lang === 'arabic') 
+                ? $bannerContent->ar_description 
+                : $bannerContent->description;
+        @endphp
+
+        <div class="relative bg-cover bg-no-repeat bg-center min-h-[750px]" 
+            style="background-image: url('{{ $bannerContent->file_path }}');">
+
+            {{-- CMS Description (based on selected language) --}}
+            {!! $bannerDescription !!}
+
+            <div class="absolute bottom-0 left-0 w-full z-10 translate-y-[15px]">
+                <img src="{{ asset('asset/images/banner/curve-bottom.png') }}" 
+                    alt="Curved Bottom" 
+                    class="w-full h-auto" />
             </div>
+        </div>
+
 
 
             <!-- Training Programs Section -->
@@ -1721,27 +1713,33 @@
 
             @php
                 $AboutContent = App\Models\CMS::where('slug', 'join-talentrek')->first();
+                $lang = session('lang', 'english'); // default language
+                $aboutDescription = $lang === 'arabic' 
+                    ? $AboutContent->ar_description 
+                    : $AboutContent->description;
             @endphp
 
             <section class="py-16 bg-white">
                 <div class="max-w-7xl mx-auto px-4">
                     <div class="flex flex-col lg:flex-row items-center gap-10">
-                    {{-- CMS Start form here --}}
-                       @php
-                        echo $AboutContent->description;
-                       @endphp
-                    {{-- CMS end form here --}}
+                        
+                        {{-- CMS Start form here --}}
+                        @php
+                            echo $aboutDescription;
+                        @endphp
+                        {{-- CMS end form here --}}
 
-                    <!-- Right Image -->
-                    <div class="lg:w-1/2 text-center">
-                        <div class="inline-block p-2 rounded-full">
-                            <img src="{{ $AboutContent->file_path }}" alt="Mentor" class="rounded-full w-full max-w-xs" />
+                        <!-- Right Image -->
+                        <div class="lg:w-1/2 text-center">
+                            <div class="inline-block p-2 rounded-full">
+                                <img src="{{ $AboutContent->file_path }}" alt="Mentor" class="rounded-full w-full max-w-xs" />
+                            </div>
                         </div>
-                    </div>
 
                     </div>
                 </div>
             </section>
+
 
             @php
                 use Illuminate\Support\Facades\DB;

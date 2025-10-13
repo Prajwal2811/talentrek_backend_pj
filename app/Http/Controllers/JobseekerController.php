@@ -607,29 +607,35 @@ class JobseekerController extends Controller
             return back()->withInput($request->only('email'));
         }
 
-        if ($jobseeker->status !== 'active') {
-            session()->flash('error', 'Your account is inactive. Please contact administrator.');
+        // ✅ Check if the user has the correct role
+        if ($jobseeker->role !== 'jobseeker') {
+            session()->flash('error', 'Access denied. You are not authorized as a jobseeker.');
             return back()->withInput($request->only('email'));
         }
 
-        // Check admin status
+        // ✅ Account status checks
+        if ($jobseeker->status !== 'active') {
+            session()->flash('error', 'Your account is inactive. Please contact the administrator.');
+            return back()->withInput($request->only('email'));
+        }
+
         if (in_array($jobseeker->admin_status, ['superadmin_reject', 'rejected'])) {
-            session()->flash('error', 'Your account has been rejected by administrator.');
+            session()->flash('error', 'Your account has been rejected by the administrator.');
             return back()->withInput($request->only('email'));
         }
 
         if ($jobseeker->admin_status !== 'superadmin_approved') {
-            session()->flash('error', 'Your account is not yet approved by administrator.');
+            session()->flash('error', 'Your account is not yet approved by the administrator.');
             return back()->withInput($request->only('email'));
         }
 
-        // Check registration completion
+        // ✅ Check registration completion
         if ($jobseeker->is_registered == 0) {
             session([
                 'jobseeker_id'  => $jobseeker->id,
                 'email'         => $jobseeker->email,
                 'phone_number'  => $jobseeker->phone_number,
-                'role'          => 'jobseeker', // ✅ assign role here
+                'role'          => 'jobseeker',
             ]);
 
             return redirect()->route('jobseeker.registration')
@@ -640,17 +646,20 @@ class JobseekerController extends Controller
                 ]);
         }
 
-        // Attempt login only if all checks pass
-        if (Auth::guard('jobseeker')->attempt(['email' => $request->email, 'password' => $request->password])) {
-            // ✅ Set session role after login
+        // ✅ Attempt login (with password + email)
+        if (Auth::guard('jobseeker')->attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+            'role' => 'jobseeker', // enforce role condition
+        ])) {
             session(['role' => 'jobseeker']);
-
             return redirect()->route('jobseeker.profile')->with('success', 'Login successful!');
         } else {
             session()->flash('error', 'Invalid email or password.');
             return back()->withInput($request->only('email'));
         }
     }
+
 
 
 

@@ -84,9 +84,16 @@
                     `,
                     confirmButtonColor: '#3085d6',
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '{{ route('jobseeker.profile') }}';
-                    }
+                    @if(auth('jobseeker')->check())
+                        if (result.isConfirmed) {
+                            window.location.href = '{{ route('jobseeker.profile') }}';
+                        }
+                    @elseif(auth('expat')->check())
+                        if (result.isConfirmed) {
+                            window.location.href = '{{ route('expat.profile') }}';
+                        }
+                    @endif
+
                 });
             });
         </script>
@@ -175,7 +182,6 @@
                     <section class="max-w-7xl mx-auto p-4">
                         <form method="POST" action="{{ route('session.booking-submit') }}" x-data="{ paymentMethod: '' }" id="mentorshipBookingForm">
                             @csrf
-
                             <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 <div class="lg:col-span-2 space-y-6">
                                     <!-- Mentorship mode & Date -->
@@ -184,6 +190,7 @@
                                             <input type="hidden" name="user_type"  value="mentor" />
                                             <input type="hidden" name="user_id" id="mentorIdInput" value="{{ $mentorDetails->mentor_id }}" />
                                             <input type="hidden" name="jobseeker_id" value="{{ optional(auth('jobseeker')->user())->id }}" />
+                                            <input type="hidden" name="expat_id" value="{{ optional(auth('expat')->user())->id }}" />
 
                                             <label class="block font-semibold mb-2">{{ langLabel('mentorship_mode') }}</label>
                                             <select id="modeSelect" name="mode" class="w-full border rounded px-4 py-2" required>
@@ -255,9 +262,12 @@
                                         <input type="hidden" name="coupon_amount" id="coupon_amount" value="0">
                                         <input type="hidden" name="amount_paid" id="amount_paid" value="{{ number_format($grandTotal, 2, '.', '') }}">
                                         <button id="bookBtn" type="button"
-                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium
+                                            {{ $sessionFee == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                            {{ $sessionFee == 0 ? 'disabled' : '' }}>
                                             {{ langLabel('proceed_checkout') }}
                                         </button>
+
                                     </div>
                                 </div>
                             </div>

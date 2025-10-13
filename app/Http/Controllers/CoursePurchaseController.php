@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\PaymentHelper;
 use App\Models\PaymentHistory;
 use App\Models\Jobseekers;
+use App\Models\Expat;
 use App\Models\Setting;
 use App\Models\CorporatesEmailIds;
 use App\Models\JobseekerCartItem;
@@ -32,28 +33,28 @@ class CoursePurchaseController extends Controller
 
     public function processPurchaseCoursePayment(Request $request)
     {
+        // Detect user type and guard
+        $userType = null;
+        $userId = null;
 
-        // Check if jobseeker is logged in
-        if (!Auth::guard('jobseeker')->check()) {
+        if (Auth::guard('jobseeker')->check()) {
+            $userType = 'jobseeker';
+            $userId = Auth::guard('jobseeker')->id();
+        } elseif (Auth::guard('expat')->check()) {
+            $userType = 'expat';
+            $userId = Auth::guard('expat')->id();
+        } else {
             return redirect()->back()->with('error', 'Please login to purchase a course.');
         }
 
-        // Use the logged-in jobseeker ID
-        $jobseekerId = Auth::guard('jobseeker')->id();
-
-        // Check if jobseeker has a valid subscription
-        $subscription = PurchasedSubscription::where('user_id', $jobseekerId)
-            ->where('user_type', 'jobseeker')
+        // Check for active subscription
+        $subscription = PurchasedSubscription::where('user_id', $userId)
+            ->where('user_type', $userType)
             ->where('payment_status', 'paid')
             ->orderBy('end_date', 'desc')
             ->first();
 
-        $hasValidSubscription = false;
-
-        if ($subscription) {
-            $endDate = Carbon::parse($subscription->end_date);
-            $hasValidSubscription = !$endDate->isPast(); // true if not expired
-        }
+        $hasValidSubscription = $subscription && !Carbon::parse($subscription->end_date)->isPast();
 
         if (!$hasValidSubscription) {
             return redirect()->back()->with('error', 'You need an active subscription to book a session.');
@@ -61,7 +62,6 @@ class CoursePurchaseController extends Controller
 
         // Validate input
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:jobseekers,id',
             'buy_type' => 'required|in:buyNow,cart,corporate',
             'material_id' => 'required|exists:training_materials,id',
             'training_type' => 'required|in:online,classroom,recorded',
@@ -77,33 +77,31 @@ class CoursePurchaseController extends Controller
             return redirect()->back()->with('error', $validator->errors()->first());
         }
 
-        $userId = $request->user_id;
         $buyType = $request->buy_type;
         $config = config('neoleap');
-
         $material = TrainingMaterial::findOrFail($request->material_id);
 
         $offerPrice = floatval($request->original_price ?? $material->training_offer_price ?? $material->training_price);
-        $taxRate = floatval($request->tax_rate ?? Setting::first()->trainingMaterialTax ?? 0);
+        $taxRate = floatval($request->tax_rate ?? (Setting::first()->trainingMaterialTax ?? 0));
         $tax = round($offerPrice * ($taxRate / 100), 2);
         $amountPaid = round($offerPrice + $tax - ($request->coupon_amount ?? 0), 2);
 
-        // Generate unique reference
+        // Generate unique transaction reference
         $referenceNo = "TRK-COURSE-" 
-            . strtoupper(substr($material->training_type, 0, 3)) 
+            . strtoupper(substr($material->training_type, 0, 3))
             . '-' . $material->id
             . '-' . ($request->batch_id)
             . '-' . $userId
             . '-' . date('YmdHi')
             . '-' . time();
 
-        // Create payment request
+        // Create payment request (jobseeker_id used for both types)
         $paymentRequest = JobseekerTrainingMaterialPurchasePaymentRequest::create([
-            'jobseeker_id'    => $userId,
+            'jobseeker_id'    => $userId, // used for jobseeker or expat
             'trainer_id'      => $material->trainer_id,
             'material_id'     => $material->id,
             'batch_id'        => $request->batch_id ?? null,
-            'request_payload' => null, // will update after creating transaction payload
+            'request_payload' => null,
             'track_id'        => $referenceNo,
             'type'            => $buyType,
             'training_type'   => $material->training_type,
@@ -117,11 +115,10 @@ class CoursePurchaseController extends Controller
             'coupon_type'     => $request->coupon_type ?? null,
             'coupon_code'     => $request->coupon_code ?? null,
             'coupon_amount'   => $request->coupon_amount ?? 0,
+            'user_type'       => $userType, // distinguish jobseeker/expat
         ]);
 
-        // echo "<pre>"; print_r($paymentRequest); die;
-
-        // Prepare Neoleap transaction
+        // Prepare Neoleap transaction details
         $transactionDetails = [
             "id" => $config['tranportal_id'],
             "amt" => $amountPaid,
@@ -135,15 +132,13 @@ class CoursePurchaseController extends Controller
             "udf1" => $userId,
             "udf2" => $buyType,
             "udf3" => $paymentRequest->id,
+            "udf4" => $userType, // so callback can identify role
             "udf5" => 'course',
         ];
-
-        // echo "<pre>"; print_r($transactionDetails); die;
 
         $jsonTrandata = json_encode([$transactionDetails], JSON_UNESCAPED_SLASHES);
         $trandata = strtoupper(PaymentHelper::encryptAES($jsonTrandata, $config['secret_key']));
 
-        // Update payment request payload
         $paymentRequest->update(['request_payload' => $jsonTrandata]);
 
         // Prepare final payload
@@ -154,7 +149,7 @@ class CoursePurchaseController extends Controller
             "errorURL" => $config['course_failure_url']
         ]], JSON_UNESCAPED_SLASHES);
 
-        // Redirect to Neoleap payment
+        // Redirect to Neoleap
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
@@ -176,6 +171,7 @@ class CoursePurchaseController extends Controller
 
         return redirect()->back()->with('error', 'Unable to initiate payment. Please try again.');
     }
+
 
 
 
@@ -216,33 +212,36 @@ class CoursePurchaseController extends Controller
         ]);
 
         if ($paymentStatus === 'success') {
-            // Create payment history first
+            $userType = $paymentRequest->user_type; // jobseeker or expat
+            $userId = $paymentRequest->jobseeker_id;
+
+            // Create payment history
             $paymentHistory = PaymentHistory::create([
-                'user_type'      => 'jobseeker',
-                'user_id'        => $paymentRequest->jobseeker_id,
+                'user_type'      => $userType,
+                'user_id'        => $userId,
                 'receiver_type'  => 'trainer',
                 'receiver_id'    => $paymentRequest->trainer_id,
                 'payment_for'    => 'training',
                 'amount_paid'    => $paymentRequest->amount_paid,
-                'taxed_amount'            => $paymentRequest->tax,
+                'taxed_amount'   => $paymentRequest->tax,
                 'applied_coupon' => $paymentRequest->coupon_code,
                 'payment_status' => 'completed',
                 'transaction_id' => $paymentRequest->transaction_id,
                 'track_id'       => $paymentRequest->track_id,
-                'order_id'       => 'ORD-' . $paymentRequest->jobseeker_id . '-' . $paymentRequest->material_id . '-' . now()->format('YmdHi'),
+                'order_id'       => 'ORD-' . $userId . '-' . $paymentRequest->material_id . '-' . now()->format('YmdHi'),
                 'currency'       => 'SAR',
                 'payment_method' => $paymentRequest->payment_gateway,
                 'paid_at'        => now(),
             ]);
 
-            // Create purchase record with all fields
+            // Create purchase record
             $purchase = JobseekerTrainingMaterialPurchase::create([
-                'jobseeker_id'    => $paymentRequest->jobseeker_id,
+                'jobseeker_id'    => $userId,
                 'trainer_id'      => $paymentRequest->trainer_id,
                 'material_id'     => $paymentRequest->material_id,
-                'purchased_by'    => $paymentRequest->jobseeker_id,
+                'purchased_by'    => $userId,
                 'training_type'   => $paymentRequest->training_type,
-                'session_type'    => $paymentRequest->training_type, // adjust if different session_type logic
+                'session_type'    => $paymentRequest->training_type,
                 'batch_id'        => $paymentRequest->batch_id,
                 'purchase_for'    => 'individual',
                 'payment_id'      => $paymentHistory->id,
@@ -254,22 +253,34 @@ class CoursePurchaseController extends Controller
                 'coupon_type'     => $paymentRequest->coupon_type,
                 'coupon_code'     => $paymentRequest->coupon_code,
                 'coupon_amount'   => $paymentRequest->coupon_amount,
-                'order_id'        => 'ORD-' . $paymentRequest->jobseeker_id . '-' . $paymentRequest->material_id . '-' . now()->format('YmdHi'),
+                'order_id'        => 'ORD-' . $userId . '-' . $paymentRequest->material_id . '-' . now()->format('YmdHi'),
                 'track_id'        => $paymentRequest->track_id,
                 'transaction_id'  => $paymentRequest->transaction_id,
                 'payment_status'  => 'success',
                 'response_payload'=> json_encode($data),
-                'member_count'    => 1, // default, adjust if needed for team purchases
+                'member_count'    => 1,
             ]);
 
-            // Auto-login the jobseeker if needed
-            if ($jobseeker = Jobseekers::find($paymentRequest->jobseeker_id)) {
-                Auth::guard('jobseeker')->login($jobseeker);
+            // Auto-login user based on type if needed
+            if ($userType === 'jobseeker') {
+                if ($jobseeker = Jobseekers::find($userId)) {
+                    Auth::guard('jobseeker')->login($jobseeker);
+                }
+            } elseif ($userType === 'expat') {
+                if ($expat = Expat::find($userId)) {
+                    Auth::guard('expat')->login($expat);
+                }
             }
         }
 
-        return redirect()->route('jobseeker.profile')->with('success', 'Course purchased successfully!');
+        // Redirect to user dashboard or profile
+        if ($paymentRequest->user_type === 'jobseeker') {
+            return redirect()->route('jobseeker.profile')->with('success', 'Course purchased successfully!');
+        } else($paymentRequest->user_type === 'expat'){
+            return redirect()->route('expat.profile')->with('success', 'Course purchased successfully!');
+        }
     }
+
 
 
 

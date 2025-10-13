@@ -4,7 +4,7 @@
         'mentor.reviews',
         'mentor.profilePicture',
         'mentor.experiences'
-    ])->where('jobseeker_id', auth()->user('jobseeker')->id)
+    ])->where('jobseeker_id', auth()->user('expat')->id)
         ->where('user_type', 'mentor')
         ->whereHas('mentor.profilePicture')
         ->get();

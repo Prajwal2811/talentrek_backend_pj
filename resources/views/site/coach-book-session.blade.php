@@ -258,9 +258,12 @@
                                         <input type="hidden" name="amount_paid" id="amount_paid" value="{{ number_format($grandTotal, 2, '.', '') }}">
 
                                         <button id="bookBtn" type="button"
-                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium
+                                            {{ $sessionFee == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                            {{ $sessionFee == 0 ? 'disabled' : '' }}>
                                             {{ langLabel('proceed_checkout') }}
                                         </button>
+
                                     </div>
                                 </div>
                             </div>

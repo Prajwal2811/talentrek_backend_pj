@@ -646,107 +646,194 @@
                         </script>
 
                         <!-- MENTORSHIP SECTION -->
-                        <div class="card">
+                       <div class="card">
                             <div class="header"><h2>Jobseeker Mentorship</h2></div>
                             <div class="body">
-                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
-                                    @forelse ($mentorships as $index => $session)
-                                        @php
-                                            $mentor = $session->mentor;
-                                            $reviews = $mentor?->reviews ?? collect();
-                                            $experiences = $mentor?->experiences ?? collect();
-                                            $averageRating = $reviews->avg('ratings') ?? 0;
-                                            $totalReviews = $reviews->count();
-                                            $filledStars = floor($averageRating);
-                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
-                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
-                                            $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
-                                            $designation = $currentExp?->job_role ?? 'No designation available';
-                                            $slotMode = $session->slot_mode;
-                                            $zoomLink = $session->zoom_join_url;
-                                            $image = $mentor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
-                                        @endphp
-                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm mentorship-item {{ $index >= 3 ? 'd-none' : '' }}">
-                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column flex-grow-1">
-                                                <h5 class="fw-bold mb-1">{{ $mentor->name }}</h5>
-                                                <p class="text-muted mb-1">{{ $designation }}</p>
-                                                <div class="d-flex align-items-center mb-2">
-                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
-                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
-                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
-                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            @forelse ($mentorships as $index => $session)
+                                                @php
+                                                    $mentor = $session->mentor;
+                                                    $reviews = $mentor?->reviews ?? collect();
+                                                    $experiences = $mentor?->experiences ?? collect();
+                                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                                    $totalReviews = $reviews->count();
+                                                    $filledStars = floor($averageRating);
+                                                    $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                                    $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                                    $currentExp = $experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first();
+                                                    $designation = $currentExp?->job_role ?? 'No designation available';
+                                                    $slotMode = $session->slot_mode;
+                                                    $slotDate = $session->slot_date ? \Carbon\Carbon::parse($session->slot_date)->format('d M Y') : null;
+                                                    $image = $mentor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+
+                                                    // ✅ Handle slot_time like "12:00:00 - 13:00:00"
+                                                    $slotTime = $session->slot_time;
+                                                    $startTime = $endTime = null;
+
+                                                    if ($slotTime && str_contains($slotTime, '-')) {
+                                                        [$start, $end] = array_map('trim', explode('-', $slotTime));
+                                                        $startTime = \Carbon\Carbon::parse($start)->format('h:i A');
+                                                        $endTime = \Carbon\Carbon::parse($end)->format('h:i A');
+                                                    } elseif ($slotTime) {
+                                                        $startTime = \Carbon\Carbon::parse($slotTime)->format('h:i A');
+                                                    }
+                                                @endphp
+
+                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm mentorship-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                                    <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                                    <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                        <h5 class="fw-bold mb-1">{{ $mentor->name }}</h5>
+                                                        <p class="text-muted mb-1">{{ $designation }}</p>
+
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            @for ($i = 0; $i < $filledStars; $i++)
+                                                                <i class="fas fa-star text-warning"></i>
+                                                            @endfor
+                                                            @if ($halfStar)
+                                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                                            @endif
+                                                            @for ($i = 0; $i < $emptyStars; $i++)
+                                                                <i class="far fa-star text-warning"></i>
+                                                            @endfor
+                                                            <span class="text-muted ms-2">
+                                                                ({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)
+                                                            </span>
+                                                        </div>
+
+                                                        {{-- 🕒 Show Meeting Date & Time --}}
+                                                        @if ($slotDate && $startTime)
+                                                            <p class="text-muted small mt-1">
+                                                                <i class="far fa-calendar-alt me-1"></i> {{ $slotDate }} |
+                                                                <i class="far fa-clock me-1"></i> {{ $startTime }}{{ $endTime ? ' - ' . $endTime : '' }}
+                                                            </p>
+                                                        @elseif ($slotDate)
+                                                            <p class="text-muted small mt-1">
+                                                                <i class="far fa-calendar-alt me-1"></i> {{ $slotDate }}
+                                                            </p>
+                                                        @else
+                                                            <p class="text-danger small mt-1">Session schedule not available</p>
+                                                        @endif
+
+                                                        {{-- 💡 Slot mode info --}}
+                                                        @if ($slotMode === 'offline')
+                                                            <p class="text-muted small">Offline session - check location</p>
+                                                        @elseif ($slotMode === 'online')
+                                                            <p class="text-muted small">Online session</p>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                                @if ($slotMode === 'online' && $zoomLink)
-                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
-                                                @elseif ($slotMode === 'offline')
-                                                    <p class="text-muted small mt-1">Offline session - check location</p>
-                                                @else
-                                                    <p class="text-danger small mt-1">Link not available</p>
-                                                @endif
-                                            </div>
+                                            @empty
+                                                <div class="alert alert-info">No mentorship sessions found.</div>
+                                            @endforelse
+
+                                            @if ($mentorships->count() > 3)
+                                                <div class="text-center">
+                                                    <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_mentorship" onclick="toggleVisibility('mentorship')">
+                                                        View More
+                                                    </button>
+                                                </div>
+                                            @endif
                                         </div>
-                                    @empty
-                                        <div class="alert alert-info">No mentorship sessions found.</div>
-                                    @endforelse
-                                    @if ($mentorships->count() > 3)
-                                        <div class="text-center">
-                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_mentorship" onclick="toggleVisibility('mentorship')">View More</button>
-                                        </div>
-                                    @endif
-                                </div></div></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- ASSESSMENT SECTION -->
+
+                       <!-- ASSESSMENT SECTION -->
                         <div class="card mt-4">
                             <div class="header"><h2>Jobseeker Assessments</h2></div>
                             <div class="body">
-                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
-                                    @forelse ($assessments as $index => $session)
-                                        @php
-                                            $assessor = $session->assessor;
-                                            $reviews = $assessor?->reviews ?? collect();
-                                            $experiences = $assessor?->experiences ?? collect();
-                                            $averageRating = $reviews->avg('ratings') ?? 0;
-                                            $totalReviews = $reviews->count();
-                                            $filledStars = floor($averageRating);
-                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
-                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
-                                            $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
-                                            $slotMode = $session->slot_mode;
-                                            $zoomLink = $session->zoom_join_url;
-                                            $image = $assessor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
-                                        @endphp
-                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm assessment-item {{ $index >= 3 ? 'd-none' : '' }}">
-                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column flex-grow-1">
-                                                <h5 class="fw-bold mb-1">{{ $assessor->name }}</h5>
-                                                <p class="text-muted mb-1">{{ $designation }}</p>
-                                                <div class="d-flex align-items-center mb-2">
-                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
-                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
-                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
-                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            @forelse ($assessments as $index => $session)
+                                                @php
+                                                    $assessor = $session->assessor;
+                                                    $reviews = $assessor?->reviews ?? collect();
+                                                    $experiences = $assessor?->experiences ?? collect();
+                                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                                    $totalReviews = $reviews->count();
+                                                    $filledStars = floor($averageRating);
+                                                    $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                                    $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                                    $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
+                                                    $slotMode = $session->slot_mode;
+                                                    $slotDate = $session->slot_date ? \Carbon\Carbon::parse($session->slot_date)->format('d M Y') : null;
+                                                    $image = $assessor?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+
+                                                    // ✅ Handle slot_time like "12:00:00 - 13:00:00"
+                                                    $slotTime = $session->slot_time;
+                                                    $startTime = $endTime = null;
+
+                                                    if ($slotTime && str_contains($slotTime, '-')) {
+                                                        [$start, $end] = array_map('trim', explode('-', $slotTime));
+                                                        $startTime = \Carbon\Carbon::parse($start)->format('h:i A');
+                                                        $endTime = \Carbon\Carbon::parse($end)->format('h:i A');
+                                                    } elseif ($slotTime) {
+                                                        $startTime = \Carbon\Carbon::parse($slotTime)->format('h:i A');
+                                                    }
+                                                @endphp
+
+                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm assessment-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                                    <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                                    <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                        <h5 class="fw-bold mb-1">{{ $assessor->name }}</h5>
+                                                        <p class="text-muted mb-1">{{ $designation }}</p>
+
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            @for ($i = 0; $i < $filledStars; $i++)
+                                                                <i class="fas fa-star text-warning"></i>
+                                                            @endfor
+                                                            @if ($halfStar)
+                                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                                            @endif
+                                                            @for ($i = 0; $i < $emptyStars; $i++)
+                                                                <i class="far fa-star text-warning"></i>
+                                                            @endfor
+                                                            <span class="text-muted ms-2">
+                                                                ({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)
+                                                            </span>
+                                                        </div>
+
+                                                        {{-- 🕒 Show Date & Time --}}
+                                                        @if ($slotDate && $startTime)
+                                                            <p class="text-muted small mt-1">
+                                                                <i class="far fa-calendar-alt me-1"></i> {{ $slotDate }} |
+                                                                <i class="far fa-clock me-1"></i> {{ $startTime }}{{ $endTime ? ' - ' . $endTime : '' }}
+                                                            </p>
+                                                        @elseif ($slotDate)
+                                                            <p class="text-muted small mt-1">
+                                                                <i class="far fa-calendar-alt me-1"></i> {{ $slotDate }}
+                                                            </p>
+                                                        @else
+                                                            <p class="text-danger small mt-1">Session schedule not available</p>
+                                                        @endif
+
+                                                        {{-- 💡 Slot mode info --}}
+                                                        @if ($slotMode === 'offline')
+                                                            <p class="text-muted small">Offline session - check location</p>
+                                                        @elseif ($slotMode === 'online')
+                                                            <p class="text-muted small">Online session</p>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                                @if ($slotMode === 'online' && $zoomLink)
-                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
-                                                @elseif ($slotMode === 'offline')
-                                                    <p class="text-muted small mt-1">Offline session - check location</p>
-                                                @else
-                                                    <p class="text-danger small mt-1">Link not available</p>
-                                                @endif
-                                            </div>
+                                            @empty
+                                                <div class="alert alert-info">No assessment sessions found.</div>
+                                            @endforelse
+
+                                            @if ($assessments->count() > 3)
+                                                <div class="text-center">
+                                                    <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_assessment" onclick="toggleVisibility('assessment')">
+                                                        View More
+                                                    </button>
+                                                </div>
+                                            @endif
                                         </div>
-                                    @empty
-                                        <div class="alert alert-info">No assessment sessions found.</div>
-                                    @endforelse
-                                    @if ($assessments->count() > 3)
-                                        <div class="text-center">
-                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_assessment" onclick="toggleVisibility('assessment')">View More</button>
-                                        </div>
-                                    @endif
-                                </div></div></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -754,53 +841,97 @@
                         <div class="card mt-4">
                             <div class="header"><h2>Jobseeker Coaching</h2></div>
                             <div class="body">
-                                <div class="container-fluid"><div class="row"><div class="col-lg-12">
-                                    @forelse ($coachings as $index => $session)
-                                        @php
-                                            $coach = $session->coach;
-                                            $reviews = $coach?->reviews ?? collect();
-                                            $experiences = $coach?->experiences ?? collect();
-                                            $averageRating = $reviews->avg('ratings') ?? 0;
-                                            $totalReviews = $reviews->count();
-                                            $filledStars = floor($averageRating);
-                                            $halfStar = ($averageRating - $filledStars) >= 0.5;
-                                            $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
-                                            $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
-                                            $slotMode = $session->slot_mode;
-                                            $zoomLink = $session->zoom_join_url;
-                                            $image = $coach?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
-                                        @endphp
-                                        <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm coaching-item {{ $index >= 3 ? 'd-none' : '' }}">
-                                            <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
-                                            <div class="ps-4 d-flex flex-column flex-grow-1">
-                                                <h5 class="fw-bold mb-1">{{ $coach->name }}</h5>
-                                                <p class="text-muted mb-1">{{ $designation }}</p>
-                                                <div class="d-flex align-items-center mb-2">
-                                                    @for ($i = 0; $i < $filledStars; $i++) <i class="fas fa-star text-warning"></i> @endfor
-                                                    @if ($halfStar)<i class="fas fa-star-half-alt text-warning"></i>@endif
-                                                    @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star text-warning"></i> @endfor
-                                                    <span class="text-muted ms-2">({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)</span>
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            @forelse ($coachings as $index => $session)
+                                                @php
+                                                    $coach = $session->coach;
+                                                    $reviews = $coach?->reviews ?? collect();
+                                                    $experiences = $coach?->experiences ?? collect();
+                                                    $averageRating = $reviews->avg('ratings') ?? 0;
+                                                    $totalReviews = $reviews->count();
+                                                    $filledStars = floor($averageRating);
+                                                    $halfStar = ($averageRating - $filledStars) >= 0.5;
+                                                    $emptyStars = 5 - $filledStars - ($halfStar ? 1 : 0);
+                                                    $designation = optional($experiences->firstWhere('end_to', null) ?? $experiences->sortByDesc('end_to')->first())->job_role ?? 'No designation available';
+                                                    $slotMode = $session->slot_mode;
+                                                    $slotDate = $session->slot_date ? \Carbon\Carbon::parse($session->slot_date)->format('d M Y') : null;
+                                                    $image = $coach?->profilePicture?->document_path ?? asset('images/default-mentor.jpg');
+
+                                                    // ✅ Handle slot_time like "12:00:00 - 13:00:00"
+                                                    $slotTime = $session->slot_time;
+                                                    $startTime = $endTime = null;
+
+                                                    if ($slotTime && str_contains($slotTime, '-')) {
+                                                        [$start, $end] = array_map('trim', explode('-', $slotTime));
+                                                        $startTime = \Carbon\Carbon::parse($start)->format('h:i A');
+                                                        $endTime = \Carbon\Carbon::parse($end)->format('h:i A');
+                                                    } elseif ($slotTime) {
+                                                        $startTime = \Carbon\Carbon::parse($slotTime)->format('h:i A');
+                                                    }
+                                                @endphp
+
+                                                <div class="card d-flex flex-row align-items-start p-3 mb-4 shadow-sm coaching-item {{ $index >= 3 ? 'd-none' : '' }}">
+                                                    <img src="{{ $image }}" class="img-fluid rounded" style="width: 200px; height: 140px; object-fit: cover;">
+                                                    <div class="ps-4 d-flex flex-column flex-grow-1">
+                                                        <h5 class="fw-bold mb-1">{{ $coach->name }}</h5>
+                                                        <p class="text-muted mb-1">{{ $designation }}</p>
+
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            @for ($i = 0; $i < $filledStars; $i++)
+                                                                <i class="fas fa-star text-warning"></i>
+                                                            @endfor
+                                                            @if ($halfStar)
+                                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                                            @endif
+                                                            @for ($i = 0; $i < $emptyStars; $i++)
+                                                                <i class="far fa-star text-warning"></i>
+                                                            @endfor
+                                                            <span class="text-muted ms-2">
+                                                                ({{ number_format($averageRating, 1) }}/5 from {{ $totalReviews }} reviews)
+                                                            </span>
+                                                        </div>
+
+                                                        {{-- 🕒 Show Date & Time --}}
+                                                        @if ($slotDate && $startTime)
+                                                            <p class="text-muted small mt-1">
+                                                                <i class="far fa-calendar-alt me-1"></i> {{ $slotDate }} |
+                                                                <i class="far fa-clock me-1"></i> {{ $startTime }}{{ $endTime ? ' - ' . $endTime : '' }}
+                                                            </p>
+                                                        @elseif ($slotDate)
+                                                            <p class="text-muted small mt-1">
+                                                                <i class="far fa-calendar-alt me-1"></i> {{ $slotDate }}
+                                                            </p>
+                                                        @else
+                                                            <p class="text-danger small mt-1">Session schedule not available</p>
+                                                        @endif
+
+                                                        {{-- 💡 Slot mode info --}}
+                                                        @if ($slotMode === 'offline')
+                                                            <p class="text-muted small">Offline session - check location</p>
+                                                        @elseif ($slotMode === 'online')
+                                                            <p class="text-muted small">Online session</p>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                                @if ($slotMode === 'online' && $zoomLink)
-                                                    <a href="{{ $zoomLink }}" target="_blank" class="btn btn-primary btn-sm">Join Meet</a>
-                                                @elseif ($slotMode === 'offline')
-                                                    <p class="text-muted small mt-1">Offline session - check location</p>
-                                                @else
-                                                    <p class="text-danger small mt-1">Link not available</p>
-                                                @endif
-                                            </div>
+                                            @empty
+                                                <div class="alert alert-info">No coaching sessions found.</div>
+                                            @endforelse
+
+                                            @if ($coachings->count() > 3)
+                                                <div class="text-center">
+                                                    <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_coaching" onclick="toggleVisibility('coaching')">
+                                                        View More
+                                                    </button>
+                                                </div>
+                                            @endif
                                         </div>
-                                    @empty
-                                        <div class="alert alert-info">No coaching sessions found.</div>
-                                    @endforelse
-                                    @if ($coachings->count() > 3)
-                                        <div class="text-center">
-                                            <button class="btn btn-sm btn-primary mt-2" id="viewMoreBtn_coaching" onclick="toggleVisibility('coaching')">View More</button>
-                                        </div>
-                                    @endif
-                                </div></div></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
 
 
 

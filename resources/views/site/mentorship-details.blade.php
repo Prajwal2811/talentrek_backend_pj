@@ -93,11 +93,26 @@
                             @php
                                 $firstSlot = $mentorDetails->bookingSlots->first();
                             @endphp
-                            <a href="{{ route('mentorship-book-session', ['mentor_id' => $mentorDetails->id, 'slot_id' => $firstSlot->id]) }}">
-                                <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">
-                                    {{ langLabel('book_session') }}
-                                </button>
-                            </a>
+                            @auth('jobseeker')
+                                <a href="{{ route('mentorship-book-session', ['mentor_id' => $mentorDetails->id, 'slot_id' => $firstSlot->id]) }}">
+                                    <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">
+                                        {{ langLabel('book_session') }}
+                                    </button>
+                                </a>
+                            @elseif(auth('expat')->check())
+                                <a href="{{ route('expat.mentorship-book-session', ['mentor_id' => $mentorDetails->id, 'slot_id' => $firstSlot->id]) }}">
+                                    <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">
+                                        {{ langLabel('book_session') }}
+                                    </button>
+                                </a>
+                            @else
+                                <a href="{{ route('mentorship-book-session', ['mentor_id' => $mentorDetails->id, 'slot_id' => $firstSlot->id]) }}">
+                                    <button class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-md font-medium shadow-sm transition">
+                                        {{ langLabel('book_session') }}
+                                    </button>
+                                </a>
+                            @endauth
+
                         @else
                             <button class="bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-md font-medium shadow-sm" disabled>
                                 {{ langLabel('no_slot_available') }}

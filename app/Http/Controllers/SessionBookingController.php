@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Jobseekers; // make sure to import your model
+use App\Models\Expat; // make sure to import your model
 use App\Services\ZoomService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -32,14 +33,26 @@ class SessionBookingController extends Controller
      */
     public function processBookingPayment(Request $request)
     {
-        $jobseekerId = $request->jobseeker_id;
+         // Detect logged-in user type (jobseeker or expat)
+        if (Auth::guard('jobseeker')->check()) {
+            $userType = 'jobseeker';
+            $userId = Auth::guard('jobseeker')->id();
+        } elseif (Auth::guard('expat')->check()) {
+            $userType = 'expat';
+            $userId = Auth::guard('expat')->id();
+        } else {
+            return redirect()->back()->with('error', 'Please login to book a session.');
+        }
 
-        // Check if jobseeker has a valid subscription
-        $subscription = PurchasedSubscription::where('user_id', $jobseekerId)
-            ->where('user_type', 'jobseeker')
+
+
+         // Check if user has a valid subscription
+        $subscription = PurchasedSubscription::where('user_id', $userId)
+            ->where('user_type', $userType)
             ->where('payment_status', 'paid')
             ->orderBy('end_date', 'desc')
             ->first();
+
 
         $hasValidSubscription = false;
 
@@ -54,17 +67,15 @@ class SessionBookingController extends Controller
         // echo "<pre>"; print_r( $request->all() ); die;
         $validator = Validator::make($request->all(), [
             'user_type'       => 'required|in:mentor,assessor,coach',
-            'user_id'         => 'required', // the mentor/assessor/coach id
+            'user_id'         => 'required',
             'mode'            => 'required|in:online,offline',
             'date'            => 'required|date|after_or_equal:today',
             'slot_id'         => 'required',
             'slot_time'       => 'required',
-            'jobseeker_id'    => 'required|exists:jobseekers,id',
             'original_price'  => 'required|numeric',
             'tax_rate'        => 'required|numeric',
             'amount_paid'     => 'required|numeric',
         ]);
-
         if ($validator->fails()) {
             return redirect()->back()->with('error', $validator->errors()->first());
         }
@@ -89,28 +100,27 @@ class SessionBookingController extends Controller
 
 
         // Create payment request record
-        $paymentRequest = SessionBookingPaymentRequest::create([ 
-            'jobseeker_id' => $request->jobseeker_id, 
-            'user_type' => $request->user_type, 
-            'user_id' => $request->user_id, 
-            'slot_mode' => $request->mode, 
-            'slot_date' => date('Y-m-d', strtotime($request->date)),
-            'booking_slot_id' => $request->slot_id, 
-            'slot_time' => $request->slot_time, 
-            'request_payload' => null, 
-            'track_id' => $referenceNo, 
-            'payment_status' => 'initiated', 
-            'tax' => $request->tax_rate, 
-            'amount' => $request->original_price, 
-            'total_amount' => $request->amount_paid, 
-            'currency' => 'SAR', 
-            'payment_gateway' => 'Al Rajhi',
-            'response_payload'     => null,
-            'tax_percentage'    => $request->tax_rate,
-            'coupon_type'       => $request->coupon_type,
-            'coupon_code'       => $request->coupon_code,
-            'coupon_amount'     => $request->coupon_amount,
-         ]);
+        $paymentRequest = SessionBookingPaymentRequest::create([
+            'jobseeker_id'     => $userId,
+            'user_type'        => $request->user_type,
+            'user_id'          => $request->user_id,
+            'slot_mode'        => $request->mode,
+            'slot_date'        => date('Y-m-d', strtotime($request->date)),
+            'booking_slot_id'  => $request->slot_id,
+            'slot_time'        => $request->slot_time,
+            'track_id'         => $referenceNo,
+            'payment_status'   => 'initiated',
+            'tax'              => $request->tax_rate,
+            'amount'           => $request->original_price,
+            'total_amount'     => $request->amount_paid,
+            'currency'         => 'SAR',
+            'payment_gateway'  => 'Al Rajhi',
+            'tax_percentage'   => $request->tax_rate,
+            'coupon_type'      => $request->coupon_type,
+            'coupon_code'      => $request->coupon_code,
+            'coupon_amount'    => $request->coupon_amount,
+        ]);
+
 
         //  echo "<pre>"; print_r($paymentRequest); die;
         $paymentRequest->track_id = 'TRK-' . strtoupper($request->user_type) . '-' . $paymentRequest->id. time();
@@ -133,7 +143,7 @@ class SessionBookingController extends Controller
             "id"           => $config['tranportal_id'],
             "amt"          => $paymentRequest->total_amount,
             "action"       => "1",
-            "password"     => $config['tranportal_password'],
+            "password"     => "T4#2H#ma5yHv\$G7",
             "currencyCode" => "682",
             "trackId"      => $paymentRequest->track_id,
             "udf1"         => $paymentRequest->jobseeker_id,
@@ -185,7 +195,7 @@ class SessionBookingController extends Controller
 
         $data = json_decode($response, true);
         $result = $data[0]['result'] ?? null;
-        // echo "<pre>"; print_r($data); die;
+        // echo "<pre>"; print_r($result); die;
 
         if ($result) {
             [$paymentId, $paymentUrl] = explode(":", $result, 2);
@@ -357,21 +367,25 @@ class SessionBookingController extends Controller
                 $booking->update(['offline_address' => $mentorAddress]);
             }
 
-            // 🔑 Log the jobseeker in
-            $jobseeker = Jobseekers::find($paymentRequest->jobseeker_id);
-            if ($jobseeker) {
-                Auth::guard('jobseeker')->login($jobseeker); 
+            // 🔑 Log the user in based on type
+            if ($paymentRequest->user_type === 'jobseeker') {
+                $user = Jobseekers::find($paymentRequest->jobseeker_id);
+                if ($user) Auth::guard('jobseeker')->login($user);
+            } else {
+                $user = Expat::find($paymentRequest->jobseeker_id);
+                if ($user) Auth::guard('expat')->login($user);
             }
+
 
             // 💰 Save PaymentHistory
             PaymentHistory::create([
-                'user_type'      => 'jobseeker',
+                'user_type'      => $paymentRequest->user_type === 'jobseeker' ? 'jobseeker' : 'expat',
                 'user_id'        => $paymentRequest->jobseeker_id,
-                'receiver_type'  => 'mentor', // or 'trainer' based on your logic
+                'receiver_type'  => $paymentRequest->user_type, // mentor/coach/assessor
                 'receiver_id'    => $paymentRequest->user_id,
                 'payment_for'    => 'booking_slot',
                 'amount_paid'    => $paymentRequest->total_amount,
-                'taxed_amount'            => $paymentRequest->taxed_amount ?? 0,
+                'taxed_amount'   => $paymentRequest->taxed_amount ?? 0,
                 'applied_coupon' => $paymentRequest->coupon_code,
                 'payment_status' => 'completed',
                 'transaction_id' => $paymentRequest->transaction_id,
@@ -383,8 +397,14 @@ class SessionBookingController extends Controller
             ]);
         }
 
-        return redirect()->route('jobseeker.profile')
+        // ✅ Redirect based on user type
+        if (Auth::guard('expat')->check()) {
+            return redirect()->route('expat.profile')->with('success', 'Session booked successfully!');
+        } else {
+
+            return redirect()->route('jobseeker.profile')
                         ->with('success', 'Session booked successfully!');
+        }
     }
 
 

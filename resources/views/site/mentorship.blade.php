@@ -136,9 +136,20 @@
                                 data-areas="{{ $areaOfInterest }}">
                                 <img src="{{ $imagePath }}" alt="{{ $mentor->name }}"
                                     class="w-full h-48 object-cover rounded-md mb-4 mx-auto">
-                                <a href="{{ route('mentorship-details', ['id' => $mentor->id]) }}">
-                                    <h3 class="text-lg font-semibold text-gray-900 mentor-name">{{ $mentor->name }}</h3>
-                                </a>
+                                    @auth('jobseeker')
+                                        <a href="{{ route('mentorship-details', ['id' => $mentor->id]) }}">
+                                            <h3 class="text-lg font-semibold text-gray-900 mentor-name">{{ $mentor->name }}</h3>
+                                        </a>
+                                    @elseif(auth('expat')->check())
+                                        <a href="{{ route('expat.mentorship-details', ['id' => $mentor->id]) }}">
+                                            <h3 class="text-lg font-semibold text-gray-900 mentor-name">{{ $mentor->name }}</h3>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('mentorship-details', ['id' => $mentor->id]) }}">
+                                            <h3 class="text-lg font-semibold text-gray-900 mentor-name">{{ $mentor->name }}</h3>
+                                        </a>
+                                    @endauth
+
                                 <div class="flex items-center justify-center mt-2">
                                     <span class="text-orange-500 text-sm mr-1">★</span>
                                     <span class="text-sm text-gray-700">
