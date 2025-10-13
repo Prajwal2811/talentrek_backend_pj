@@ -25,7 +25,7 @@
 
 
                 <main class="p-6 bg-gray-100 flex-1 overflow-y-auto" x-data="{ activeTab: 'personal' }">
-                    <nav aria-label="breadcrumb" class="mb-6">
+                    <!-- <nav aria-label="breadcrumb" class="mb-6">
                         <ol class="flex text-2xl font-semibold">
                             <li>
                             <a href="{{route('recruiter.jobseeker')}}" class="text-blue-600 hover:underline">{{ langLabel('jobseeker') }}</a>
@@ -33,15 +33,36 @@
                             <li><span class="mx-2 text-black">></span></li>
                             <li>{{ langLabel('jobseeker_details') }}</li>
                         </ol>
+                    </nav> -->
+                    <nav aria-label="breadcrumb" class="mb-6">
+                        <ol class="flex text-2xl font-semibold">
+                            <li>
+                                @php
+                                    $role = strtolower($user->role ?? 'jobseeker'); 
+                                    // Route are same
+                                    $routeName = 'recruiter.jobseeker';
+                                    // Labels by role
+                                    $label = $role === 'expat' ? langLabel('expat') : langLabel('jobseeker');
+                                @endphp
+
+                                <a href="{{ route($routeName) }}" class="text-blue-600 hover:underline">
+                                    {{ $label }}
+                                </a>
+                            </li>
+                            <li><span class="mx-2 text-black">></span></li>
+                            <li>{{ langLabel($role . '_details') }}</li>
+                        </ol>
                     </nav>
+
+
                     <div class="bg-white p-6 rounded shadow flex flex-col">
                         <!-- Header -->
                         <div class="flex items-start justify-between mb-6">
                         <div class="flex items-center space-x-4">
                             <img src="https://i.pravatar.cc/100?img=3" alt="Avatar" class="w-16 h-16 rounded-full object-cover" />
                             <div>
-                            <h3 class="text-lg font-semibold">{{ $jobseeker->name}} </h3>
-                            <p class="text-sm text-gray-500">{{ $jobseeker->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}</p>
+                            <h3 class="text-lg font-semibold">{{ $user->name}} </h3>
+                            <p class="text-sm text-gray-500">{{ $user->experiences->pluck('job_role')->filter()->join(', ') ?: langLabel('not_provided') }}</p>
                             </div>
                             
                         </div>
@@ -49,15 +70,15 @@
                             Request interview
                         </button> -->
                             @php
-                                $jobseekerId = $jobseeker->id;
-                                $isApproved = $jobseeker->shortlist_admin_status === 'superadmin_approved';
-                                $interviewRequested = strtolower($jobseeker->interview_request ?? '') === 'yes';
+                                $userId = $user->id;
+                                $isApproved = $user->shortlist_admin_status === 'superadmin_approved';
+                                $interviewRequested = strtolower($user->interview_request ?? '') === 'yes';
                             @endphp
 
                             <!-- Interview Request Button -->
                             {{-- <button
-                                id="interview-btn-{{ $jobseekerId }}"
-                                onclick="confirmInterviewRequest({{ $jobseekerId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
+                                id="interview-btn-{{ $userId }}"
+                                onclick="confirmInterviewRequest({{ $userId }}, {{ $isApproved ? 'true' : 'false' }}, {{ $interviewRequested ? 'true' : 'false' }})"
                                 class="text-white text-base px-4 py-1.5 rounded
                                     {{ $isApproved 
                                         ? ($interviewRequested 
@@ -106,18 +127,18 @@
                             <div x-show="activeTab === 'personal'" x-transition class="space-y-6 text-sm">
                                 <!-- Row 1: Gender, Birth date, Email, Phone -->
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <p><strong>{{ langLabel('gender') }}:</strong> {{ $jobseeker->gender}} </p>
+                                    <p><strong>{{ langLabel('gender') }}:</strong> {{ $user->gender}} </p>
                                     <p>
                                     <strong>{{ langLabel('dob') }}:</strong> 
-                                    <span style="filter: blur(3px);"> {{ $jobseeker->date_of_birth}} </span>
+                                    <span style="filter: blur(3px);"> {{ $user->date_of_birth}} </span>
                                     </p>
                                     <p>
                                     <strong>{{ langLabel('email') }}:</strong> 
-                                    <span style="filter: blur(3px);">{{ $jobseeker->email }}</span>
+                                    <span style="filter: blur(3px);">{{ $user->email }}</span>
                                     </p>
                                     <p>
                                     <strong>{{ langLabel('phone_number') }}:</strong> 
-                                    <span style="filter: blur(3px);">{{ $jobseeker->phone_number }}</span>
+                                    <span style="filter: blur(3px);">{{ $user->phone_number }}</span>
                                     </p>
                                 </div>
 
@@ -127,11 +148,11 @@
                                         <p><strong>{{ langLabel('address') }}:</strong></p>
                                         <p class="text-gray-600">
                                             <span style="filter: blur(3px);">
-                                                {{ $jobseeker->address }}
+                                                {{ $user->address }}
                                             </span>
                                         </p>
                                     </div>
-                                    <p><strong>{{ langLabel('city') }}:</strong> {{ $jobseeker->city }}</p>
+                                    <p><strong>{{ langLabel('city') }}:</strong> {{ $user->city }}</p>
                                     <!-- <p><strong>Country:</strong> Saudi Arabia</p> -->
                                     <div></div> <!-- empty 4th column -->
                                 </div>
@@ -140,7 +161,7 @@
 
                             <!-- Educational details -->
                             <div x-show="activeTab === 'education'" x-transition class="text-sm text-gray-700 space-y-6">
-                                @foreach($jobseeker->educations as $education)
+                                @foreach($user->educations as $education)
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 border p-4 rounded-lg bg-gray-50">
                                         <div>
                                             <p><strong>{{ langLabel('highest_qualification') }}:</strong></p>
@@ -166,7 +187,7 @@
 
                             <!-- Work experience -->
                             <div x-show="activeTab === 'work'" x-transition class="text-sm text-gray-700 space-y-6">
-                                @foreach($jobseeker->experiences as $experience)
+                                @foreach($user->experiences as $experience)
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 border p-4 rounded-lg bg-gray-50">
                                         <div>
                                             <p><strong>{{ langLabel('job_role') }}:</strong></p>

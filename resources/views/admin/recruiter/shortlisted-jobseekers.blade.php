@@ -34,6 +34,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>Sr. No.</th>
+                                                    <th>Role ( jobseeker & expat )</th>
                                                     <th>Full Name</th>
                                                     <th>Email</th>
                                                     <th>Status</th>
@@ -43,6 +44,7 @@
                                             <tfoot>
                                                 <tr>
                                                     <th>Sr. No.</th>
+                                                    <th>Role (jobseeker & expat)</th>
                                                     <th>Full Name</th>
                                                     <th>Email</th>
                                                     <th>Status</th>
@@ -63,6 +65,7 @@
 
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ ucfirst($shortlistJobseeker->role) }}</td>
                                                         <td>{{ $shortlistJobseeker->name }}</td>
                                                         <td>{{ $shortlistJobseeker->email }}</td>
                                                         <td>
