@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Recruiters;
 use App\Models\Jobseekers;
+use App\Models\Expat;
 use App\Models\Trainers;
 use App\Models\Skills;
 use App\Models\Feedback;
@@ -68,9 +69,24 @@ class RecruiterController extends Controller
 
 
      // ✅ Total shortlisted jobseekers
-     $totalShortlisted = DB::table('recruiter_jobseeker_shortlist')
-          ->where('recruiter_id', $recruiterId)
-          ->count();
+     // $totalShortlisted = DB::table('recruiter_jobseeker_shortlist')
+     //      ->where('recruiter_id', $recruiterId)
+     //      ->count();
+     
+     // Jobseekers count
+     $totalJobseekerShortlisted = DB::table('recruiter_jobseeker_shortlist as rjs')
+     ->join('jobseekers as js', 'rjs.jobseeker_id', '=', 'js.id')
+     ->where('rjs.recruiter_id', $recruiterId)
+     ->where('js.role', 'jobseeker')
+     ->count();
+
+     // Expats count
+     $totalExpatShortlisted = DB::table('recruiter_jobseeker_shortlist as rjs')
+     ->join('jobseekers as js', 'rjs.jobseeker_id', '=', 'js.id')
+     ->where('rjs.recruiter_id', $recruiterId)
+     ->where('js.role', 'expat')
+     ->count();
+
 
      // ✅ Total interviews scheduled
      $totalScheduled = DB::table('recruiter_jobseeker_shortlist')
@@ -80,8 +96,9 @@ class RecruiterController extends Controller
 
      return view('site.recruiter.dashboard', compact(
           'scheduled_jobseekers',
-          'totalShortlisted',
-          'totalScheduled'
+          'totalScheduled',
+          'totalJobseekerShortlisted',
+          'totalExpatShortlisted',
      ));
      }
 
@@ -911,6 +928,7 @@ class RecruiterController extends Controller
                     ->where('status', 'active')
                     ->where('admin_status', 'superadmin_approved')
                     ->whereNotIn('id', $shortlistedIds)
+                    ->orderBy('jobseekers.created_at', 'desc')
                     ->get();
           
           // echo "<pre>";
@@ -1108,22 +1126,68 @@ class RecruiterController extends Controller
 
 
 
-     public function getJobseekerDetails($jobseeker_id)
+     // public function getJobseekerDetails($jobseeker_id)
+     // {
+     //      $recruiterId = auth()->id();
+     //      $jobseeker = Jobseekers::with(['educations', 'experiences'])
+     //                     ->where('id', $jobseeker_id)
+     //                     ->firstOrFail();
+     //      echo "<pre>";
+     //      print_r( $jobseeker);exit;
+     //      $skill = Skills::where('jobseeker_id', $jobseeker_id)
+     //                     ->first(); 
+
+     //      $additional =  AdditionalInfo::where('user_id', $jobseeker_id)
+     //                     ->where('user_type', 'jobseeker')
+     //                     ->first();              
+     //      // echo "<pre>";
+     //      // print_r( $skills);exit;
+     //      // echo "</pre>";
+     //      $shortlisted_jobseeker = Jobseekers::with(['educations', 'experiences', 'skills'])
+     //           ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
+     //           ->where('shortlist.recruiter_id', $recruiterId)
+     //           ->where('jobseekers.status', 'active')
+     //           ->select(
+     //                'jobseekers.*',
+     //                'shortlist.admin_status as shortlist_admin_status',
+     //                'shortlist.interview_request'
+     //           )
+     //           ->get();
+
+     //      return view('site.recruiter.jobseeker-view-details', compact('jobseeker','skill','additional','shortlisted_jobseeker'));
+     // }
+
+     public function getJobseekerDetails($user_id)
      {
           $recruiterId = auth()->id();
-          $jobseeker = Jobseekers::with(['educations', 'experiences'])
-                         ->where('id', $jobseeker_id)
-                         ->firstOrFail();
 
-          $skill = Skills::where('jobseeker_id', $jobseeker_id)
-                         ->first(); 
+          
+          $userRow = DB::table('jobseekers')->where('id', $user_id)->first();
+          if (!$userRow) {
+               abort(404, 'User not found');
+          }
 
-          $additional =  AdditionalInfo::where('user_id', $jobseeker_id)
-                         ->where('user_type', 'jobseeker')
-                         ->first();              
-          // echo "<pre>";
-          // print_r( $skills);exit;
-          // echo "</pre>";
+          if ($userRow->role == 'expat') {
+               $user = Expat::with(['educations', 'experiences'])
+                    ->where('id', $user_id)
+                    ->firstOrFail();
+               $userType = 'expat';
+          } else {
+               $user = Jobseekers::with(['educations', 'experiences'])
+                    ->where('id', $user_id)
+                    ->firstOrFail();
+               $userType = 'jobseeker';
+          }
+
+          // Skill fetch 
+          $skill = Skills::where('jobseeker_id', $user_id)->first();
+
+          // Additional info
+          $additional = AdditionalInfo::where('user_id', $user_id)
+               ->where('user_type', $userType)
+               ->first();
+
+          // Shortlisted list
           $shortlisted_jobseeker = Jobseekers::with(['educations', 'experiences', 'skills'])
                ->join('recruiter_jobseeker_shortlist as shortlist', 'jobseekers.id', '=', 'shortlist.jobseeker_id')
                ->where('shortlist.recruiter_id', $recruiterId)
@@ -1135,8 +1199,15 @@ class RecruiterController extends Controller
                )
                ->get();
 
-          return view('site.recruiter.jobseeker-view-details', compact('jobseeker','skill','additional','shortlisted_jobseeker'));
+          return view('site.recruiter.jobseeker-view-details', compact(
+               'user',
+               'skill',
+               'additional',
+               'shortlisted_jobseeker'
+          ));
      }
+
+
 
      public function showRecruitmentSettingForm()
      {
@@ -1397,36 +1468,36 @@ class RecruiterController extends Controller
 
     public function filterJobseekers(Request $request)
      {
-     $recruiterId = auth()->user()->recruiter_id;
+          $recruiterId = auth()->user()->recruiter_id;
 
-     // Get shortlisted IDs
-     $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
-          ->pluck('jobseeker_id')
-          ->toArray();
+          // Get shortlisted IDs
+          $shortlistedIds = RecruiterJobseekersShortlist::where('recruiter_id', $recruiterId)
+               ->pluck('jobseeker_id')
+               ->toArray();
 
-     // Get shortlisted jobseekers with total experience
-     $shortlisted_jobseekers = $this->getShortlistedJobseekers($recruiterId);
+          // Get shortlisted jobseekers with total experience
+          $shortlisted_jobseekers = $this->getShortlistedJobseekers($recruiterId);
 
-     // Get non-shortlisted jobseekers
-     $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
-          ->where('status', 'active')
-          ->whereIn('admin_status', ['approved', 'superadmin_approved'])
-          ->whereNotIn('id', $shortlistedIds)
-          ->get();
+          // Get non-shortlisted jobseekers
+          $jobseekers = Jobseekers::with(['educations', 'experiences', 'skills'])
+               ->where('status', 'active')
+               ->whereIn('admin_status', ['approved', 'superadmin_approved'])
+               ->whereNotIn('id', $shortlistedIds)
+               ->get();
 
-     // Apply filters
-     $filtered = $jobseekers->filter(function ($jobseeker) use ($request) {
-          return $this->applyFilters($jobseeker, $request);
-     });
+          // Apply filters
+          $filtered = $jobseekers->filter(function ($jobseeker) use ($request) {
+               return $this->applyFilters($jobseeker, $request);
+          });
 
-     // Render HTML
-     $jobseekerListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $filtered])->render();
-     $shortlistedListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers])->render();
+          // Render HTML
+          $jobseekerListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $filtered])->render();
+          $shortlistedListHtml = view('site.recruiter.partials.jobseeker-list', ['jobseekers' => $shortlisted_jobseekers])->render();
 
-     return response()->json([
-          'jobseekers_html' => $jobseekerListHtml,
-          'shortlisted_html' => $shortlistedListHtml
-     ]);
+          return response()->json([
+               'jobseekers_html' => $jobseekerListHtml,
+               'shortlisted_html' => $shortlistedListHtml
+          ]);
      }
 
      private function getShortlistedJobseekers($recruiterId)

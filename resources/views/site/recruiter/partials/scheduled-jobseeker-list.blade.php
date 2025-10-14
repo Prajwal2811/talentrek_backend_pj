@@ -60,6 +60,17 @@
             </div>
         </div>
 
+        <!-- Role Expat and Jobseeker -->
+        <div class="w-32 text-sm">
+            <p class="font-semibold">{{ langLabel('role') }}</p>
+
+            <p class="@if($scheduled_jobseeker->role == 'jobseeker') text-green-600 
+                    @elseif($scheduled_jobseeker->role == 'expat') text-blue-600 
+                    @else text-gray-600 @endif">
+                {{ ucfirst($scheduled_jobseeker->role) }}
+            </p>
+        </div>
+
         <!-- Interview Info -->
         <div class="w-40 text-sm">
             <p class="font-semibold">{{ langLabel('interview_date_time') }}</p>

@@ -28,16 +28,21 @@
                     <h2 class="text-2xl font-semibold mb-6">{{ langLabel('dashboard') }}</h2>
 
                     <!-- Stat Cards -->
-                    <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-3 gap-4 mb-6">
                         <div class="bg-white p-6 rounded-lg shadow">
                             <p class="text-xl text-black-500">{{ langLabel('jobseeker') }} {{ langLabel('shortlisted') }}</p>
-                            <h3 class="text-3xl font-bold mt-2">{{ $totalShortlisted}}</h3>
+                            <h3 class="text-3xl font-bold mt-2">{{ $totalJobseekerShortlisted }}</h3>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <p class="text-xl text-black-500">{{ langLabel('expat') }} {{ langLabel('shortlisted') }}</p>
+                            <h3 class="text-3xl font-bold mt-2">{{ $totalExpatShortlisted }}</h3>
                         </div>
                         <div class="bg-white p-6 rounded-lg shadow">
                             <p class="text-xl text-black-500">{{ langLabel('interviews_scheduled') }}</p>
                             <h3 class="text-3xl font-bold mt-2">{{ $totalScheduled }}</h3>
                         </div>
                     </div>
+
 
 
                     @php
@@ -99,7 +104,7 @@
 
                             <div class="jobseeker-shortlisted flex justify-between items-center py-4 border-b">
                                 <!-- Profile -->
-                                <div class="flex items-center space-x-4 w-1/3">
+                                <div class="flex items-center space-x-3 ">
                                     <img src="{{ $scheduled_jobseeker->profile_image }}" class="w-12 h-12 rounded-full object-cover" alt="{{ $scheduled_jobseeker->name }}" />
                                     <div>
                                         <h4 class="font-semibold text-sm">{{ $scheduled_jobseeker->name }}</h4>
@@ -108,6 +113,18 @@
                                         </p>
                                     </div>
                                 </div>
+
+                                <!-- Role Expat and Jobseeker -->
+                                <div class="w-32 text-sm">
+                                    <p class="font-semibold">{{ langLabel('role') }}</p>
+
+                                    <p class="@if($scheduled_jobseeker->role == 'jobseeker') text-green-600 
+                                            @elseif($scheduled_jobseeker->role == 'expat') text-blue-600 
+                                            @else text-gray-600 @endif">
+                                        {{ ucfirst($scheduled_jobseeker->role) }}
+                                    </p>
+                                </div>
+                                
 
                                 <!-- Interview Info -->
                                 <div class="w-40 text-sm">

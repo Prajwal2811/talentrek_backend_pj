@@ -81,7 +81,8 @@
                             <!-- Tabs -->
                             <div class="flex justify-between border-b pb-2 mb-4">
                                 <div class="space-x-6 font-medium text-sm">
-                                    <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">{{ langLabel('jobseeker') }}</button>
+                                    <!-- <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">{{ langLabel('jobseeker') }}</button> -->
+                                    <button data-tab="jobseekers" class="tab-btn pb-1 border-b-2 text-black">{{ langLabel('jobseeker_expat') }}</button>
                                     <button data-tab="shortlisted" class="tab-btn pb-1 text-gray-500">{{ langLabel('shortlisted') }}</button>
                                     <button data-tab="scheduled" class="tab-btn pb-1 text-gray-500">{{ langLabel('scheduled_interview') }}</button>
                                 </div>
@@ -513,9 +514,9 @@
                 </script>
 
 <!-- SweetAlert2 CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
 
-<script>
+<!-- <script>
     function confirmShortlist(id) {
         Swal.fire({
             title: 'Are you sure?',
@@ -532,7 +533,30 @@
             }
         });
     }
+</script> -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmShortlist(id, role) {
+        const formId = `shortlist-form-${role}-${id}`;
+        // alert(formId);
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to shortlist this ${role}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
 </script>
+
+
 
 
 

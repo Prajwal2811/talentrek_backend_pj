@@ -568,7 +568,7 @@ class ExpatController extends Controller
 
     
 
-   public function loginExpat(Request $request)
+    public function loginExpat(Request $request)
     {
         $this->validate($request, [
             'email'    => 'required|email',
