@@ -30,7 +30,7 @@
                                     <h2 class="text-2xl font-semibold mb-1">{{ langLabel('forgot_password') }}</h2>
                                     <p class="text-sm text-gray-500 mb-6">{{ langLabel('enter_registered_contact') }}</p>
 
-                                    <form action="{{ route('submit.forget.password') }}" method="POST">
+                                    <form action="{{ route('expat.submit.forget.password') }}" method="POST">
                                         @csrf
                                         <div class="mb-4">
                                             <label for="contact" class="block text-sm font-medium mb-1">{{ langLabel('email') }} / {{ langLabel('mobile_number') }}</label>

@@ -1439,7 +1439,7 @@ class ExpatController extends Controller
         session()->forget('otp_value');
         session()->forget('otp_method');
 
-        return redirect()->route('signin.form')->with('success', 'Password changed successfully.');
+        return redirect()->route('expat.signin.form')->with('success', 'Password changed successfully.');
     }
 
 

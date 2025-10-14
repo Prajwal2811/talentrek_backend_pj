@@ -30,7 +30,7 @@
                                 <h2 class="text-2xl font-semibold mb-1">{{ langLabel('reset_password') }}</h2>
                                 <p class="text-sm text-gray-500 mb-6">{{ langLabel('enter_new_password') }}</p>
 
-                                <form action="{{ route('jobseeker.reset-password.submit') }}" method="POST">
+                                <form action="{{ route('expat.reset-password.submit') }}" method="POST">
                                     @csrf
                                     <div class="mb-4">
                                         <label for="email" class="block text-sm font-medium mb-1">{{ langLabel('new_password') }}</label>

@@ -49,7 +49,7 @@
                                 <h2 class="text-2xl font-semibold mb-1">{{ langLabel('verify_otp') }}</h2>
                                 <p class="text-sm text-gray-500 mb-6">{{ langLabel('enter_otp') }}</p>
                                 
-                                <form action="{{ route('jobseeker.verify-otp.submit') }}" method="POST" id="otp-form">
+                                <form action="{{ route('expat.verify-otp.submit') }}" method="POST" id="otp-form">
                                     @csrf
 
                                     <input type="hidden" name="contact" value="{{ session('otp_value') }}">

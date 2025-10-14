@@ -93,7 +93,7 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                         <div class="text-right mt-1">
-                                            <a href="{{ route('jobseeker.forget-password')}}" class="text-sm text-blue-600 hover:underline">{{ langLabel('forgot_password') }}</a>
+                                            <a href="{{ route('expat.forget-password')}}" class="text-sm text-blue-600 hover:underline">{{ langLabel('forgot_password') }}</a>
                                         </div>
                                     </div>
 
@@ -112,7 +112,7 @@
                                     </button>
 
                                     
-                                    <a href="{{ route('jobseeker.google.redirect') }}" 
+                                    <a href="{{ route('expat.google.redirect') }}" 
                                     class="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 mb-3">
                                         <img src="{{ asset('asset/images/google-icon.png') }}" alt="Google" class="w-5 h-5 mr-2">
                                         {{ langLabel('signin_google') }}
@@ -155,7 +155,7 @@
         </div>
 
 
-@include('site.jobseeker.componants.footer')
+@include('site.expat.componants.footer')
 
 
 
