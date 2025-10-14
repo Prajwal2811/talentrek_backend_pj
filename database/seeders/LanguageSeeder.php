@@ -615,6 +615,10 @@ class LanguageSeeder extends Seeder
             ['code' => 'enter_total_question', 'english' => 'Enter Total Question', 'arabic' => 'أدخل إجمالي الأسئلة'],
             ['code' => 'enter_passing_question', 'english' => 'Enter Passing Question', 'arabic' => 'أدخل عدد الأسئلة المطلوبة للنجاح'],
             ['code' => 'create_assessment', 'english' => 'Create Assessment', 'arabic' => 'إنشاء تقييم'],
+            ['code' => 'scheduled_interview', 'english' => 'Scheduled Interview', 'arabic' => 'تمت جدولة المقابلة'],
+            ['code' => 'details', 'english' => 'Details', 'arabic' => 'تفاصيل'],
+            ['code' => 'expat', 'english' => 'Expat', 'arabic' => 'مغترب'],
+            ['code' => 'jobseeker_expat', 'english' => 'Jobseeker & Expat', 'arabic' => 'باحث عن عمل ومغترب'],
 
 
         ];

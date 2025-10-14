@@ -1,3 +1,4 @@
+<!-- < ?php echo "<pre>"; print_r($jobseekers);exit;?> -->
 @foreach($jobseekers as $jobseeker)
 <div class="jobseeker-entry flex justify-between items-center py-4">
     <!-- Profile Image & Name -->
@@ -14,6 +15,18 @@
             </p>
         </div>
     </div>
+
+    <!-- Role Expat and Jobseeker -->
+    <div class="w-32 text-sm">
+        <p class="font-semibold">{{ langLabel('role') }}</p>
+
+        <p class="@if($jobseeker->role == 'jobseeker') text-green-600 
+                @elseif($jobseeker->role == 'expat') text-blue-600 
+                @else text-gray-600 @endif">
+            {{ ucfirst($jobseeker->role) }}
+        </p>
+    </div>
+
 
     <!-- Experience -->
     <div class="w-32 text-sm">
@@ -40,14 +53,19 @@
 
         {{-- If not shortlisted --}}
         @if(!$isShortlisted)
-            <form id="shortlist-form-{{ $jobseekerId }}" action="{{ route('recruiter.shortlist.submit') }}" method="POST" onsubmit="return false;">
+            <form id="shortlist-form-{{ $jobseeker->role }}-{{ $jobseekerId }}" 
+                action="{{ route('recruiter.shortlist.submit') }}" 
+                method="POST" 
+                onsubmit="return false;">
                 @csrf
                 <input type="hidden" name="jobseeker_id" value="{{ $jobseekerId }}">
-                <button type="button" onclick="confirmShortlist({{ $jobseekerId }})"
-                    class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
+                <button type="button" 
+                        onclick="confirmShortlist({{ $jobseekerId }}, '{{ $jobseeker->role }}')" 
+                        class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">
                     {{ langLabel('shortlist') }}
                 </button>
             </form>
+
         @else
             {{-- Approved or Pending --}}
             <button class="border text-xs px-2 py-1 rounded cursor-not-allowed 

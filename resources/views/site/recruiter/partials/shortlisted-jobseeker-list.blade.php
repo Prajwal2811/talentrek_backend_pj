@@ -15,6 +15,17 @@
             </div>
         </div>
 
+        <!-- Role Expat and Jobseeker -->
+        <div class="w-32 text-sm">
+            <p class="font-semibold">{{ langLabel('role') }}</p>
+
+            <p class="@if($shortlisted_jobseeker->role == 'jobseeker') text-green-600 
+                    @elseif($shortlisted_jobseeker->role == 'expat') text-blue-600 
+                    @else text-gray-600 @endif">
+                {{ ucfirst($shortlisted_jobseeker->role) }}
+            </p>
+        </div>
+
         <!-- Experience Years -->
         <div class="w-32 text-sm">
             <p class="font-semibold">{{ langLabel('experience') }}</p>
