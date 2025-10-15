@@ -179,15 +179,6 @@ $skills = $user->skills->first();
                             {{ langLabel('certificates') }}
                             </button>
                         </li>
-                        <li>
-                            <button
-                            @click="tab = 'settings'"
-                            :class="tab === 'settings' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
-                            class="w-full text-left px-4 py-2 rounded"
-                            >
-                            {{ langLabel('settings') }}
-                            </button>
-                        </li>
                         <!-- More outer tabs can be added here -->
                         </ul>
                     </div>

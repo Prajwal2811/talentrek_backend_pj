@@ -16,7 +16,7 @@
         $headerLogoUrl = $headerLogo ? asset($headerLogo) : '';
     @endphp
 
-    <div x-data="{ openInvoice: null, selectedPayment: null }" class="bg-white p-4 rounded-lg shadow-md mt-4">
+    <div x-show="tab === 'payment'" x-cloak>
         <h3 class="text-xl font-semibold mb-4 border-b pb-2">Payment History</h3>
 
         <div class="overflow-x-auto">

@@ -11,7 +11,7 @@
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold">{{ langLabel('my_profile') }}</h2>
         <a href="{{ route('expat.resume.download') }}"
-        class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-500 transition">
+            class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-500 transition">
             Download Resume
         </a>
 
@@ -1063,4 +1063,3 @@
         </script>
     </div>
 </div>
-

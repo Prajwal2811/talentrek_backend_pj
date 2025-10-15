@@ -211,9 +211,23 @@
                                         <span>{{ langLabel('total') }}</span>
                                         <span id="billingTotal"></span>
                                     </div>
-                                    <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
-                                        {{ langLabel('proceed_checkout') }}
-                                    </button>
+                                    @auth('jobseeker')
+                                        <!-- Show checkout button if logged in as jobseeker -->
+                                        <button type="submit"
+                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                            {{ langLabel('proceed_checkout') }}
+                                        </button>
+                                    @elseif(auth('expat')->check())
+                                        <!-- Optional: show a different message or button for expats -->
+                                        <button type="submit"
+                                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-4 text-sm font-medium">
+                                            {{ langLabel('proceed_checkout') }}
+                                        </button>
+                                    @else
+                                        <div class="alert alert-danger alert-dismissible fade show mt-4 text-center" role="alert" style="text-align: justify;">
+                                            <strong>Please log in as a Jobseeker</strong> to purchase a course.
+                                        </div>
+                                    @endauth
                                 </div>
                             </div>
                         </div>

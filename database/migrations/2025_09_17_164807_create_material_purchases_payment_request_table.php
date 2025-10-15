@@ -15,9 +15,9 @@ return new class extends Migration
     {
             Schema::create('material_purchases_payment_request', function (Blueprint $table) {
                 $table->bigIncrements('id');
-
+                $table->string('user_type')->nullable(); // 'jobseeker' or 'expat'
                 // Foreign keys (not enforced yet)
-                $table->unsignedBigInteger('jobseeker_id');
+                $table->unsignedBigInteger('jobseeker_id')->nullable();
                 $table->unsignedBigInteger('trainer_id')->nullable();
                 $table->unsignedBigInteger('material_id')->nullable();
                 $table->unsignedBigInteger('batch_id')->nullable();

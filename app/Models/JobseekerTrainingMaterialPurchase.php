@@ -11,6 +11,7 @@ class JobseekerTrainingMaterialPurchase extends Model
 
     protected $table = 'jobseeker_training_material_purchases';  
     protected $fillable = [
+        'user_type',
         'jobseeker_id',
         'trainer_id',
         'material_id',

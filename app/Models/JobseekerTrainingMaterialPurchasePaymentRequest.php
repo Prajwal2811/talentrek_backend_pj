@@ -14,6 +14,7 @@ class JobseekerTrainingMaterialPurchasePaymentRequest extends Model
 
     // Mass assignable attributes
     protected $fillable = [
+        'user_type',
         'jobseeker_id',
         'trainer_id',
         'material_id',
@@ -25,6 +26,7 @@ class JobseekerTrainingMaterialPurchasePaymentRequest extends Model
         'transaction_id',
         'payment_status',
         'taxed_amount',
+        'tax_percentage',
         'amount',
         'amount_paid',
         'currency',

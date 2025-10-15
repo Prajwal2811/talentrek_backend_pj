@@ -136,7 +136,7 @@ return [
         ],
         'expats' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Jobseekers::class,
+            'model' => App\Models\Expat::class,
         ],
 
         // 'users' => [

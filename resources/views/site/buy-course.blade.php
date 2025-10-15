@@ -89,11 +89,25 @@
                     @csrf
                     <input type="hidden" name="material_id" value="{{ $material->id }}">
                     <input type="hidden" name="training_type" value="{{ $material->training_type }}">
-                    <input type="hidden" name="user_id" value="{{ auth('jobseeker')->user()?->id }}">
-                    <input type="hidden" name="user_id" value="{{ auth('expat')->user()?->id }}">
+                    @php
+                        if (auth('jobseeker')->check()) {
+                            $userId = auth('jobseeker')->id();
+                            $userType = 'jobseeker';
+                        } elseif (auth('expat')->check()) {
+                            $userId = auth('expat')->id();
+                            $userType = 'expat';
+                        } else {
+                            $userId = null;
+                            $userType = null;
+                        }
+                    @endphp
+
+                    @if($userId)
+                        <input type="hidden" name="user_id" value="{{ $userId }}">
+                        <input type="hidden" name="user_type" value="{{ $userType }}">
+                    @endif
+
                     <input type="hidden" name="buy_type" value="buyNow">
-
-
 
                     <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 

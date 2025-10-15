@@ -13,7 +13,12 @@
 
 <div x-show="tab === 'mentorship'" x-cloak>
     <h2 class="text-xl font-semibold mb-4">Mentorship</h2>
-    @foreach ($mentorships as $index => $session)
-        @php renderSessionCard($session->mentor, $session, $index, 'mentor'); @endphp
-    @endforeach
+    @if ($mentorships->isEmpty())
+        <p class="text-gray-500 text-sm">No mentorship sessions found.</p>
+    @else
+        @foreach ($mentorships as $index => $session)
+            @php renderSessionCard($session->mentor, $session, $index, 'mentor'); @endphp
+        @endforeach
+    @endif
+
 </div>

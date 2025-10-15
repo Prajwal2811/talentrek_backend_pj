@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('jobseeker_training_material_purchases', function (Blueprint $table) {
             $table->id();
+            $table->string('user_type')->nullable();
 
             // Foreign keys
             $table->integer('jobseeker_id')->nullable();
@@ -30,7 +31,7 @@ return new class extends Migration
             $table->string('batch_id')->nullable();
 
             // Purchase for type
-            $table->enum('purchase_for', ['individual', 'team']);
+            $table->enum('purchase_for', ['individual', 'team', 'cart']);
 
             // Payment relation
             $table->string('payment_id')->nullable();
