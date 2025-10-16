@@ -202,6 +202,7 @@
                             };
 
                             $('#jobseekerList').html('<p class="p-4 text-gray-500">Loading...</p>');
+                            $('#shortlistedList').html('<p class="p-4 text-gray-500">Loading...</p>');
 
                             $.ajax({
                                 url: "{{ route('recruiter.filter.jobseekers') }}",
@@ -213,6 +214,7 @@
                                 },
                                 error: function () {
                                     $('#jobseekerList').html('<p class="p-4 text-red-500">Failed to load filtered jobseekers.</p>');
+                                    $('#shortlistedList').html('<p class="p-4 text-red-500">Failed to load filtered jobseekers.</p>');
                                 }
                             });
                         }
