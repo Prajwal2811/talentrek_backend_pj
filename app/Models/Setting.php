@@ -12,5 +12,10 @@ class Setting extends Model
         'header_logo',
         'footer_logo',
         'favicon',
+        'trainingMaterialTax',
+        'trainingMaterialBatchTax',
+        'coachTax',
+        'mentorTax',
+        'assessorTax'
     ];
 }

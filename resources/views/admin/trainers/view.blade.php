@@ -262,6 +262,23 @@
                                                 <label>City</label>
                                                 <input readonly type="text" class="form-control" value="{{ $trainer->city }}">
                                             </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>State</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->state }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Country</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->country }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>Address</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->address }}">
+                                            </div>
+                                            <div class="col-md-12 form-group">
+                                                <label>PIN Code</label>
+                                                <input readonly type="text" class="form-control" value="{{ $trainer->pin_code }}">
+                                            </div>
+
                                         </div>
                                     </form>
                                 </div>
@@ -327,10 +344,10 @@
                                                 <!-- Work Experience -->
                                                 <div class="tab-pane fade" id="work">
                                                     <form>
-                                                        @if ($experiences->isEmpty())
+                                                        @if ($workExperiences->isEmpty())
                                                             <p class="text-muted">No work experience found.</p>
                                                         @else
-                                                            @foreach ($experiences as $experience)
+                                                            @foreach ($workExperiences as $experience)
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Job role</label>
@@ -346,7 +363,7 @@
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>To</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work Here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $experience->end_to === 'work here' ? 'Work Here' : \Carbon\Carbon::parse($experience->end_to)->format('jS F Y') }}">
                                                                     </div>
                                                                 </div>
                                                                 @if (!$loop->last)
@@ -360,23 +377,23 @@
                                                 <!-- experience -->
                                                 <div class="tab-pane fade" id="experience">
                                                     <form>
-                                                        @if ($experience->isEmpty())
+                                                        @if ($trainingExperiences->isEmpty())
                                                             <p class="text-muted">No experience or training details found.</p>
                                                         @else
-                                                            @foreach ($experience as $skill)
+                                                            @foreach ($trainingExperiences as $skill)
                                                                 <div class="row">
                                                                     <div class="col-md-6 form-group">
                                                                         <label>experience</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->experience }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->training_experience }}">
                                                                     </div>
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Area of interests</label>
-                                                                        <input readonly type="text" class="form-control" value="{{ $skill->interest }}">
+                                                                        <input readonly type="text" class="form-control" value="{{ $skill->training_skills }}">
                                                                     </div>
-                                                                    <div class="col-md-6 form-group">
+                                                                    <!-- <div class="col-md-6 form-group">
                                                                         <label>Job categories</label>
                                                                         <input readonly type="text" class="form-control" value="{{ $skill->job_category }}">
-                                                                    </div>
+                                                                    </div> -->
                                                                     <div class="col-md-6 form-group">
                                                                         <label>Website link</label>
                                                                         <input readonly type="url" class="form-control" value="{{ $skill->website_link }}">
@@ -399,15 +416,21 @@
                                                         @else
                                                             <div class="row">
                                                                 @foreach($additioninfos as $info)
-                                                                    @if($info->doc_type == 'resume')
+                                                                    @if($info->doc_type == 'trainer_resume')
                                                                         <div class="col-md-12 form-group d-flex align-items-center">
                                                                             <label class="w-100">Uploaded Resume</label>
                                                                             <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                             <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                         </div>
-                                                                    @elseif($info->doc_type == 'profile_picture')
+                                                                    @elseif($info->doc_type == 'trainer_profile_picture')
                                                                         <div class="col-md-12 form-group d-flex align-items-center">
                                                                             <label class="w-100">Uploaded Profile Picture</label>
+                                                                            <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
+                                                                            <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
+                                                                        </div>
+                                                                    @elseif($info->doc_type == 'training_certificate')
+                                                                        <div class="col-md-12 form-group d-flex align-items-center">
+                                                                            <label class="w-100">Uploaded Training Certificate</label>
                                                                             <input readonly type="text" class="form-control me-2" value="{{ $info->document_name }}">
                                                                             <a href="{{ $info->document_path }}" target="_blank" class="btn btn-danger">View</a>
                                                                         </div>
@@ -419,99 +442,72 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                 </div>
                             </div>
 
+
                             <div class="card">
                                 <div class="header">
-                                    <h2>trainer Payments</h2>
+                                    <h2>Trainer Subscriptions</h2>
                                 </div>
                                 <div class="body">
                                     <div class="container-fluid">
                                         <div class="row">
                                             <div class="col-lg-12">
 
-                                                <!-- Payment Card 1 -->
-                                                <div class="card p-3 mb-4 shadow-sm">
-                                                    <div class="d-flex flex-column">
-                                                        <h5 class="fw-bold mb-2">Payment #001</h5>
-                                                        <div class="mb-2">
-                                                            <strong>Paid To Date:</strong> 10 June 2025<br>
-                                                            <strong>Amount:</strong> ₹1,499<br>
-                                                            <strong>Payment Status:</strong>
-                                                            <span
-                                                                class="badge bg-success text-white small px-2 py-1">Paid</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Hidden More Payments -->
-                                                <div id="morePayments" class="d-none">
-
-                                                    <!-- Payment Card 2 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-2">Payment #002</h5>
-                                                            <div class="mb-2">
-                                                                <strong>Paid To Date:</strong> 01 May 2025<br>
-                                                                <strong>Amount:</strong> ₹499<br>
-                                                                <strong>Payment Status:</strong>
-                                                                <span
-                                                                    class="badge bg-warning text-dark small px-2 py-1">Pending</span>
+                                                @if(count($subscriptionPlans) > 0)
+                                                    @foreach ($subscriptionPlans as $index => $plan)
+                                                        <div class="card p-3 mb-4 shadow-sm {{ $index > 0 ? 'd-none extra-subscription' : '' }}">
+                                                            <div class="d-flex flex-column">
+                                                                <h5 class="fw-bold mb-1">{{ $plan->title }}</h5>
+                                                                <p class="text-muted mb-2">{{ $plan->description }}</p>
+                                                                <div class="mb-2">
+                                                                    <strong>Duration:</strong> {{ $plan->duration_days }} Days<br>
+                                                                    <strong>Purchased On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->start_date)->format('d M Y') }}<br>
+                                                                    <strong>Expired On:</strong> 
+                                                                        {{ \Carbon\Carbon::parse($plan->end_date)->format('d M Y') }}
+                                                                </div>
+                                                                <span class="badge bg-secondary text-white small align-self-start px-2 py-1">
+                                                                    ₹{{ $plan->price }}
+                                                                </span>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    @endforeach
 
-                                                    <!-- Payment Card 3 -->
-                                                    <div class="card p-3 mb-4 shadow-sm">
-                                                        <div class="d-flex flex-column">
-                                                            <h5 class="fw-bold mb-2">Payment #003</h5>
-                                                            <div class="mb-2">
-                                                                <strong>Paid To Date:</strong> 25 April 2025<br>
-                                                                <strong>Amount:</strong> ₹999<br>
-                                                                <strong>Payment Status:</strong>
-                                                                <span
-                                                                    class="badge bg-danger text-white small px-2 py-1">Failed</span>
-                                                            </div>
+                                                    <!-- View More Button (only show if more than 1 subscription exists) -->
+                                                    @if(count($subscriptionPlans) > 1)
+                                                        <div class="text-center mt-4">
+                                                            <button class="btn btn-primary" id="toggleButtonSub"
+                                                                onclick="toggleSubscriptions()">View More</button>
                                                         </div>
+                                                    @endif
+                                                @else
+                                                    <div class="alert alert-info text-center p-3">
+                                                        No subscriptions found.
                                                     </div>
-
-                                                </div>
-
-                                                <!-- View More Button -->
-                                                <div class="text-center mt-4">
-                                                    <button class="btn btn-primary" id="toggleButtonPay"
-                                                        onclick="togglePayments()">View More</button>
-                                                </div>
+                                                @endif
 
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- JS Toggle -->
-                                <script>
-                                    function togglePayments() {
-                                        const morePayments = document.getElementById("morePayments");
-                                        const button = document.getElementById("toggleButtonPay");
-
-                                        if (morePayments.classList.contains("d-none")) {
-                                            morePayments.classList.remove("d-none");
-                                            button.textContent = "View Less";
-                                        } else {
-                                            morePayments.classList.add("d-none");
-                                            button.textContent = "View More";
-                                        }
-                                    }
-                                </script>
                             </div>
 
-                           
+                            <!-- Toggle Script -->
+                            <script>
+                                function toggleSubscriptions() {
+                                    const extraSubs = document.querySelectorAll('.extra-subscription');
+                                    const button = document.getElementById("toggleButtonSub");
+
+                                    let hidden = [...extraSubs].some(el => el.classList.contains("d-none"));
+
+                                    extraSubs.forEach(el => el.classList.toggle("d-none", !hidden));
+                                    button.textContent = hidden ? "View Less" : "View More";
+                                }
+                            </script>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>

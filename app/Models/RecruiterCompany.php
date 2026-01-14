@@ -39,6 +39,14 @@ class RecruiterCompany extends Authenticatable
         'registration_number',
         'status',
         'inactive_reason',
+        'active_subscription_plan_id',
+        'active_subscription_plan_slug',
+        'recruiter_count',
+        'is_registered',
+        'isSubscribtionBuy',
+        'admin_status',
+        'rejection_reason',
+        'otp',
     ];
 
     /**
@@ -61,8 +69,8 @@ class RecruiterCompany extends Authenticatable
     ];
 
 
-    public function recruiter()
+    public function recruiters()
     {
-        return $this->belongsTo(Recruiters::class, 'recruiter_id');
+        return $this->hasMany(Recruiters::class, 'company_id');
     }
 }

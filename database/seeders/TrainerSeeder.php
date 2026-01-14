@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Hash;
 class TrainerSeeder extends Seeder
 {
     public function run()
@@ -19,6 +19,8 @@ class TrainerSeeder extends Seeder
                 'city' => 'Mumbai',
                 'otp' => '123456',
                 'status' => 'active',
+                'password' => Hash::make('amit@talentrek'),
+                'pass' => 'amit@talentrek',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -31,6 +33,8 @@ class TrainerSeeder extends Seeder
                 'city' => 'San Francisco',
                 'otp' => '654321',
                 'status' => 'pending',
+                'password' => Hash::make('samantha@talentrek'),
+                'pass' => 'samantha@talentrek',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -43,6 +47,8 @@ class TrainerSeeder extends Seeder
                 'city' => 'Delhi',
                 'otp' => '789456',
                 'status' => 'inactive',
+                'password' => Hash::make('ravi@talentrek'),
+                'pass' => 'ravi@talentrek',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -55,6 +61,8 @@ class TrainerSeeder extends Seeder
                 'city' => 'London',
                 'otp' => '321654',
                 'status' => 'active',
+                'password' => Hash::make('emily@talentrek'),
+                'pass' => 'emily@talentrek',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -67,9 +75,12 @@ class TrainerSeeder extends Seeder
                 'city' => 'Bangalore',
                 'otp' => '147258',
                 'status' => 'active',
+                'password' => Hash::make('arjun@talentrek'),
+                'pass' => 'arjun@talentrek',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ]);
     }
+
 }

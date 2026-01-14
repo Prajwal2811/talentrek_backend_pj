@@ -48,5 +48,16 @@ class AdminSeeder extends Seeder
             'role' => 'admin',
             'status' => 'active',
         ]);
+
+
+        Admin::create([
+            'name' => 'Dnayneshwari Meshram',
+            'email' => 'dnyaneshwari@talentrek.com',
+            'phone' => '1234567890',
+            'password' => bcrypt('dnyaneshwari@talentrek'),
+            'pass' => 'dnyaneshwari@talentrek',
+            'role' => 'admin',
+            'status' => 'active',
+        ]);
     }
 }

@@ -23,14 +23,20 @@ class TrainingBatch extends Authenticatable
     /**
      * The attributes that are mass assignable.
      */
-     protected $fillable = [
+     // app/Models/TrainingBatch.php
+    protected $fillable = [
         'trainer_id',
         'training_material_id',
         'batch_no',
         'start_date',
+        'end_date',
         'start_timing',
         'end_timing',
         'duration',
+        'days',
+        'strength',
+        'zoom_start_url',
+        'zoom_join_url',
     ];
 
     /**

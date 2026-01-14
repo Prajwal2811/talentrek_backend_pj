@@ -16,6 +16,8 @@ class TrainingCategory extends Model
      */
     protected $fillable = [
         'category',
+        'image_name',
+        'image_path',
         
     ];
 
@@ -25,4 +27,10 @@ class TrainingCategory extends Model
     protected $casts = [
         'date_of_birth' => 'date',
     ];
+
+   public function trainings()
+    {
+        return $this->hasMany(TrainingMaterial::class, 'training_category', 'category');
+    }
+
 }

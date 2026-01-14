@@ -23,8 +23,10 @@ class DatabaseSeeder extends Seeder
             RecruitersSeeder::class,
             RecruitersCompanySeeder::class,
             TrainerSeeder::class,
+            AssessorSeeder::class,
+            CoachSeeder::class,
             TestimonialSeeder::class,
-
+            MentorSeeder::class,
             TrainingMaterialsTableSeeder::class,
             CertificateTemplateSeeder::class,
             EducationDetailsSeeder::class,
@@ -37,7 +39,16 @@ class DatabaseSeeder extends Seeder
             ResumeSeeder::class,
             TrainingCategorySeeder::class,
             ReviewSeeder::class,
-
+            BookingSlotsSeeder::class,
+            PaymentSeeder::class,
+            // JobseekerSavedBookingSessionSeeder::class,
+            // JobseekerTrainingMaterialPurchasesSeeder::class,
+            // JobseekerCartItemSeeder::class,
+            SubscriptionPlanSeeder::class,
+            CouponSeeder::class,
+            TaxationSeeder::class,
+            // TeamCourseMembersSeeder::class,
+            NotificationSeeder::class
         ]);
         
     }

@@ -80,7 +80,7 @@ return [
         ],
         'expat' => [
             'driver' => 'session',
-            'provider' => 'jobseekers',
+            'provider' => 'expats',
         ],
     ],
 
@@ -116,7 +116,7 @@ return [
         ],
         'recruiters' => [
             'driver' => 'eloquent',
-            'model' => App\Models\RecruiterCompany::class,
+            'model' => App\Models\Recruiters::class,
         ],
         'trainers' => [
             'driver' => 'eloquent',

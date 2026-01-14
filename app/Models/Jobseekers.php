@@ -24,9 +24,13 @@ class Jobseekers extends Authenticatable
         'phone_code',
         'phone_number',
         'date_of_birth',
+        'national_id',
         'city',
+        'state',
         'address',
         'password',
+        'pin_code',
+        'country',
         'pass',
         'role',
         'otp',
@@ -36,7 +40,14 @@ class Jobseekers extends Authenticatable
         'rejection_reason', 
         'shortlist',
         'admin_recruiter_status',
-        'google_id'
+        'google_id',
+        'isSubscribtionBuy',
+        'is_registered',
+        'avatar',
+        'active_subscription_plan_id',
+        'zoom_access_token',
+        'zoom_refresh_token',
+        'zoom_token_expires_at'
     ];
 
     /**
@@ -67,6 +78,7 @@ class Jobseekers extends Authenticatable
                     ->where('user_type', 'jobseeker');
     }
 
+
     public function skills()
     {
         return $this->hasMany(Skills::class, 'jobseeker_id');
@@ -74,21 +86,39 @@ class Jobseekers extends Authenticatable
     }
 
 
-    public function getTotalExperienceAttribute()
+   public function getTotalExperienceAttribute()
     {
         $totalDays = 0;
 
         foreach ($this->experiences as $exp) {
             $start = Carbon::parse($exp->starts_from);
-            $end = Carbon::parse($exp->end_to);
+
+            // Handle ongoing jobs
+            $end = $exp->end_to && strtolower($exp->end_to) !== 'work here' && strtolower($exp->end_to) !== 'present'
+                ? Carbon::parse($exp->end_to)
+                : now();
+
             $totalDays += $start->diffInDays($end);
         }
 
         $years = floor($totalDays / 365);
         $months = floor(($totalDays % 365) / 30);
-        $days = $totalDays % 30;
+        // $days = $totalDays % 30; // optional
 
         return "$years years, $months months";
     }
+
+    public function payments()
+    {
+        return $this->hasMany(PaymentHistory::class);
+    }
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+            ->where('user_type', 'jobseeker')
+            ->where('doc_type', 'profile_picture');
+    }
+    
 
 }

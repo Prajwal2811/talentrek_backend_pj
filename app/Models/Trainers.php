@@ -18,17 +18,26 @@ class Trainers extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'gender',
         'phone_code',
         'phone_number',
         'password',
         'pass',
         'date_of_birth',
+        'address',
         'city',
+        'state',
+        'country',
+        'pin_code',
+        'national_id',
         'otp',
         'status',
         'admin_status',
         'inactive_reason',
         'rejection_reason',
+        'is_registered',
+        'isSubscribtionBuy',
+        'active_subscription_plan_id'
     ];
 
     /**
@@ -74,5 +83,13 @@ class Trainers extends Authenticatable
     {
         return $this->hasMany(TrainingBatch::class, 'trainer_id');
        
+    }
+
+
+    public function profilePicture()
+    {
+        return $this->hasOne(AdditionalInfo::class, 'user_id')
+                    ->where('user_type', 'trainer')
+                    ->where('doc_type', 'trainer_profile_picture');
     }
 }

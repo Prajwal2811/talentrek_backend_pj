@@ -49,15 +49,30 @@
                                     </div>
 
                                     <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Passing Percentage</label>
-                                            <input type="text" class="form-control" value="{{ $assessment->passing_percentage }}%" readonly>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Passing Percentage</label>
+                                                <input type="text" class="form-control" value="{{ $assessment->passing_percentage }}%" readonly>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Assigned Course</label>
+                                                <input type="text" class="form-control" value="{{ $assessment->course->title ?? 'N/A' }}" readonly>
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Assinged Course</label>
-                                            <input type="text" class="form-control" value="{{ $assessment->course->title ?? 'N/A' }}" readonly>
+
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Time Per Question (In Minutes)</label>
+                                                <input type="text" class="form-control" value="{{ $assessment->time_per_question ? $assessment->time_per_question.' min' : 'N/A' }}" readonly>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Total Time (In Minutes)</label>
+                                                <input type="text" class="form-control" 
+                                                    value="{{ $assessment->time_per_question && $assessment->total_questions 
+                                                                ? ($assessment->time_per_question * $assessment->total_questions).' min' 
+                                                                : 'N/A' }}" 
+                                                    readonly>
+                                            </div>
                                         </div>
-                                    </div>
 
                                     <div class="row mb-3">
                                         <div class="col-md-12">

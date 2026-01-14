@@ -17,3 +17,16 @@
     </div>
 
     @include('admin.componants.footer')
+
+
+
+
+
+
+
+
+
+
+
+
+    

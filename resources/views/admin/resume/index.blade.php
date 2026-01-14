@@ -37,57 +37,58 @@
                                         <input type="hidden" name="id" value="{{ $format->id ?? '' }}">
                                         <div class="row">
                                             <div class="form-group c_form_group col-md-12">
-                                                <label>Resume Format</label>
-                                                <input type="file" class="form-control-file" name="resume" accept=".pdf,.doc,.docx" onchange="handleFilePreview(this)">
+                                                <!-- RichTextEditor -->
+                                                <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
+                                                <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
+                                                <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
+                                                <!-- Description -->
+                                                <div class="form-group c_form_group col-md-12">
+                                                    <label>Resume Format (HTML content)</label>
+                                                    <textarea id="div_editor1" name="resume">{{ old('resume', $format->resume) }}</textarea>
+                                                    @error('resume') <small class="text-danger">{{ $message }}</small> @enderror
+                                                </div>
+                                                <script>
+                                                    var editor1 = new RichTextEditor("#div_editor1");
+                                                </script>
                                                 @error('resume')
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
-                                                <div class="mt-2">
-                                                    @if(!empty($format->resume))
-                                                        <a href="{{ asset($format->resume) }}" target="_blank" class="btn btn-sm btn-primary">
-                                                            <i class="fa fa-eye" aria-hidden="true"></i> View Uploaded Format
-                                                        </a>
-                                                    @endif
-                                                </div>
-                                                <div id="file-preview" class="mt-3" style="display:none;">
-                                                    <embed id="pdf-preview" type="application/pdf" width="100%" height="400px" style="display:none;" />
-                                                    <div id="unsupported-preview" class="text-muted" style="display:none;">Preview not available for this file type. Please upload a PDF to preview.</div>
-                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <h2 class="mb-0">Resume Template CV</h2>
+
+                                                @if(!empty($resume->resume_file_path))
+                                                    <a href="{{ asset($resume->resume_file_path) }}" 
+                                                    target="_blank" 
+                                                    class="btn btn-secondary btn-sm"
+                                                    style="font-size: 12px; padding: 3px 10px; border-radius: 6px;">
+                                                        View Resume Template CV
+                                                    </a>
+                                                @endif
                                             </div>
 
+
+
+
+
+                                            <div class="form-group c_form_group col-md-12 mt-3">
+                                                <label for="resume_file">Upload Resume File (PDF/DOC/DOCX)</label>
+                                                <input type="file" class="form-control" name="resume_file" id="resume_file" 
+                                                    accept=".pdf,.doc,.docx">
+                                                @error('resume_file') 
+                                                    <small class="text-danger">{{ $message }}</small> 
+                                                @enderror
+                                            </div>
+                                            
                                             <div class="col-md-12 mt-3">
                                                 <button type="submit" class="btn btn-primary theme-bg">Save Files</button>
                                             </div>
                                         </div>
+                                          <!-- File Upload -->
+                                        
                                     </form>
 
-                                    <script>
-                                        function handleFilePreview(input) {
-                                            const file = input.files[0];
-                                            const previewDiv = document.getElementById('file-preview');
-                                            const pdfPreview = document.getElementById('pdf-preview');
-                                            const unsupported = document.getElementById('unsupported-preview');
-
-                                            if (!file) return;
-
-                                            const fileType = file.type;
-
-                                            previewDiv.style.display = 'block';
-
-                                            if (fileType === 'application/pdf') {
-                                                const reader = new FileReader();
-                                                reader.onload = function (e) {
-                                                    pdfPreview.src = e.target.result;
-                                                    pdfPreview.style.display = 'block';
-                                                    unsupported.style.display = 'none';
-                                                };
-                                                reader.readAsDataURL(file);
-                                            } else {
-                                                pdfPreview.style.display = 'none';
-                                                unsupported.style.display = 'block';
-                                            }
-                                        }
-                                    </script>
+                                    
                                 </div>
 
 

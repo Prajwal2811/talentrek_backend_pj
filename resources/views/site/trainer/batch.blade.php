@@ -11,7 +11,10 @@
         </div>
     </div>
 
-	
+	 @if($trainerNeedsSubscription)
+        @include('site.trainer.subscription.index')
+    @endif
+    
     <div class="page-wraper">
         <div class="flex h-screen" x-data="{ sidebarOpen: true }" x-init="$watch('sidebarOpen', () => feather.replace())">
           
@@ -55,7 +58,7 @@
                         <a href="#" role="button"
                             class="inline-flex items-center space-x-1 border border-blue-600 bg-blue-600 text-white rounded-md px-3 py-1.5 transition">
                         <i class="fa fa-user-circle" aria-hidden="true"></i>
-                            <span> Profile</span>
+                            <span> {{ langLabel('profile') }}</span>
                         </a>
                     </div>
                     </div>
@@ -68,13 +71,13 @@
                     <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100 text-gray-700">
                             <tr>
-                                <th class="px-6 py-3">Sr. No.</th>
-                                <th class="px-6 py-3">Session Type</th>
-                                <th class="px-6 py-3">Batch Name</th>
-                                <th class="px-6 py-3">Course Name</th>
-                                <th class="px-6 py-3">Enrolled Students</th>
-                                <th class="px-6 py-3">Date</th>
-                                <th class="px-6 py-3">Time</th>
+                                <th class="px-6 py-3">{{ langLabel('sr_no') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('session_type') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('batch_name') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('course_name') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('enrolled_students') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('date') }}</th>
+                                <th class="px-6 py-3">{{ langLabel('time') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -93,7 +96,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-4 text-center">No batches found.</td>
+                                    <td colspan="8" class="px-6 py-4 text-center">{{ langLabel('no_batch_found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -178,7 +181,7 @@
                         createPagination();
                         showPage(1);
                     } else {
-                        $('#batchPagination').html('<p class="text-center text-gray-500">No batches found.</p>');
+                        $('#batchPagination').html('<p class="text-center text-gray-500">{{ langLabel("no_batch_found") }}</p>');
                     }
                 });
                 </script>
@@ -202,35 +205,4 @@
 
 
           
-
-
-<script  src="js/jquery-3.6.0.min.js"></script><!-- JQUERY.MIN JS -->
-<script  src="js/popper.min.js"></script><!-- POPPER.MIN JS -->
-<script  src="js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
-<script  src="js/magnific-popup.min.js"></script><!-- MAGNIFIC-POPUP JS -->
-<script  src="js/waypoints.min.js"></script><!-- WAYPOINTS JS -->
-<script  src="js/counterup.min.js"></script><!-- COUNTERUP JS -->
-<script  src="js/waypoints-sticky.min.js"></script><!-- STICKY HEADER -->
-<script  src="js/isotope.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/imagesloaded.pkgd.min.js"></script><!-- MASONRY  -->
-<script  src="js/owl.carousel.min.js"></script><!-- OWL  SLIDER  -->
-<script  src="js/theia-sticky-sidebar.js"></script><!-- STICKY SIDEBAR  -->
-<script  src="js/lc_lightbox.lite.js" ></script><!-- IMAGE POPUP -->
-<script  src="js/bootstrap-select.min.js"></script><!-- Form js -->
-<script  src="js/dropzone.js"></script><!-- IMAGE UPLOAD  -->
-<script  src="js/jquery.scrollbar.js"></script><!-- scroller -->
-<script  src="js/bootstrap-datepicker.js"></script><!-- scroller -->
-<script  src="js/jquery.dataTables.min.js"></script><!-- Datatable -->
-<script  src="js/dataTables.bootstrap5.min.js"></script><!-- Datatable -->
-<script  src="js/chart.js"></script><!-- Chart -->
-<script  src="js/bootstrap-slider.min.js"></script><!-- Price range slider -->
-<script  src="js/swiper-bundle.min.js"></script><!-- Swiper JS -->
-<script  src="js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
-<script  src="js/switcher.js"></script><!-- SHORTCODE FUCTIONS  -->
-
-
-</body>
-
-
-<!-- Mirrored from thewebmax.org/jobzilla/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 20 May 2025 07:18:30 GMT -->
-</html>
+@include('site.trainer.componants.footer')

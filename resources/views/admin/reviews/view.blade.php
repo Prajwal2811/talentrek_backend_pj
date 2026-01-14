@@ -14,7 +14,7 @@
                         <div class="row clearfix">
                             <div class="col-xl-5 col-md-5 col-sm-12">
                                 <h1>Hi, {{  Auth()->user()->name }}!</h1>
-                                <span>JustDo Admin Edit,</span>
+                                <span>JustDo Review Management,</span>
                             </div>
                             
                         </div>
@@ -23,7 +23,7 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="header">
-                                    <h2>Admin Edit</h2>
+                                    <h2>Review Management</h2>
                                 </div>
                                 <div class="body">
                                     <div class="row">
@@ -47,6 +47,17 @@
                                             <input type="text" class="form-control" value="{{ $revieweeName }}" readonly>
                                         </div>
                                     </div>
+
+                                    @if($review->user_type === 'trainer')
+                                        <div class="row">
+                                            <!-- Tranining material Name -->
+                                            <div class="form-group c_form_group col-md-6">
+                                                <label>Tranining material</label>
+                                                <input type="text" class="form-control" value="{{ $materialTitle }}" readonly>
+                                            </div>
+                                        </div>
+                                    @endif
+
 
                                     <!-- Review Text -->
                                     <div class="form-group c_form_group">

@@ -34,7 +34,8 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Sr. No.</th>
-                                                        <th>Title</th>
+                                                        <th>Assessment Title</th>
+                                                        <th>Course Name</th>
                                                         <th>Level</th>
                                                         <th>View</th>
                                                     </tr>
@@ -42,7 +43,8 @@
                                                 <tfoot>
                                                     <tr>
                                                         <th>Sr. No.</th>
-                                                        <th>Title</th>
+                                                        <th>Assessment Title</th>
+                                                        <th>Course Name</th>
                                                         <th>Level</th>
                                                         <th>View</th>
                                                     </tr>
@@ -51,8 +53,8 @@
                                                         @foreach ($assessments as $index => $course)
                                                             <tr>
                                                                 <td>{{ $loop->iteration }}</td>
-
                                                                 <td>{{ $course->assessment_title }}</td>
+                                                                <td>{{ $course->training_title }}</td>
                                                                 <td>{{ $course->assessment_level }}</td>
                                                                 <td>
                                                                     <a href="{{ route('admin.trainer.training-assessment.view', [$course->trainer_id, $course->id]) }}" class="btn btn-sm btn-primary">
